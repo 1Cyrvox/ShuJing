@@ -8,10 +8,10 @@
 </p>
 
 <p align="center">
-  <b><a href="https://shujing.aipaikj.top">文档</a></b> ·
-  <a href="https://shujing.aipaikj.top/user-guide/quickstart/">快速开始</a> ·
-  <a href="https://shujing.aipaikj.top/gallery/">示例画廊</a> ·
-  <a href="https://shujing.aipaikj.top/reference/">API 参考</a>
+  <b><a href="https://aipaikj.top">文档</a></b> ·
+  <a href="https://aipaikj.top/user-guide/quickstart/">快速开始</a> ·
+  <a href="https://aipaikj.top/gallery/">示例画廊</a> ·
+  <a href="https://aipaikj.top/reference/">API 参考</a>
 </p>
 
 <p align="center">
@@ -22,24 +22,24 @@
 </p>
 
 <p align="center">
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/quadratic_formula.py"><img alt="二次公式：移动彩色矩形完成配方" src="shujing/zensite2/content/showcase/quadratic_formula.gif" width="32%"></a>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/fourier_pi.py"><img alt="傅里叶级数：旋转箭头链画出 π 的轮廓" src="shujing/zensite2/content/showcase/fourier_pi.gif" width="32%"></a>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/linear_maps.py"><img alt="矩阵变换平面：网格与基向量一起变换" src="shujing/zensite2/content/showcase/linear_maps.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/quadratic_formula.py"><img alt="二次公式：移动彩色矩形完成配方" src="shujing/zensite2/content/showcase/quadratic_formula.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/fourier_pi.py"><img alt="傅里叶级数：旋转箭头链画出 π 的轮廓" src="shujing/zensite2/content/showcase/fourier_pi.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/linear_maps.py"><img alt="矩阵变换平面：网格与基向量一起变换" src="shujing/zensite2/content/showcase/linear_maps.gif" width="32%"></a>
   <br>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/derivative.py"><img alt="切线沿曲线滑动，斜率描绘导数" src="shujing/zensite2/content/showcase/derivative.gif" width="32%"></a>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/complex_maps.py"><img alt="复函数将网格弯折成抛物线与圆" src="shujing/zensite2/content/showcase/complex_maps.gif" width="32%"></a>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/lorenz_attractor.py"><img alt="洛伦兹吸引子：轨迹在三维空间中呈蝴蝶形" src="shujing/zensite2/content/showcase/lorenz_attractor.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/derivative.py"><img alt="切线沿曲线滑动，斜率描绘导数" src="shujing/zensite2/content/showcase/derivative.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/complex_maps.py"><img alt="复函数将网格弯折成抛物线与圆" src="shujing/zensite2/content/showcase/complex_maps.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/lorenz_attractor.py"><img alt="洛伦兹吸引子：轨迹在三维空间中呈蝴蝶形" src="shujing/zensite2/content/showcase/lorenz_attractor.gif" width="32%"></a>
   <br>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/heavy_top.py"><img alt="三个陀螺进动与章动" src="shujing/zensite2/content/showcase/heavy_top.gif" width="32%"></a>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/hopf_fibration.py"><img alt="霍普夫纤维化：彩色相连圆环形成嵌套环面" src="shujing/zensite2/content/showcase/hopf_fibration.gif" width="32%"></a>
-  <a href="https://gitee.com/feifu/shu-jing/blob/main/examples/catenoid_helicoid.py"><img alt="螺旋面弯曲成悬链面" src="shujing/zensite2/content/showcase/catenoid_helicoid.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/heavy_top.py"><img alt="三个陀螺进动与章动" src="shujing/zensite2/content/showcase/heavy_top.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/hopf_fibration.py"><img alt="霍普夫纤维化：彩色相连圆环形成嵌套环面" src="shujing/zensite2/content/showcase/hopf_fibration.gif" width="32%"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/examples/catenoid_helicoid.py"><img alt="螺旋面弯曲成悬链面" src="shujing/zensite2/content/showcase/catenoid_helicoid.gif" width="32%"></a>
 </p>
 
 ---
 
 ## 性能
 
-**36.2 秒的视频，仅需 3.08 秒渲染。** 在 Apple M4 Pro 上以 1080p60 渲染五个场景，数境（基于 ManimGX 引擎）比 **ManimCE 快 90.6 倍**，比 **ManimGL 快 11.5 倍**，比 **Blender Workbench 快 18.7 倍**（从启动到生成 MP4）。[测量方法](https://gitee.com/feifu/shu-jing/tree/main/benchmarks)。
+**36.2 秒的视频，仅需 3.08 秒渲染。** 在 Apple M4 Pro 上以 1080p60 渲染五个场景，数境（基于 ManimGX 引擎）比 **ManimCE 快 90.6 倍**，比 **ManimGL 快 11.5 倍**，比 **Blender Workbench 快 18.7 倍**（从启动到生成 MP4）。[测量方法](https://github.com/1Cyrvox/ShuJing/tree/main/benchmarks)。
 
 <figure class="mx-benchmark">
   <picture>
@@ -66,12 +66,12 @@
 pip install manimgx
 ```
 
-字体、排版和视频编码已全部内置，无需额外配置。编辑器配置与引导式首次动画请见[快速开始](https://shujing.aipaikj.top/user-guide/quickstart/)。
+字体、排版和视频编码已全部内置，无需额外配置。编辑器配置与引导式首次动画请见[快速开始](https://aipaikj.top/user-guide/quickstart/)。
 
 **用 AI 助手。** 粘贴到 Claude Code、Codex 或 Cursor 中，AI 助手自动完成安装：
 
 ```text
-Follow https://shujing.aipaikj.top/llms.txt.
+Follow https://aipaikj.top/llms.txt.
 安装数境，制作一个太阳系 3D 动画并打开。
 ```
 
@@ -110,25 +110,25 @@ manimgx render scene.py
 
 - **完全静态类型。** 关键字参数和 `.animate` 链全部有类型标注。
 - **2D 与 3D 统一。** 曲面、网格和移动相机，与文本、方程和图表并存。
-- **浏览器中运行。** `npm install manimgx`，[Pyodide](https://pyodide.org) 运行 Python，WebGPU 渲染场景，[嵌入网页](https://shujing.aipaikj.top/user-guide/rendering/#embed-in-a-web-page)无需渲染服务器。
-- **AI 助手反馈。** [`manimgx inspect`](https://shujing.aipaikj.top/user-guide/rendering/#inspect)：故事板和 2D 布局检查。
+- **浏览器中运行。** `npm install manimgx`，[Pyodide](https://pyodide.org) 运行 Python，WebGPU 渲染场景，[嵌入网页](https://aipaikj.top/user-guide/rendering/#embed-in-a-web-page)无需渲染服务器。
+- **AI 助手反馈。** [`manimgx inspect`](https://aipaikj.top/user-guide/rendering/#inspect)：故事板和 2D 布局检查。
 - **文本与数学。** 支持 LaTeX 和 Typst，无需安装 LaTeX。
-- **语音同步。** 用 `self.say()` [将动画与语音对齐](https://shujing.aipaikj.top/user-guide/sound-and-voice/)。
+- **语音同步。** 用 `self.say()` [将动画与语音对齐](https://aipaikj.top/user-guide/sound-and-voice/)。
 - **中文优先。** 中文数学公式排版、中文教学模板、完整中文文档。
 
 ---
 
 ## 文档
 
-**[shujing.aipaikj.top](https://shujing.aipaikj.top)** 提供完整中文文档、渲染示例与 API 参考：
+**[aipaikj.top](https://aipaikj.top)** 提供完整中文文档、渲染示例与 API 参考：
 
-- [快速开始](https://shujing.aipaikj.top/user-guide/quickstart/)：安装、配置编辑器、渲染第一个动画。
-- [用户指南](https://shujing.aipaikj.top/user-guide/the-basics/)：逐步学习场景、动画、3D、文本与声音。
-- [示例画廊](https://shujing.aipaikj.top/gallery/)：观看完整动画影片并阅读源代码。
-- [API 参考](https://shujing.aipaikj.top/reference/)：查询类、方法及其类型化参数。
-- [从 Manim CE 迁移](https://shujing.aipaikj.top/user-guide/coming-from-manim-ce/)：适配现有场景，检查行为差异。
+- [快速开始](https://aipaikj.top/user-guide/quickstart/)：安装、配置编辑器、渲染第一个动画。
+- [用户指南](https://aipaikj.top/user-guide/the-basics/)：逐步学习场景、动画、3D、文本与声音。
+- [示例画廊](https://aipaikj.top/gallery/)：观看完整动画影片并阅读源代码。
+- [API 参考](https://aipaikj.top/reference/)：查询类、方法及其类型化参数。
+- [从 Manim CE 迁移](https://aipaikj.top/user-guide/coming-from-manim-ce/)：适配现有场景，检查行为差异。
 
-AI 助手可读取 [llms.txt](https://shujing.aipaikj.top/llms.txt) 获取安装说明与文档链接。
+AI 助手可读取 [llms.txt](https://aipaikj.top/llms.txt) 获取安装说明与文档链接。
 
 ---
 
@@ -154,7 +154,7 @@ Rust 渲染器使用 [wgpu](https://wgpu.rs) 进行原生 GPU 渲染和浏览器
 
 ### 链接
 
-[更新日志](https://shujing.aipaikj.top/changelog/) ·
+[更新日志](https://aipaikj.top/changelog/) ·
 [引用本项目](https://github.com/1Cyrvox/ShuJing/blob/main/CITATION.cff) ·
 [行为准则](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CODE_OF_CONDUCT.md) ·
 [安全政策](https://github.com/1Cyrvox/ShuJing/blob/main/.github/SECURITY.md)
@@ -163,16 +163,16 @@ Rust 渲染器使用 [wgpu](https://wgpu.rs) 进行原生 GPU 渲染和浏览器
 
 ## 许可证
 
-**代码**：继承上游 [MIT 许可证](https://gitee.com/feifu/shu-jing/blob/main/LICENSE)。原生 wheels 包含 x264，整体为 GPL-3.0-or-later。
+**代码**：继承上游 [MIT 许可证](https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE)。原生 wheels 包含 x264，整体为 GPL-3.0-or-later。
 
 **文档**：采用 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 许可证。
 
 捆绑组件保留各自许可证，详见：
-- [第三方声明](https://gitee.com/feifu/shu-jing/blob/main/LICENSE-THIRD-PARTY)
-- [Linux 渲染器声明](https://gitee.com/feifu/shu-jing/blob/main/LICENSE-LAVAPIPE)
-- [Noto 字体](https://gitee.com/feifu/shu-jing/blob/main/fonts/manimgx-fonts/LICENSE) / [Noto CJK 字体](https://gitee.com/feifu/shu-jing/blob/main/fonts/manimgx-fonts-cjk/LICENSE)
+- [第三方声明](https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE-THIRD-PARTY)
+- [Linux 渲染器声明](https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE-LAVAPIPE)
+- [Noto 字体](https://github.com/1Cyrvox/ShuJing/blob/main/fonts/manimgx-fonts/LICENSE) / [Noto CJK 字体](https://github.com/1Cyrvox/ShuJing/blob/main/fonts/manimgx-fonts-cjk/LICENSE)
 
-本软件使用 [FFmpeg](https://ffmpeg.org) 的代码，基于 [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) 许可证。完整源代码（含 FFmpeg）见各 [Gitee Release](https://gitee.com/feifu/shu-jing/releases) 中的 `manimgx-X.Y.Z-source.tar.xz`。
+本软件使用 [FFmpeg](https://ffmpeg.org) 的代码，基于 [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) 许可证。完整源代码（含 FFmpeg）见各 [Gitee Release](https://github.com/1Cyrvox/ShuJing/releases) 中的 `manimgx-X.Y.Z-source.tar.xz`。
 
 ---
 
