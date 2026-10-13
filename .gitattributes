@@ -1,0 +1,7 @@
+# Source fingerprints identify the same bytes on every checkout, including Windows.
+# Git detects binary files and leaves their bytes intact.
+* text=auto eol=lf
+# 数境修改的文件：从上游 merge 时保留本地版本，不自动采纳上游变更
+# 之后可用 git diff HEAD upstream/main -- <文件> 手动查看上游变更并决定是否采纳
+README.md merge=ours
+pyproject.toml merge=ours
