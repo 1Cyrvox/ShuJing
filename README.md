@@ -26,24 +26,24 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/quadratic_formula.py"><img alt="二次公式：移动彩色矩形完成配方" src="shujing/zensite2/content/showcase/quadratic_formula.gif" width="32%"></a>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/fourier_pi.py"><img alt="傅里叶级数：旋转箭头链画出 π 的轮廓" src="shujing/zensite2/content/showcase/fourier_pi.gif" width="32%"></a>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/linear_maps.py"><img alt="矩阵变换平面：网格与基向量一起变换" src="shujing/zensite2/content/showcase/linear_maps.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/quadratic_formula.py"><img alt="二次公式：移动彩色矩形完成配方" src="shujing/zensite2/content/showcase/quadratic_formula.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/fourier_pi.py"><img alt="傅里叶级数：旋转箭头链画出 π 的轮廓" src="shujing/zensite2/content/showcase/fourier_pi.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/linear_maps.py"><img alt="矩阵变换平面：网格与基向量一起变换" src="shujing/zensite2/content/showcase/linear_maps.gif" width="32%"></a>
   <br>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/derivative.py"><img alt="切线沿曲线滑动，斜率描绘导数" src="shujing/zensite2/content/showcase/derivative.gif" width="32%"></a>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/complex_maps.py"><img alt="复函数将网格弯折成抛物线与圆" src="shujing/zensite2/content/showcase/complex_maps.gif" width="32%"></a>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/lorenz_attractor.py"><img alt="洛伦兹吸引子：轨迹在三维空间中呈蝴蝶形" src="shujing/zensite2/content/showcase/lorenz_attractor.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/derivative.py"><img alt="切线沿曲线滑动，斜率描绘导数" src="shujing/zensite2/content/showcase/derivative.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/complex_maps.py"><img alt="复函数将网格弯折成抛物线与圆" src="shujing/zensite2/content/showcase/complex_maps.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/lorenz_attractor.py"><img alt="洛伦兹吸引子：轨迹在三维空间中呈蝴蝶形" src="shujing/zensite2/content/showcase/lorenz_attractor.gif" width="32%"></a>
   <br>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/heavy_top.py"><img alt="三个陀螺进动与章动" src="shujing/zensite2/content/showcase/heavy_top.gif" width="32%"></a>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/hopf_fibration.py"><img alt="霍普夫纤维化：彩色相连圆环形成嵌套环面" src="shujing/zensite2/content/showcase/hopf_fibration.gif" width="32%"></a>
-  <a href="https://github.com/academa-labs/manimgx/blob/main/examples/catenoid_helicoid.py"><img alt="螺旋面弯曲成悬链面" src="shujing/zensite2/content/showcase/catenoid_helicoid.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/heavy_top.py"><img alt="三个陀螺进动与章动" src="shujing/zensite2/content/showcase/heavy_top.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/hopf_fibration.py"><img alt="霍普夫纤维化：彩色相连圆环形成嵌套环面" src="shujing/zensite2/content/showcase/hopf_fibration.gif" width="32%"></a>
+  <a href="https://gitee.com/feifu/ShuJing/blob/main/examples/catenoid_helicoid.py"><img alt="螺旋面弯曲成悬链面" src="shujing/zensite2/content/showcase/catenoid_helicoid.gif" width="32%"></a>
 </p>
 
 ---
 
 ## 性能
 
-**36.2 秒的视频，仅需 3.08 秒渲染。** 在 Apple M4 Pro 上以 1080p60 渲染五个场景，数境（基于 ManimGX 引擎）比 **ManimCE 快 90.6 倍**，比 **ManimGL 快 11.5 倍**，比 **Blender Workbench 快 18.7 倍**（从启动到生成 MP4）。[测量方法](https://github.com/academa-labs/manimgx/tree/main/benchmarks)。
+**36.2 秒的视频，仅需 3.08 秒渲染。** 在 Apple M4 Pro 上以 1080p60 渲染五个场景，数境（基于 ManimGX 引擎）比 **ManimCE 快 90.6 倍**，比 **ManimGL 快 11.5 倍**，比 **Blender Workbench 快 18.7 倍**（从启动到生成 MP4）。[测量方法](https://gitee.com/feifu/ShuJing/tree/main/benchmarks)。
 
 <figure class="mx-benchmark">
   <picture>
@@ -167,16 +167,16 @@ Rust 渲染器使用 [wgpu](https://wgpu.rs) 进行原生 GPU 渲染和浏览器
 
 ## 许可证
 
-**代码**：继承上游 [MIT 许可证](https://github.com/academa-labs/manimgx/blob/main/LICENSE)。原生 wheels 包含 x264，整体为 GPL-3.0-or-later。
+**代码**：继承上游 [MIT 许可证](https://gitee.com/feifu/ShuJing/blob/main/LICENSE)。原生 wheels 包含 x264，整体为 GPL-3.0-or-later。
 
 **文档**：采用 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 许可证。
 
 捆绑组件保留各自许可证，详见：
-- [第三方声明](https://github.com/academa-labs/manimgx/blob/main/LICENSE-THIRD-PARTY)
-- [Linux 渲染器声明](https://github.com/academa-labs/manimgx/blob/main/LICENSE-LAVAPIPE)
-- [Noto 字体](https://github.com/academa-labs/manimgx/blob/main/fonts/manimgx-fonts/LICENSE) / [Noto CJK 字体](https://github.com/academa-labs/manimgx/blob/main/fonts/manimgx-fonts-cjk/LICENSE)
+- [第三方声明](https://gitee.com/feifu/ShuJing/blob/main/LICENSE-THIRD-PARTY)
+- [Linux 渲染器声明](https://gitee.com/feifu/ShuJing/blob/main/LICENSE-LAVAPIPE)
+- [Noto 字体](https://gitee.com/feifu/ShuJing/blob/main/fonts/manimgx-fonts/LICENSE) / [Noto CJK 字体](https://gitee.com/feifu/ShuJing/blob/main/fonts/manimgx-fonts-cjk/LICENSE)
 
-本软件使用 [FFmpeg](https://ffmpeg.org) 的代码，基于 [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) 许可证。完整源代码（含 FFmpeg）见各 [GitHub Release](https://github.com/academa-labs/manimgx/releases) 中的 `manimgx-X.Y.Z-source.tar.xz`。
+本软件使用 [FFmpeg](https://ffmpeg.org) 的代码，基于 [LGPL-2.1-or-later](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) 许可证。完整源代码（含 FFmpeg）见各 [Gitee Release](https://gitee.com/feifu/ShuJing/releases) 中的 `manimgx-X.Y.Z-source.tar.xz`。
 
 ---
 
