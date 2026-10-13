@@ -1,6 +1,6 @@
 <!--
 Thank you! Please read the contributing guide first:
-https://github.com/academa-labs/manimgx/blob/main/.github/CONTRIBUTING.md
+https://github.com/1Cyrvox/ShuJing/blob/main/.github/CONTRIBUTING.md
 -->
 
 ## Summary

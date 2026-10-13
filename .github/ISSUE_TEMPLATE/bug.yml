@@ -5,9 +5,9 @@ body:
   - type: markdown
     attributes:
       value: >-
-        Please [search the issues](https://github.com/academa-labs/manimgx/issues?q=is%3Aissue)
+        Please [search the issues](https://github.com/1Cyrvox/ShuJing/issues?q=is%3Aissue)
         first. To report a security vulnerability, don't open an issue: follow the
-        [security policy](https://github.com/academa-labs/manimgx/security/policy).
+        [security policy](https://github.com/1Cyrvox/ShuJing/security/policy).
   - type: textarea
     id: problem
     attributes:

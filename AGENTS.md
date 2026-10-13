@@ -4,7 +4,7 @@ ManimGX is an animation engine with Manim Community Edition's API. The Python pa
 (`src/manimgx`) is typed throughout; the engine under it (`rust/engine`,
 built by maturin into `manimgx._engine`) typesets text with Typst, draws on the GPU with wgpu,
 and encodes video with x264. Setup and conventions are in the Developer Guide
-(`docs/content/developer-guide/`, published at https://manimgx.academa.ai/developer-guide/);
+(`docs/content/developer-guide/`, published at https://aipaikj.top/developer-guide/);
 this is the short version.
 
 ## Commands
@@ -111,5 +111,5 @@ is published apart from it has a folder of its own, with its own tests.
   (`gallery.py`). `showcase/`: the README's pictures (committed), the logo (`logo.py`: the
   banner, the header's, the favicon) and the wall of films (`wall.py`). `engine/`: the DFG
   table the engine is compiled with (`dfg_table.py`).
-- `skills/manimgx/`: the agent skill, which `npx skills add academa-labs/manimgx` installs;
+- `skills/manimgx/`: the agent skill, which `npx skills add 1Cyrvox/ShuJing` installs;
   `tests/docs/test_skill.py` checks its front matter.

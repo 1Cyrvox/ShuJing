@@ -51,8 +51,8 @@ dependencies = [
 manimgx = "manimgx.cli:main"
 
 [project.urls]
-Documentation = "https://manimgx.academa.ai/"
-Repository = "https://github.com/academa-labs/manimgx"
+Documentation = "https://aipaikj.top/"
+Repository = "https://github.com/1Cyrvox/ShuJing"
 
 [build-system]
 requires = ["maturin>=1.15.0,<2.0"]

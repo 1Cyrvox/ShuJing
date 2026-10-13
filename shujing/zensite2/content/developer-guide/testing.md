@@ -217,7 +217,7 @@ CI 在测试之前解析最新稳定的 GitHub 发布，并在测试 worker 共�
 
 Test 工作流合并其运行的覆盖率并发布报告，由 Cloudflare 服务，如
 [`.github/deploy/coverage.jsonc`](https://github.com/academa-labs/manimgx/blob/main/.github/deploy/coverage.jsonc)
-所述：`main` 的在 <https://coverage.manimgx.academa.ai>，pull request 的（来自本仓库分支）在预览地址，每个提交的从其"coverage"状态链接。
+所述：`main` 的在 <https://coverage.aipaikj.top>，pull request 的（来自本仓库分支）在预览地址，每个提交的从其"coverage"状态链接。
 
 ## 基准测试
 

@@ -4,16 +4,16 @@ Thank you for helping. ManimGX is developed and maintained by [Academa](https://
 its maintainers review every change, and decide what is merged and where the project goes.
 
 This page is how to take part. How ManimGX works, and how to set it up, change it and test it,
-is in the [Developer Guide](https://manimgx.academa.ai/developer-guide/).
+is in the [Developer Guide](https://aipaikj.top/developer-guide/).
 
 ## Issues
 
-Everything starts as an [issue](https://github.com/academa-labs/manimgx/issues/new/choose):
+Everything starts as an [issue](https://github.com/1Cyrvox/ShuJing/issues/new/choose):
 bugs, feature requests, problems in the docs, and questions. Search the existing issues first,
 then pick the form that fits.
 
 To report a security vulnerability, don't open an issue: follow the
-[security policy](https://github.com/academa-labs/manimgx/blob/main/.github/SECURITY.md).
+[security policy](https://github.com/1Cyrvox/ShuJing/blob/main/.github/SECURITY.md).
 
 ## Before you start
 
@@ -29,16 +29,16 @@ reason to look closely, not a reason to change ManimGX.
 
 The Developer Guide has everything a change needs:
 
-- [Setup](https://manimgx.academa.ai/developer-guide/): the tools, the system libraries and
+- [Setup](https://aipaikj.top/developer-guide/): the tools, the system libraries and
   the GPU, and the environment, from a clone to a passing test run.
-- [Project management](https://manimgx.academa.ai/developer-guide/project-management/): the
+- [Project management](https://aipaikj.top/developer-guide/project-management/): the
   configuration, the checks, and the rules for typing and formatting.
-- [Understanding ManimGX](https://manimgx.academa.ai/developer-guide/understanding-manimgx/)
-  and [the engine](https://manimgx.academa.ai/developer-guide/engine/): how a scene becomes a
+- [Understanding ManimGX](https://aipaikj.top/developer-guide/understanding-manimgx/)
+  and [the engine](https://aipaikj.top/developer-guide/engine/): how a scene becomes a
   video.
-- [Testing](https://manimgx.academa.ai/developer-guide/testing/): the tests, the integration
+- [Testing](https://aipaikj.top/developer-guide/testing/): the tests, the integration
   corpus and its review panel.
-- [Documentation](https://manimgx.academa.ai/developer-guide/documentation/): the docs site,
+- [Documentation](https://aipaikj.top/developer-guide/documentation/): the docs site,
   the docstrings its reference is generated from, and the changelog.
 
 ## Pull requests
@@ -66,9 +66,9 @@ AI tools are welcome, and you are still the author:
 ## License
 
 By contributing, you agree that your contributions are licensed under ManimGX's
-[MIT License](https://github.com/academa-labs/manimgx/blob/main/LICENSE).
+[MIT License](https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE).
 
 ## Code of conduct
 
 Everyone taking part in ManimGX follows its
-[code of conduct](https://github.com/academa-labs/manimgx/blob/main/.github/CODE_OF_CONDUCT.md).
+[code of conduct](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CODE_OF_CONDUCT.md).

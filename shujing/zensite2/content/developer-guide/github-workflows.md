@@ -44,7 +44,7 @@
 5. **合并覆盖率**，即使测试作业失败：`just combine-coverage` 将作业数据合并为一份报告，其表格进入运行的摘要。报告保留，带覆盖率徽章的数据（`badge.json`）。
 6. **发布覆盖率**，为 `main` 的推送和来自仓库分支的 pull request：到 Worker `manimgx-coverage`
    （[`.github/deploy/coverage.jsonc`](https://github.com/academa-labs/manimgx/blob/main/.github/deploy/coverage.jsonc)）。
-   `main` 的报告在 <https://coverage.manimgx.academa.ai> 服务。每个提交的报告也是其自己的预览部署（在预览 `main` 或 `pr-<number>` 中），提交的"coverage"状态链接到它。
+   `main` 的报告在 <https://coverage.aipaikj.top> 服务。每个提交的报告也是其自己的预览部署（在预览 `main` 或 `pr-<number>` 中），提交的"coverage"状态链接到它。
 
 ### 2. [`benchmark.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/benchmark.yaml)：定时基准测试
 
@@ -67,7 +67,7 @@
 
 1. **构建**，在 macOS 上，除 pull request 关闭外的每次运行：检查文档的 JavaScript 交互和参考声明，恢复已验证的影片缓存条目，运行 `just render-docs`，保存完成的影片，然后运行 `just build-docs-pages`。Metal 绘制示例；旁白示例从 `docs/voice/` 说话，因此无需语音密钥。构建的 `docs/site/` 保留七天。部署配置从受信任的基线提交单独检出，因此构建不能为带凭据的作业提供要执行的命令。
 2. **部署**，从 `main`（推送或手动运行）：用 `wrangler deploy --config .github/deploy/docs.jsonc` 将构建的内容部署到 Cloudflare Workers，提交哈希作为其消息。`docs` 环境显示站点地址，
-   <https://manimgx.academa.ai>。
+   <https://aipaikj.top>。
 3. **预览**，为来自仓库分支的 pull request：将构建上传为名为 `pr-<number>` 的预览，在其自己的地址，显示在 `docs-preview` 环境上。
 4. **删除预览**，当 pull request 关闭时，文档和覆盖率的都删除。不存在的预览已是干净的；认证失败和其他 API 错误使作业失败。
 
