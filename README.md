@@ -1,9 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="shujing/zensite2/content/showcase/logo-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="shujing/zensite2/content/showcase/logo-light.svg">
-    <img alt="数境 ShuJing" src="shujing/zensite2/content/showcase/logo-light.svg" width="640">
-  </picture>
+  <img alt="数境 ShuJing" src="shujing/zensite2/content/showcase/logo-light.gif" width="640">
 </p>
 
 <p align="center">
