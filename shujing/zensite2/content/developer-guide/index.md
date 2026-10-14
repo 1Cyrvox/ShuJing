@@ -1,7 +1,7 @@
 # 搭建
 
 本指南用于开发 ManimGX 本身：它的 Python 包、它的 Rust 引擎、它的 TypeScript 浏览器包、它的测试以及这些文档。它解释了项目如何运作以及如何参与开发。如何提出一项
-变更（issue、pull request、AI 的使用）在[贡献指南](https://github.com/academa-labs/manimgx/blob/main/.github/CONTRIBUTING.md)中。
+变更（issue、pull request、AI 的使用）在[贡献指南](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CONTRIBUTING.md)中。
 
 本页面将一台机器带到一个 ManimGX 克隆，使其能够构建、检查、测试并服务文档。
 
@@ -11,7 +11,7 @@ ManimGX 是一个 Python 包，带有用 Rust 编写的引擎。你需要四个�
 
 - **[`uv`](https://docs.astral.sh/uv/getting-started/installation/)**：项目管理器。它安装 Python（3.13 或 3.14）、所有依赖以及 ManimGX 本身，并编译其引擎。
 - **[`just`](https://just.systems/man/en/packages.html)**：命令运行器。开发任务是
-  [`justfile`](https://github.com/academa-labs/manimgx/blob/main/justfile) 中的配方。
+  [`justfile`](https://github.com/1Cyrvox/ShuJing/blob/main/justfile) 中的配方。
 - **[Rust](https://www.rust-lang.org/tools/install)**，稳定工具链，通过
   `rustup` 安装，以及它链接的 C 工具链（`rustup` 会说明需要哪个：macOS 上是 Xcode Command Line Tools，Debian 或 Ubuntu 上是 `build-essential`，Windows 上是 Visual Studio 的 C++ 构建工具）：它编译引擎以及 x264、FFmpeg 和 libopus 的 C 代码。
 - **[`bun`](https://bun.sh)**：它安装浏览器包的锁定工具，打包其
@@ -36,7 +36,7 @@ sudo apt-get install libvulkan1 mesa-vulkan-drivers
 1. 克隆仓库并进入：
 
     ```sh
-    git clone https://github.com/academa-labs/manimgx.git
+    git clone https://github.com/1Cyrvox/ShuJing.git
     cd manimgx
     ```
 
@@ -62,7 +62,7 @@ sudo apt-get install libvulkan1 mesa-vulkan-drivers
 
 4. 在编辑器中选择环境的解释器。在 Visual Studio Code 中：按
    ++ctrl+shift+p++（macOS 上为 ++cmd+shift+p++），运行 **Python: Select Interpreter**，选择 `./.venv` 中的那个。引擎的 crate 是一个工作区，
-   [`rust/`](https://github.com/academa-labs/manimgx/tree/main/rust)：如果编辑器找不到，将 rust-analyzer 指向 `rust/Cargo.toml`。
+   [`rust/`](https://github.com/1Cyrvox/ShuJing/tree/main/rust)：如果编辑器找不到，将 rust-analyzer 指向 `rust/Cargo.toml`。
 
 ## 命令
 

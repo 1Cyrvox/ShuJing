@@ -79,7 +79,7 @@ class UnderstandingManimgx(m.Scene):
 
 [`Scene`][manimgx.Scene] 持有三样东西：它绘制的 mobject、一个相机和一个时钟。时间仅在 [`play`][manimgx.Scene.play] 和 [`wait`][manimgx.Scene.wait] 中流逝；两者之间的一切在一个时刻发生。相机由 mobject 组成（帧矩形、3D 轨道的值追踪器），因此动画和更新器移动它如同移动任何其他。
 
-见 [`scene.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/scene.py)，它拥有相机和场景变体以及其共享执行模型。
+见 [`scene.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/scene.py)，它拥有相机和场景变体以及其共享执行模型。
 
 ## 步骤 2：Mobject
 
@@ -90,14 +90,14 @@ mobject 是你所见的：上面的正方形和公式。它是对象图的节点
 几何独立于持有它的对象：mobject 的点是不可变形状的 *混合*，
 points = Σₖ Mₖ·Sₖ。形状 Sₖ 是从不更改的控制点数组，由其内容标识。矩阵 Mₖ 是仿射映射。移动、缩放或转动 mobject 组合一个矩阵而保持形状不变；从一个形状到另一个的变形是两项的混合。读取 `points` 计算求和，并缓存它。引擎接收项，而非求和：转动正方形发送一个新矩阵，而非新点。将 mobject 赋予其已有的点不更改任何内容（将网格赋予其三角形，或将绘制赋予其颜色也是如此）：它保持其持有的，以及从中推导的一切。
 
-见 [`drawing/geometry.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/drawing/geometry.py)。
+见 [`drawing/geometry.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/drawing/geometry.py)。
 它还拥有数值采样和三次轮廓转换。文本裁剪和布尔形状使用相同的平面路径；`VMobject` 拥有从结果构建可变曲线。
 
 ### 绘制
 
 mobject 的样式是一个不可变值，其 `Paint`：其填充和描边（各一个颜色，或多个）、其背景描边、其端点和连接、其虚线，以及其揭示的部分。更改制作新绘制。每种 mobject 共享它；一种决定多个颜色的含义：路径上的渐变停止、点或顶点颜色，或每格的填充颜色。
 
-见 [`drawing/paint.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/drawing/paint.py)。
+见 [`drawing/paint.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/drawing/paint.py)。
 
 ### 三种类型
 
@@ -108,10 +108,10 @@ mobject 的样式是一个不可变值，其 `Paint`：其填充和描边（各�
 - [`MeshMobject`][manimgx.MeshMobject]：顶点和三角形，每顶点着色或由纹理着色。其拓扑是一个不可变值：显式三角形索引，或采样格的维度。[`ImageMobject`][manimgx.ImageMobject] 是纹理化四边形；[`Surface`][manimgx.Surface] 采样格一次，每格带绘制，每样本带 UV。渲染推导其平滑样条、格轮廓和顶点颜色。相等格直接变形；不同拓扑作为独立三角形对齐。
 
 三种类型都在
-[`mobject.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/mobject.py) 中。
+[`mobject.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/mobject.py) 中。
 它们共享对象身份、复制、家族操作和生命周期；其类保持路径曲线、点颜色和网格拓扑的不同规则明确。
 
-[`mobjects/`](https://github.com/academa-labs/manimgx/tree/main/src/manimgx/mobjects)
+[`mobjects/`](https://github.com/1Cyrvox/ShuJing/tree/main/src/manimgx/mobjects)
 目录在这些规则上构建具体绘制。`shapes.py` 构造图形、曲线分解、虚线路径和布尔区域；`annotations.py` 在对象旁放置标签、帧和括号；
 `plotting.py` 拥有坐标模型和绘制数据。`grid.py` 为矩阵和表格分组共享条目模型，保持其不同布局。图像、图、表面、向量场和文本同样有各自的构造器。目录代码使用内核；内核不整体导入目录。
 
@@ -119,25 +119,25 @@ mobject 的样式是一个不可变值，其 `Paint`：其填充和描边（各�
 
 公式由 [Typst](https://typst.app) 排版，编译到引擎中：在同一进程中，无需 TeX 安装。排版构造普通路径 mobject；其几何、绘制、动画和渲染随后如正方形般工作。
 
-1. **源码。** [`mobjects/text.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/mobjects/text.py)
+1. **源码。** [`mobjects/text.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/mobjects/text.py)
    持有源码前端及其通用构建器。[`Typst`][manimgx.Typst] 接受 Typst 标记；[`MathTypst`][manimgx.MathTypst] 添加数学分组；
    [`Text`][manimgx.Text] 写入字面字符串和排版运行；
    [`MathTex`][manimgx.MathTex] 和 [`Tex`][manimgx.Tex] 通过引擎的
    [mitex](https://github.com/mitex-rs/mitex) 转换器转换 LaTeX。每个到达同一排版器。
-2. **布局。** [`drawing/typesetting.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/drawing/typesetting.py)
+2. **布局。** [`drawing/typesetting.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/drawing/typesetting.py)
    将源码与其前导、字体和包环境组合。引擎排版文档并读取 Typst 的帧：字形位置、绘制、源码字节范围、三次形状和标记组。Python 保持可绘制行及其引用的不可变轮廓和连字插入符。这是绘制数据；它不含场景对象。
 3. **Mobject。** 通用 Typst 构建器将每个字形放置为其不可变轮廓和矩阵的混合，给每部分其绘制，并创建引用实际部分的组。字面文本将字形与字符关联；LaTeX 将它们与可选公式片段关联。更改字符颜色可以在其插入符处拆分连字而不更改排版布局。
 
 布局和字体扫描使用当前用户的缓存目录，或浏览器中页面运行时的私有文件系统。布局按键源码和环境。解码字形记录在有界缓存中复用，而布局和活动字形保持各自所需。清除该缓存不会使现有文本失效。`MANIMGX_CACHE_DIR` 将两个磁盘缓存重定位到显式目录，在容器和隔离测试中有用。字体来自调用者的路径、已安装的 ManimGX 字体包和 Typst 的嵌入字体；系统字体仅在文档显式命名的族中考虑。见](engine.md#_9)了解原生编译器和字体环境。
 
 两个消费者有自己的布局职责。
-[`mobjects/code.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/mobjects/code.py)
+[`mobjects/code.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/mobjects/code.py)
 用行和列网格、行号和帧构建语法着色的列表。
-[`mobjects/numbers.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/mobjects/numbers.py)
+[`mobjects/numbers.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/mobjects/numbers.py)
 格式化并布局可在动画期间更改的数字行。两者使用排版的 mobject 而非另一个文本渲染器。
 
 SVG 采用单独的输入路径。
-[`mobjects/svg.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/mobjects/svg.py)
+[`mobjects/svg.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/mobjects/svg.py)
 读取外部矢量绘图，转换其形状和路径，应用其绘制和变换，并保留其 id 组。它到达同一几何和绘制模型而不经过排版器。
 
 ## 步骤 3：动画
@@ -154,12 +154,12 @@ SVG 采用单独的输入路径。
   [`Succession`][manimgx.Succession] 是一个类。组给每部分其自己时间的窗口，部分的 α 仅是那个时间的函数，因此组可以在任意多个时刻一次评估。
 - 在一个叶上一起开始的补间组合：其运动链接所有它们的，每个绘制字段是最后更改者的。
 
-见 [`animation/`](https://github.com/academa-labs/manimgx/tree/main/src/manimgx/animation)：
-[`timeline.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/animation/timeline.py)
+见 [`animation/`](https://github.com/1Cyrvox/ShuJing/tree/main/src/manimgx/animation)：
+[`timeline.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/animation/timeline.py)
 拥有生命周期和嵌套时间窗口；
-[`transform.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/animation/transform.py)
+[`transform.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/animation/transform.py)
 拥有关键帧评估、记录的方法调用和并发叶组合；
-[`motion.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/animation/motion.py)
+[`motion.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/animation/motion.py)
 在其上构建动画预设。时序组合和几何组合有分开的所有者，因为它们回答不同问题：部分何时作用，以及其贡献如何与作用在同一对象上的其他变换组合。
 
 ## 步骤 4：时钟
@@ -182,8 +182,8 @@ SVG 采用单独的输入路径。
 
 无可更改的等待是一帧，保持。
 
-见 [`animation/clock.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/animation/clock.py) 以及
-[`scene.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/scene.py) 中的
+见 [`animation/clock.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/animation/clock.py) 以及
+[`scene.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/scene.py) 中的
 `play`、`_run` 和 `_instant`。用户指南的
 [基础](../user-guide/the-basics.md#_3) 按场景作者所见描述时钟。
 
@@ -199,8 +199,8 @@ SVG 采用单独的输入路径。
 
 与前一个相等的帧不再发送：它延长它，成为保持。每个播放，在结束时，保持为 [`Play`][manimgx.rendering.film.Play]：其精确开始和结束，以及播放它的场景代码行。
 
-见 [`rendering/film.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/rendering/film.py) 和
-[`rendering/feed.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/rendering/feed.py)。
+见 [`rendering/film.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/rendering/film.py) 和
+[`rendering/feed.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/rendering/feed.py)。
 
 声音遵循同一场景时间线。`audio/sound.py` 拥有 [`Sound`][manimgx.Sound]
 和 [`Speech`][manimgx.Speech]，其编辑和词时。场景调度片段和字幕；影片将它们带入其输出。语音提供者代码在 `audio/fal.py` 中分开，而任何返回 Speech 的函数都可以是语音。
@@ -214,7 +214,7 @@ SVG 采用单独的输入路径。
 ## 命令行
 
 `manimgx` 命令行是
-[`cli/`](https://github.com/academa-labs/manimgx/tree/main/src/manimgx/cli) 中的 [Typer](https://typer.tiangolo.com) 应用。
+[`cli/`](https://github.com/1Cyrvox/ShuJing/tree/main/src/manimgx/cli) 中的 [Typer](https://typer.tiangolo.com) 应用。
 每个命令加载场景文件，选择场景，设置配置，并用影片的 hook 渲染它：一个 *take*。`render` 和 `inspect` 写带注释的故事板并报告 2D 布局问题（帧裁掉什么、重叠的文本、穿过文本的线、绘制在填充上的内容、太小无法阅读的文本），在几何上测量。`inspect` 还列出时间线。它默认采样播放结尾，或用 `-t` 选定帧；图片和检查使用同一场景状态。场景中的错误通过作者自己代码的行显示。
 `manimgx preview` 将场景记录为 take 并发送到 [`Window`][manimgx.Window]，一个自己播放它的进程，并在每次保存其文件时再次运行场景（见](engine.md#_10)）。
 
@@ -252,7 +252,7 @@ ManimGX 运行时需要这些包：
 
 ## 了解更多
 
-- [`scene.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/scene.py)：场景的生命周期、`play`、`wait` 和时钟规则。
-- [`mobject.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/mobject.py)：每个 mobject 拥有什么。
-- [`rendering/feed.py`](https://github.com/academa-labs/manimgx/blob/main/src/manimgx/rendering/feed.py)：记录，逐字段。
+- [`scene.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/scene.py)：场景的生命周期、`play`、`wait` 和时钟规则。
+- [`mobject.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/mobject.py)：每个 mobject 拥有什么。
+- [`rendering/feed.py`](https://github.com/1Cyrvox/ShuJing/blob/main/src/manimgx/rendering/feed.py)：记录，逐字段。
 - 实现模块在其模块文档字符串中为更改它们的开发者介绍其设计。API 参考不显示它。
