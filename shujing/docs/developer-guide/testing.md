@@ -3,11 +3,11 @@
 测试是检查其他代码是否做其应做之事的代码。编写一次，每次更改后再次运行，说明更改是否破坏了什么。
 
 ManimGX 的 Python 和集成测试在
-[`tests/`](https://github.com/academa-labs/manimgx/tree/main/tests)。
+[`tests/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests)。
 其中大多数渲染场景，因此套件需要渲染所需的内容：引擎可绘制的 GPU（见[搭建](index.md#a-gpu)）。再次渲染语料库的 Manim 参考还需要 Manim Community Edition（见[搭建](index.md#manim-community-edition)）。
 
 浏览器包的测试在其旁，在
-[`browser/tests/`](https://github.com/academa-labs/manimgx/tree/main/browser/tests)。
+[`browser/tests/`](https://github.com/1Cyrvox/ShuJing/tree/main/browser/tests)。
 用 `just test-typescript` 运行它们：它构建包，用浏览器和 Pyodide 副本测试编译的播放器和嵌入的 worker，并对生成公共声明的消费者进行类型检查。这些测试需要 Bun；不需要 GPU 或下载 Pyodide。
 
 ## [pytest](https://docs.pytest.org)：测试运行器
@@ -58,35 +58,35 @@ tests/
     └── work.py           ← 工作，计数
 ```
 
-[`tests/docs/test_llms.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_llms.py)
+[`tests/docs/test_llms.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_llms.py)
 检查文档 `llms.txt` 的引导，为 AI 代理手工编写（见[文档](documentation.md#markdown-for-agents)）：其场景运行，它教授的每个名称都存在。它还检查每个页面在 `llms.txt` 的一个部分中，因此每个页面有其 Markdown。
-[`tests/docs/test_skill.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_skill.py)
+[`tests/docs/test_skill.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_skill.py)
 检查代理技能的 front matter（见[文档](documentation.md#the-agent-skill)）。
-[`tests/docs/test_examples.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_examples.py)
+[`tests/docs/test_examples.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_examples.py)
 在无语音密钥下运行旁白示例，如站点构建时（见[文档](documentation.md#examples-films-rendered-from-the-code)）。
-[`tests/docs/test_reference.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_reference.py)
+[`tests/docs/test_reference.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_reference.py)
 保持手工编写的 API 参考完整：包文档化的每个名称在某个页面上，一次，且它隐藏的名称不在（见[文档](documentation.md#the-api-reference)）。
-[`tests/docs/test_hidden.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_hidden.py)
+[`tests/docs/test_hidden.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_hidden.py)
 对文档显示的每个示例进行类型检查，在 ManimGX 隐藏的名称（`@deprecated`）上失败。单元测试在 `tests/unit/`，基准测试在 `tests/benchmarks/`（见[基准测试](#benchmarks)），套件的其余部分在 `tests/integration/`。
 
 ### 单元测试
 
-[`tests/unit/`](https://github.com/academa-labs/manimgx/tree/main/tests/unit) 镜像包：`tests/unit/<path>/test_<module>.py` 测试 `src/manimgx/<path>/<module>.py`，以列出其检查的属性的文档字符串开始。[`tests/test_tests.py`](https://github.com/academa-labs/manimgx/blob/main/tests/test_tests.py)
+[`tests/unit/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/unit) 镜像包：`tests/unit/<path>/test_<module>.py` 测试 `src/manimgx/<path>/<module>.py`，以列出其检查的属性的文档字符串开始。[`tests/test_tests.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/test_tests.py)
 将套件约束到两者，以及其到每个公共 mobject 和动画类的注册表。
 
 单元测试检查公共 API 的属性，而非示例，也非代码内部如何构建：没有测试读取私有存储、计数调用或排序 hook 以固定如何达到结果。用 [Hypothesis](https://hypothesis.readthedocs.io)，测试陈述对每个输入成立的内容，Hypothesis 绘制数百个输入，然后将任何失败的缩小到仍失败的最简单的。做工作的属性：
 
 - 与
-  [`tests/oracles.py`](https://github.com/academa-labs/manimgx/blob/main/tests/oracles.py) 中缓慢且明显正确的计算一致：de Casteljau 构造、numpy 的根查找器、Gauss–Legendre 求积、数字位数的 `decimal` 运算、所绘内容的紧包围盒；
+  [`tests/oracles.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/oracles.py) 中缓慢且明显正确的计算一致：de Casteljau 构造、numpy 的根查找器、Gauss–Legendre 求积、数字位数的 `decimal` 运算、所绘内容的紧包围盒；
 - 法则：`AnimationGroup(x)` 播放如 `x`，嵌套的连续播放如一个，`Rotate` 是 `.animate.rotate`，一起播放的移动如依次应用般结束；
 - 每个公共类遵循的法则，在
-  [`tests/strategies.py`](https://github.com/academa-labs/manimgx/blob/main/tests/strategies.py) 的注册表上：`MOBJECTS`（副本、目标、保存的状态或再次构造是同一对象图的独立副本，不触及其原始；其输入和输出是值；其盒是所绘内容）和 `ANIMATIONS`（制作后不更改任何内容；开始后显示其所显示；是其进度的函数）；
+  [`tests/strategies.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/strategies.py) 的注册表上：`MOBJECTS`（副本、目标、保存的状态或再次构造是同一对象图的独立副本，不触及其原始；其输入和输出是值；其盒是所绘内容）和 `ANIMATIONS`（制作后不更改任何内容；开始后显示其所显示；是其进度的函数）；
 - 对照简单模型检查的状态机，在公共调用的任何历史上：家族的编辑、变换、更新器及其时钟、场景的成员、图的编辑、馈送器的账本、绘制记住的内容；
 - 记住的工作不可见：用 ManimGX 记忆温暖制作的任何内容等于冷制作（标记 `cold` 的测试以无记忆开始和结束）；
 - 对于时间，在无头场景上讲述的随机故事
-  （[`tests/scenes.py`](https://github.com/academa-labs/manimgx/blob/main/tests/scenes.py)）：提前计算的播放显示逐帧计算的同一播放所显示的，且某时刻的世界在每个帧率下相同。
+  （[`tests/scenes.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/scenes.py)）：提前计算的播放显示逐帧计算的同一播放所显示的，且某时刻的世界在每个帧率下相同。
 
-[`tests/conftest.py`](https://github.com/academa-labs/manimgx/blob/main/tests/conftest.py)
+[`tests/conftest.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/conftest.py)
 从同一世界开始每个测试：场景时钟为 0，配置如发布时，测试后恢复。需要其他配置的测试用标记说明，模块用 `pytestmark = pytest.mark.config(pixel_width=320, pixel_height=180)`，测试用 `@pytest.mark.config(frame_rate=30)`，从不手动设置和恢复。它还持有 Hypothesis 的配置：`default`；`thorough`，每个属性 2,000 个示例（`just test-thorough`）；以及 `mutation`。在 CI 上，Hypothesis 加载自己的 `ci` 配置。
 
 修复附带其破坏的属性，陈述为无修复则失败。在一个输入上发现的 bug 是该输入添加到其破坏的法则（`@example`，或注册表的条目），而非其自己的测试；增长过快的工作是成本法则的一行。已知 bug 破坏的法则精确标记其破坏的案例为 `xfail(strict=True)`，其原因是用一句话描述的 bug：bug 修复之日，标记必须去掉。
@@ -98,10 +98,10 @@ tests/
 
 ### 故事
 
-[`tests/integration/`](https://github.com/academa-labs/manimgx/tree/main/tests/integration) 中除 `test_corpus.py` 外的每个 `test_*.py` 模块讲述关于一个主题的故事：时间、运动、引擎绘制的内容（描边、填充、图像）、光、透视、3D 合成、影片的 hook、其视频、声音和 take、窗口和预览、横幅。故事渲染场景并在场景计算的每个时刻探测它，通常在多个帧率下。其模块的文档字符串列出其显示的内容。`tests/scenes.py` 由函数制作场景（`scene`、`scene_3d`），绘制一个并将其帧保持为数组（`frames`），或保持探测器在每个时刻所见（`instants`）。
+[`tests/integration/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration) 中除 `test_corpus.py` 外的每个 `test_*.py` 模块讲述关于一个主题的故事：时间、运动、引擎绘制的内容（描边、填充、图像）、光、透视、3D 合成、影片的 hook、其视频、声音和 take、窗口和预览、横幅。故事渲染场景并在场景计算的每个时刻探测它，通常在多个帧率下。其模块的文档字符串列出其显示的内容。`tests/scenes.py` 由函数制作场景（`scene`、`scene_3d`），绘制一个并将其帧保持为数组（`frames`），或保持探测器在每个时刻所见（`instants`）。
 
 故事检查与 Manim 的比较无法检查的内容。
-[`test_time.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/test_time.py)，
+[`test_time.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/test_time.py)，
 例如，检查一帧显示的内容不取决于帧率：在每秒 10、30 和 60 帧时，由更新器移动的点在每个时刻在其精确轨迹所放之处。
 
 修复或功能附带显示它的测试：其所属模块中的故事，或新的语料库案例（见[使用语料库](#working-with-the-corpus)）。
@@ -117,7 +117,7 @@ ManimGX 实现 Manim Community Edition 的 API。为 Manim 编写的场景必须
 ### 案例
 
 案例是
-[`tests/integration/cases/`](https://github.com/academa-labs/manimgx/tree/main/tests/integration/cases) 中的文件夹：
+[`tests/integration/cases/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration/cases) 中的文件夹：
 
 - `scene.py`：唯一的源码。它是 Manim 代码，仅通过 `import manimgx` 到达引擎。场景读取的文件（SVG、声音）在其旁。
 - `manimgx.mkv` 和 `ce.mkv`：每个引擎的无损帧，本地生成，被 Git 忽略。其 `.sha256` 伴随文件记录精确的已审查视频文件。
@@ -129,7 +129,7 @@ ManimGX 实现 Manim Community Edition 的 API。为 Manim 编写的场景必须
 ### 两个引擎，一个源码
 
 两个引擎运行相同的字节。ManimGX 按原样运行 `scene.py`。Manim 将 `manimgx` 解析为 `manim` 运行它，如果真正的 ManimGX 被导入则运行失败
-（[`run_ce.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/run_ce.py)）。每个渲染在自己的进程中，带固定哈希种子。
+（[`run_ce.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/run_ce.py)）。每个渲染在自己的进程中，带固定哈希种子。
 
 帧由其像素哈希标识，本地以无损视频存储（RGB 中的 x264，用 [PyAV](https://pyav.basswood-io.com) 写读，FFmpeg 的库在 wheel 中）。视频仅在像素更改时重写，因此再次渲染未更改的场景不更改任何文件。提交的 `.sha256` 伴随文件标识每个已审查视频，而不将视频放入克隆历史。语料库以 960 × 540、每秒 10 帧渲染。
 
@@ -138,10 +138,10 @@ ManimGX 实现 Manim Community Edition 的 API。为 Manim 编写的场景必须
 帧按场景时间配对，从不按索引。ManimGX 的帧 _k_ 显示场景在恰好 _k_/fps。Manim 将每个播放舍入到整帧，从不显示场景最后一个动画落地；那些都不应算作 ManimGX 的错。因此每个 ManimGX 帧与 Manim 在同一场景时间屏幕上的帧比较。
 
 每对在四个度量中测量，从 0 到 255：`local_max`、`mae`、`rmse` 和 `max`。
-[`settings.json`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/settings.json)
+[`settings.json`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/settings.json)
 选择决定的那个及其容差：`local_max` 上至 30。`local_max` 是任何 7 × 7 窗口上每个像素最大通道差的最大均值：单个错误像素衰减到自身的 1/49，而错误的描边或形状突出。
 
-见 [`compare.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/compare.py)。
+见 [`compare.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/compare.py)。
 
 ### 裁决
 
@@ -156,16 +156,16 @@ ManimGX 实现 Manim Community Edition 的 API。为 Manim 编写的场景必须
 
 比较给出裁决；人对恰好这些渲染的裁决覆盖它。Manim 是参考，不是正确的定义，因此"Manim 这样做"是仔细查看的理由，不是更改 ManimGX 的理由。案例在工作时被信任。
 
-见 [`case.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/case.py)。
+见 [`case.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/case.py)。
 
 ### 三项检查
 
-[`test_corpus.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/test_corpus.py)
+[`test_corpus.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/test_corpus.py)
 以三种方式检查每个案例：
 
 1. `test_same_source`：两个参考都从此精确的 `scene.py` 渲染，后者导入 ManimGX，从不导入 Manim。因此两个引擎运行了相同的程序。
 2. `test_types`：场景按编写类型检查：ty 带每条规则，无法绕过检查器（抑制注释、`Any`、`cast`、…），且无 ManimGX 留为 `Any` 或 `Unknown` 的值
-   （[`typecheck.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/typecheck.py)）。
+   （[`typecheck.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/typecheck.py)）。
 3. `test_regression`：最新稳定的 ManimGX 发布和今天的包在相同主机和适配器上的独立新进程中渲染场景，使用相同的已安装依赖和字体。每个 RGB 像素、精确持续时间、时间线和帧数必须一致，导出的 MP4 必须包含每帧。这覆盖每个案例，包括那些与 Manim 不同或等待审查的。首次稳定发布之前，每个场景仍被渲染并检查其导出帧数。
 
 CI 在测试之前解析最新稳定的 GitHub 发布，并在测试 worker 共享的清单中记录其版本和 wheel SHA-256 标识。下载在使用前验证。无兼容 wheel 的已发布发布、无效校验和或失败下载是错误；仅无稳定发布启用首次发布引导。本地，测试夹具解析最新发布，或读取 `MANIMGX_CORPUS_RELEASE` 命名的清单。
@@ -186,7 +186,7 @@ CI 在测试之前解析最新稳定的 GitHub 发布，并在测试 worker 共�
 ### 语料库的工具
 
 `just corpus` 运行
-[`tests/integration/corpus`](https://github.com/academa-labs/manimgx/tree/main/tests/integration/corpus)：
+[`tests/integration/corpus`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration/corpus)：
 
 | 命令 | 做什么 |
 | --- | --- |
@@ -207,7 +207,7 @@ CI 在测试之前解析最新稳定的 GitHub 发布，并在测试 worker 共�
 
 对于面板本身的工作，`uv run fastapi dev` 单独服务服务器，随其更改重新加载，`bun run dev` 在 `tests/integration/review/web/` 中服务页面。
 
-见 [`tests/integration/review/`](https://github.com/academa-labs/manimgx/tree/main/tests/integration/review)。
+见 [`tests/integration/review/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration/review)。
 
 ## 覆盖率
 
@@ -216,13 +216,13 @@ CI 在测试之前解析最新稳定的 GitHub 发布，并在测试 worker 共�
 `pyproject.toml` 中的 `[tool.coverage.run]` 在测试进程和它们启动的进程中测量包（语料库在每个案例自己的进程中渲染），路径相对于仓库，因此不同系统上的运行合并：`just combine-coverage <folder>` 将其数据文件合并为一份报告。
 
 Test 工作流合并其运行的覆盖率并发布报告，由 Cloudflare 服务，如
-[`.github/deploy/coverage.jsonc`](https://github.com/academa-labs/manimgx/blob/main/.github/deploy/coverage.jsonc)
+[`.github/deploy/coverage.jsonc`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/deploy/coverage.jsonc)
 所述：`main` 的在 <https://coverage.manimgx.academa.ai>，pull request 的（来自本仓库分支）在预览地址，每个提交的从其"coverage"状态链接。
 
 ## 基准测试
 
 速度是功能，使 ManimGX 变慢的更改是如任何其他一样的回归。基准测试在
-[`tests/benchmarks/`](https://github.com/academa-labs/manimgx/tree/main/tests/benchmarks)，
+[`tests/benchmarks/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/benchmarks)，
 以两种方式寻找一个：成本法则，与套件其余部分一起运行；以及定时基准测试，单独运行。
 
 ### 没有基准测试持有秒数
@@ -231,13 +231,13 @@ Test 工作流合并其运行的覆盖率并发布报告，由 Cloudflare 服务
 
 - **工作**，渲染做什么，在每台机器上相同，可以精确计数：ManimGX 运行的 Python 函数及其循环迭代（用
   [`sys.monitoring`](https://docs.python.org/3/library/sys.monitoring.html) 计数）、从几何各部分计算的点、哈希的字节、交给引擎的字节
-  （[`work.py`](https://github.com/academa-labs/manimgx/blob/main/tests/benchmarks/work.py)）。
+  （[`work.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/benchmarks/work.py)）。
   法则比较同一事物两个大小的工作。
 - **时间** 只能与同一机器同一时间测量的时间比较。定时基准测试交替运行此检出和另一个提交的 ManimGX，并逐轮比较。
 
 ### 成本法则
 
-[`test_laws.py`](https://github.com/academa-labs/manimgx/blob/main/tests/benchmarks/test_laws.py)
+[`test_laws.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/benchmarks/test_laws.py)
 陈述工作如何增长，Hypothesis 检查它：
 
 - **增长。** 加倍制作的事物最多做两倍工作，留十分之一的余量（两倍分辨率的表面，四倍）：逐曲线构建的路径、一起播放的形状组、写入的文本、每帧重绘的图、追踪更长的路径、保持更长的影片、布局的表格。有些随增长对 Python 无更多成本，其数组做增长（`PYTHON`：一旦元素，无循环运行）。每个是一行，
@@ -255,10 +255,10 @@ Test 工作流合并其运行的覆盖率并发布报告，由 Cloudflare 服务
 ### 定时基准测试
 
 工作负载是如用户渲染般渲染的场景：`manimgx render`，在自己的进程中，从启动到完成的视频。工作负载在
-[`test_speed.py`](https://github.com/academa-labs/manimgx/blob/main/tests/benchmarks/test_speed.py)，
+[`test_speed.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/benchmarks/test_speed.py)，
 是三个场景，在 1920 × 1080 和每秒 60 帧，如 README 的
-[基准测试](https://github.com/academa-labs/manimgx/tree/main/benchmarks)制作自己的
-（[`scenes/`](https://github.com/academa-labs/manimgx/tree/main/tests/benchmarks/scenes)：
+[基准测试](https://github.com/1Cyrvox/ShuJing/tree/main/benchmarks)制作自己的
+（[`scenes/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/benchmarks/scenes)：
 相机环绕的表面、每帧重建的表面和 2D 讲解），以及六个示例影片在 480 × 270 和每秒 10 帧。在套件中，每个渲染一次，微小：它仍渲染。`just bench` 将它们与另一个 ManimGX 计时：
 
 ```sh
@@ -292,6 +292,6 @@ just bench main -k orbit  # 一些工作负载（参数传递给 pytest）
 
 ## 了解更多
 
-- [`test_corpus.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/test_corpus.py)：三项检查。
-- [`corpus/case.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/case.py)：案例持有什么，及其状态。
-- [`corpus/__main__.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/__main__.py)：语料库的工具。
+- [`test_corpus.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/test_corpus.py)：三项检查。
+- [`corpus/case.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/case.py)：案例持有什么，及其状态。
+- [`corpus/__main__.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/__main__.py)：语料库的工具。

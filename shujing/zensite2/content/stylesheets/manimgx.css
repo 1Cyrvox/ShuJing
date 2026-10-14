@@ -1134,9 +1134,15 @@ html {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--md-default-fg-color);
-  pointer-events: none;
   margin-top: 0.6rem;
   padding-bottom: 0.3rem;
+}
+
+/* 桌面端 section 标题纯展示不可点击，手机端可点击展开 */
+@media screen and (min-width: 76.25em) {
+  .md-nav__item--section > .md-nav__link {
+    pointer-events: none;
+  }
 }
 
 .md-nav__item--section > .md-nav__link:hover {
