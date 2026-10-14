@@ -9,7 +9,7 @@ description: 在水中比光还快的电荷留下一锥蓝光。影片测量锥�
 
 <div class="mx-example">
 
-<video class="mx-film" src="/films/CherenkovCone-4921f75e8e8ae6e7bfdb.mp4" poster="/films/CherenkovCone-4921f751e8e8ae6e7bfdb.webp" muted loop playsinline controls preload="none"></video>
+<video class="mx-film" src="/films/CherenkovCone-4921f75e8e8ae6e7bfdb.mp4" poster="/films/CherenkovCone-4921f75e8e8ae6e7bfdb.webp" muted loop playsinline controls preload="none"></video>
 
 <details class="mx-code">
 <summary>examples/cherenkov_cone.py</summary>
