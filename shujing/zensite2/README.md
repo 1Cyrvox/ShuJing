@@ -118,7 +118,7 @@ Rust 渲染器使用 [wgpu](https://wgpu.rs) 进行原生 GPU 渲染和浏览器
 
 ## 社区
 
-数境是由 [爱派未来科技](https://aipaikj.top) 维护的开源项目，是基于 [ManimGX](https://github.com/academa-labs/manimgx) 开发的中文适配衍生发行版。
+数境是由 [爱派未来科技](https://www.aipaikj.top) 维护的开源项目，是基于 [ManimGX](https://github.com/academa-labs/manimgx) 开发的中文适配衍生发行版。
 
 上游ManimGX引擎原生Bug、基础引擎相关功能请求，请提交至 [academa-labs/manimgx Issues](https://github.com/academa-labs/manimgx/issues/new/choose)；数境本地化适配、中文文档、新增功能以及自研修复Bug，请在数境仓库提交反馈。
 

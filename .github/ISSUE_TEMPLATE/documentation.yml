@@ -7,7 +7,7 @@ body:
     attributes:
       label: Page
       description: The page's address, if the problem is on a page.
-      placeholder: https://aipaikj.top/user-guide/quickstart/
+      placeholder: https://www.aipaikj.top/user-guide/quickstart/
   - type: textarea
     id: problem
     attributes:

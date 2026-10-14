@@ -7,7 +7,7 @@
 将以下内容粘贴到 Claude Code 或 Codex 中：
 
 ``` { .text .mx-prompt }
-Follow https://aipaikj.top/llms.txt to make me a short animation of a square turning into a circle, and open it.
+Follow https://www.aipaikj.top/llms.txt to make me a short animation of a square turning into a circle, and open it.
 ```
 
 就这样。智能体会安装 ManimGX、编写代码、制作视频并打开它。要得到不同的视频，修改"make me"后面的文字即可。如果智能体请求使用网络或 GPU，请允许它。

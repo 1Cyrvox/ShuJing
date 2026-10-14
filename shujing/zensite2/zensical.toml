@@ -5,7 +5,7 @@
 
 [project]
 site_name = "数境 ShuJing"
-site_url = "https://aipaikj.top/"
+site_url = "https://www.aipaikj.top/"
 site_description = "中文数学动画引擎 · 基于 ManimGX · 极速 3D 数学动画"
 site_author = "爱派未来科技"
 copyright = "&copy; 2026 爱派未来科技"

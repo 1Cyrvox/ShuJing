@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: >-
-        The [documentation](https://aipaikj.top/) may already answer it.
+        The [documentation](https://www.aipaikj.top/) may already answer it.
   - type: textarea
     id: question
     attributes:

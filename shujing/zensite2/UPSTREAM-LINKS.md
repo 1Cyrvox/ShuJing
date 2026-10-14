@@ -140,19 +140,19 @@
 
 | 文件 | 行号 | 当前 URL | 处理建议 |
 |------|------|----------|----------|
-| `content/developer-guide/documentation.md` | 248 | `https://manimgx.academa.ai/llms.txt` | 改为 `https://shujing.aipaikj.top/llms.txt` |
-| `content/developer-guide/documentation.md` | 292 | `https://manimgx.academa.ai` | 改为 `https://shujing.aipaikj.top` |
+| `content/developer-guide/documentation.md` | 248 | `https://manimgx.academa.ai/llms.txt` | 改为 `https://www.aipaikj.top/llms.txt` |
+| `content/developer-guide/documentation.md` | 292 | `https://manimgx.academa.ai` | 改为 `https://www.aipaikj.top` |
 | `content/developer-guide/github-workflows.md` | 47 | `https://coverage.manimgx.academa.ai` | **删除**（数境无 coverage 部署） |
-| `content/developer-guide/github-workflows.md` | 70 | `https://manimgx.academa.ai` | 改为 `https://shujing.aipaikj.top` |
+| `content/developer-guide/github-workflows.md` | 70 | `https://manimgx.academa.ai` | 改为 `https://www.aipaikj.top` |
 | `content/developer-guide/testing.md` | 220 | `https://coverage.manimgx.academa.ai` | **删除**（数境无 coverage 部署） |
-| `content/reference/rendering/command-line.md` | 62 | `https://manimgx.academa.ai/reference/rendering/command-line/` | 改为 `https://shujing.aipaikj.top/reference/rendering/command-line/` |
-| `content/user-guide/quickstart.md` | 10 | `https://manimgx.academa.ai/llms.txt` | 改为 `https://shujing.aipaikj.top/llms.txt` |
+| `content/reference/rendering/command-line.md` | 62 | `https://manimgx.academa.ai/reference/rendering/command-line/` | 改为 `https://www.aipaikj.top/reference/rendering/command-line/` |
+| `content/user-guide/quickstart.md` | 10 | `https://manimgx.academa.ai/llms.txt` | 改为 `https://www.aipaikj.top/llms.txt` |
 
 ### 3.2 Academa 产品/团队链接（内容页面中引用）
 
 | 文件 | 行号 | 当前 URL | 处理建议 |
 |------|------|----------|----------|
-| 多个内容文件 | — | `https://academa.ai/team` | **删除**或改为 `https://aipaikj.top` |
+| 多个内容文件 | — | `https://academa.ai/team` | **删除**或改为 `https://www.aipaikj.top` |
 | 多个内容文件 | — | `https://academa.ai/privacy` | **删除**或改为本地隐私页 |
 | 多个内容文件 | — | `https://academa.ai/lectures` | **删除** |
 | 多个内容文件 | — | `https://academa.ai/api/newsletter` | **删除**（已无邮件订阅） |
@@ -177,7 +177,7 @@
 | 优先级 | 任务 | 数量 | 说明 |
 |--------|------|------|------|
 | P0 | 首页 9 个图片 → 本地画廊 | 9 | 用户最常点击，改善体验 |
-| P0 | Academa 域名 → shujing.aipaikj.top | 7 | 品牌统一 |
+| P0 | Academa 域名 → www.aipaikj.top | 7 | 品牌统一 |
 | P1 | "示例"链接 → 本地画廊 | 1 | 简单替换 |
 | P1 | 社交媒体链接删除 | 6 | 已在页脚处理，检查内容页 |
 | P2 | Academa 产品链接删除 | 6 | coverage/studio/calculus 等 |

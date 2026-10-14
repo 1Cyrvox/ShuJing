@@ -59,4 +59,4 @@ manimgx present scene.py
 
 ---
 
-完整的命令行选项请运行 `manimgx --help` 或访问[官方命令行参考](https://aipaikj.top/reference/rendering/command-line/)。
+完整的命令行选项请运行 `manimgx --help` 或访问[官方命令行参考](https://www.aipaikj.top/reference/rendering/command-line/)。

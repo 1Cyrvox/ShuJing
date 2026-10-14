@@ -8,10 +8,10 @@
 </p>
 
 <p align="center">
-  <b><a href="https://aipaikj.top">文档</a></b> ·
-  <a href="https://aipaikj.top/user-guide/quickstart/">快速开始</a> ·
-  <a href="https://aipaikj.top/gallery/">示例画廊</a> ·
-  <a href="https://aipaikj.top/reference/">API 参考</a>
+  <b><a href="https://www.aipaikj.top">文档</a></b> ·
+  <a href="https://www.aipaikj.top/user-guide/quickstart/">快速开始</a> ·
+  <a href="https://www.aipaikj.top/gallery/">示例画廊</a> ·
+  <a href="https://www.aipaikj.top/reference/">API 参考</a>
 </p>
 
 <p align="center">
@@ -66,12 +66,12 @@
 pip install manimgx
 ```
 
-字体、排版和视频编码已全部内置，无需额外配置。编辑器配置与引导式首次动画请见[快速开始](https://aipaikj.top/user-guide/quickstart/)。
+字体、排版和视频编码已全部内置，无需额外配置。编辑器配置与引导式首次动画请见[快速开始](https://www.aipaikj.top/user-guide/quickstart/)。
 
 **用 AI 助手。** 粘贴到 Claude Code、Codex 或 Cursor 中，AI 助手自动完成安装：
 
 ```text
-Follow https://aipaikj.top/llms.txt.
+Follow https://www.aipaikj.top/llms.txt.
 安装数境，制作一个太阳系 3D 动画并打开。
 ```
 
@@ -110,25 +110,25 @@ manimgx render scene.py
 
 - **完全静态类型。** 关键字参数和 `.animate` 链全部有类型标注。
 - **2D 与 3D 统一。** 曲面、网格和移动相机，与文本、方程和图表并存。
-- **浏览器中运行。** `npm install manimgx`，[Pyodide](https://pyodide.org) 运行 Python，WebGPU 渲染场景，[嵌入网页](https://aipaikj.top/user-guide/rendering/#embed-in-a-web-page)无需渲染服务器。
-- **AI 助手反馈。** [`manimgx inspect`](https://aipaikj.top/user-guide/rendering/#inspect)：故事板和 2D 布局检查。
+- **浏览器中运行。** `npm install manimgx`，[Pyodide](https://pyodide.org) 运行 Python，WebGPU 渲染场景，[嵌入网页](https://www.aipaikj.top/user-guide/rendering/#embed-in-a-web-page)无需渲染服务器。
+- **AI 助手反馈。** [`manimgx inspect`](https://www.aipaikj.top/user-guide/rendering/#inspect)：故事板和 2D 布局检查。
 - **文本与数学。** 支持 LaTeX 和 Typst，无需安装 LaTeX。
-- **语音同步。** 用 `self.say()` [将动画与语音对齐](https://aipaikj.top/user-guide/sound-and-voice/)。
+- **语音同步。** 用 `self.say()` [将动画与语音对齐](https://www.aipaikj.top/user-guide/sound-and-voice/)。
 - **中文优先。** 中文数学公式排版、中文教学模板、完整中文文档。
 
 ---
 
 ## 文档
 
-**[aipaikj.top](https://aipaikj.top)** 提供完整中文文档、渲染示例与 API 参考：
+**[aipaikj.top](https://www.aipaikj.top)** 提供完整中文文档、渲染示例与 API 参考：
 
-- [快速开始](https://aipaikj.top/user-guide/quickstart/)：安装、配置编辑器、渲染第一个动画。
-- [用户指南](https://aipaikj.top/user-guide/the-basics/)：逐步学习场景、动画、3D、文本与声音。
-- [示例画廊](https://aipaikj.top/gallery/)：观看完整动画影片并阅读源代码。
-- [API 参考](https://aipaikj.top/reference/)：查询类、方法及其类型化参数。
-- [从 Manim CE 迁移](https://aipaikj.top/user-guide/coming-from-manim-ce/)：适配现有场景，检查行为差异。
+- [快速开始](https://www.aipaikj.top/user-guide/quickstart/)：安装、配置编辑器、渲染第一个动画。
+- [用户指南](https://www.aipaikj.top/user-guide/the-basics/)：逐步学习场景、动画、3D、文本与声音。
+- [示例画廊](https://www.aipaikj.top/gallery/)：观看完整动画影片并阅读源代码。
+- [API 参考](https://www.aipaikj.top/reference/)：查询类、方法及其类型化参数。
+- [从 Manim CE 迁移](https://www.aipaikj.top/user-guide/coming-from-manim-ce/)：适配现有场景，检查行为差异。
 
-AI 助手可读取 [llms.txt](https://aipaikj.top/llms.txt) 获取安装说明与文档链接。
+AI 助手可读取 [llms.txt](https://www.aipaikj.top/llms.txt) 获取安装说明与文档链接。
 
 ---
 
@@ -144,7 +144,7 @@ Rust 渲染器使用 [wgpu](https://wgpu.rs) 进行原生 GPU 渲染和浏览器
 
 ## 社区
 
-数境（ShuJing）是由 [爱派未来科技](https://aipaikj.top) 维护的开源项目，是基于上游 [ManimGX](https://github.com/academa-labs/manimgx) 的**中文适配衍生发行版**。
+数境（ShuJing）是由 [爱派未来科技](https://www.aipaikj.top) 维护的开源项目，是基于上游 [ManimGX](https://github.com/academa-labs/manimgx) 的**中文适配衍生发行版**。
 
 ### 反馈与贡献
 
@@ -154,7 +154,7 @@ Rust 渲染器使用 [wgpu](https://wgpu.rs) 进行原生 GPU 渲染和浏览器
 
 ### 链接
 
-[更新日志](https://aipaikj.top/changelog/) ·
+[更新日志](https://www.aipaikj.top/changelog/) ·
 [引用本项目](https://github.com/1Cyrvox/ShuJing/blob/main/CITATION.cff) ·
 [行为准则](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CODE_OF_CONDUCT.md) ·
 [安全政策](https://github.com/1Cyrvox/ShuJing/blob/main/.github/SECURITY.md)
@@ -178,7 +178,7 @@ Rust 渲染器使用 [wgpu](https://wgpu.rs) 进行原生 GPU 渲染和浏览器
 
 ## 上游声明
 
-本项目（数境 / ShuJing）是基于 [Academa Labs](https://academa.ai) 开发的 [ManimGX](https://github.com/academa-labs/manimgx) 的中文适配衍生发行版，由 [爱派未来科技](https://aipaikj.top) 维护。
+本项目（数境 / ShuJing）是基于 [Academa Labs](https://academa.ai) 开发的 [ManimGX](https://github.com/academa-labs/manimgx) 的中文适配衍生发行版，由 [爱派未来科技](https://www.aipaikj.top) 维护。
 
 - 上游原始 README 保留于 [`README.upstream.md`](./README.upstream.md)。
 - 上游版权所有者：[Abdullah Geduk](https://geduk.io) 与 [Sina Atalay](https://sinaatalay.com)。

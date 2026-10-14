@@ -51,7 +51,7 @@ dependencies = [
 manimgx = "manimgx.cli:main"
 
 [project.urls]
-Documentation = "https://aipaikj.top/"
+Documentation = "https://www.aipaikj.top/"
 Repository = "https://github.com/1Cyrvox/ShuJing"
 
 [build-system]

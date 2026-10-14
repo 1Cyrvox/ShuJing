@@ -7,5 +7,9 @@
   },
   "assets": {
     "directory": "site"
-  }
+  },
+  "routes": [
+    { "pattern": "aipaikj.top", "custom_domain": true },
+    { "pattern": "www.aipaikj.top", "custom_domain": true }
+  ]
 }
