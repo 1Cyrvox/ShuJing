@@ -1,74 +1,60 @@
-# Contributing to ManimGX
+# 贡献指南
 
-Thank you for helping. ManimGX is developed and maintained by [Academa](https://academa.ai):
-its maintainers review every change, and decide what is merged and where the project goes.
+感谢你参与数境（ShuJing）的开发。数境由[爱派未来科技](https://www.aipaikj.top)维护，是基于 [ManimGX](https://github.com/academa-labs/manimgx) 的中文适配衍生发行版。
 
-This page is how to take part. How ManimGX works, and how to set it up, change it and test it,
-is in the [Developer Guide](https://www.aipaikj.top/developer-guide/).
+本页说明如何参与贡献。关于数境的工作原理、环境搭建、代码修改和测试，请参阅[开发者指南](https://www.aipaikj.top/developer-guide/)。
 
-## Issues
+## 反馈与 Issue
 
-Everything starts as an [issue](https://github.com/1Cyrvox/ShuJing/issues/new/choose):
-bugs, feature requests, problems in the docs, and questions. Search the existing issues first,
-then pick the form that fits.
+一切始于 [Issue](https://github.com/1Cyrvox/ShuJing/issues/new/choose)：Bug 报告、功能请求、文档问题和疑问均可。请先搜索已有 Issue，再选择合适的模板提交。
 
-To report a security vulnerability, don't open an issue: follow the
-[security policy](https://github.com/1Cyrvox/ShuJing/blob/main/.github/SECURITY.md).
+如遇安全问题，请勿公开提交 Issue，而是按照[安全策略](https://github.com/1Cyrvox/ShuJing/blob/main/.github/SECURITY.md)私下报告。
 
-## Before you start
+### Issue 分类
 
-For anything larger than a small fix, open an issue first and describe what you want to
-change. Agreeing on the approach before you write the code saves you work.
+- **数境本地化问题**（中文翻译、中文排版、国内适配）：直接在本仓库提交。
+- **上游引擎问题**（渲染 Bug、性能问题、API 行为）：请先到 [上游 Issues](https://github.com/academa-labs/manimgx/issues/new/choose) 确认是否已有相同问题，再决定在本仓库或上游提交。
 
-ManimGX takes its API from [Manim Community Edition](https://www.manim.community): the same
-names and parameters. It does not take CE's behavior. What a scene means (its timing, its
-geometry, how it looks) is decided on its own merits, so "Manim CE does it this way" is a
-reason to look closely, not a reason to change ManimGX.
+## 开始之前
 
-## Making a change
+对于任何非小修小补的改动，请先提交 Issue 描述你的想法。先就方案达成一致，再动手写代码，能节省你的时间。
 
-The Developer Guide has everything a change needs:
+数境的 API 来自 [Manim Community Edition](https://www.manim.community)：相同的名称和参数，但不照搬 CE 的行为。一个场景的含义（时序、几何、外观）由其自身决定，因此"Manim CE 是这样做的"是仔细审视的理由，而非改变数境的理由。
 
-- [Setup](https://www.aipaikj.top/developer-guide/): the tools, the system libraries and
-  the GPU, and the environment, from a clone to a passing test run.
-- [Project management](https://www.aipaikj.top/developer-guide/project-management/): the
-  configuration, the checks, and the rules for typing and formatting.
-- [Understanding ManimGX](https://www.aipaikj.top/developer-guide/understanding-manimgx/)
-  and [the engine](https://www.aipaikj.top/developer-guide/engine/): how a scene becomes a
-  video.
-- [Testing](https://www.aipaikj.top/developer-guide/testing/): the tests, the integration
-  corpus and its review panel.
-- [Documentation](https://www.aipaikj.top/developer-guide/documentation/): the docs site,
-  the docstrings its reference is generated from, and the changelog.
+## 做一处改动
 
-## Pull requests
+开发者指南包含改动所需的全部信息：
 
-- Keep a pull request to one change, and link the issue it resolves.
-- A fix or a feature comes with a test that shows it. After the first release, a user-visible
-  change also gets a line under "Unreleased" in the changelog.
-- Before you open it, run `just check` and `just test`, and say in the pull request what you
-  ran and what you looked at. If the change could slow rendering down, run `just bench main`
-  and put its table in it.
-- Pull requests are squash-merged, and the title becomes the commit message. Write it as one
-  plain sentence that says what changes, like the rest of `git log --oneline`.
-- A maintainer reviews every pull request. They may ask for changes, or close a pull request
-  that doesn't fit the project.
+- [环境搭建](https://www.aipaikj.top/developer-guide/)：工具、系统库、GPU 和环境，从克隆到通过测试。
+- [项目管理](https://www.aipaikj.top/developer-guide/project-management/)：配置、检查、类型和格式化规则。
+- [理解数境](https://www.aipaikj.top/developer-guide/understanding-manimgx/)和[引擎](https://www.aipaikj.top/developer-guide/engine/)：场景如何变成视频。
+- [测试](https://www.aipaikj.top/developer-guide/testing/)：测试、集成语料库和审查面板。
+- [文档](https://www.aipaikj.top/developer-guide/documentation/)：文档站点、API 参考的 docstring 和更新日志。
 
-## Use of AI
+## Pull Request 规范
 
-AI tools are welcome, and you are still the author:
+- 每个 Pull Request 只做一处改动，并关联对应的 Issue。
+- 修复或新功能需附带测试。首次发布后，用户可见的改动还需在更新日志的"Unreleased"下添加一行。
+- 提交前运行 `just check` 和 `just test`，并在 Pull Request 中说明你运行了什么、检查了什么。如果改动可能影响渲染速度，运行 `just bench main` 并附上结果表格。
+- Pull Request 采用 squash-merge，标题即为提交信息。请写成一句简洁的中文，说明改了什么。
+- 维护者会审查每个 Pull Request，可能要求修改或关闭不合适的请求。
 
-- Understand every line you submit, run it, and be ready to explain it in review.
-- Say in the pull request which tools you used, and for what.
-- Don't let an agent act for you: an agent may not open issues or pull requests, or comment,
-  on its own.
+## AI 工具使用
 
-## License
+欢迎使用 AI 工具辅助开发，但你仍然是代码的作者：
 
-By contributing, you agree that your contributions are licensed under ManimGX's
-[MIT License](https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE).
+- 理解你提交的每一行代码，运行它，并在审查时能解释清楚。
+- 在 Pull Request 中说明使用了哪些 AI 工具及其用途。
+- 不要让 AI 代理替你操作：代理不得自行创建 Issue、Pull Request 或发表评论。
 
-## Code of conduct
+## 许可证
 
-Everyone taking part in ManimGX follows its
-[code of conduct](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CODE_OF_CONDUCT.md).
+提交贡献即表示你同意你的贡献在数境的 [MIT 许可证](https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE)下授权。
+
+## 行为准则
+
+所有参与数境开发的人员须遵守[行为准则](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CODE_OF_CONDUCT.md)。
+
+## 上游同步
+
+数境与上游 ManimGX 保持同步。上游更新通过 `git fetch upstream` + 选择性 cherry-pick 合入，不自动合并。如你发现上游有值得合入的改动，请提交 Issue 说明。
