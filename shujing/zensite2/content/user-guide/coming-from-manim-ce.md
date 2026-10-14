@@ -11,7 +11,7 @@ ManimGX 拥有 [Manim Community Edition](https://www.manim.community) 的 API：
   …）变为 `-r`（`--resolution`）和 `--fps`。`manimgx inspect` 编写分镜并检查 2D 布局，不生成视频。参见
   [渲染与分享](rendering.md)。
 - 你不需要安装 LaTeX。`Tex` 和 `MathTex` 将其 LaTeX 转换为
-  [Typst](https://typst.app)，由引擎排版。LaTeX 宏包和 `\def` 不会转换。
+  [Typst](https://typst.app)，由引擎设置。LaTeX 宏包和 `\def` 不会转换。
 
 ## 画框
 
@@ -49,7 +49,7 @@ ManimGX 拥有 [Manim Community Edition](https://www.manim.community) 的 API：
 每个关键字参数都有类型，`.animate` 链也是如此。因此 [ty](https://docs.astral.sh/ty/) 等类型检查器能在渲染前发现这些错误：ManimGX 中不存在的名称、mobject 或动画不接受的
 关键字（`m.Circle(colour=m.BLUE)`），或类型错误的参数。场景运行时，大多数 mobject 和动画会忽略它们不接受的关键字，所以只有 ty 能告诉你拼错了关键字。通过
 `.animate`，ty 只了解 ManimGX 自身的方法。要为你自己的类的方法制作动画，给
-`.animate` 一个函数：`box.animate(lambda b: b.grow(2))`。](quickstart.md#2)在编辑器中设置 ty。
+`.animate` 一个函数：`box.animate(lambda b: b.grow(2))`。[快速入门](quickstart.md#2-set-up-your-editor)在编辑器中设置 ty。
 
 ## 声音、幻灯片和语音旁白
 
@@ -66,4 +66,4 @@ ManimGX 无需插件即可完成 manim-voiceover 和 manim-slides 的工作：
 - [`add_subcaption`][manimgx.Scene.add_subcaption] 添加字幕。`manimgx render` 将
   它们作为字幕写到视频旁边。
 
-参见[声音与语音](sound-and-voice.md)和](rendering.md#_7)。
+参见[声音与语音](sound-and-voice.md)和[渲染与分享](rendering.md#_6)。

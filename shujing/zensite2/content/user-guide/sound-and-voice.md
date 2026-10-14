@@ -35,7 +35,6 @@ music = self.add_sound(m.Sound("theme.mp3").gain(-18).fade_in(2).loop())
 
 [`say`][manimgx.Scene.say] 用场景的语音说出一行，并在说话时播放动画。将每个动画的文字放在方括号中，并按相同顺序给出动画。语音不会读出方括号：
 
-
 <video src="../films/Derivative.mp4" autoplay loop muted playsinline controls></video>
 
 ```python

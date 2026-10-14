@@ -112,6 +112,29 @@ pymdownx.tabbed.combine_header_slug = true
 pymdownx.tasklist.custom_checkbox = true
 pymdownx.tilde = {}
 
+# The reference's pages render the API from the docstrings (Google style) with mkdocstrings' `:::` blocks
+[project.plugins.mkdocstrings]
+custom_templates = "templates"
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = ["../../src"]
+inventories = [
+  "https://docs.python.org/3/objects.inv",
+  "https://numpy.org/doc/stable/objects.inv",
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+docstring_options = { ignore_init_summary = true, returns_multiple_items = false, returns_named_value = false }
+docstring_section_style = "list"
+filters = ["!^_"]
+line_length = 88
+members_order = "source"
+merge_init_into_class = true
+modernize_annotations = true
+relative_crossrefs = true
+separate_signature = true
+show_bases = false
+
 # The navigation, from the folders and their .nav.yml files
 [project.plugins.awesome-nav]
 
