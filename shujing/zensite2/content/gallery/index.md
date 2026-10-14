@@ -263,7 +263,7 @@ description: 数境动画作品画廊 — 48 个精选数学动画
 
     量子粒子穿过它经典上无法越过的墙。测量的透射率与公式吻合。
 
--   ![](../films/CherenkovCone-4921f751e8e8ae6e7bfdb.webp)
+-   ![](../films/CherenkovCone-4921f75e8e8ae6e7bfdb.webp)
 
     [**切连科夫光**](cherenkov-cone.md)
 
