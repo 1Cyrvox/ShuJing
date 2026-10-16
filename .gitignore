@@ -59,3 +59,4 @@ browser/LICENSE
 # TypeScript dependencies and incremental compiler state
 node_modules/
 *.tsbuildinfo
+shujing/
