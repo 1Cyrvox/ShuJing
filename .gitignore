@@ -59,4 +59,5 @@ browser/LICENSE
 # TypeScript dependencies and incremental compiler state
 node_modules/
 *.tsbuildinfo
-shujing/
+# 数境部署目录（仅本地使用，不提交仓库）
+/shujing/
