@@ -1,5 +1,5 @@
 # The docs site, on Cloudflare Workers (.github/deploy/docs.jsonc): built on every push and
-# pull request, deployed from main to https://www.aipaikj.top, and previewed per pull request.
+# pull request, deployed from main to https://www.wlazn.cn, and previewed per pull request.
 # The build gets no secrets. Publishing uses the base branch's deployment configuration,
 # checked out separately from the artifact, which contains only the built site.
 
@@ -135,7 +135,7 @@ jobs:
       contents: read
     environment:
       name: docs
-      url: https://www.aipaikj.top
+      url: https://www.wlazn.cn
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

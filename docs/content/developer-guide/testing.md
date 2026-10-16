@@ -216,7 +216,7 @@ CI 在测试前解析最新的稳定 GitHub 发布，并将其版本和 wheel SH
 
 Test 工作流合并其运行的覆盖率并发布报告，由 Cloudflare 按照
 [`.github/deploy/coverage.jsonc`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/deploy/coverage.jsonc)
-的说明提供服务：`main` 的报告在 <https://coverage.www.aipaikj.top>，拉取请求的（来自此仓库的分支）在预览地址，每个提交的从其"覆盖率"状态链接。
+的说明提供服务：`main` 的报告在 <https://coverage.www.wlazn.cn>，拉取请求的（来自此仓库的分支）在预览地址，每个提交的从其"覆盖率"状态链接。
 
 ## 基准测试
 

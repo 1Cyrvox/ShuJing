@@ -5,7 +5,7 @@
 
 [project]
 site_name = "数境 ShuJing"
-site_url = "https://www.aipaikj.top/"
+site_url = "https://www.wlazn.cn/"
 site_description = "中文数学动画引擎 · 基于 ManimGX · 极速 3D 数学动画"
 site_author = "爱派未来科技"
 copyright = "&copy; 2026 爱派未来科技 · 基于 <a href=\"https://github.com/1Cyrvox/ShuJing\">ManimGX</a>（<a href=\"https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE\">MIT 许可证</a>）"
@@ -217,7 +217,7 @@ manimgx render scene.py      # 在 scene.py 旁写出 SquareToCircle.mp4 并打�
 ## 6. 查阅
 
 文档如下，每页为 Markdown。用户指南讲述场景的工作方式。参考给出了每个类、其接受
-的关键字和示例。画廊给出了三十部影片的代码。https://www.aipaikj.top/llms-full.txt
+的关键字和示例。画廊给出了三十部影片的代码。https://www.wlazn.cn/llms-full.txt
 包含所有页面于一个文件中。
 '''
 

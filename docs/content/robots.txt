@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.aipaikj.top/sitemap.xml
+Sitemap: https://www.wlazn.cn/sitemap.xml

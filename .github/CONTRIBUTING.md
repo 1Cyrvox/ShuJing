@@ -1,8 +1,8 @@
 # 贡献指南
 
-感谢你参与数境（ShuJing）的开发。数境由[爱派未来科技](https://www.aipaikj.top)维护，是基于 [ManimGX](https://github.com/academa-labs/manimgx) 的中文适配衍生发行版。
+感谢你参与数境（ShuJing）的开发。数境由[爱派未来科技](https://www.wlazn.cn)维护，是基于 [ManimGX](https://github.com/academa-labs/manimgx) 的中文适配衍生发行版。
 
-本页说明如何参与贡献。关于数境的工作原理、环境搭建、代码修改和测试，请参阅[开发者指南](https://www.aipaikj.top/developer-guide/)。
+本页说明如何参与贡献。关于数境的工作原理、环境搭建、代码修改和测试，请参阅[开发者指南](https://www.wlazn.cn/developer-guide/)。
 
 ## 反馈与 Issue
 
@@ -25,11 +25,11 @@
 
 开发者指南包含改动所需的全部信息：
 
-- [环境搭建](https://www.aipaikj.top/developer-guide/)：工具、系统库、GPU 和环境，从克隆到通过测试。
-- [项目管理](https://www.aipaikj.top/developer-guide/project-management/)：配置、检查、类型和格式化规则。
-- [理解数境](https://www.aipaikj.top/developer-guide/understanding-manimgx/)和[引擎](https://www.aipaikj.top/developer-guide/engine/)：场景如何变成视频。
-- [测试](https://www.aipaikj.top/developer-guide/testing/)：测试、集成语料库和审查面板。
-- [文档](https://www.aipaikj.top/developer-guide/documentation/)：文档站点、API 参考的 docstring 和更新日志。
+- [环境搭建](https://www.wlazn.cn/developer-guide/)：工具、系统库、GPU 和环境，从克隆到通过测试。
+- [项目管理](https://www.wlazn.cn/developer-guide/project-management/)：配置、检查、类型和格式化规则。
+- [理解数境](https://www.wlazn.cn/developer-guide/understanding-manimgx/)和[引擎](https://www.wlazn.cn/developer-guide/engine/)：场景如何变成视频。
+- [测试](https://www.wlazn.cn/developer-guide/testing/)：测试、集成语料库和审查面板。
+- [文档](https://www.wlazn.cn/developer-guide/documentation/)：文档站点、API 参考的 docstring 和更新日志。
 
 ## Pull Request 规范
 

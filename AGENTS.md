@@ -4,7 +4,7 @@ ManimGX is an animation engine with Manim Community Edition's API. The Python pa
 (`src/manimgx`) is typed throughout; the engine under it (`rust/engine`,
 built by maturin into `manimgx._engine`) typesets text with Typst, draws on the GPU with wgpu,
 and encodes video with x264. Setup and conventions are in the Developer Guide
-(`docs/content/developer-guide/`, published at https://www.aipaikj.top/developer-guide/);
+(`docs/content/developer-guide/`, published at https://www.wlazn.cn/developer-guide/);
 this is the short version.
 
 ## Commands

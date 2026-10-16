@@ -4,7 +4,7 @@ Thank you for helping. ManimGX is developed and maintained by [Academa](https://
 its maintainers review every change, and decide what is merged and where the project goes.
 
 This page is how to take part. How ManimGX works, and how to set it up, change it and test it,
-is in the [Developer Guide](https://www.aipaikj.top/developer-guide/).
+is in the [Developer Guide](https://www.wlazn.cn/developer-guide/).
 
 ## Issues
 
@@ -29,16 +29,16 @@ reason to look closely, not a reason to change ManimGX.
 
 The Developer Guide has everything a change needs:
 
-- [Setup](https://www.aipaikj.top/developer-guide/): the tools, the system libraries and
+- [Setup](https://www.wlazn.cn/developer-guide/): the tools, the system libraries and
   the GPU, and the environment, from a clone to a passing test run.
-- [Project management](https://www.aipaikj.top/developer-guide/project-management/): the
+- [Project management](https://www.wlazn.cn/developer-guide/project-management/): the
   configuration, the checks, and the rules for typing and formatting.
-- [Understanding ManimGX](https://www.aipaikj.top/developer-guide/understanding-manimgx/)
-  and [the engine](https://www.aipaikj.top/developer-guide/engine/): how a scene becomes a
+- [Understanding ManimGX](https://www.wlazn.cn/developer-guide/understanding-manimgx/)
+  and [the engine](https://www.wlazn.cn/developer-guide/engine/): how a scene becomes a
   video.
-- [Testing](https://www.aipaikj.top/developer-guide/testing/): the tests, the integration
+- [Testing](https://www.wlazn.cn/developer-guide/testing/): the tests, the integration
   corpus and its review panel.
-- [Documentation](https://www.aipaikj.top/developer-guide/documentation/): the docs site,
+- [Documentation](https://www.wlazn.cn/developer-guide/documentation/): the docs site,
   the docstrings its reference is generated from, and the changelog.
 
 ## Pull requests

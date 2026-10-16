@@ -60,7 +60,7 @@
    同时保留覆盖率徽章的数据（`badge.json`）。
 6. **发布覆盖率**，针对 `main` 的推送以及来自仓库分支的 pull request：发布到 Worker `manimgx-coverage`
    （[`.github/deploy/coverage.jsonc`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/deploy/coverage.jsonc)）。
-   `main` 的报告通过 <https://coverage.www.aipaikj.top> 提供。每个提交的报告
+   `main` 的报告通过 <https://coverage.www.wlazn.cn> 提供。每个提交的报告
    也是其自身的预览部署（在预览 `main` 或 `pr-<number>` 中），提交的
    "coverage" 状态会链接到它。
 
@@ -101,7 +101,7 @@ wall-time 列中：着色器和 GPU 调度的变更需要在
    提供要执行的命令。
 2. **部署**，来自 `main`（推送或手动运行）：使用 `wrangler deploy --config .github/deploy/docs.jsonc` 将构建产物部署到
    Cloudflare Workers，以提交的哈希作为其消息。`docs` 环境显示站点地址，
-   <https://www.aipaikj.top>。
+   <https://www.wlazn.cn>。
 3. **预览**，针对来自仓库分支的 pull request：将构建产物作为
    名为 `pr-<number>` 的预览上传，拥有自己的地址，显示在 `docs-preview`
    环境中。

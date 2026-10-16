@@ -255,7 +255,7 @@ CI 将其 Rust 编译器以及 macOS 版本和构建记录在
 
 - **每个页面的 Markdown，在页面旁边：** `/user-guide/quickstart/index.md` 在
   `/user-guide/quickstart/` 旁边。插件在页面构建时转换它，因此 Markdown 包含页面显示的内容：示例的代码、告诫框、参考的签名。页面的一个操作，复制为 Markdown（`content.action.copy`），复制它。
-- **`llms.txt`，** 位于站点根目录，<https://www.aipaikj.top/llms.txt>，README 告诉智能体跟随它。首先，面向被要求用 ManimGX 制作视频的智能体的入门说明：如何安装它、一个场景、`inspect` 然后 `render`，以及 API 的速查表。然后是每个页面的 Markdown 列表，按部分排列。
+- **`llms.txt`，** 位于站点根目录，<https://www.wlazn.cn/llms.txt>，README 告诉智能体跟随它。首先，面向被要求用 ManimGX 制作视频的智能体的入门说明：如何安装它、一个场景、`inspect` 然后 `render`，以及 API 的速查表。然后是每个页面的 Markdown 列表，按部分排列。
 - **`llms-full.txt`：** 每个页面的 Markdown，在一个文件中。
 
 入门说明是插件的 `markdown_description`，由人工编写，因此
@@ -301,7 +301,7 @@ Zensical 以 `python -m zensical` 运行，从仓库根目录开始，它将根�
 配置它：
 
 - Worker `manimgx-docs` 在其域名
-  [www.aipaikj.top](https://www.aipaikj.top) 上提供站点服务。
+  [www.wlazn.cn](https://www.wlazn.cn) 上提供站点服务。
 - 页面是一个文件夹（`changelog/index.html`）：对 `/changelog` 的请求被重定向到
   `/changelog/`。
 - 不匹配任何内容的路径获得最近的 `404.html`，状态码为 404。

@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://www.aipaikj.top">
+  <a href="https://www.wlazn.cn">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/1Cyrvox/ShuJing/main/docs/content/showcase/logo-dark.svg">
       <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/1Cyrvox/ShuJing/main/docs/content/showcase/logo-light.svg">
@@ -14,14 +14,14 @@
 </p>
 
 <p align="center">
-  <b><a href="https://www.aipaikj.top">文档</a></b> ·
-  <a href="https://www.aipaikj.top/user-guide/quickstart/">快速入门</a> ·
-  <a href="https://www.aipaikj.top/gallery/">示例</a> ·
-  <a href="https://www.aipaikj.top/reference/">API 参考</a>
+  <b><a href="https://www.wlazn.cn">文档</a></b> ·
+  <a href="https://www.wlazn.cn/user-guide/quickstart/">快速入门</a> ·
+  <a href="https://www.wlazn.cn/gallery/">示例</a> ·
+  <a href="https://www.wlazn.cn/reference/">API 参考</a>
 </p>
 
 <p align="center">
-  <a href="https://coverage.www.aipaikj.top"><img alt="测试覆盖率" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fcoverage.www.aipaikj.top%2Fbadge.json&label=coverage"></a>
+  <a href="https://coverage.www.wlazn.cn"><img alt="测试覆盖率" src="https://img.shields.io/endpoint?url=https%3A%2F%2Fcoverage.www.wlazn.cn%2Fbadge.json&label=coverage"></a>
   <a href="https://pypi.org/project/manimgx/"><img alt="PyPI 版本" src="https://img.shields.io/pypi/v/manimgx?color=58c4dd&label=PyPI"></a>
   <a href="https://www.npmjs.com/package/manimgx"><img alt="npm 版本" src="https://img.shields.io/npm/v/manimgx?color=58c4dd"></a>
   <a href="https://pepy.tech/projects/manimgx"><img alt="PyPI 总下载量" src="https://img.shields.io/pepy/dt/manimgx?color=58c4dd&label=PyPI%20downloads"></a>
@@ -48,9 +48,9 @@
 
 <figure class="mx-benchmark">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://www.aipaikj.top/images/benchmark-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://www.aipaikj.top/images/benchmark-light.svg">
-    <img alt="总渲染时间：ManimGX 3.08 秒，ManimGL 35.28 秒，Blender Workbench 57.61 秒，ManimCE 278.83 秒，Blender EEVEE 601.40 秒" src="https://www.aipaikj.top/images/benchmark-light.svg" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://www.wlazn.cn/images/benchmark-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://www.wlazn.cn/images/benchmark-light.svg">
+    <img alt="总渲染时间：ManimGX 3.08 秒，ManimGL 35.28 秒，Blender Workbench 57.61 秒，ManimCE 278.83 秒，Blender EEVEE 601.40 秒" src="https://www.wlazn.cn/images/benchmark-light.svg" width="100%">
   </picture>
   <p align="center"><sub>所有引擎均使用可用的最快编码预设。数值越低越好。</sub></p>
 </figure>
@@ -59,14 +59,14 @@
 
 | ManimGX | ManimCE | ManimGL | Blender Workbench | Blender EEVEE |
 | :---: | :---: | :---: | :---: | :---: |
-| ![ManimGX 在 2.5 秒时渲染的八个相连圆环](https://www.aipaikj.top/images/benchmark-quality/manimgx-light.png) | ![ManimCE 在 2.5 秒时渲染的八个相连圆环](https://www.aipaikj.top/images/benchmark-quality/manim_ce-light.png) | ![ManimGL 在 2.5 秒时渲染的八个相连圆环](https://www.aipaikj.top/images/benchmark-quality/manimgl-light.png) | ![Blender Workbench 在 2.5 秒时渲染的八个相连圆环](https://www.aipaikj.top/images/benchmark-quality/blender_workbench-light.png) | ![Blender EEVEE 在 2.5 秒时渲染的八个相连圆环](https://www.aipaikj.top/images/benchmark-quality/blender_eevee-light.png) |
+| ![ManimGX 在 2.5 秒时渲染的八个相连圆环](https://www.wlazn.cn/images/benchmark-quality/manimgx-light.png) | ![ManimCE 在 2.5 秒时渲染的八个相连圆环](https://www.wlazn.cn/images/benchmark-quality/manim_ce-light.png) | ![ManimGL 在 2.5 秒时渲染的八个相连圆环](https://www.wlazn.cn/images/benchmark-quality/manimgl-light.png) | ![Blender Workbench 在 2.5 秒时渲染的八个相连圆环](https://www.wlazn.cn/images/benchmark-quality/blender_workbench-light.png) | ![Blender EEVEE 在 2.5 秒时渲染的八个相连圆环](https://www.wlazn.cn/images/benchmark-quality/blender_eevee-light.png) |
 
 ## 快速入门
 
 **用提示词。** 粘贴到 Claude Code、Codex 或 Cursor 中。你的智能体负责设置：
 
 ```text
-Follow https://www.aipaikj.top/llms.txt.
+Follow https://www.wlazn.cn/llms.txt.
 Install ManimGX, make a 3D animation of the solar system, and open it.
 ```
 
@@ -78,7 +78,7 @@ pip install manimgx
 
 字体、排版和视频编码均已包含。
 如需编辑器设置和引导式首次动画，请参考
-[快速入门](https://www.aipaikj.top/user-guide/quickstart/)。
+[快速入门](https://www.wlazn.cn/user-guide/quickstart/)。
 
 ## 从 Python 到 MP4
 
@@ -107,9 +107,9 @@ manimgx render scene.py
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://www.aipaikj.top/films/readme-Hello3D.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://www.aipaikj.top/films/readme-Hello3D-light.svg">
-    <img alt="蓝色立方体在相机环绕时被绘制出来" src="https://www.aipaikj.top/films/readme-Hello3D-light.svg#readme" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset="https://www.wlazn.cn/films/readme-Hello3D.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://www.wlazn.cn/films/readme-Hello3D-light.svg">
+    <img alt="蓝色立方体在相机环绕时被绘制出来" src="https://www.wlazn.cn/films/readme-Hello3D-light.svg#readme" width="100%">
   </picture>
 </p>
 
@@ -125,29 +125,29 @@ manimgx render scene.py
 - **可在浏览器中运行。** `npm install manimgx`。[Pyodide](https://pyodide.org) 在
   Web Worker 中运行
   Python；WebGPU 渲染场景。
-  [嵌入场景](https://www.aipaikj.top/user-guide/rendering/#embed-in-a-web-page)无需渲染服务器。
-- **智能体反馈。** [`manimgx inspect`](https://www.aipaikj.top/user-guide/rendering/#inspect)：故事板和 2D 布局检查，在播放结束处或你选择的时刻。
+  [嵌入场景](https://www.wlazn.cn/user-guide/rendering/#embed-in-a-web-page)无需渲染服务器。
+- **智能体反馈。** [`manimgx inspect`](https://www.wlazn.cn/user-guide/rendering/#inspect)：故事板和 2D 布局检查，在播放结束处或你选择的时刻。
 - **文本与数学。** 编写 LaTeX 或 Typst。无需安装 LaTeX。
-- **语音同步。** [将动画与口述词语匹配](https://www.aipaikj.top/user-guide/sound-and-voice/)
+- **语音同步。** [将动画与口述词语匹配](https://www.wlazn.cn/user-guide/sound-and-voice/)
   使用 `self.say()`。
 
 ## 文档
 
-**[www.aipaikj.top](https://www.aipaikj.top)** 提供指南、带源代码的
+**[www.wlazn.cn](https://www.wlazn.cn)** 提供指南、带源代码的
 渲染示例和 API 参考：
 
-- [快速入门](https://www.aipaikj.top/user-guide/quickstart/)：安装、设置
+- [快速入门](https://www.wlazn.cn/user-guide/quickstart/)：安装、设置
   编辑器并渲染你的第一个场景。
-- [用户指南](https://www.aipaikj.top/user-guide/the-basics/)：学习场景、
+- [用户指南](https://www.wlazn.cn/user-guide/the-basics/)：学习场景、
   动画、3D、文本和声音，每次一个概念。
-- [示例](https://www.aipaikj.top/gallery/)：观看完整影片并阅读
+- [示例](https://www.wlazn.cn/gallery/)：观看完整影片并阅读
   生成它们的 Python 代码。
-- [API 参考](https://www.aipaikj.top/reference/)：查找类、方法
+- [API 参考](https://www.wlazn.cn/reference/)：查找类、方法
   及其类型化参数。
-- [从 Manim CE 迁移](https://www.aipaikj.top/user-guide/coming-from-manim-ce/)：
+- [从 Manim CE 迁移](https://www.wlazn.cn/user-guide/coming-from-manim-ce/)：
   改编现有场景并查看行为差异之处。
 
-对于智能体，[llms.txt](https://www.aipaikj.top/llms.txt) 以 Markdown 格式提供设置说明
+对于智能体，[llms.txt](https://www.wlazn.cn/llms.txt) 以 Markdown 格式提供设置说明
 和文档链接。
 
 ## 巨人肩上
@@ -171,14 +171,14 @@ H.264；[FFmpeg](https://ffmpeg.org) 解码导入的音频，使用
 
 ## 社区
 
-ManimGX 是 [Academa](https://academa.ai) 的开源项目，由 [Abdullah Geduk](https://geduk.io) 和 [Sina Atalay](https://sinaatalay.com) 创建。数境（ShuJing）是其中文适配衍生发行版，由[爱派未来科技](https://www.aipaikj.top)维护。我们欢迎社区的贡献。
+ManimGX 是 [Academa](https://academa.ai) 的开源项目，由 [Abdullah Geduk](https://geduk.io) 和 [Sina Atalay](https://sinaatalay.com) 创建。数境（ShuJing）是其中文适配衍生发行版，由[爱派未来科技](https://www.wlazn.cn)维护。我们欢迎社区的贡献。
 
 问题、错误报告和功能请求请从
 [issue](https://github.com/1Cyrvox/ShuJing/issues/new/choose) 开始。
 如需贡献代码，请阅读[贡献指南](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CONTRIBUTING.md)
-和[开发者指南](https://www.aipaikj.top/developer-guide/)。
+和[开发者指南](https://www.wlazn.cn/developer-guide/)。
 
-[变更日志](https://www.aipaikj.top/changelog/) ·
+[变更日志](https://www.wlazn.cn/changelog/) ·
 [引用 ManimGX](https://github.com/1Cyrvox/ShuJing/blob/main/CITATION.cff)
 
 所有参与者请遵守
