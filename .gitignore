@@ -61,3 +61,11 @@ node_modules/
 *.tsbuildinfo
 # 数境部署目录（仅本地使用，不提交仓库）
 /shujing/
+# 数境敏感文件（含 token/密钥，不能提交）
+docs/shujing/建站完整指南.md
+docs/shujing/vercel_*.py
+docs/shujing/vercel_*.log
+docs/shujing/vercel_*_stdout.log
+docs/shujing/shujing-site.zip
+docs/vercel-deploy/
+docs/shujing/vercel_fix_remaining.out
