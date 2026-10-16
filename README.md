@@ -26,6 +26,8 @@
   <a href="https://www.npmjs.com/package/manimgx"><img alt="npm 版本" src="https://img.shields.io/npm/v/manimgx?color=58c4dd"></a>
   <a href="https://pepy.tech/projects/manimgx"><img alt="PyPI 总下载量" src="https://img.shields.io/pepy/dt/manimgx?color=58c4dd&label=PyPI%20downloads"></a>
   <a href="https://www.npmjs.com/package/manimgx"><img alt="npm 月下载量" src="https://img.shields.io/npm/dm/manimgx?color=58c4dd&label=npm%20downloads"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE"><img alt="MIT 许可证" src="https://img.shields.io/github/license/1Cyrvox/ShuJing?color=blue&label=license"></a>
+  <a href="https://github.com/1Cyrvox/ShuJing"><img alt="GitHub stars" src="https://img.shields.io/github/stars/1Cyrvox/ShuJing?color=58c4dd"></a>
 </p>
 
 <p align="center">
