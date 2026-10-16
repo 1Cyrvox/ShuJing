@@ -1,5 +1,5 @@
 ---
-title: "Mobjects"
+title: "数学对象"
 description: "视频所展示的内容。每个 mobject 在画面中都有位置、尺寸、样式和组成部分。"
 ---
 

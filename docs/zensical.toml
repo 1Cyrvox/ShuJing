@@ -231,7 +231,7 @@ manimgx render scene.py      # 在 scene.py 旁写出 SquareToCircle.mp4 并打�
 # The reference's pages (docs/content/reference/, written by hand) render the API from the
 # docstrings (Google style) with mkdocstrings' `:::` blocks
 [project.plugins.mkdocstrings]
-custom_templates = "templates"
+custom_templates = "D:/asd/dfghj/manimgx-src/docs/templates"
 
 [project.plugins.mkdocstrings.handlers.python]
 paths = ["../src"]
