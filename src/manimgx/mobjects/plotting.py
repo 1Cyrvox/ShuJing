@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"Coordinates, sampled functions, axes, planes and data drawn in those coordinates."
+"坐标、采样函数、坐标轴、平面以及绘制在这些坐标中的数据。"
 
 from __future__ import annotations
 
@@ -117,7 +117,7 @@ if TYPE_CHECKING:
 
 
 class _ScaleBase:
-    """How numbers are laid along an axis: `function` maps a value to its position."""
+    """数字如何沿坐标轴排列：`function` 将一个值映射到其位置。"""
 
     def __init__(self, custom_labels: bool = False):
         self.custom_labels = custom_labels
@@ -127,14 +127,13 @@ class _ScaleBase:
     @overload
     def function(self, value: np.ndarray) -> np.ndarray: ...
     def function(self, value: float | np.ndarray) -> float | np.ndarray:
-        """The number of the axis at a value of its range: 10² for 2, on a logarithmic
-        axis.
+        """坐标轴的值在其范围某值处的数字：在对数坐标轴上，2 对应 10²。
 
         Args:
-            value: The value of the range; or an array of values.
+            value: 范围的值；或值的数组。
 
         Returns:
-            The number; or the numbers, an array of the same shape.
+            数字；或数字，即相同形状的数组。
         """
         return self._function(value)
 
@@ -143,14 +142,13 @@ class _ScaleBase:
     @overload
     def inverse_function(self, value: np.ndarray) -> np.ndarray: ...
     def inverse_function(self, value: float | np.ndarray) -> float | np.ndarray:
-        """The value of the axis's range at one of its numbers: 2 for 100, on a
-        logarithmic axis; the inverse of `function`.
+        """坐标轴的范围在其某个数字处的值：在对数坐标轴上，100 对应 2；即 `function` 的反函数。
 
         Args:
-            value: The number; or an array of numbers.
+            value: 数字；或数字的数组。
 
         Returns:
-            The value of the range; or the values, an array of the same shape.
+            范围的值；或范围的值，即相同形状的数组。
         """
         return self._inverse_function(value)
 
@@ -165,32 +163,25 @@ class _ScaleBase:
     def get_custom_labels(
         self, val_range: Iterable[float], unit_decimal_places: int = 0
     ) -> list[Mobject]:
-        """Make the labels of numbers, as the scale writes them (a scale with
-        `custom_labels`).
+        """制作数字的标签，按刻度尺书写方式书写（带有 `custom_labels` 的刻度尺）。
 
         Args:
-            val_range: The numbers.
-            unit_decimal_places: The decimal places the labels are written with.
+            val_range: 数字。
+            unit_decimal_places: 标签书写时使用的小数位数。
 
         Returns:
-            A new label for each number, in order.
+            每个数字对应一个新标签，按顺序排列。
         """
         raise NotImplementedError  # a scale with `custom_labels` makes its own
 
 
 class LinearBase(_ScaleBase):
-    """An even scale for a number line: its numbers evenly spaced along it, the numbers
-    of its range times `scale_factor`.
+    """数轴的均匀刻度：数字沿数轴均匀排列，即其范围的数字乘以 `scale_factor`。
 
-    It is a number line's default scale, and with a factor of 1 its numbers are those of
-    its range. With another factor, the line keeps its length and its ticks, and its
-    numbers are multiplied: with 2, a range `[-2, 2, 1]` is numbered from -4 to 4 in
-    steps of 2, and [n2p][manimgx.NumberLine.n2p] places 4 at its end. Give it as a
-    number line's `scaling`, or an axis's in an axis config.
+    它是数轴的默认刻度，当因子为 1 时，其数字即为范围的数字。使用其他因子时，数轴保持其长度和刻度不变，而其数字被乘以该因子：使用 2 时，范围 `[-2, 2, 1]` 从 -4 到 4 以步长 2 编号，且 [n2p][manimgx.NumberLine.n2p] 将 4 放在其末端。将其作为数轴的 `scaling`，或在坐标轴配置中作为坐标轴的 `scaling`。
 
     Args:
-        scale_factor: The factor from the numbers of the range to the numbers of the
-            line.
+        scale_factor: 从范围的数字到数轴数字的因子。
 
     Examples:
         ```python
@@ -216,7 +207,7 @@ class LinearBase(_ScaleBase):
     def __init__(self, scale_factor: float = 1.0):
         super().__init__()
         self.scale_factor = scale_factor
-        """The factor from the numbers of the range to the numbers of the line."""
+        """从范围的数字到数轴数字的因子。"""
 
     def _function(self, value: float | np.ndarray) -> float | np.ndarray:
         return self.scale_factor * value
@@ -226,21 +217,13 @@ class LinearBase(_ScaleBase):
 
 
 class LogBase(_ScaleBase):
-    """A logarithmic scale for a number line: its range is of exponents, and its
-    numbers are powers of `base`, spaced by their logarithms.
+    """数轴的对数刻度：其范围为指数，其数字为 `base` 的幂，按其对数间隔排列。
 
-    With base 10, a range `[0, 3, 1]` runs from 1 to 1000, a tick at each power of 10,
-    and [n2p][manimgx.NumberLine.n2p] places 100 two thirds of the way along. Its
-    numbers are all positive: 0 and negative numbers have no place on it. Give it as a
-    number line's `scaling`, or an axis's in an axis config; then
-    [plot][manimgx.Axes.plot] samples a function over the powers, and
-    [add_coordinates][manimgx.Axes.add_coordinates] writes the axis's
-    numbers as powers.
+    以 10 为底时，范围 `[0, 3, 1]` 从 1 运行到 1000，每个 10 的幂处有一个刻度，且 [n2p][manimgx.NumberLine.n2p] 将 100 放在沿数轴三分之二的位置。其数字均为正数：0 和负数在它上面没有位置。将其作为数轴的 `scaling`，或在坐标轴配置中作为坐标轴的 `scaling`；然后 [plot][manimgx.Axes.plot] 在幂上对函数采样，且 [add_coordinates][manimgx.Axes.add_coordinates] 将坐标轴的数字写为幂。
 
     Args:
-        base: The base of the powers.
-        custom_labels: Whether the line's numbers are written as powers (10², 10³, …),
-            rather than as decimals.
+        base: 幂的底数。
+        custom_labels: 数轴的数字是否写为幂（10²、10³、…），而非小数。
 
     Examples:
         ```python
@@ -267,9 +250,9 @@ class LogBase(_ScaleBase):
     def __init__(self, base: float = 10, custom_labels: bool = True):
         super().__init__()
         self.base = base
-        """The base of the powers."""
+        """幂的底数。"""
         self.custom_labels = custom_labels
-        """Whether the line's numbers are written as powers of the base."""
+        """数轴的数字是否写为底数的幂。"""
 
     def _function(self, value: float | np.ndarray) -> float | np.ndarray:
         if isinstance(value, np.ndarray):
@@ -293,19 +276,18 @@ class LogBase(_ScaleBase):
         unit_decimal_places: int = 0,
         **base_config: Unpack[DecimalNumberOptions],
     ) -> list[Mobject]:
-        """Make the labels of numbers, written as powers of the base: 100 as 10².
+        """制作数字的标签，写为底数的幂：100 写为 10²。
 
-        A number line with `custom_labels` numbers its ticks with these.
+        带有 `custom_labels` 的数轴用这些标签为其刻度编号。
 
         Args:
-            val_range: The numbers, all positive.
-            unit_decimal_places: The decimal places the exponents are written with.
-            **base_config: [Number keywords][manimgx.DecimalNumber]
-                for the labels: each is an [Integer][manimgx.Integer], the base, with
-                its exponent as its `unit`.
+            val_range: 数字，均为正数。
+            unit_decimal_places: 指数书写时使用的小数位数。
+            **base_config: 标签的 [数字关键字][manimgx.DecimalNumber]：
+                每个标签是一个 [Integer][manimgx.Integer]，即底数，以其指数作为 `unit`。
 
         Returns:
-            A new label for each number, in order, not placed.
+            每个数字对应一个新标签，按顺序排列，未放置。
         """
         return [
             Integer(
@@ -327,72 +309,50 @@ _CURVE_LINEAR = LinearBase()  # a default (never changed)
 
 
 class _CurveOptions(_Style, total=False):
-    """CurveOptions's keys, open, for the keywords that add to them."""
+    """CurveOptions 的键，开放，用于添加到它们的关键字。"""
 
     dt: float
-    """How far short of each discontinuity the curve's pieces stop, in units of its
-    parameter (default 1e-8)."""
+    """曲线的各段在每处不连续点前多远停止，以曲线参数为单位（默认 1e-8）。"""
     discontinuities: Iterable[float] | None
-    """The values of the parameter where the curve breaks: it is drawn in pieces
-    between them (default None: none)."""
+    """曲线断开的参数值：曲线在这些值之间分段绘制（默认 None：无）。"""
     use_smoothing: bool
-    """Whether the samples are joined by a smooth curve through them, rather than by
-    straight segments (default True)."""
+    """采样点是否通过过它们的平滑曲线连接，而非用直线段连接（默认 True）。"""
 
 
 class CurveOptions(_CurveOptions, total=False, closed=True):
-    """How a curve is sampled and smoothed, with the style keywords: the keywords of
-    [plot][manimgx.Axes.plot] and the other curves, for the methods that
-    pass them on."""
+    """曲线如何被采样和平滑，附带样式关键字：[plot][manimgx.Axes.plot] 及其他曲线的关键字，用于传递它们的方法。"""
 
 
 class ParametricOptions(_CurveOptions, total=False):
-    """A [ParametricFunction][manimgx.ParametricFunction]'s keywords but its function:
-    its parameter's range and spacing, with the curve keywords."""
+    """[ParametricFunction][manimgx.ParametricFunction] 除函数外的关键字：其参数的范围和间距，附带曲线关键字。"""
 
     t_range: Sequence[float]
-    """The parameter's range, `[t_min, t_max]` or `[t_min, t_max, t_step]`: the
-    function is sampled every `t_step`, 0.01 if not given (default [0, 1])."""
+    """参数的范围，`[t_min, t_max]` 或 `[t_min, t_max, t_step]`：函数每 `t_step` 采样一次，未给出时为 0.01（默认 [0, 1]）。"""
     scaling: _ScaleBase
-    """How the parameter is spaced over its range: evenly, with
-    [LinearBase][manimgx.LinearBase]; with [LogBase][manimgx.LogBase], the range is of
-    exponents, and the parameter runs over powers (default `LinearBase()`)."""
+    """参数在其范围内如何分布：均匀分布，使用 [LinearBase][manimgx.LinearBase]；使用 [LogBase][manimgx.LogBase] 时，范围为指数，参数在幂上运行（默认 `LinearBase()`）。"""
     use_vectorized: bool
-    """Whether the function takes all the values of the parameter at once, as an
-    array, and returns the arrays of x, y and z (default False)."""
+    """函数是否一次性接收参数的所有值（作为数组），并返回 x、y 和 z 的数组（默认 False）。"""
 
 
 class ParametricFunction(VMobject):
-    """A parametric curve: the points `function(t)` for t from `t_min` to `t_max`,
-    joined smoothly; white unless styled.
+    """参数曲线：t 从 `t_min` 到 `t_max` 的点 `function(t)`，平滑连接；未设置样式时为白色。
 
-    The function is sampled every `t_step`, and at `t_max`, and the samples are joined
-    by a smooth curve through them (or by straight segments, without
-    `use_smoothing`). Where the function jumps, give its `discontinuities`: the curve
-    is drawn in pieces between them, each stopping `dt` short. Unless
-    `use_vectorized`, the function is first tried on all the values of t at once, as
-    an array, and checked against single calls; a function that does not take arrays
-    is called once per value.
+    函数每 `t_step` 采样一次，并在 `t_max` 处采样，采样点通过过它们的平滑曲线连接（或不使用 `use_smoothing` 时用直线段连接）。在函数跳跃处，给出其 `discontinuities`：曲线在这些值之间分段绘制，每段在距不连续点 `dt` 处停止。除非 `use_vectorized`，函数首先会尝试一次性接收所有 t 值（作为数组），并与单次调用进行对照检查；不接受数组的函数则每个值调用一次。
 
-    The discontinuities are kept as the list they were when the curve was made, before
-    range filtering, so copies and regenerated curves keep all its breaks.
+    不连续点保留为曲线创建时的列表（在范围过滤之前），因此副本和重新生成的曲线保留其所有断点。
 
-    To graph a function on axes, in their coordinates, see [plot][manimgx.Axes.plot].
+    要在坐标轴上以坐标轴坐标系绘制函数图像，请参见 [plot][manimgx.Axes.plot]。
 
     Args:
-        function: The function, from t to a point in scene coordinates: its x, y and z.
-        t_range: The range of t, `[t_min, t_max]` or `[t_min, t_max, t_step]`; the
-            step is 0.01 if not given.
-        scaling: How t is spaced over its range: evenly, with
-            [LinearBase][manimgx.LinearBase]; with [LogBase][manimgx.LogBase], the
-            range is of exponents, and t runs over powers.
-        dt: How far short of each discontinuity the pieces stop, in units of t.
-        discontinuities: The values of t where the curve breaks; None for none.
-        use_smoothing: Whether the samples are joined by a smooth curve through them,
-            rather than by straight segments.
-        use_vectorized: Whether `function` takes all the values of t at once, as an
-            array, and returns the arrays of x, y and z (a z that is not an array is
-            taken as 0).
+        function: 函数，从 t 到场景坐标系中的一个点：其 x、y 和 z。
+        t_range: t 的范围，`[t_min, t_max]` 或 `[t_min, t_max, t_step]`；未给出步长时为 0.01。
+        scaling: t 在其范围内如何分布：均匀分布，使用
+            [LinearBase][manimgx.LinearBase]；使用 [LogBase][manimgx.LogBase] 时，
+            范围为指数，t 在幂上运行。
+        dt: 每处不连续点前各段停止的距离，以 t 为单位。
+        discontinuities: 曲线断开的 t 值；None 表示无。
+        use_smoothing: 采样点是否通过过它们的平滑曲线连接，而非用直线段连接。
+        use_vectorized: `function` 是否一次性接收所有 t 值（作为数组），并返回 x、y 和 z 的数组（非数组的 z 被视为 0）。
 
     Examples:
         ```python
@@ -419,9 +379,9 @@ class ParametricFunction(VMobject):
     """
 
     underlying_function: Callable[[float], float] | None = None
-    """The function y = f(x) the curve is the graph of, if it is one:
-    [plot][manimgx.Axes.plot] and [FunctionGraph][manimgx.FunctionGraph]
-    set it. None for other curves."""
+    """曲线所表示的函数 y = f(x)（如果它是某函数的图像）：
+    [plot][manimgx.Axes.plot] 和 [FunctionGraph][manimgx.FunctionGraph]
+    会设置它。其他曲线为 None。"""
 
     def __init__(
         self,
@@ -439,7 +399,7 @@ class ParametricFunction(VMobject):
             return np.asarray(function(t))
 
         self.function = internal_parametric_function
-        """The curve's function: from t to its point, as an array."""
+        """曲线的函数：从 t 到其点，作为数组。"""
         if len(t_range) == 2:
             t_range = (*t_range, 0.01)
         self.scaling = scaling
@@ -453,21 +413,21 @@ class ParametricFunction(VMobject):
         super().__init__(**kwargs)
 
     def get_function(self) -> Callable[[float], Point3D]:
-        """The curve's function: from t to its point.
+        """曲线的函数：从 t 到其点。
 
         Returns:
-            The function, which returns an array.
+            该函数，返回一个数组。
         """
         return self.function
 
     def get_point_from_function(self, t: float, /) -> Point3D:
-        """The curve's point at a value of t, from its function: past `t_range` too.
+        """曲线在某个 t 值处的点，由其函数给出：超出 `t_range` 也可。
 
         Args:
-            t: The value of t.
+            t: t 的值。
 
         Returns:
-            The point, in scene coordinates.
+            该点，在场景坐标系中。
         """
         return self.function(t)
 
@@ -511,20 +471,15 @@ class ParametricFunction(VMobject):
 
 
 class FunctionGraph(ParametricFunction):
-    """The graph of a function y = f(x), in scene coordinates: the points (x, f(x), 0),
-    joined smoothly; bright yellow (`PURE_YELLOW`) unless styled.
+    """函数 y = f(x) 的图像，在场景坐标系中：点 (x, f(x), 0)，平滑连接；未设置样式时为亮黄色（`PURE_YELLOW`）。
 
-    The sampler may call the function with arrays and individual values, falling
-    back to scalar evaluation when needed. The number of callback calls is not
-    guaranteed.
+    采样器可能用数组和单个值调用该函数，并在需要时回退到标量求值。回调调用的次数不予保证。
 
-    To graph a function on axes, in their coordinates, see
-    [plot][manimgx.Axes.plot].
+    要在坐标轴上以坐标轴坐标系绘制函数图像，请参见 [plot][manimgx.Axes.plot]。
 
     Args:
-        function: The function, from x to y.
-        x_range: The range of x, `[x_min, x_max]` or `[x_min, x_max, x_step]`; the
-            step is 0.01 if not given. None for the frame's width.
+        function: 函数，从 x 到 y。
+        x_range: x 的范围，`[x_min, x_max]` 或 `[x_min, x_max, x_step]`；未给出步长时为 0.01。None 表示画框的宽度。
 
     Examples:
         ```python
@@ -557,14 +512,13 @@ class FunctionGraph(ParametricFunction):
         if x_range is None:
             x_range = (-config.frame_x_radius, config.frame_x_radius)
         self.x_range = x_range
-        """The range of x the graph spans, `[x_min, x_max]` or `[x_min, x_max,
-        x_step]`."""
+        """图像所跨越的 x 的范围，`[x_min, x_max]` 或 `[x_min, x_max, x_step]`。"""
         self.parametric_function: Callable[[float], Point3D] = lambda t: np.array(
             np.broadcast_arrays(t, function(t), 0)
             if isinstance(t, np.ndarray)
             else [t, function(t), 0]
         )
-        """The graph's point function: from x to the point (x, f(x), 0)."""
+        """图像的点函数：从 x 到点 (x, f(x), 0)。"""
         super().__init__(self.parametric_function, self.x_range, **kwargs)
         self.underlying_function = function
 
@@ -573,36 +527,25 @@ class FunctionGraph(ParametricFunction):
 
 
 class ImplicitOptions(_Style, total=False, closed=True):
-    """An [ImplicitFunction][manimgx.ImplicitFunction]'s smoothing, with the style
-    keywords, for the methods that pass them on
-    ([plot_implicit_curve][manimgx.Axes.plot_implicit_curve])."""
+    """[ImplicitFunction][manimgx.ImplicitFunction] 的平滑处理，附带样式关键字，用于传递它们的方法
+    （[plot_implicit_curve][manimgx.Axes.plot_implicit_curve]）。"""
 
     use_smoothing: bool
-    """Whether the curve is smoothed through its points, rather than drawn in straight
-    segments (default True)."""
+    """曲线是否通过其点平滑连接，而非用直线段绘制（默认 True）。"""
 
 
 class ImplicitFunction(VMobject):
-    """The curve where a function of x and y is zero, `func(x, y) = 0`, in scene
-    coordinates, found within a rectangle; white unless styled.
+    """x 和 y 的函数为零的曲线，即 `func(x, y) = 0`，在场景坐标系中，在矩形内寻找；未设置样式时为白色。
 
-    The rectangle is divided in four, and each part in four again, finer where the
-    curve passes, and the curve is traced through the cells: one path for each of its
-    pieces. To plot on axes, in their coordinates, see
-    [plot_implicit_curve][manimgx.Axes.plot_implicit_curve].
+    矩形被四等分，每一部分再四等分，在曲线经过处更精细，曲线通过单元格被追踪：其每一段对应一条路径。要在坐标轴上以坐标轴坐标系绘制，请参见 [plot_implicit_curve][manimgx.Axes.plot_implicit_curve]。
 
     Args:
-        func: The function of x and y, in scene coordinates.
-        x_range: The range of x to look in, `[x_min, x_max]`; None for the frame's
-            width.
-        y_range: The range of y to look in, `[y_min, y_max]`; None for the frame's
-            height.
-        min_depth: How many times the rectangle is at least divided in four: more
-            finds smaller pieces of the curve.
-        max_quads: The most cells the rectangle may be divided into: more follow the
-            curve more closely, and take longer.
-        use_smoothing: Whether the curve is smoothed through its points, rather than
-            drawn in straight segments.
+        func: x 和 y 的函数，在场景坐标系中。
+        x_range: 要查找的 x 的范围，`[x_min, x_max]`；None 表示画框的宽度。
+        y_range: 要查找的 y 的范围，`[y_min, y_max]`；None 表示画框的高度。
+        min_depth: 矩形至少被四等分的次数：更多次能找到曲线更小的段。
+        max_quads: 矩形最多可划分的单元格数：更多能更紧密地跟随曲线，但耗时更长。
+        use_smoothing: 曲线是否通过其点平滑连接，而非用直线段绘制。
 
     Examples:
         ```python
@@ -635,7 +578,7 @@ class ImplicitFunction(VMobject):
         **kwargs: Unpack[Style],
     ):
         self.function = func
-        """The function whose zeros the curve is."""
+        """曲线为其零点的函数。"""
         self.min_depth = min_depth
         self.max_quads = max_quads
         self.use_smoothing = use_smoothing
@@ -667,135 +610,100 @@ class ImplicitFunction(VMobject):
 type Label = float | str | Mobject
 
 
-"""A label: a mobject, used as it is, or a number or a string, typeset (as math, by
-default)."""
+"""一个标签：一个 mobject，按原样使用，或一个数字或字符串，排版（默认按数学排版）。"""
 
 
 _AXIS_LINEAR = LinearBase()  # a default (never changed)
 
 
 class NumberLineOptions(_Tipped, total=False, closed=True):
-    """A [NumberLine][manimgx.NumberLine]'s keywords but its range, for the configs that
-    pass them on (a coordinate system's axes): its size, ticks, tip and numbers, with
-    the style and tip keywords."""
+    """[NumberLine][manimgx.NumberLine] 除范围外的关键字，用于传递它们的配置（坐标系
+    的坐标轴）：其尺寸、刻度、箭头和数字，附带样式和箭头关键字。"""
 
     length: float | None
-    """The line's length, in scene units (default None: `unit_size` per unit)."""
+    """数轴的长度，以场景单位计（默认 None：每单位 `unit_size`）。"""
     unit_size: float
-    """The length of one unit, in scene units, when `length` is not given (default
-    1)."""
+    """未给出 `length` 时一个单位的长度，以场景单位计（默认 1）。"""
     include_ticks: bool
-    """Whether to draw the ticks (default True)."""
+    """是否绘制刻度（默认 True）。"""
     tick_size: float
-    """How far each tick reaches on either side of the line, in scene units: half its
-    length (default 0.1)."""
+    """每个刻度向数轴两侧延伸的距离，以场景单位计：其长度的一半（默认 0.1）。"""
     numbers_with_elongated_ticks: Iterable[float] | None
-    """The numbers whose ticks are longer (default None: none)."""
+    """刻度更长的数字（默认 None：无）。"""
     longer_tick_multiple: int
-    """How many times longer those ticks are (default 2)."""
+    """那些刻度长多少倍（默认 2）。"""
     exclude_origin_tick: bool
-    """Whether to leave out the tick at 0 (default False; an axis of
-    [Axes][manimgx.Axes] leaves it out, when linear, for the other axis crosses
-    there)."""
+    """是否省略 0 处的刻度（默认 False；[Axes][manimgx.Axes] 的坐标轴在线性时会省略它，因为另一坐标轴在此处穿过）。"""
     rotation: float
-    """The angle the line is turned through about its center, in radians,
-    counterclockwise (default 0; a y-axis's is a quarter turn)."""
+    """数轴绕其中心旋转的角度，以弧度计，逆时针方向（默认 0；y 轴的为四分之一圈）。"""
     include_tip: bool
-    """Whether the line ends in an arrow tip, at its end (default False; an axis's
-    does, unless `tips=False`)."""
+    """数轴末端是否有箭头（默认 False；坐标轴的箭头会有，除非 `tips=False`）。"""
     tip_width: float
-    """The tip's width, in scene units (default 0.35)."""
+    """箭头的宽度，以场景单位计（默认 0.35）。"""
     tip_height: float
-    """The tip's length, along the line, in scene units (default 0.35)."""
+    """箭头沿数轴的长度，以场景单位计（默认 0.35）。"""
     tip_shape: type[ArrowTip] | None
-    """The class of the tip (default None:
-    [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip])."""
+    """箭头的类（默认 None：[ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]）。"""
     include_numbers: bool
-    """Whether to number the ticks (default False)."""
+    """是否为刻度编号（默认 False）。"""
     font_size: float
-    """The numbers' font size (default 36)."""
+    """数字的字号（默认 36）。"""
     label_direction: Vector3DLike
-    """The side of the line the numbers go on, as a direction (default DOWN: below; a
-    y-axis's are on its left)."""
+    """数字位于数轴的哪一侧，作为方向（默认 DOWN：下方；y 轴的数字在其左侧）。"""
     label_constructor: type[ManimTextLabel]
-    """The class the numbers and labels are typeset with (default
-    [MathTex][manimgx.MathTex])."""
+    """数字和标签的排版类（默认 [MathTex][manimgx.MathTex]）。"""
     scaling: _ScaleBase
-    """How numbers are spaced along the line: evenly, with
-    [LinearBase][manimgx.LinearBase], or by their logarithms, with
-    [LogBase][manimgx.LogBase] (default `LinearBase()`)."""
+    """数字沿数轴如何分布：均匀分布，使用 [LinearBase][manimgx.LinearBase]，或按对数分布，使用 [LogBase][manimgx.LogBase]（默认 `LinearBase()`）。"""
     line_to_number_buff: float
-    """The gap between the line and its numbers, in scene units (default 0.25)."""
+    """数轴与其数字之间的间距，以场景单位计（默认 0.25）。"""
     decimal_number_config: DecimalNumberOptions | None
-    """[Number keywords][manimgx.DecimalNumber] for the
-    numbers (default None: as many decimal places as the range's step has)."""
+    """数字的 [数字关键字][manimgx.DecimalNumber]（默认 None：与范围步长相同的小数位数）。"""
     numbers_to_exclude: Iterable[float] | None
-    """Numbers not to write, when the ticks are numbered (default None: none; an
-    axis's leave out 0)."""
+    """刻度编号时不写的数字（默认 None：无；坐标轴的省略 0）。"""
     numbers_to_include: Iterable[float] | None
-    """The numbers to write, instead of the ticks': given, they are written even
-    without `include_numbers` (default None: the ticks')."""
+    """要写的数字，替代刻度的数字：给出时，即使没有 `include_numbers` 也会写它们（默认 None：刻度的数字）。"""
 
 
 class NumberLine(Line):
-    """A number line: a line with ticks at every step of its range, numbers if asked
-    for, and a map between numbers and points; white, with a stroke 2 wide, unless
-    styled.
+    """数轴：一条带有其范围每一步处刻度的直线，若要求则有数字，以及数字与点之间的映射；未设置样式时为白色，线宽 2。
 
-    Its range, `[x_min, x_max, x_step]`, runs from its left end to its right end: the
-    line is `length` long, in scene units, or `unit_size` per unit, and it is centered
-    on the scene's origin (then turned through `rotation`). Its ticks are `x_step`
-    apart, counted from 0 when the range contains it (from `x_min` otherwise); a tip at
-    its end takes the place of the last tick.
-    [number_to_point][manimgx.NumberLine.number_to_point] and
-    [point_to_number][manimgx.NumberLine.point_to_number] convert between numbers and
-    points; [add_numbers][manimgx.NumberLine.add_numbers] and
-    [add_labels][manimgx.NumberLine.add_labels] write on it. A `scaling` spaces the
-    numbers otherwise: with [LogBase][manimgx.LogBase], the range is of exponents, and
-    the line's numbers are powers.
+    其范围 `[x_min, x_max, x_step]` 从左端运行到右端：数轴长 `length`，以场景单位计，或每单位 `unit_size`，并居中于场景原点（然后旋转 `rotation`）。其刻度间距为 `x_step`，当范围包含 0 时从 0 开始计数（否则从 `x_min` 开始）；末端的箭头取代最后一个刻度。
+    [number_to_point][manimgx.NumberLine.number_to_point] 和 [point_to_number][manimgx.NumberLine.point_to_number] 在数字与点之间转换；[add_numbers][manimgx.NumberLine.add_numbers] 和 [add_labels][manimgx.NumberLine.add_labels] 在其上书写。`scaling` 以其他方式分布数字：使用 [LogBase][manimgx.LogBase] 时，范围为指数，数轴的数字为幂。
 
-    Initial length, rotation, tip dimensions and which ticks/numbers to draw are
-    construction inputs, not retained attributes. The line keeps its drawing and
-    the defaults used by later tick and label methods; the numbers to exclude and
-    those with elongated ticks are kept as the lists they were when it was made.
+    初始长度、旋转、箭头尺寸以及要绘制哪些刻度/数字是构造输入，而非保留的属性。数轴保留其绘图以及后续刻度和标签方法所用的默认值；要排除的数字和具有加长刻度的数字保留为数轴创建时的列表。
 
     Args:
-        x_range: The range, `[x_min, x_max, x_step]`, or `[x_min, x_max]` for a step of
-            1; None for [-7, 7, 1].
-        length: The line's length, in scene units; None for `unit_size` per unit.
-        unit_size: The length of one unit, in scene units, when `length` is None.
-        include_ticks: Whether to draw the ticks.
-        tick_size: How far each tick reaches on either side of the line, in scene
-            units: half its length.
-        numbers_with_elongated_ticks: The numbers whose ticks are longer; None for
-            none.
-        longer_tick_multiple: How many times longer those ticks are.
-        exclude_origin_tick: Whether to leave out the tick at 0.
-        rotation: The angle the line is turned through about its center, in radians,
-            counterclockwise.
-        include_tip: Whether the line ends in an arrow tip, at its end.
-        tip_width: The tip's width, in scene units.
-        tip_height: The tip's length, along the line, in scene units.
-        tip_shape: The class of the tip; None for
-            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
-        include_numbers: Whether to number the ticks (see
-            [add_numbers][manimgx.NumberLine.add_numbers]).
-        font_size: The numbers' font size.
-        label_direction: The side of the line the numbers go on, as a direction: DOWN
-            for below.
-        label_constructor: The class the numbers and labels are typeset with:
-            [MathTex][manimgx.MathTex], [MathTypst][manimgx.MathTypst], ….
-        scaling: How numbers are spaced along the line: evenly, with
-            [LinearBase][manimgx.LinearBase], or by their logarithms, with
-            [LogBase][manimgx.LogBase] (its numbers are then written as powers).
-        line_to_number_buff: The gap between the line and its numbers, in scene units.
-        decimal_number_config: The numbers'
-            [number keywords][manimgx.DecimalNumber]; None
-            for as many decimal places as `x_step` has.
-        numbers_to_exclude: Numbers not to write, when the ticks are numbered; None
-            for none.
-        numbers_to_include: The numbers to write, instead of the ticks': given, they
-            are written even without `include_numbers`. None for the ticks'.
+        x_range: 范围，`[x_min, x_max, x_step]`，或 `[x_min, x_max]` 表示步长为 1；None 表示 [-7, 7, 1]。
+        length: 数轴的长度，以场景单位计；None 表示每单位 `unit_size`。
+        unit_size: 当 `length` 为 None 时一个单位的长度，以场景单位计。
+        include_ticks: 是否绘制刻度。
+        tick_size: 每个刻度向数轴两侧延伸的距离，以场景单位计：其长度的一半。
+        numbers_with_elongated_ticks: 刻度更长的数字；None 表示无。
+        longer_tick_multiple: 那些刻度长多少倍。
+        exclude_origin_tick: 是否省略 0 处的刻度。
+        rotation: 数轴绕其中心旋转的角度，以弧度计，逆时针方向。
+        include_tip: 数轴末端是否有箭头。
+        tip_width: 箭头的宽度，以场景单位计。
+        tip_height: 箭头沿数轴的长度，以场景单位计。
+        tip_shape: 箭头的类；None 表示
+            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
+        include_numbers: 是否为刻度编号（参见
+            [add_numbers][manimgx.NumberLine.add_numbers]）。
+        font_size: 数字的字号。
+        label_direction: 数字位于数轴的哪一侧，作为方向：DOWN
+            表示下方。
+        label_constructor: 数字和标签的排版类：
+            [MathTex][manimgx.MathTex]、[MathTypst][manimgx.MathTypst]、…。
+        scaling: 数字沿数轴如何分布：均匀分布，使用
+            [LinearBase][manimgx.LinearBase]，或按对数分布，使用
+            [LogBase][manimgx.LogBase]（其数字随后写为幂）。
+        line_to_number_buff: 数轴与其数字之间的间距，以场景单位计。
+        decimal_number_config: 数字的
+            [数字关键字][manimgx.DecimalNumber]；None
+            表示与 `x_step` 相同的小数位数。
+        numbers_to_exclude: 刻度编号时不写的数字；None
+            表示无。
+        numbers_to_include: 要写的数字，替代刻度的数字：给出时，即使没有 `include_numbers` 也会写它们。None 表示刻度的数字。
 
     Examples:
         ```python
@@ -877,19 +785,16 @@ class NumberLine(Line):
                 "num_decimal_places": self._decimal_places_from_step(x_range[2])
             }
         self.x_range = np.array(x_range, dtype=float)
-        """The line's range, `[x_min, x_max, x_step]`, as given: of exponents, on a
-        logarithmic line."""
+        """数轴的范围，`[x_min, x_max, x_step]`，按给出时的形式：在对数数轴上为指数。"""
         self.x_min: float
-        """The line's number at its start: the first of its range, scaled (10⁰ = 1 for
-        a range from 0, on a logarithmic line)."""
+        """数轴起点的数字：其范围的第一个值，经刻度变换（对数数轴上从 0 开始的范围对应 10⁰ = 1）。"""
         self.x_max: float
-        """The line's number at its end: the second of its range, scaled."""
+        """数轴终点的数字：其范围的第二个值，经刻度变换。"""
         self.x_step: float
-        """The step of its range, scaled."""
+        """其范围的步长，经刻度变换。"""
         self.x_min, self.x_max, self.x_step = scaling.function(self.x_range)
         self.unit_size = unit_size
-        """The length of one unit, in scene units, as the line was made; see
-        [get_unit_size][manimgx.NumberLine.get_unit_size] for its length now."""
+        """数轴创建时一个单位的长度，以场景单位计；参见 [get_unit_size][manimgx.NumberLine.get_unit_size] 了解其当前长度。"""
         self.tick_size = tick_size
         self.numbers_with_elongated_ticks = numbers_with_elongated_ticks
         self.longer_tick_multiple = longer_tick_multiple
@@ -902,7 +807,7 @@ class NumberLine(Line):
         self.decimal_number_config = decimal_number_config
         self.numbers_to_exclude = numbers_to_exclude
         self.scaling = scaling
-        """How the line's numbers are spaced along it."""
+        """数轴的数字沿其如何分布。"""
         super().__init__(self.x_range[0] * RIGHT, self.x_range[1] * RIGHT, **kwargs)
         if length:
             self.set_length(length)
@@ -936,34 +841,31 @@ class NumberLine(Line):
                 )
 
     def rotate_about_zero(self, angle: float, axis: Vector3DLike = OUT) -> Self:
-        """Turn the line about the point of its number 0.
+        """将数轴绕其数字 0 的点旋转。
 
         Args:
-            angle: The angle, in radians, counterclockwise about `axis`.
-            axis: The axis of the turn: OUT turns it in the plane of the screen.
+            angle: 角度，以弧度计，绕 `axis` 逆时针方向。
+            axis: 旋转的轴：OUT 使其在屏幕平面内旋转。
         """
         return self.rotate_about_number(0, angle, axis)
 
     def rotate_about_number(
         self, number: float, angle: float, axis: Vector3DLike = OUT
     ) -> Self:
-        """Turn the line about the point of one of its numbers.
+        """将数轴绕其某个数字的点旋转。
 
         Args:
-            number: The number whose point stays fixed.
-            angle: The angle, in radians, counterclockwise about `axis`.
-            axis: The axis of the turn: OUT turns it in the plane of the screen.
+            number: 其点保持不变的数字。
+            angle: 角度，以弧度计，绕 `axis` 逆时针方向。
+            axis: 旋转的轴：OUT 使其在屏幕平面内旋转。
         """
         return self.rotate(angle, axis, about_point=self.n2p(number))
 
     @deprecated("Manim CE's machinery: the constructor calls it", category=None)
     def add_ticks(self) -> Self:
-        """Add the line's ticks: one at each number of its
-        [tick range][manimgx.NumberLine.get_tick_range], across the line, those of
-        `numbers_with_elongated_ticks` longer.
+        """添加数轴的刻度：在其 [刻度范围][manimgx.NumberLine.get_tick_range] 的每个数字处一个，横跨数轴，`numbers_with_elongated_ticks` 中的刻度更长。
 
-        The constructor calls it, unless `include_ticks` is False. The ticks are a group
-        added to the line, and kept as its `ticks`.
+        构造函数会调用它，除非 `include_ticks` 为 False。刻度是一个组，添加到数轴，并保留为其 `ticks`。
         """
         ticks = VGroup()
         elongated_tick_size = self.tick_size * self.longer_tick_multiple
@@ -981,16 +883,14 @@ class NumberLine(Line):
 
     @deprecated("Manim CE's machinery: the constructor calls it", category=None)
     def get_tick(self, x: float, size: float | None = None) -> Line:
-        """Make a tick for a number: a short line across the number line at the
-        number's point, in the line's style.
+        """为某个数字制作刻度：在数字的点处横跨数轴的短线，采用数轴的样式。
 
         Args:
-            x: The number.
-            size: How far the tick reaches on either side of the line, in scene units;
-                None for the line's `tick_size`.
+            x: 数字。
+            size: 刻度向数轴两侧延伸的距离，以场景单位计；None 表示数轴的 `tick_size`。
 
         Returns:
-            A new line, not added to the number line.
+            一条新的线，未添加到数轴。
         """
         if size is None:
             size = self.tick_size
@@ -1002,15 +902,12 @@ class NumberLine(Line):
 
     @deprecated("Manim CE's machinery: the constructor calls it", category=None)
     def get_tick_range(self) -> np.ndarray:
-        """The numbers the line's ticks are at.
+        """数轴刻度所在的数字。
 
-        They are `x_step` apart, counted from 0 outward when the range contains it
-        (from `x_min` otherwise), up to `x_max` included — excluded if the line has a
-        tip — and without 0 if `exclude_origin_tick`. On a scaled line they are the
-        numbers themselves: powers, on a logarithmic one.
+        它们间距为 `x_step`，当范围包含 0 时从 0 向外计数（否则从 `x_min` 开始），直到包含的 `x_max`——若数轴有箭头则排除——且若 `exclude_origin_tick` 则不含 0。在带刻度的数轴上它们是数字本身：对数数轴上为幂。
 
         Returns:
-            An array of the numbers, in increasing order.
+            数字数组，按递增顺序。
         """
         x_min, x_max, x_step = self.x_range
         if not self.include_tip:
@@ -1027,16 +924,15 @@ class NumberLine(Line):
         return self.scaling.function(tick_range)
 
     def number_to_point(self, number: float | np.ndarray) -> np.ndarray:
-        """Convert a number to its point on the line, or numbers to their points.
+        """将数字转换为其在数轴上的点，或将数字转换为其点。
 
-        A number outside the range is on the line extended past its ends.
+        范围外的数字位于数轴向两端延伸的部分。
 
         Args:
-            number: The number; or an array of numbers, of any shape.
+            number: 数字；或任意形状的数字数组。
 
         Returns:
-            The point, in scene coordinates; for an array, the points, with the
-            coordinates last (the array's shape, then 3).
+            点，在场景坐标系中；对于数组，为点，坐标在最后（数组的形状，然后 3）。
 
         Examples:
             ```python
@@ -1060,11 +956,10 @@ class NumberLine(Line):
         return (1 - a) * start + a * end
 
     def point_to_number(self, point: Point3DLike) -> float:
-        """Convert a point to the number at its projection on the line: the inverse of
-        [number_to_point][manimgx.NumberLine.number_to_point] for points on the line.
+        """将点转换为其在数轴上投影处的数字：对于数轴上的点，是 [number_to_point][manimgx.NumberLine.number_to_point] 的反函数。
 
         Args:
-            point: The point, in scene coordinates.
+            point: 点，在场景坐标系中。
         """
         point = np.asarray(point, dtype=float)
         start, end = self.get_start(), self.get_end()
@@ -1078,33 +973,30 @@ class NumberLine(Line):
         )
 
     def n2p(self, number: float | np.ndarray) -> Point3D:
-        """Convert a number to its point on the line:
-        [number_to_point][manimgx.NumberLine.number_to_point], by a shorter name.
+        """将数字转换为其在数轴上的点：[number_to_point][manimgx.NumberLine.number_to_point] 的简写名。
 
         Args:
-            number: The number; or an array of numbers, of any shape.
+            number: 数字；或任意形状的数字数组。
 
         Returns:
-            The point, in scene coordinates; or the points.
+            点，在场景坐标系中；或点。
         """
         return self.number_to_point(number)
 
     def get_unit_size(self) -> float:
-        """The length of one unit of the line: its length over its range.
+        """数轴一个单位的长度：其长度除以其范围。
 
         Returns:
-            The length, in scene units (of one unit of exponent, on a logarithmic
-            line).
+            长度，以场景单位计（对数数轴上为指数单位的长度）。
         """
         val: float = self.get_length() / (self.x_range[1] - self.x_range[0])
         return val
 
     def get_unit_vector(self) -> Vector3D:
-        """The line's direction, one unit long: the vector from its start toward its
-        end, as long as the unit the line was made with (its `unit_size`).
+        """数轴的方向，一个单位长：从其起点指向终点的向量，长度为数轴创建时的单位（其 `unit_size`）。
 
         Returns:
-            The vector, in scene units.
+            向量，以场景单位计。
         """
         return super().get_unit_vector() * self.unit_size
 
@@ -1116,25 +1008,19 @@ class NumberLine(Line):
         label_constructor: type[ManimTextLabel] | None = None,
         **number_config: Unpack[DecimalNumberOptions],
     ) -> VMobject:
-        """Make a number, written beside its point on the line.
+        """制作一个数字，写在其数轴上的点旁。
 
-        It is a [DecimalNumber][manimgx.DecimalNumber] in the line's number style (its
-        `decimal_number_config` and `font_size`), with `number_config` over it. A
-        negative number written straight below or above the line is shifted so its
-        digits, not its minus sign, are centered on the point.
+        它是一个 [DecimalNumber][manimgx.DecimalNumber]，采用数轴的数字样式（其 `decimal_number_config` 和 `font_size`），并用 `number_config` 覆盖。直接写在数轴下方或上方的负数会被移位，使其数字而非负号居中于该点。
 
         Args:
-            x: The number.
-            direction: The side of the line it goes on; None for the line's
-                `label_direction`.
-            buff: The gap between the line and the number, in scene units; None for the
-                line's `line_to_number_buff`.
-            label_constructor: The class it is typeset with; None for the line's.
-            **number_config: [Number keywords][manimgx.DecimalNumber],
-                over the line's.
+            x: 数字。
+            direction: 数字位于数轴的哪一侧；None 表示数轴的 `label_direction`。
+            buff: 数轴与数字之间的间距，以场景单位计；None 表示数轴的 `line_to_number_buff`。
+            label_constructor: 其排版类；None 表示数轴的。
+            **number_config: [数字关键字][manimgx.DecimalNumber]，覆盖数轴的。
 
         Returns:
-            A new number, not added to the line.
+            一个新的数字，未添加到数轴。
         """
         options = self.decimal_number_config | number_config
         options.setdefault("font_size", self.font_size)
@@ -1156,19 +1042,15 @@ class NumberLine(Line):
         label_constructor: type[ManimTextLabel] | None = None,
         **kwargs: Unpack[DecimalNumberOptions],
     ) -> Self:
-        """Number the line: write numbers beside the points of the given values, or of
-        its ticks.
+        """为数轴编号：在给定值的点旁写数字，或在其刻度处写。
 
-        Each number is written as
-        [get_number_mobject][manimgx.NumberLine.get_number_mobject] writes it. The
-        numbers are a group added to the line, and kept as its `numbers`.
+        每个数字按 [get_number_mobject][manimgx.NumberLine.get_number_mobject] 的书写方式书写。数字是一个组，添加到数轴，并保留为其 `numbers`。
 
         Args:
-            x_values: The numbers to write; None for the ticks' numbers.
-            excluding: Numbers not to write; None for the line's `numbers_to_exclude`.
-            label_constructor: The class they are typeset with; None for the line's.
-            **kwargs: [Number keywords][manimgx.DecimalNumber],
-                over the line's: `font_size`, `num_decimal_places`, `color`, ….
+            x_values: 要写的数字；None 表示刻度的数字。
+            excluding: 不写的数字；None 表示数轴的 `numbers_to_exclude`。
+            label_constructor: 它们的排版类；None 表示数轴的。
+            **kwargs: [数字关键字][manimgx.DecimalNumber]，覆盖数轴的：`font_size`、`num_decimal_places`、`color`、…。
 
         Examples:
             ```python
@@ -1209,26 +1091,16 @@ class NumberLine(Line):
         font_size: float | None = None,
         label_constructor: type[ManimTextLabel] | None = None,
     ) -> Self:
-        r"""Label the line: put each label beside the point of its number.
+        r"""为数轴加标签：将每个标签放在其数字的点旁。
 
-        A string is typeset as text with [Tex][manimgx.Tex] when the constructor is
-        [MathTex][manimgx.MathTex] (as by default), and with the constructor otherwise;
-        a number is written with the constructor. A mobject is used as it is, and must
-        be typeset (a [Typst][manimgx.Typst] mobject: [Text][manimgx.Text],
-        [Tex][manimgx.Tex], [MathTex][manimgx.MathTex], …) or a
-        [DecimalNumber][manimgx.DecimalNumber]: another raises an exception. Every label
-        is set to `font_size`. The labels are a group added to the line, and kept as its
-        `labels`.
+        字符串在构造函数为 [MathTex][manimgx.MathTex]（默认情况）时用 [Tex][manimgx.Tex] 排版为文本，否则用构造函数排版；数字用构造函数书写。mobject 按原样使用，且必须是已排版的（一个 [Typst][manimgx.Typst] mobject：[Text][manimgx.Text]、[Tex][manimgx.Tex]、[MathTex][manimgx.MathTex]、…）或一个 [DecimalNumber][manimgx.DecimalNumber]：其他会引发异常。每个标签设置为 `font_size`。标签是一个组，添加到数轴，并保留为其 `labels`。
 
         Args:
-            dict_values: The labels, by number.
-            direction: The side of the line they go on, as a direction; None for the
-                line's `label_direction`.
-            buff: The gap between the line and the labels, in scene units; None for the
-                line's `line_to_number_buff`.
-            font_size: The labels' font size; None for the line's.
-            label_constructor: The class strings and numbers are typeset with; None for
-                the line's.
+            dict_values: 标签，按数字。
+            direction: 标签位于数轴的哪一侧，作为方向；None 表示数轴的 `label_direction`。
+            buff: 数轴与标签之间的间距，以场景单位计；None 表示数轴的 `line_to_number_buff`。
+            font_size: 标签的字号；None 表示数轴的。
+            label_constructor: 字符串和数字的排版类；None 表示数轴的。
 
         Examples:
             ```python
@@ -1299,16 +1171,13 @@ class NumberLine(Line):
 
 
 class UnitInterval(NumberLine):
-    """The unit interval: a number line from 0 to 1, with a tick every tenth; 10 units
-    long, its ticks at 0 and 1 longer, unless told otherwise.
+    """单位区间：从 0 到 1 的数轴，每十分之一处有一个刻度；长 10 个单位，其 0 和 1 处的刻度更长，除非另有说明。
 
-    Its numbers, when it has them, have one decimal place.
+    其数字（若有）有一位小数。
 
     Args:
-        **kwargs: [Number line keywords][manimgx.NumberLine]:
-            its range is always `[0, 1, 0.1]`, and its `unit_size`,
-            `numbers_with_elongated_ticks` and `decimal_number_config` default to 10,
-            [0, 1] and one decimal place.
+        **kwargs: [数轴关键字][manimgx.NumberLine]：
+            其范围始终为 `[0, 1, 0.1]`，其 `unit_size`、`numbers_with_elongated_ticks` 和 `decimal_number_config` 默认为 10、[0, 1] 和一位小数。
 
     Examples:
         ```python
@@ -1336,28 +1205,24 @@ type Coordinates = (
 )  # a number per axis, or arrays of them
 
 
-"""A coordinate on one axis: a number, or an array of numbers (of any shape) for many
-points at once."""
+"""一个轴上的坐标：一个数字，或数字的数组（任意形状），用于一次处理多个点。"""
 
 
 def _halved(opacity: float | Sequence[float]) -> float | list[float]:
-    """An opacity, or one for each part, at half strength."""
+    """一个不透明度，或每个部分一个，减半。"""
     if isinstance(opacity, int | float):
         return opacity * 0.5
     return [o * 0.5 for o in opacity]
 
 
 def merged_axis_config(*configs: NumberLineOptions | None) -> NumberLineOptions:
-    """Merge axis configs: later ones win, key by key, and inside their
-    `decimal_number_config` too. An iterator among the values is read into a list: the
-    config is shared by every axis, and an iterator would give its numbers to the first.
+    """合并坐标轴配置：后者逐键胜出，在其 `decimal_number_config` 内也是如此。值中的迭代器被读入列表：配置由每个坐标轴共享，迭代器会将其数字给第一个。
 
     Args:
-        *configs: [Number line keywords][manimgx.NumberLine],
-            in order; None for none.
+        *configs: [数轴关键字][manimgx.NumberLine]，按顺序；None 表示无。
 
     Returns:
-        A new config.
+        一个新的配置。
     """
     merged: NumberLineOptions = {}
     for config_ in configs:
@@ -1380,104 +1245,69 @@ def merged_axis_config(*configs: NumberLineOptions | None) -> NumberLineOptions:
 
 
 class AxisLine(TypedDict, total=False, closed=True):
-    """The keywords of a line from an axis to a point
-    ([get_vertical_line][manimgx.Axes.get_vertical_line] and the like): its class, its
-    keywords, its color and its width."""
+    """从坐标轴到点的线的关键字
+    （[get_vertical_line][manimgx.Axes.get_vertical_line] 等）：其类、其关键字、其颜色和其宽度。"""
 
     line_func: type[Line]
-    """The class of the line (default [DashedLine][manimgx.DashedLine]; a
-    [Line][manimgx.Line] is solid)."""
+    """线的类（默认 [DashedLine][manimgx.DashedLine]；[Line][manimgx.Line] 是实线）。"""
     line_config: DashedLineOptions | None
-    """[Dashed line keywords][manimgx.DashedLine] for the
-    line, but its color and width, which `color` and `stroke_width` set (default None:
-    none)."""
+    """线的 [虚线关键字][manimgx.DashedLine]，但不包括其颜色和宽度，由 `color` 和 `stroke_width` 设置（默认 None：无）。"""
     color: ParsableManimColor | None
-    """The line's color (default None: white)."""
+    """线的颜色（默认 None：白色）。"""
     stroke_width: float
-    """The line's width, in hundredths of a scene unit (default 2)."""
+    """线的宽度，以场景单位的百分之一计（默认 2）。"""
 
 
 class PlotOptions(_CurveOptions, total=False, closed=True):
-    """[plot][manimgx.Axes.plot]'s keywords but its function, for the methods that pass
-    them on ([plot_derivative_graph][manimgx.Axes.plot_derivative_graph],
-    [plot_antiderivative_graph][manimgx.Axes.plot_antiderivative_graph]): the range of
-    x and the colorscale, with the curve keywords."""
+    """[plot][manimgx.Axes.plot] 除函数外的关键字，用于传递它们的方法
+    （[plot_derivative_graph][manimgx.Axes.plot_derivative_graph]、
+    [plot_antiderivative_graph][manimgx.Axes.plot_antiderivative_graph]）：x 的范围和色阶，附带曲线关键字。"""
 
     x_range: Sequence[float] | None
-    """The range of x the graph spans, `[x_min, x_max]` or `[x_min, x_max, x_step]`,
-    the function sampled every `x_step` (default None: the x-axis's range; without a
-    step, a tenth of the x-axis's)."""
+    """图像所跨越的 x 的范围，`[x_min, x_max]` 或 `[x_min, x_max, x_step]`，函数每 `x_step` 采样一次（默认 None：x 轴的范围；未给出步长时为 x 轴的十分之一）。"""
     use_vectorized: bool
-    """Whether the function takes all the values of x at once, as an array (default
-    False: it is tried on an array anyway, and called once per value if it does not
-    take one)."""
+    """函数是否一次性接收所有 x 值（作为数组）（默认 False：无论如何都会先尝试用数组，若不接受则每个值调用一次）。"""
     colorscale: Colorscale | None
-    """Colors to paint the graph with by its value: colors spread evenly over the
-    axis's range, or `(color, value)` pairs, blended between (default None: the
-    graph's own color)."""
+    """按值给图像上色的颜色：颜色在坐标轴范围内均匀分布，或 `(color, value)` 对，在之间混合（默认 None：图像自身的颜色）。"""
     colorscale_axis: int
-    """The value the colorscale goes by: 1 for y, 0 for x (default 1)."""
+    """色阶所依据的值：1 为 y，0 为 x（默认 1）。"""
 
 
 class SecantSlopeGroup(VGroup):
-    """A secant's construction, as
-    [get_secant_slope_group][manimgx.Axes.get_secant_slope_group] makes it: its dx and
-    df legs, their labels and the secant line, each by name."""
+    """割线的构造，由 [get_secant_slope_group][manimgx.Axes.get_secant_slope_group] 创建：其 dx 和 df 腿、它们的标签和割线，各按名称。"""
 
     dx_line: Line
-    """The horizontal leg: from the first point of the graph across to below (or
-    above) the second."""
+    """水平腿：从图像的第一个点横跨到第二个点之下（或之上）。"""
     df_line: Line
-    """The vertical leg: from the end of `dx_line` to the second point."""
+    """垂直腿：从 `dx_line` 的末端到第二个点。"""
     dx_label: Mobject
-    """The horizontal leg's label, if it has one."""
+    """水平腿的标签（若有）。"""
     df_label: Mobject
-    """The vertical leg's label, if it has one."""
+    """垂直腿的标签（若有）。"""
     secant_line: Line
-    """The secant: the line through both points, if it has one."""
+    """割线：过两点的线（若有）。"""
 
 
 class Axes(VGroup):
-    """Axes: number lines through one origin, with coordinates of their own, and the
-    tools to plot on them; white, with tips, unless configured.
+    """坐标轴：过同一原点的数轴，有自己的坐标，以及在其上绘图的工具；未配置时为白色，带箭头。
 
-    Axis option maps are construction inputs. The finished number lines
-    retain their own defaults for later ticks, labels and coordinates.
+    坐标轴选项映射是构造输入。完成的数轴保留其自身的默认值，用于后续的刻度、标签和坐标。
 
-    The x-axis runs over `x_range` and the y-axis over `y_range`, each a
-    [NumberLine][manimgx.NumberLine] with ticks at every step of its range. The axes
-    cross at their 0 (or, for a range without 0, at its end nearest 0), and the point
-    of the middle of both ranges is put at the scene's origin. On a linear axis the
-    tick at 0 is left out, where the other axis crosses; numbers are written at the
-    ticks but 0 (see [add_coordinates][manimgx.Axes.add_coordinates]).
+    x 轴在 `x_range` 上运行，y 轴在 `y_range` 上运行，每个都是 [NumberLine][manimgx.NumberLine]，在其范围的每一步处有刻度。坐标轴在其 0 处交叉（或对于不含 0 的范围，在其最接近 0 的端点处），且两个范围中点对应的点放在场景原点。线性坐标轴上 0 处的刻度被省略，因为另一坐标轴在此处穿过；数字写在刻度处但不含 0（参见 [add_coordinates][manimgx.Axes.add_coordinates]）。
 
-    [coords_to_point][manimgx.Axes.coords_to_point] (`c2p`, or `axes @ (x, y)`) and
-    [point_to_coords][manimgx.Axes.point_to_coords] (`p2c`) convert between the axes'
-    coordinates and the scene's points. The `plot` methods draw on the axes, in their
-    coordinates: graphs of functions, curves given implicitly or in polar coordinates,
-    line graphs. The `get_` methods make what explains a graph: its label, the area
-    under it, Riemann rectangles, a secant, lines to a point. All of them return new
-    mobjects, not added to the axes.
+    [coords_to_point][manimgx.Axes.coords_to_point]（`c2p`，或 `axes @ (x, y)`）和 [point_to_coords][manimgx.Axes.point_to_coords]（`p2c`）在坐标轴的坐标与场景的点之间转换。`plot` 方法在坐标轴上以其坐标绘图：函数的图像、隐式给出的曲线或极坐标曲线、折线图。`get_` 方法制作解释图像的内容：其标签、其下方的面积、黎曼矩形、割线、到点的线。它们都返回新的 mobject，未添加到坐标轴。
 
     Args:
-        x_range: The x-axis's range, `[x_min, x_max, x_step]`, or `[x_min, x_max]` for
-            a step of 1; None for the frame's width, [-7, 7, 1].
-        y_range: The y-axis's range, likewise; None for the frame's height, [-4, 4, 1].
-        x_length: The x-axis's length, in scene units; None for the frame's width
-            less 2, rounded, as the frame is when the axes are made (12 in a wide video,
-            6 in a tall one), or `unit_size` per unit if the axis's config gives one.
-        y_length: The y-axis's length, in scene units; None for the frame's height
-            less 2, rounded (6 in a wide video, 12 in a tall one), or `unit_size` per unit
-            if the axis's config gives one.
-        axis_config: [Number line keywords][manimgx.NumberLine]
-            for both axes: `include_numbers`, `font_size`, `color`, …; None for none.
-        x_axis_config: Number line keywords for the x-axis, over `axis_config`'s; None
-            for none.
-        y_axis_config: Number line keywords for the y-axis, over `axis_config`'s; None
-            for none.
-        tips: Whether each axis ends in an arrow tip.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the axes' group itself:
-            as it has no points, they do not restyle the axes (`axis_config` does).
+        x_range: x 轴的范围，`[x_min, x_max, x_step]`，或 `[x_min, x_max]` 表示步长为 1；None 表示画框的宽度，[-7, 7, 1]。
+        y_range: y 轴的范围，同上；None 表示画框的高度，[-4, 4, 1]。
+        x_length: x 轴的长度，以场景单位计；None 表示画框宽度减 2，取整，即坐标轴创建时画框的尺寸（宽视频中为 12，高视频中为 6），或坐标轴配置给出时每单位 `unit_size`。
+        y_length: y 轴的长度，以场景单位计；None 表示画框高度减 2，取整（宽视频中为 6，高视频中为 12），或坐标轴配置给出时每单位 `unit_size`。
+        axis_config: 两个坐标轴的 [数轴关键字][manimgx.NumberLine]：`include_numbers`、`font_size`、`color`、…；None 表示无。
+        x_axis_config: x 轴的数轴关键字，覆盖 `axis_config` 的；None 表示无。
+        y_axis_config: y 轴的数轴关键字，覆盖 `axis_config` 的；None 表示无。
+        tips: 每个坐标轴末端是否有箭头。
+        **kwargs: 坐标轴组本身的 [样式关键字][manimgx.drawing.paint.Style]：
+            由于它没有点，它们不会重新设置坐标轴的样式（`axis_config` 会）。
 
     Examples:
         ```python
@@ -1515,12 +1345,11 @@ class Axes(VGroup):
         super().__init__(**kwargs)
         self.dimension = 2
         self.x_range = _full_range(x_range, config.frame_x_radius)
-        """The x-axis's range, `[x_min, x_max, x_step]`."""
+        """x 轴的范围，`[x_min, x_max, x_step]`。"""
         self.y_range = _full_range(y_range, config.frame_y_radius)
-        """The y-axis's range, `[y_min, y_max, y_step]`."""
+        """y 轴的范围，`[y_min, y_max, y_step]`。"""
         self.num_sampled_graph_points_per_tick = 10
-        """How many times per step of the x-axis [plot][manimgx.Axes.plot] samples a
-        function, when not given a step (default 10)."""
+        """未给出步长时 [plot][manimgx.Axes.plot] 在 x 轴的每一步中对函数采样的次数（默认 10）。"""
         axis_config = merged_axis_config(
             {"include_tip": tips, "numbers_to_exclude": [0]}, axis_config
         )
@@ -1533,15 +1362,15 @@ class Axes(VGroup):
             )
         )
         self.x_axis = self._create_axis(self.x_range, x_axis_config, x_length, 0)
-        """The x-axis, a [NumberLine][manimgx.NumberLine]."""
+        """x 轴，一个 [NumberLine][manimgx.NumberLine]。"""
         self.y_axis = self._create_axis(self.y_range, y_axis_config, y_length, 1)
-        """The y-axis, a [NumberLine][manimgx.NumberLine]."""
+        """y 轴，一个 [NumberLine][manimgx.NumberLine]。"""
         self.x_length, self.y_length = (
             self.x_axis.get_length(),
             self.y_axis.get_length(),
         )
         self.axes = Group[NumberLine](self.x_axis, self.y_axis)
-        """The axes, in a group: the x-axis, the y-axis (and the z-axis, in 3D)."""
+        """坐标轴，在一个组中：x 轴、y 轴（3D 中还有 z 轴）。"""
         self.add(*self.axes)
         lines_center_point = [
             axis.scaling.function((axis.x_range[1] + axis.x_range[0]) / 2)
@@ -1563,27 +1392,19 @@ class Axes(VGroup):
         return axis
 
     def _fitting_length(self, index: int) -> float:
-        """The length of an axis given none (0: x, 1: y): the frame's width or height
-        less 2, rounded, as the frame is now (a scene's file may make it tall after
-        ManimGX is imported)."""
+        """未给出时坐标轴的长度（0：x，1：y）：画框的宽度或高度减 2，取整，按当前画框尺寸（场景的文件可能在 ManimGX 导入后使画框变高）。"""
         return round((config.frame_width, config.frame_height)[index]) - 2
 
     def coords_to_point(self, *coords: Coordinates) -> npt.NDArray[np.float64]:
-        """Convert coordinates on the axes to a point of the scene, or arrays of them to
-        points.
+        """将坐标轴上的坐标转换为场景的点，或将数组转换为点。
 
-        `c2p` is its short name, and `axes @ (x, y)` its shortest. Coordinates past the
-        ends of the axes are on the axes extended; a missing one is where the axes
-        cross (`c2p(x)` is on the x-axis). Given an array per axis, of any shape (a
-        grid too), it converts them all at once.
+        `c2p` 是其简写名，`axes @ (x, y)` 是其最简写名。超出坐标轴末端的坐标位于延伸的坐标轴上；缺失的坐标在坐标轴交叉处（`c2p(x)` 在 x 轴上）。给定每个坐标轴一个任意形状的数组（也包括网格），它一次性转换它们全部。
 
         Args:
-            *coords: The coordinates, one per axis, in order: numbers, or arrays of one
-                shape.
+            *coords: 坐标，每个坐标轴一个，按顺序：数字，或同形状的数组。
 
         Returns:
-            The point, in scene coordinates; for arrays, the points, with the
-            coordinates first (3, then the arrays' shape).
+            点，在场景坐标系中；对于数组，为点，坐标在前（3，然后数组的形状）。
 
         Examples:
             ```python
@@ -1614,105 +1435,100 @@ class Axes(VGroup):
     def point_to_coords(
         self, point: Point3DLike | Point3DLike_Array
     ) -> npt.NDArray[np.float64]:
-        """Convert a point of the scene to its coordinates on the axes, or points to
-        theirs.
+        """将场景的点转换为其在坐标轴上的坐标，或将点转换为它们的坐标。
 
-        `p2c` is its short name. Each coordinate is the axis's number at the point's
-        projection onto it: for perpendicular axes, the inverse of
-        [coords_to_point][manimgx.Axes.coords_to_point].
+        `p2c` 是其简写名。每个坐标是坐标轴在该点向其投影处的数字：对于垂直坐标轴，是 [coords_to_point][manimgx.Axes.coords_to_point] 的反函数。
 
         Args:
-            point: The point, in scene coordinates; or an (n, 3) array of points.
+            point: 点，在场景坐标系中；或 (n, 3) 的点数组。
 
         Returns:
-            The coordinates, one per axis; for n points, an array of n rows of them.
+            坐标，每个坐标轴一个；对于 n 个点，为 n 行坐标的数组。
         """
         array = np.asarray(point, dtype=float)
         result = np.asarray([axis.point_to_number(array) for axis in self.axes])
         return result.T if array.ndim == 2 else result
 
     def polar_to_point(self, radius: float, azimuth: float) -> npt.NDArray[np.float64]:
-        """Convert polar coordinates on the axes to a point of the scene.
+        """将坐标轴上的极坐标转换为场景的点。
 
-        `pr2pt` is its short name. The point is at the coordinates
-        (`radius` cos `azimuth`, `radius` sin `azimuth`).
+        `pr2pt` 是其简写名。该点位于坐标（`radius` cos `azimuth`、`radius` sin `azimuth`）处。
 
         Args:
-            radius: The distance from the origin, in the axes' units.
-            azimuth: The angle from the positive x-axis, in radians, counterclockwise.
+            radius: 到原点的距离，以坐标轴的单位计。
+            azimuth: 从正 x 轴起的角度，以弧度计，逆时针方向。
 
         Returns:
-            The point, in scene coordinates.
+            点，在场景坐标系中。
         """
         return self.coords_to_point(radius * np.cos(azimuth), radius * np.sin(azimuth))
 
     c2p, p2c, pr2pt = coords_to_point, point_to_coords, polar_to_point
 
     def get_axes(self) -> Group[NumberLine]:
-        """The axes: the x-axis, the y-axis (and the z-axis, in 3D).
+        """坐标轴：x 轴、y 轴（3D 中还有 z 轴）。
 
         Returns:
-            The group of the axes, each a [NumberLine][manimgx.NumberLine].
+            坐标轴的组，每个是一个 [NumberLine][manimgx.NumberLine]。
         """
         return self.axes
 
     def get_axis(self, index: int) -> NumberLine:
-        """One of the axes.
+        """其中一个坐标轴。
 
         Args:
-            index: The axis's index: 0 for x, 1 for y, 2 for z.
+            index: 坐标轴的索引：0 为 x，1 为 y，2 为 z。
 
         Returns:
-            The axis, a [NumberLine][manimgx.NumberLine].
+            该坐标轴，一个 [NumberLine][manimgx.NumberLine]。
         """
         return self.get_axes()[index]
 
     def get_origin(self) -> Point3D:
-        """The point of the coordinates (0, 0): where the axes cross, if their ranges
-        contain 0.
+        """坐标 (0, 0) 的点：坐标轴交叉处（若其范围包含 0）。
 
         Returns:
-            The point, in scene coordinates.
+            点，在场景坐标系中。
         """
         return self.coords_to_point(0, 0)
 
     def get_x_axis(self) -> NumberLine:
-        """The x-axis.
+        """x 轴。
 
         Returns:
-            The axis, a [NumberLine][manimgx.NumberLine].
+            该坐标轴，一个 [NumberLine][manimgx.NumberLine]。
         """
         return self.get_axis(0)
 
     def get_y_axis(self) -> NumberLine:
-        """The y-axis.
+        """y 轴。
 
         Returns:
-            The axis, a [NumberLine][manimgx.NumberLine].
+            该坐标轴，一个 [NumberLine][manimgx.NumberLine]。
         """
         return self.get_axis(1)
 
     def get_z_axis(self) -> NumberLine:
-        """The z-axis, of three-dimensional axes.
+        """三维坐标轴的 z 轴。
 
         Returns:
-            The axis, a [NumberLine][manimgx.NumberLine].
+            该坐标轴，一个 [NumberLine][manimgx.NumberLine]。
         """
         return self.get_axis(2)
 
     def get_x_unit_size(self) -> float:
-        """The length of one unit of the x-axis.
+        """x 轴一个单位的长度。
 
         Returns:
-            The length, in scene units.
+            长度，以场景单位计。
         """
         return self.get_x_axis().get_unit_size()
 
     def get_y_unit_size(self) -> float:
-        """The length of one unit of the y-axis.
+        """y 轴一个单位的长度。
 
         Returns:
-            The length, in scene units.
+            长度，以场景单位计。
         """
         return self.get_y_axis().get_unit_size()
 
@@ -1723,22 +1539,18 @@ class Axes(VGroup):
         direction: Vector3DLike = UR,
         buff: float = SMALL_BUFF,
     ) -> Mobject:
-        """Make a label for the x-axis, by its end.
+        """为 x 轴制作标签，在其末端处。
 
-        A string or a number is typeset with the axes' `label_constructor` (as math,
-        with [MathTex][manimgx.MathTex], by default); a mobject is used as it is. The
-        label is put next to a corner of the axis, toward `direction`, then moved onto
-        the screen if it is off it.
+        字符串或数字用坐标轴的 `label_constructor` 排版（默认按数学排版，用 [MathTex][manimgx.MathTex]）；mobject 按原样使用。标签放在坐标轴的某个角旁，朝 `direction` 方向，然后若在屏幕外则移回屏幕上。
 
         Args:
-            label: The label: a string, a number or a mobject.
-            edge: The corner of the axis the label is put by, as a direction: UR, the
-                upper right one, by its end.
-            direction: The direction the label is put toward, from that corner.
-            buff: The gap between the corner and the label, in scene units.
+            label: 标签：字符串、数字或 mobject。
+            edge: 标签所放的坐标轴的角，作为方向：UR，即右上角，在其末端处。
+            direction: 标签从该角放置的方向。
+            buff: 角与标签之间的间距，以场景单位计。
 
         Returns:
-            The label, not added to the axes.
+            标签，未添加到坐标轴。
         """
         return self._get_axis_label(
             label, self.get_x_axis(), edge, direction, buff=buff
@@ -1751,23 +1563,18 @@ class Axes(VGroup):
         direction: Vector3DLike = UP * 0.5 + RIGHT,
         buff: float = SMALL_BUFF,
     ) -> Mobject:
-        """Make a label for the y-axis, by its end.
+        """为 y 轴制作标签，在其末端处。
 
-        A string or a number is typeset with the axes' `label_constructor` (as math,
-        with [MathTex][manimgx.MathTex], by default); a mobject is used as it is. The
-        label is put next to a corner of the axis, toward `direction`, then moved onto
-        the screen if it is off it.
+        字符串或数字用坐标轴的 `label_constructor` 排版（默认按数学排版，用 [MathTex][manimgx.MathTex]）；mobject 按原样使用。标签放在坐标轴的某个角旁，朝 `direction` 方向，然后若在屏幕外则移回屏幕上。
 
         Args:
-            label: The label: a string, a number or a mobject.
-            edge: The corner of the axis the label is put by, as a direction: UR, the
-                upper right one, by its end.
-            direction: The direction the label is put toward, from that corner: by
-                default up and to the right.
-            buff: The gap between the corner and the label, in scene units.
+            label: 标签：字符串、数字或 mobject。
+            edge: 标签所放的坐标轴的角，作为方向：UR，即右上角，在其末端处。
+            direction: 标签从该角放置的方向：默认向上向右。
+            buff: 角与标签之间的间距，以场景单位计。
 
         Returns:
-            The label, not added to the axes.
+            标签，未添加到坐标轴。
         """
         return self._get_axis_label(
             label, self.get_y_axis(), edge, direction, buff=buff
@@ -1789,18 +1596,14 @@ class Axes(VGroup):
         return label_mobject
 
     def get_axis_labels(self, x_label: Label = "x", y_label: Label = "y") -> VGroup:
-        """Make a label for each axis, by its end, as
-        [get_x_axis_label][manimgx.Axes.get_x_axis_label] and
-        [get_y_axis_label][manimgx.Axes.get_y_axis_label] place them.
+        """为每个坐标轴制作标签，在其末端处，按 [get_x_axis_label][manimgx.Axes.get_x_axis_label] 和 [get_y_axis_label][manimgx.Axes.get_y_axis_label] 的放置方式。
 
         Args:
-            x_label: The x-axis's label: a string or a number, typeset as math, or a
-                mobject.
-            y_label: The y-axis's label, likewise.
+            x_label: x 轴的标签：字符串或数字，按数学排版，或 mobject。
+            y_label: y 轴的标签，同上。
 
         Returns:
-            A new group of the labels, kept as the axes' `axis_labels`; not added to
-            the axes.
+            标签的新组，保留为坐标轴的 `axis_labels`；未添加到坐标轴。
 
         Examples:
             ```python
@@ -1824,23 +1627,13 @@ class Axes(VGroup):
         *axes_numbers: Iterable[float] | Mapping[float, Label] | None,
         **kwargs: Unpack[DecimalNumberOptions],
     ) -> Self:
-        """Number the axes: at their ticks, at the values given, or with labels by
-        value.
+        """为坐标轴编号：在其刻度处、在给定值处，或按值给标签。
 
-        Give one argument per axis, in order: None numbers the axis at its ticks, but
-        0 (on a logarithmic axis, as powers: 10², 10³, …); values number it at those
-        values; a dictionary from values to labels (strings, numbers or typeset
-        mobjects) puts each label by its value (see
-        [add_labels][manimgx.NumberLine.add_labels]). Without arguments, every axis is
-        numbered at its ticks. The numbers are added to the axes, and kept, one group
-        per axis, as the axes' `coordinate_labels`.
+        每个坐标轴给一个参数，按顺序：None 在刻度处为坐标轴编号，但不含 0（对数坐标轴上为幂：10²、10³、…）；值在这些值处为坐标轴编号；从值到标签（字符串、数字或已排版的 mobject）的字典将每个标签放在其值旁（参见 [add_labels][manimgx.NumberLine.add_labels]）。不带参数时，每个坐标轴在其刻度处编号。数字添加到坐标轴，并保留，每个坐标轴一个组，作为坐标轴的 `coordinate_labels`。
 
         Args:
-            *axes_numbers: What to write on each axis, in order: None, values, or
-                labels by value; the axes past the last argument get nothing.
-            **kwargs: [Number keywords][manimgx.DecimalNumber]
-                for the numbers: `font_size`, `num_decimal_places`, `color`, … (only
-                `font_size`, for labels by value).
+            *axes_numbers: 每个坐标轴上写什么，按顺序：None、值或按值的标签；最后一个参数之后的坐标轴什么也不写。
+            **kwargs: 数字的 [数字关键字][manimgx.DecimalNumber]：`font_size`、`num_decimal_places`、`color`、…（按值的标签仅用 `font_size`）。
 
         Examples:
             ```python
@@ -1893,21 +1686,18 @@ class Axes(VGroup):
         color: ParsableManimColor | None = None,
         stroke_width: float = 2,
     ) -> Line:
-        """Make a line from an axis to a point: from the point's projection onto the
-        axis, dashed, white and thin unless styled.
+        """制作从坐标轴到点的线：从点在坐标轴上的投影处，虚线，未设置样式时为白色细线。
 
         Args:
-            index: The axis's index: 0 for x, 1 for y.
-            point: The point, in scene coordinates.
-            line_func: The class of the line: [DashedLine][manimgx.DashedLine], or
-                [Line][manimgx.Line] for a solid one, ….
-            line_config: [Dashed line keywords][manimgx.DashedLine]
-                for the line, but its color and width; None for none.
-            color: The line's color; None for white.
-            stroke_width: The line's width, in hundredths of a scene unit.
+            index: 坐标轴的索引：0 为 x，1 为 y。
+            point: 点，在场景坐标系中。
+            line_func: 线的类：[DashedLine][manimgx.DashedLine]，或 [Line][manimgx.Line] 表示实线、…。
+            line_config: 线的 [虚线关键字][manimgx.DashedLine]，但不包括其颜色和宽度；None 表示无。
+            color: 线的颜色；None 表示白色。
+            stroke_width: 线的宽度，以场景单位的百分之一计。
 
         Returns:
-            A new line, not added to the axes.
+            一条新的线，未添加到坐标轴。
         """
         start = self.get_axis(index).get_projection(point)
         style = (line_config or DashedLineOptions()).copy()
@@ -1923,49 +1713,44 @@ class Axes(VGroup):
         return line_func(start, point, **cast("LineOptions", style))
 
     def get_vertical_line(self, point: Point3DLike, **kwargs: Unpack[AxisLine]) -> Line:
-        """Make a line from the x-axis up (or down) to a point: dashed, white and thin
-        unless styled.
+        """制作从 x 轴向上（或向下）到点的线：虚线，未设置样式时为白色细线。
 
         Args:
-            point: The point, in scene coordinates.
-            **kwargs: [Axis line keywords][manimgx.mobjects.plotting.AxisLine]:
-                the line's class, keywords, `color` and `stroke_width`.
+            point: 点，在场景坐标系中。
+            **kwargs: [坐标轴线关键字][manimgx.mobjects.plotting.AxisLine]：
+                线的类、关键字、`color` 和 `stroke_width`。
 
         Returns:
-            A new line, not added to the axes.
+            一条新的线，未添加到坐标轴。
         """
         return self.get_line_from_axis_to_point(0, point, **kwargs)
 
     def get_horizontal_line(
         self, point: Point3DLike, **kwargs: Unpack[AxisLine]
     ) -> Line:
-        """Make a line from the y-axis across to a point: dashed, white and thin unless
-        styled.
+        """制作从 y 轴横跨到点的线：虚线，未设置样式时为白色细线。
 
         Args:
-            point: The point, in scene coordinates.
-            **kwargs: [Axis line keywords][manimgx.mobjects.plotting.AxisLine]:
-                the line's class, keywords, `color` and `stroke_width`.
+            point: 点，在场景坐标系中。
+            **kwargs: [坐标轴线关键字][manimgx.mobjects.plotting.AxisLine]：
+                线的类、关键字、`color` 和 `stroke_width`。
 
         Returns:
-            A new line, not added to the axes.
+            一条新的线，未添加到坐标轴。
         """
         return self.get_line_from_axis_to_point(1, point, **kwargs)
 
     def get_lines_to_point(
         self, point: Point3DLike, **kwargs: Unpack[AxisLine]
     ) -> VGroup:
-        """Make the lines from both axes to a point: the
-        [horizontal][manimgx.Axes.get_horizontal_line] one from the y-axis, then the
-        [vertical][manimgx.Axes.get_vertical_line] one from the x-axis.
+        """制作从两个坐标轴到点的线：从 y 轴的 [水平线][manimgx.Axes.get_horizontal_line]，然后从 x 轴的 [垂直线][manimgx.Axes.get_vertical_line]。
 
         Args:
-            point: The point, in scene coordinates.
-            **kwargs: [Axis line keywords][manimgx.mobjects.plotting.AxisLine]
-                for both lines.
+            point: 点，在场景坐标系中。
+            **kwargs: 两条线的 [坐标轴线关键字][manimgx.mobjects.plotting.AxisLine]。
 
         Returns:
-            A new group of the two lines, not added to the axes.
+            两条线的新组，未添加到坐标轴。
 
         Examples:
             ```python
@@ -1995,33 +1780,23 @@ class Axes(VGroup):
         colorscale_axis: int = 1,
         **kwargs: Unpack[CurveOptions],
     ) -> ParametricFunction:
-        """Plot the graph of a function y = f(x) on the axes, in their coordinates.
+        """在坐标轴上以坐标轴坐标系绘制函数 y = f(x) 的图像。
 
-        The function is sampled over `x_range` and the samples are joined smoothly (see
-        [ParametricFunction][manimgx.ParametricFunction]); on a logarithmic x-axis, x
-        runs over powers. The graph keeps the function as its `underlying_function`,
-        for the methods that work on graphs. With a `colorscale`, the graph's stroke is
-        a gradient, from left to right, of the colors of its values (y, or x), taken at
-        every step of `x_range` (every 0.01 without one).
+        函数在 `x_range` 上采样，采样点平滑连接（参见 [ParametricFunction][manimgx.ParametricFunction]）；对数 x 轴上 x 在幂上运行。图像将函数保留为其 `underlying_function`，供处理图像的方法使用。带 `colorscale` 时，图像的描边是其值（y 或 x）颜色的从左到右渐变，在 `x_range` 的每一步处取值（未给出时每 0.01）。
 
         Args:
-            function: The function, from x to y, in the axes' coordinates.
-            x_range: The range of x the graph spans, `[x_min, x_max]` or
-                `[x_min, x_max, x_step]`, the function sampled every `x_step`; None
-                for the x-axis's range. Without a step, it is a tenth of the x-axis's.
-            use_vectorized: Whether `function` takes all the values of x at once, as an
-                array; it is tried on an array anyway, and called once per value if it
-                does not take one.
-            colorscale: Colors to paint the graph with by its value: colors spread
-                evenly over the axis's range, or `(color, value)` pairs, blended
-                between; None for the graph's own color.
-            colorscale_axis: The value the colorscale goes by: 1 for y, 0 for x.
-            **kwargs: [Curve keywords][manimgx.mobjects.plotting.CurveOptions]:
-                `discontinuities`, `use_smoothing`, and the style keywords.
+            function: 函数，从 x 到 y，在坐标轴坐标系中。
+            x_range: 图像所跨越的 x 的范围，`[x_min, x_max]` 或
+                `[x_min, x_max, x_step]`，函数每 `x_step` 采样一次；None
+                表示 x 轴的范围。未给出步长时为 x 轴的十分之一。
+            use_vectorized: `function` 是否一次性接收所有 x 值（作为数组）；无论如何都会先尝试用数组，若不接受则每个值调用一次。
+            colorscale: 按值给图像上色的颜色：颜色在坐标轴范围内均匀分布，或 `(color, value)` 对，在之间混合；None 表示图像自身的颜色。
+            colorscale_axis: 色阶所依据的值：1 为 y，0 为 x。
+            **kwargs: [曲线关键字][manimgx.mobjects.plotting.CurveOptions]：
+                `discontinuities`、`use_smoothing` 和样式关键字。
 
         Returns:
-            A new [ParametricFunction][manimgx.ParametricFunction], not added to the
-            axes.
+            一个新的 [ParametricFunction][manimgx.ParametricFunction]，未添加到坐标轴。
 
         Examples:
             ```python
@@ -2050,7 +1825,7 @@ class Axes(VGroup):
             t_range[2] /= self.num_sampled_graph_points_per_tick
 
         def point(t: float | np.ndarray) -> np.ndarray:
-            """The graph's point at t — or at every t of an array, mapped in one call."""
+            """图像在 t 处的点——或数组中每个 t 处的点，一次调用映射完成。"""
             if isinstance(t, np.ndarray):
                 return self.coords_to_point(t, sample(function, t))
             return self.coords_to_point(t, function(t))
@@ -2083,7 +1858,7 @@ class Axes(VGroup):
         t_range: np.ndarray,
         resolution: float,
     ) -> list[ManimColor]:
-        """Colors along a graph by its x or y value (`axis`), over that axis' range by default."""
+        """按其 x 或 y 值（`axis`）沿图像的颜色，默认在该坐标轴范围内。"""
         low, high = (self.x_range, self.y_range)[axis][:2]
         xs = np.arange(t_range[0], t_range[1] + resolution, resolution)
         return colors_by_value(
@@ -2097,24 +1872,19 @@ class Axes(VGroup):
         max_quads: int = 1500,
         **kwargs: Unpack[ImplicitOptions],
     ) -> ImplicitFunction:
-        """Plot the curve where a function of x and y is zero, `func(x, y) = 0`, on the
-        axes, in their coordinates: found within their ranges.
+        """在坐标轴上以坐标轴坐标系绘制 x 和 y 的函数为零的曲线，即 `func(x, y) = 0`：在其范围内寻找。
 
-        The rectangle of the ranges is divided in four, and each part in four again,
-        finer where the curve passes (see [ImplicitFunction][manimgx.ImplicitFunction]).
-        On a logarithmic axis, the function is given powers.
+        范围的矩形被四等分，每一部分再四等分，在曲线经过处更精细（参见 [ImplicitFunction][manimgx.ImplicitFunction]）。对数坐标轴上，函数接收幂。
 
         Args:
-            func: The function of x and y, in the axes' coordinates.
-            min_depth: How many times the rectangle is at least divided in four: more
-                finds smaller pieces of the curve.
-            max_quads: The most cells the rectangle may be divided into: more follow
-                the curve more closely, and take longer.
-            **kwargs: [Implicit curve keywords][manimgx.mobjects.plotting.ImplicitOptions]:
-                `use_smoothing`, and the style keywords.
+            func: x 和 y 的函数，在坐标轴坐标系中。
+            min_depth: 矩形至少被四等分的次数：更多次能找到曲线更小的段。
+            max_quads: 矩形最多可划分的单元格数：更多能更紧密地跟随曲线，但耗时更长。
+            **kwargs: [隐式曲线关键字][manimgx.mobjects.plotting.ImplicitOptions]：
+                `use_smoothing` 和样式关键字。
 
         Returns:
-            A new [ImplicitFunction][manimgx.ImplicitFunction], not added to the axes.
+            一个新的 [ImplicitFunction][manimgx.ImplicitFunction]，未添加到坐标轴。
 
         Examples:
             ```python
@@ -2152,22 +1922,16 @@ class Axes(VGroup):
         theta_range: Sequence[float] | None = None,
         **kwargs: Unpack[CurveOptions],
     ) -> ParametricFunction:
-        """Plot a curve in polar coordinates, r = r_func(θ), on the axes: for each
-        angle θ of its range, the point in the direction θ from the origin, at the
-        distance `r_func(θ)`.
+        """在坐标轴上以极坐标绘制曲线，r = r_func(θ)：对于其范围的每个角度 θ，在原点朝 θ 方向、距离 `r_func(θ)` 处的点。
 
         Args:
-            r_func: The function, from the angle θ, in radians, to the distance r, in
-                the axes' units.
-            theta_range: The range of θ, `[θ_min, θ_max]` or `[θ_min, θ_max, θ_step]`,
-                in radians, sampled every 0.01 without a step; None for a full turn,
-                [0, 2π].
-            **kwargs: [Curve keywords][manimgx.mobjects.plotting.CurveOptions]:
-                `use_smoothing`, and the style keywords.
+            r_func: 函数，从角度 θ（弧度）到距离 r（坐标轴单位）。
+            theta_range: θ 的范围，`[θ_min, θ_max]` 或 `[θ_min, θ_max, θ_step]`，弧度，未给出步长时每 0.01 采样；None 表示一整圈，[0, 2π]。
+            **kwargs: [曲线关键字][manimgx.mobjects.plotting.CurveOptions]：
+                `use_smoothing` 和样式关键字。
 
         Returns:
-            A new [ParametricFunction][manimgx.ParametricFunction], not added to the
-            axes.
+            一个新的 [ParametricFunction][manimgx.ParametricFunction]，未添加到坐标轴。
 
         Examples:
             ```python
@@ -2194,18 +1958,16 @@ class Axes(VGroup):
         )
 
     def input_to_graph_point(self, x: float, graph: ParametricFunction) -> Point3D:
-        """Find the point of a graph at an input: at x, for a graph of
-        [plot][manimgx.Axes.plot]; at a value of its parameter, for another curve.
+        """在输入处找图像的点：[plot][manimgx.Axes.plot] 的图像在 x 处；其他曲线在其参数的某个值处。
 
-        `i2gp` is its short name. The input may be past the graph's ends: the point is
-        then its function's, beyond what is drawn.
+        `i2gp` 是其简写名。输入可以超出图像的末端：该点为其函数在所绘部分之外的值。
 
         Args:
-            x: The input: x, in the axes' coordinates, for a graph.
-            graph: The graph, or curve.
+            x: 输入：图像的 x，在坐标轴坐标系中。
+            graph: 图像或曲线。
 
         Returns:
-            The point, in scene coordinates.
+            点，在场景坐标系中。
 
         Examples:
             ```python
@@ -2229,16 +1991,14 @@ class Axes(VGroup):
     def input_to_graph_coords(
         self, x: float, graph: ParametricFunction
     ) -> tuple[float, float]:
-        """Find the coordinates of a graph's point at an input: (x, f(x)), for a graph
-        of [plot][manimgx.Axes.plot]; for another curve, those of its point at a value
-        of its parameter.
+        """找图像在输入处的点的坐标：[plot][manimgx.Axes.plot] 的图像为 (x, f(x))；其他曲线为其参数某值处的点的坐标。
 
         Args:
-            x: The input: x, for a graph.
-            graph: The graph, or curve.
+            x: 输入：图像的 x。
+            graph: 图像或曲线。
 
         Returns:
-            The point's coordinates, (x, y).
+            点的坐标，(x, y)。
         """
         if (
             graph.underlying_function is None
@@ -2248,7 +2008,7 @@ class Axes(VGroup):
         return (x, graph.underlying_function(x))
 
     i2gp = input_to_graph_point
-    """[input_to_graph_point][manimgx.Axes.input_to_graph_point], by a shorter name."""
+    """[input_to_graph_point][manimgx.Axes.input_to_graph_point] 的简写名。"""
 
     def get_graph_label(
         self,
@@ -2261,29 +2021,21 @@ class Axes(VGroup):
         dot: bool = False,
         dot_config: Style | None = None,
     ) -> Mobject:
-        r"""Make a label for a graph, by one of its points: in the graph's color, unless
-        given another.
+        r"""为图像制作标签，在其某个点旁：采用图像的颜色，除非给出其他颜色。
 
-        A string or a number is typeset with the axes' `label_constructor` (as math,
-        with [MathTex][manimgx.MathTex], by default); a mobject is used as it is, and
-        recolored too. The label is put next to the graph's point at `x_val`, toward
-        `direction`, then moved onto the screen if it is off it. Without `x_val`, the
-        point is the rightmost, of a hundred over the x-axis's range, that is below the
-        top of the frame.
+        字符串或数字用坐标轴的 `label_constructor` 排版（默认按数学排版，用 [MathTex][manimgx.MathTex]）；mobject 按原样使用，并重新着色。标签放在图像在 `x_val` 处的点旁，朝 `direction` 方向，然后若在屏幕外则移回屏幕上。未给出 `x_val` 时，该点为 x 轴范围内一百个点中最右侧的、位于画框顶部下方的点。
 
         Args:
-            label: The label: a string or a number, typeset as math, or a mobject.
-            x_val: The x of the point the label is put by; None for the rightmost on
-                screen.
-            direction: The direction the label is put toward, from the point.
-            buff: The gap between the point and the label, in scene units.
-            color: The label's color; None for the graph's.
-            dot: Whether a dot marks the point, as part of the label.
-            dot_config: [Style keywords][manimgx.drawing.paint.Style] for the dot; None
-                for none.
+            label: 标签：字符串或数字，按数学排版，或 mobject。
+            x_val: 标签所放的点的 x；None 表示屏幕上最右侧的。
+            direction: 标签从该点放置的方向。
+            buff: 点与标签之间的间距，以场景单位计。
+            color: 标签的颜色；None 表示图像的。
+            dot: 是否有一个点标记该点，作为标签的一部分。
+            dot_config: 点的 [样式关键字][manimgx.drawing.paint.Style]；None 表示无。
 
         Returns:
-            The label, not added to the axes.
+            标签，未添加到坐标轴。
 
         Examples:
             ```python
@@ -2337,40 +2089,26 @@ class Axes(VGroup):
         blend: bool = False,
         width_scale_factor: float = 1.001,
     ) -> VGroup:
-        """Make Riemann rectangles for a graph: from the x-axis (or a second graph) up
-        to the graph, `dx` wide, their colors a gradient; outlined thinly in black
-        unless styled.
+        """为图像制作黎曼矩形：从 x 轴（或第二个图像）到图像，宽 `dx`，其颜色为渐变；未设置样式时以黑色细线勾边。
 
-        A rectangle begins at every `dx` from the start of `x_range`, the last before
-        its end. Each rises from the x-axis — or from `bounded_graph`, at its left
-        edge — to the graph at its left edge, its right edge or its center
-        (`input_sample_type`). With `show_signed_area`, a rectangle where the graph is
-        below its base takes the inverse of its color.
+        矩形从 `x_range` 的起点处每 `dx` 开始一个，最后一个在其终点之前。每个从 x 轴——或从 `bounded_graph`，在其左边缘——升到图像在其左边缘、右边缘或中心处（`input_sample_type`）。带 `show_signed_area` 时，图像低于其基线的矩形取其颜色的反色。
 
         Args:
-            graph: The graph, of [plot][manimgx.Axes.plot].
-            x_range: The range of x the rectangles cover, `[x_min, x_max]`; None for
-                the graph's (and `bounded_graph`'s, where both are).
-            dx: The rectangles' width, in the axes' units.
-            input_sample_type: Where each rectangle meets the graph: `"left"`,
-                `"right"` or `"center"`.
-            stroke_width: The width of the rectangles' outlines, in hundredths of a
-                scene unit.
-            stroke_color: The outlines' color (unless `blend`).
-            fill_opacity: The rectangles' opacity, from 0 to 1.
-            color: The rectangles' color, or colors for a gradient from the first
-                rectangle to the last.
-            show_signed_area: Whether a rectangle where the graph is below its base
-                takes the inverse of its color.
-            bounded_graph: A second graph, of [plot][manimgx.Axes.plot], the
-                rectangles rise from; None for the x-axis.
-            blend: Whether each outline takes its rectangle's color, rather than
-                `stroke_color`.
-            width_scale_factor: How much wider than `dx` each rectangle is made, so
-                that neighbours meet without a seam.
+            graph: [plot][manimgx.Axes.plot] 的图像。
+            x_range: 矩形覆盖的 x 的范围，`[x_min, x_max]`；None 表示图像的（以及两者都有的 `bounded_graph` 的）。
+            dx: 矩形的宽度，以坐标轴单位计。
+            input_sample_type: 每个矩形与图像相遇的位置：`"left"`、`"right"` 或 `"center"`。
+            stroke_width: 矩形轮廓的宽度，以场景单位的百分之一计。
+            stroke_color: 轮廓的颜色（除非 `blend`）。
+            fill_opacity: 矩形的不透明度，从 0 到 1。
+            color: 矩形的颜色，或从第一个矩形到最后一个的渐变颜色。
+            show_signed_area: 图像低于其基线的矩形是否取其颜色的反色。
+            bounded_graph: 第二个 [plot][manimgx.Axes.plot] 的图像，矩形从其升起；None 表示 x 轴。
+            blend: 每个轮廓是否取其矩形的颜色，而非 `stroke_color`。
+            width_scale_factor: 每个矩形比 `dx` 宽多少，使相邻矩形无缝相接。
 
         Returns:
-            A new group of the rectangles, from left to right; not added to the axes.
+            矩形的新组，从左到右；未添加到坐标轴。
 
         Examples:
             ```python
@@ -2447,24 +2185,19 @@ class Axes(VGroup):
         bounded_graph: ParametricFunction | None = None,
         **kwargs: Unpack[StyleBase],
     ) -> Polygon:
-        """Make the area between a graph and the x-axis, or between two graphs, over a
-        range of x: a polygon, blue to green and translucent unless styled.
+        """制作图像与 x 轴之间、或两个图像之间在某 x 范围内的面积：一个多边形，未设置样式时从蓝到绿且半透明。
 
-        The area's edge follows the graph's own points, and closes along the x-axis, or
-        back along `bounded_graph`; its fill and outline both take `color` and
-        `opacity`. Two graphs whose ranges do not meet raise a ValueError.
+        面积的边缘跟随图像自身的点，沿 x 轴闭合，或沿 `bounded_graph` 返回；其填充和轮廓都采用 `color` 和 `opacity`。两个范围不相交的图像引发 ValueError。
 
         Args:
-            x_range: The range of x, `(x_min, x_max)`; None for the graph's.
-            color: The area's color, or colors for a gradient.
-            opacity: The area's opacity, from 0 to 1.
-            bounded_graph: A second graph the area reaches to, rather than the x-axis;
-                None for the x-axis. Only the range both graphs span is covered.
-            **kwargs: [Style keywords][manimgx.drawing.paint.Style] for the polygon, but
-                its colors and opacities: `stroke_width`, ….
+            x_range: x 的范围，`(x_min, x_max)`；None 表示图像的。
+            color: 面积的颜色，或渐变颜色。
+            opacity: 面积的不透明度，从 0 到 1。
+            bounded_graph: 面积所达到的第二个图像，而非 x 轴；None 表示 x 轴。仅覆盖两个图像都跨越的范围。
+            **kwargs: 多边形的 [样式关键字][manimgx.drawing.paint.Style]，但不包括其颜色和不透明度：`stroke_width`、…。
 
         Returns:
-            A new [Polygon][manimgx.Polygon], not added to the axes.
+            一个新的 [Polygon][manimgx.Polygon]，未添加到坐标轴。
 
         Examples:
             ```python
@@ -2514,17 +2247,16 @@ class Axes(VGroup):
     def angle_of_tangent(
         self, x: float, graph: ParametricFunction, dx: float = 1e-08
     ) -> float:
-        """Find the angle of a graph's tangent at an input, in the axes' coordinates.
+        """在输入处找图像切线的角度，在坐标轴坐标系中。
 
-        The tangent is taken from the graph's point at `x` to its point at `x + dx`.
+        切线从图像在 `x` 处的点取到其在 `x + dx` 处的点。
 
         Args:
-            x: The input: x, for a graph of [plot][manimgx.Axes.plot].
-            dx: The step the tangent is taken over, in the axes' units.
+            x: 输入：[plot][manimgx.Axes.plot] 的图像的 x。
+            dx: 取切线的步长，以坐标轴单位计。
 
         Returns:
-            The angle, in radians, counterclockwise from the direction of the x-axis,
-            measured in the axes' coordinates: not as drawn, where their units differ.
+            角度，以弧度计，从 x 轴方向逆时针起，在坐标轴坐标系中测量：而非按绘制时（其中单位不同）。
         """
         p0 = np.array([*self.input_to_graph_coords(x, graph)])
         p1 = np.array([*self.input_to_graph_coords(x + dx, graph)])
@@ -2533,30 +2265,27 @@ class Axes(VGroup):
     def slope_of_tangent(
         self, x: float, graph: ParametricFunction, dx: float = 1e-08
     ) -> float:
-        """Find the slope of a graph's tangent at an input: its derivative, dy/dx, in
-        the axes' coordinates.
+        """在输入处找图像切线的斜率：其导数 dy/dx，在坐标轴坐标系中。
 
-        It is the tangent of [angle_of_tangent][manimgx.Axes.angle_of_tangent]'s angle.
+        它是 [angle_of_tangent][manimgx.Axes.angle_of_tangent] 角度的正切。
 
         Args:
-            x: The input: x, for a graph of [plot][manimgx.Axes.plot].
-            dx: The step the tangent is taken over, in the axes' units.
+            x: 输入：[plot][manimgx.Axes.plot] 的图像的 x。
+            dx: 取切线的步长，以坐标轴单位计。
         """
         return float(np.tan(self.angle_of_tangent(x, graph, dx)))
 
     def plot_derivative_graph(
         self, graph: ParametricFunction, **kwargs: Unpack[PlotOptions]
     ) -> ParametricFunction:
-        """Plot the derivative of a graph: at each x, its
-        [slope][manimgx.Axes.slope_of_tangent]; green unless styled.
+        """绘制图像的导数：在每个 x 处为其 [斜率][manimgx.Axes.slope_of_tangent]；未设置样式时为绿色。
 
         Args:
-            **kwargs: [Plot keywords][manimgx.mobjects.plotting.PlotOptions]:
-                `x_range`, `color`, ….
+            **kwargs: [绘图关键字][manimgx.mobjects.plotting.PlotOptions]：
+                `x_range`、`color`、…。
 
         Returns:
-            A new [ParametricFunction][manimgx.ParametricFunction], not added to the
-            axes.
+            一个新的 [ParametricFunction][manimgx.ParametricFunction]，未添加到坐标轴。
 
         Examples:
             ```python
@@ -2587,21 +2316,18 @@ class Axes(VGroup):
         samples: int = 50,
         **kwargs: Unpack[PlotOptions],
     ) -> ParametricFunction:
-        """Plot an antiderivative of a graph: at each x, the integral of the graph from
-        0 to x, plus `y_intercept`.
+        """绘制图像的一个原函数：在每个 x 处为图像从 0 到 x 的积分，加上 `y_intercept`。
 
-        Each value is a trapezoidal sum of the graph's values at `samples` points from
-        0 to x.
+        每个值是图像在从 0 到 x 的 `samples` 个点处值的梯形和。
 
         Args:
-            y_intercept: The antiderivative's value at 0.
-            samples: How many of the graph's values each integral sums.
-            **kwargs: [Plot keywords][manimgx.mobjects.plotting.PlotOptions]:
-                `x_range`, `color`, ….
+            y_intercept: 原函数在 0 处的值。
+            samples: 每个积分所求和的图像值个数。
+            **kwargs: [绘图关键字][manimgx.mobjects.plotting.PlotOptions]：
+                `x_range`、`color`、…。
 
         Returns:
-            A new [ParametricFunction][manimgx.ParametricFunction], not added to the
-            axes.
+            一个新的 [ParametricFunction][manimgx.ParametricFunction]，未添加到坐标轴。
 
         Examples:
             ```python
@@ -2644,33 +2370,23 @@ class Axes(VGroup):
         secant_line_color: ParsableManimColor = GREEN,
         secant_line_length: float = 10,
     ) -> SecantSlopeGroup:
-        """Make a secant's construction on a graph, between its points at `x` and
-        `x + dx`: the legs dx and df, their labels, and the secant through both points.
+        """在图像上制作割线的构造，在其 `x` 和 `x + dx` 处的点之间：腿 dx 和 df、它们的标签，以及过两点的割线。
 
-        The dx leg runs across from the first point, and the df leg up (or down) to the
-        second, in the graph's color unless given another. The labels, typeset as math
-        unless mobjects, are scaled down together to fit their legs (to 80% of the dx
-        leg's width and of the df leg's height), and put below the dx leg and right of
-        the df leg (above and left, for a negative `dx`), each in its leg's color. The
-        secant is `secant_line_length` long, centered between the points.
+        dx 腿从第一个点横跨，df 腿向上（或向下）到第二个点，采用图像的颜色，除非给出其他颜色。标签按数学排版（除非是 mobject），一起缩小以适应其腿（到 dx 腿宽和 df 腿高的 80%），放在 dx 腿下方和 df 腿右侧（负 `dx` 时在上方和左侧），每个采用其腿的颜色。割线长 `secant_line_length`，在两点之间居中。
 
         Args:
-            x: The input of the first point: its x.
-            dx: The step to the second point, in the axes' units; None for a tenth of
-                the x-axis's range.
-            dx_line_color: The dx leg's color.
-            dy_line_color: The df leg's color; None for the graph's.
-            dx_label: The dx leg's label: a string, a number or a mobject; None for
-                none.
-            dy_label: The df leg's label, likewise; None for none.
-            include_secant_line: Whether the construction includes the secant.
-            secant_line_color: The secant's color.
-            secant_line_length: The secant's length, in scene units.
+            x: 第一个点的输入：其 x。
+            dx: 到第二个点的步长，以坐标轴单位计；None 表示 x 轴范围的十分之一。
+            dx_line_color: dx 腿的颜色。
+            dy_line_color: df 腿的颜色；None 表示图像的。
+            dx_label: dx 腿的标签：字符串、数字或 mobject；None 表示无。
+            dy_label: df 腿的标签，同上；None 表示无。
+            include_secant_line: 构造是否包含割线。
+            secant_line_color: 割线的颜色。
+            secant_line_length: 割线的长度，以场景单位计。
 
         Returns:
-            A new [SecantSlopeGroup][manimgx.mobjects.plotting.SecantSlopeGroup],
-            not added to the axes: its parts are its `dx_line`, `df_line`, `dx_label`,
-            `df_label` and `secant_line`.
+            一个新的 [SecantSlopeGroup][manimgx.mobjects.plotting.SecantSlopeGroup]，未添加到坐标轴：其部分为 `dx_line`、`df_line`、`dx_label`、`df_label` 和 `secant_line`。
 
         Examples:
             ```python
@@ -2742,18 +2458,16 @@ class Axes(VGroup):
         num_lines: int = 20,
         **kwargs: Unpack[AxisLine],
     ) -> VGroup:
-        """Make lines from the x-axis to a graph, evenly spaced over a range of x:
-        dashed, white and thin unless styled.
+        """制作从 x 轴到图像的线，在某 x 范围内均匀分布：虚线，未设置样式时为白色细线。
 
         Args:
-            x_range: The range of x, `[x_min, x_max]`: the first line at x_min, the
-                last at x_max; None for the x-axis's range.
-            num_lines: How many lines.
-            **kwargs: [Axis line keywords][manimgx.mobjects.plotting.AxisLine]:
-                the lines' class, keywords, `color` and `stroke_width`.
+            x_range: x 的范围，`[x_min, x_max]`：第一条线在 x_min 处，最后一条在 x_max 处；None 表示 x 轴的范围。
+            num_lines: 线的数量。
+            **kwargs: [坐标轴线关键字][manimgx.mobjects.plotting.AxisLine]：
+                线的类、关键字、`color` 和 `stroke_width`。
 
         Returns:
-            A new group of the lines, from left to right; not added to the axes.
+            线的新组，从左到右；未添加到坐标轴。
 
         Examples:
             ```python
@@ -2794,25 +2508,20 @@ class Axes(VGroup):
         line_func: type[Line] = Line,
         line_color: ParsableManimColor = PURE_YELLOW,
     ) -> VGroup:
-        """Make a T-label for a value of x: a small triangle under the x-axis pointing
-        up at the value, a label below the triangle, and a line from the x-axis up to
-        the graph.
+        """为某个 x 值制作 T 标签：x 轴下方一个朝上指向该值的小三角形、三角形下方的标签，以及从 x 轴向上到图像的线。
 
         Args:
-            x_val: The value of x it marks.
-            graph: The graph the line reaches.
-            label: The label below the triangle: a string or a number, typeset as math,
-                or a mobject; None for none.
-            label_color: The label's color; None to leave it as it is.
-            triangle_size: The triangle's height, in scene units.
-            triangle_color: The triangle's color.
-            line_func: The class of the line: [Line][manimgx.Line] (solid),
-                [DashedLine][manimgx.DashedLine], ….
-            line_color: The line's color.
+            x_val: 它标记的 x 值。
+            graph: 线所达到的图像。
+            label: 三角形下方的标签：字符串或数字，按数学排版，或 mobject；None 表示无。
+            label_color: 标签的颜色；None 表示保持原样。
+            triangle_size: 三角形的高度，以场景单位计。
+            triangle_color: 三角形的颜色。
+            line_func: 线的类：[Line][manimgx.Line]（实线）、[DashedLine][manimgx.DashedLine]、…。
+            line_color: 线的颜色。
 
         Returns:
-            A new group of the label (if any), the triangle and the line; not added to
-            the axes.
+            标签（若有）、三角形和线的新组；未添加到坐标轴。
 
         Examples:
             ```python
@@ -2859,24 +2568,20 @@ class Axes(VGroup):
         vertex_dot_style: Style | None = None,
         **kwargs: Unpack[Style],
     ) -> VDict:
-        """Plot a line graph: straight segments through points given by their
-        coordinates, with a dot at each point; bright yellow (`PURE_YELLOW`), with white
-        dots, unless styled. Empty inputs produce an empty graph.
+        """绘制折线图：过由其坐标给出的点的直线段，每个点处有一个点；未设置样式时为亮黄色（`PURE_YELLOW`），带白色点。空输入产生空图。
 
         Args:
-            x_values: The points' x coordinates.
-            y_values: Their y coordinates, as many.
-            z_values: Their z coordinates, on three-dimensional axes; None for 0.
-            line_color: The line's color, unless the keywords give a `color`.
-            add_vertex_dots: Whether a dot marks each point.
-            vertex_dot_radius: The dots' radius, in scene units.
-            vertex_dot_style: [Style keywords][manimgx.drawing.paint.Style] for the dots;
-                None for none.
-            **kwargs: [Style keywords][manimgx.drawing.paint.Style] for the line.
+            x_values: 点的 x 坐标。
+            y_values: 点的 y 坐标，数量相同。
+            z_values: 点的 z 坐标，在三维坐标轴上；None 表示 0。
+            line_color: 线的颜色，除非关键字给出 `color`。
+            add_vertex_dots: 是否每个点处有一个点标记。
+            vertex_dot_radius: 点的半径，以场景单位计。
+            vertex_dot_style: 点的 [样式关键字][manimgx.drawing.paint.Style]；None 表示无。
+            **kwargs: 线的 [样式关键字][manimgx.drawing.paint.Style]。
 
         Returns:
-            A new [VDict][manimgx.VDict], not added to the axes, with the line
-            under `"line_graph"` and the dots, in a group, under `"vertex_dots"`.
+            一个新的 [VDict][manimgx.VDict]，未添加到坐标轴，线在 `"line_graph"` 下，点（在一个组中）在 `"vertex_dots"` 下。
 
         Examples:
             ```python
@@ -2934,14 +2639,14 @@ class Axes(VGroup):
 
 
 def _full_range(given: Sequence[float] | None, radius: float) -> Sequence[float]:
-    """An axis' (min, max, step): the frame's width or height, by 1, unless given."""
+    """坐标轴的 (min, max, step)：画框的宽度或高度，步长 1，除非给出。"""
     if given is None:
         return [round(-radius), round(radius), 1]
     return [*given, 1] if len(given) == 2 else given
 
 
 def _origin_shift(axis_range: Sequence[float]) -> float:
-    """Where an axis crosses the others: 0, or the end of its range nearest 0."""
+    """坐标轴与其他坐标轴交叉处：0，或其范围最接近 0 的端点。"""
     if axis_range[0] > 0:
         return axis_range[0]
     if axis_range[1] < 0:
@@ -2950,31 +2655,24 @@ def _origin_shift(axis_range: Sequence[float]) -> float:
 
 
 class _AxesOptions(_Style, total=False):
-    """AxesOptions's keys, open, for the keywords that add to them."""
+    """AxesOptions 的键，开放，用于添加到它们的关键字。"""
 
     axis_config: NumberLineOptions | None
-    """[Number line keywords][manimgx.NumberLine]
-    for every axis: `include_numbers`, `font_size`, `color`, … (default None: none)."""
+    """每个坐标轴的 [数轴关键字][manimgx.NumberLine]：`include_numbers`、`font_size`、`color`、…（默认 None：无）。"""
     x_axis_config: NumberLineOptions | None
-    """Number line keywords for the x-axis, over `axis_config`'s (default None:
-    none)."""
+    """x 轴的数轴关键字，覆盖 `axis_config` 的（默认 None：无）。"""
     y_axis_config: NumberLineOptions | None
-    """Number line keywords for the y-axis, over `axis_config`'s (default None:
-    none)."""
+    """y 轴的数轴关键字，覆盖 `axis_config` 的（默认 None：无）。"""
     tips: bool
-    """Whether each axis ends in an arrow tip (default True; a plane's axes have none,
-    unless `axis_config` includes `include_tip`)."""
+    """每个坐标轴末端是否有箭头（默认 True；平面的坐标轴无箭头，除非 `axis_config` 包含 `include_tip`）。"""
 
 
 class AxesOptions(_AxesOptions, total=False, closed=True):
-    """[Axes][manimgx.Axes]' keywords but their ranges and lengths, for the classes that
-    pass them on ([ThreeDAxes][manimgx.ThreeDAxes], the planes,
-    [BarChart][manimgx.BarChart]): their axes' configs and tips, with the style
-    keywords."""
+    """[Axes][manimgx.Axes] 除范围和长度外的关键字，用于传递它们的类（[ThreeDAxes][manimgx.ThreeDAxes]、平面、[BarChart][manimgx.BarChart]）：其坐标轴的配置和箭头，附带样式关键字。"""
 
 
 def _origin_tick(config_: NumberLineOptions) -> NumberLineOptions:
-    """A linear axis leaves its origin unticked (the other axis crosses there)."""
+    """线性坐标轴省略其原点刻度（另一坐标轴在此处穿过）。"""
     return config_ | {
         "exclude_origin_tick": isinstance(
             config_.get("scaling", LinearBase()), LinearBase
@@ -2983,38 +2681,22 @@ def _origin_tick(config_: NumberLineOptions) -> NumberLineOptions:
 
 
 class ThreeDAxes(Axes):
-    """Three-dimensional axes: a z-axis out of the screen, through the origin of x- and
-    y-axes; white, with tips, and shaded by a three-dimensional scene's light, unless
-    configured.
+    """三维坐标轴：一条 z 轴指出屏幕，过 x 轴和 y 轴的原点；未配置时为白色，带箭头，并由三维场景的光线着色。
 
-    The z-axis is made as the others, over `z_range`, and points OUT, crossing them at
-    its 0 (or at the end of its range nearest 0). Each axis is drawn as short pieces,
-    shaded as three-dimensional objects are, with a slight sheen toward the light.
-    Coordinates are converted with three numbers, `axes.c2p(x, y, z)`, and everything
-    [Axes][manimgx.Axes] do, these axes do. Seen
-    from straight above, they look like two-dimensional axes: turn the camera
-    ([set_camera_orientation][manimgx.ThreeDScene.set_camera_orientation]) to see
-    their depth.
+    z 轴与其他坐标轴一样创建，在 `z_range` 上运行，指向 OUT，在其 0 处（或其范围最接近 0 的端点处）与它们交叉。每个坐标轴绘制为短段，按三维对象的方式着色，带朝向光的轻微光泽。坐标用三个数字转换，`axes.c2p(x, y, z)`，[Axes][manimgx.Axes] 能做的一切，这些坐标轴也能。从正上方看，它们看起来像二维坐标轴：转动相机（[set_camera_orientation][manimgx.ThreeDScene.set_camera_orientation]）以看到其深度。
 
-    Common axis options are captured when construction starts; each
-    finished number line retains its own runtime defaults.
+    常用的坐标轴选项在构造开始时捕获；每个完成的数轴保留其自身的运行时默认值。
 
     Args:
-        x_range: The x-axis's range, `[x_min, x_max, x_step]`, or `[x_min, x_max]` for
-            a step of 1; None for [-7, 7, 1].
-        y_range: The y-axis's range, likewise; None for [-4, 4, 1].
-        z_range: The z-axis's range, likewise; None for [-7, 7, 1].
-        x_length: The x-axis's length, in scene units; None for the frame's short side
-            plus 2.5 (10.5, in a wide video and a tall one), or `unit_size` per unit if
-            the axis's config gives one.
-        y_length: The y-axis's length, in scene units; None for 10.5 too, or `unit_size`
-            per unit if the axis's config gives one.
-        z_length: The z-axis's length, in scene units; None for the frame's short side
-            less 1.5 (6.5), or `unit_size` per unit if the axis's config gives one.
-        z_axis_config: [Number line keywords][manimgx.NumberLine]
-            for the z-axis, over `axis_config`'s; None for none.
-        **kwargs: [Axes keywords][manimgx.mobjects.plotting.AxesOptions]:
-            `axis_config`, `x_axis_config`, `y_axis_config`, `tips`.
+        x_range: x 轴的范围，`[x_min, x_max, x_step]`，或 `[x_min, x_max]` 表示步长为 1；None 表示 [-7, 7, 1]。
+        y_range: y 轴的范围，同上；None 表示 [-4, 4, 1]。
+        z_range: z 轴的范围，同上；None 表示 [-7, 7, 1]。
+        x_length: x 轴的长度，以场景单位计；None 表示画框短边加 2.5（宽视频和高视频中为 10.5），或坐标轴配置给出时每单位 `unit_size`。
+        y_length: y 轴的长度，以场景单位计；None 也表示 10.5，或坐标轴配置给出时每单位 `unit_size`。
+        z_length: z 轴的长度，以场景单位计；None 表示画框短边减 1.5（6.5），或坐标轴配置给出时每单位 `unit_size`。
+        z_axis_config: z 轴的 [数轴关键字][manimgx.NumberLine]，覆盖 `axis_config` 的；None 表示无。
+        **kwargs: [坐标轴关键字][manimgx.mobjects.plotting.AxesOptions]：
+            `axis_config`、`x_axis_config`、`y_axis_config`、`tips`。
 
     Examples:
         ```python
@@ -3061,7 +2743,7 @@ class ThreeDAxes(Axes):
             **kwargs,
         )
         self.z_range = z_range
-        """The z-axis's range, as given."""
+        """z 轴的范围，按给出时的形式。"""
         z_axis_config = _origin_tick(merged_axis_config(axis_config, z_axis_config))
         self.dimension = 3
         z_axis = self._create_axis(self.z_range, z_axis_config, z_length, 2)
@@ -3077,14 +2759,13 @@ class ThreeDAxes(Axes):
         self.axes.add(z_axis)
         self.add(z_axis)
         self.z_axis = z_axis
-        """The z-axis, a [NumberLine][manimgx.NumberLine]."""
+        """z 轴，一个 [NumberLine][manimgx.NumberLine]。"""
         self.z_length = z_axis.get_length()
         self._add_3d_pieces()
         self._set_axis_shading()
 
     def _fitting_length(self, index: int) -> float:
-        """The length of an axis given none (0: x, 1: y, 2: z), from the frame's short
-        side, which a wide video and a tall one share."""
+        """未给出时坐标轴的长度（0：x，1：y，2：z），从画框短边算起，宽视频和高视频共享。"""
         short = min(config.frame_width, config.frame_height)
         return short - 1.5 if index == 2 else short + 2.5
 
@@ -3097,7 +2778,7 @@ class ThreeDAxes(Axes):
             axis.set_shade_in_3d(True)
 
     def _set_axis_shading(self) -> None:
-        """A sheen toward the light, across each whole axis (not piece by piece)."""
+        """朝向光的光泽，横跨每个整个坐标轴（而非逐段）。"""
         toward_light = np.sign(9 * DOWN + 7 * LEFT + 10 * OUT)
         for axis in self.axes:
             for piece in axis.family_members_with_points():
@@ -3114,25 +2795,20 @@ class ThreeDAxes(Axes):
         rotation: float = PI / 2,
         rotation_axis: Vector3DLike = OUT,
     ) -> Mobject:
-        """Make a label for the y-axis, by its end, turned to lie along it.
+        """为 y 轴制作标签，在其末端处，旋转以沿其放置。
 
-        A string or a number is typeset with the axes' `label_constructor` (as math,
-        with [MathTex][manimgx.MathTex], by default); a mobject is used as it is. The
-        label is put next to a corner of the axis, toward `direction`, moved onto the
-        screen if it is off it, then turned about its center.
+        字符串或数字用坐标轴的 `label_constructor` 排版（默认按数学排版，用 [MathTex][manimgx.MathTex]）；mobject 按原样使用。标签放在坐标轴的某个角旁，朝 `direction` 方向，若在屏幕外则移回屏幕上，然后绕其中心旋转。
 
         Args:
-            label: The label: a string, a number or a mobject.
-            edge: The corner of the axis the label is put by, as a direction: UR, the
-                upper right one, by its end.
-            direction: The direction the label is put toward, from that corner.
-            buff: The gap between the corner and the label, in scene units.
-            rotation: The angle the label is turned through, in radians: a quarter
-                turn, counterclockwise.
-            rotation_axis: The axis it is turned about: OUT turns it in the xy-plane.
+            label: 标签：字符串、数字或 mobject。
+            edge: 标签所放的坐标轴的角，作为方向：UR，即右上角，在其末端处。
+            direction: 标签从该角放置的方向。
+            buff: 角与标签之间的间距，以场景单位计。
+            rotation: 标签旋转的角度，以弧度计：四分之一圈，逆时针方向。
+            rotation_axis: 旋转所绕的轴：OUT 使其在 xy 平面内旋转。
 
         Returns:
-            The label, not added to the axes.
+            标签，未添加到坐标轴。
         """
         placed = super().get_y_axis_label(label, edge, direction, buff)
         return placed.rotate(rotation, axis=rotation_axis)
@@ -3146,25 +2822,20 @@ class ThreeDAxes(Axes):
         rotation: float = PI / 2,
         rotation_axis: Vector3DLike = RIGHT,
     ) -> Mobject:
-        """Make a label for the z-axis, by its end, stood upright.
+        """为 z 轴制作标签，在其末端处，竖立放置。
 
-        A string or a number is typeset with the axes' `label_constructor` (as math,
-        with [MathTex][manimgx.MathTex], by default); a mobject is used as it is. The
-        label is put next to the axis's end, toward `direction`, moved onto the screen
-        if it is off it, then turned about its center: by default a quarter turn about
-        RIGHT, which stands it up out of the xy-plane.
+        字符串或数字用坐标轴的 `label_constructor` 排版（默认按数学排版，用 [MathTex][manimgx.MathTex]）；mobject 按原样使用。标签放在坐标轴末端旁，朝 `direction` 方向，若在屏幕外则移回屏幕上，然后绕其中心旋转：默认绕 RIGHT 四分之一圈，使其从 xy 平面立起。
 
         Args:
-            label: The label: a string, a number or a mobject.
-            edge: The point of the axis the label is put by, as a direction: OUT, its
-                end.
-            direction: The direction the label is put toward, from that point.
-            buff: The gap between the point and the label, in scene units.
-            rotation: The angle the label is turned through, in radians.
-            rotation_axis: The axis it is turned about.
+            label: 标签：字符串、数字或 mobject。
+            edge: 标签所放的坐标轴的点，作为方向：OUT，即其末端。
+            direction: 标签从该点放置的方向。
+            buff: 点与标签之间的间距，以场景单位计。
+            rotation: 标签旋转的角度，以弧度计。
+            rotation_axis: 旋转所绕的轴。
 
         Returns:
-            The label, not added to the axes.
+            标签，未添加到坐标轴。
         """
         placed = self._get_axis_label(label, self.z_axis, edge, direction, buff)
         return placed.rotate(rotation, axis=rotation_axis)
@@ -3172,20 +2843,15 @@ class ThreeDAxes(Axes):
     def get_axis_labels(
         self, x_label: Label = "x", y_label: Label = "y", z_label: Label = "z"
     ) -> VGroup:
-        """Make a label for each axis, by its end, as
-        [get_x_axis_label][manimgx.Axes.get_x_axis_label],
-        [get_y_axis_label][manimgx.ThreeDAxes.get_y_axis_label] and
-        [get_z_axis_label][manimgx.ThreeDAxes.get_z_axis_label] place them.
+        """为每个坐标轴制作标签，在其末端处，按 [get_x_axis_label][manimgx.Axes.get_x_axis_label]、[get_y_axis_label][manimgx.ThreeDAxes.get_y_axis_label] 和 [get_z_axis_label][manimgx.ThreeDAxes.get_z_axis_label] 的放置方式。
 
         Args:
-            x_label: The x-axis's label: a string or a number, typeset as math, or a
-                mobject.
-            y_label: The y-axis's label, likewise.
-            z_label: The z-axis's label, likewise.
+            x_label: x 轴的标签：字符串或数字，按数学排版，或 mobject。
+            y_label: y 轴的标签，同上。
+            z_label: z 轴的标签，同上。
 
         Returns:
-            A new group of the labels, kept as the axes' `axis_labels`; not added to
-            the axes.
+            标签的新组，保留为坐标轴的 `axis_labels`；未添加到坐标轴。
         """
         self.axis_labels = VGroup(
             self.get_x_axis_label(x_label),
@@ -3196,7 +2862,7 @@ class ThreeDAxes(Axes):
 
 
 class _Plane(Axes):
-    """Grid planes build styled backgrounds once and prepare their paths for transforms."""
+    """网格平面一次性构建带样式的背景，并为其路径准备变换。"""
 
     def __init__(
         self,
@@ -3251,18 +2917,12 @@ class _Plane(Axes):
         raise NotImplementedError
 
     def prepare_for_nonlinear_transform(self, num_inserted_curves: int = 50) -> Self:
-        """Split the plane's lines into many curves, so that a nonlinear function bends
-        them smoothly.
+        """将平面的线分成许多曲线，使非线性函数能平滑地弯曲它们。
 
-        A function applied to the plane (with
-        [apply_function][manimgx.Mobject.apply_function] or
-        [apply_complex_function][manimgx.Mobject.apply_complex_function]) moves the
-        points of its lines, and a straight line is a single curve: moving its few
-        points would barely bend it. Each part of the plane with fewer curves than
-        `num_inserted_curves` is divided into that many.
+        应用于平面的函数（用 [apply_function][manimgx.Mobject.apply_function] 或 [apply_complex_function][manimgx.Mobject.apply_complex_function]）移动其线的点，而直线是单条曲线：移动其少数点几乎不会弯曲它。平面中曲线数少于 `num_inserted_curves` 的每个部分被分成那么多条。
 
         Args:
-            num_inserted_curves: How many curves each line has at least.
+            num_inserted_curves: 每条线至少有多少条曲线。
 
         Examples:
             ```python
@@ -3288,67 +2948,43 @@ class _Plane(Axes):
 
 
 class NumberPlaneOptions(_AxesOptions, total=False, closed=True):
-    """A [NumberPlane][manimgx.NumberPlane]'s keywords, for the scenes that pass them on
-    ([LinearTransformationScene][manimgx.LinearTransformationScene], …): its ranges,
-    sizes and grid, with the axes' keywords."""
+    """[NumberPlane][manimgx.NumberPlane] 的关键字，用于传递它们的场景
+    （[LinearTransformationScene][manimgx.LinearTransformationScene]、…）：其范围、尺寸和网格，附带坐标轴关键字。"""
 
     x_range: Sequence[float] | None
-    """The x-axis's range, `[x_min, x_max, x_step]`: a vertical line of the grid at
-    every step (default: the frame's width, by 1)."""
+    """x 轴的范围，`[x_min, x_max, x_step]`：网格在每个步长处有一条垂直线（默认：画框的宽度，步长 1）。"""
     y_range: Sequence[float] | None
-    """The y-axis's range, `[y_min, y_max, y_step]`: a horizontal line of the grid at
-    every step (default: the frame's height, by 1)."""
+    """y 轴的范围，`[y_min, y_max, y_step]`：网格在每个步长处有一条水平线（默认：画框的高度，步长 1）。"""
     x_length: float | None
-    """The x-axis's length, in scene units (default None: one scene unit per unit)."""
+    """x 轴的长度，以场景单位计（默认 None：每单位一个场景单位）。"""
     y_length: float | None
-    """The y-axis's length, in scene units (default None: one scene unit per unit)."""
+    """y 轴的长度，以场景单位计（默认 None：每单位一个场景单位）。"""
     background_line_style: Style | None
-    """[Style keywords][manimgx.drawing.paint.Style] for the grid's lines, over their
-    defaults: blue (`BLUE_D`), 2 wide, opaque (default None: none)."""
+    """网格线的 [样式关键字][manimgx.drawing.paint.Style]，覆盖其默认值：蓝色（`BLUE_D`）、宽 2、不透明（默认 None：无）。"""
     faded_line_style: Style | None
-    """[Style keywords][manimgx.drawing.paint.Style] for the fainter lines between them
-    (default None: the grid lines' style, at half their width and opacity)."""
+    """它们之间较暗线的 [样式关键字][manimgx.drawing.paint.Style]（默认 None：网格线的样式，宽度和不透明度减半）。"""
     faded_line_ratio: int
-    """How many parts the fainter lines divide each step of the grid into: 1 for no
-    fainter lines, 2 for one between each two grid lines (default 1)."""
+    """较暗线将网格的每个步长分成多少部分：1 表示无较暗线，2 表示每两条网格线之间有一条（默认 1）。"""
 
 
 class NumberPlane(_Plane):
-    """A number plane: axes over a grid, a line at every step of each axis's range;
-    filling the frame, with the scene's own coordinates, unless sized.
+    """数平面：网格上的坐标轴，每个坐标轴范围的每一步处有一条线；填满画框，带场景自身的坐标，除非设定尺寸。
 
-    The grid's lines are blue (`BLUE_D`) and 2 wide; with a `faded_line_ratio` above
-    1, fainter lines divide each step further, half as wide and half as opaque unless
-    styled. The lines are drawn behind the axes, which are white, 2 wide, without
-    ticks or tips; their numbers, when written, are small (font size 24), below and to
-    the right of their points. By default the ranges span the frame, one scene unit
-    per unit, so the plane's coordinates are the scene's. Everything
-    [Axes][manimgx.Axes] do, the plane does: converting coordinates, plotting,
-    labeling.
+    网格的线为蓝色（`BLUE_D`）且宽 2；`faded_line_ratio` 大于 1 时，较暗线将每个步长进一步划分，除非设置样式，否则宽度和不透明度减半。线绘制在坐标轴之后，坐标轴为白色，宽 2，无刻度或箭头；其数字（书写时）很小（字号 24），在其点的下方和右侧。默认情况下范围跨越画框，每单位一个场景单位，因此平面的坐标即场景的坐标。[Axes][manimgx.Axes] 能做的一切，平面也能做：转换坐标、绘图、标注。
 
-    Background styles and the faded-line ratio are construction inputs; the plane
-    retains its drawn grid rather than those setup attributes.
+    背景样式和较暗线比例是构造输入；平面保留其绘制的网格而非那些设置属性。
 
     Args:
-        x_range: The x-axis's range, `[x_min, x_max, x_step]`: a vertical line of the
-            grid at every step. None for the frame's width when the plane is made, by
-            1.
-        y_range: The y-axis's range, `[y_min, y_max, y_step]`: a horizontal line of
-            the grid at every step. None for the frame's height when the plane is made,
-            by 1.
-        x_length: The x-axis's length, in scene units; None for one scene unit per
-            unit.
-        y_length: The y-axis's length, in scene units; None for one scene unit per
-            unit.
-        background_line_style: [Style keywords][manimgx.drawing.paint.Style] for the
-            grid's lines, over their defaults; None for none.
-        faded_line_style: [Style keywords][manimgx.drawing.paint.Style] for the fainter
-            lines; None for the grid lines' style, at half their width and opacity.
-        faded_line_ratio: How many parts the fainter lines divide each step of the
-            grid into: 1 for no fainter lines, 2 for one between each two grid lines.
-        **kwargs: [Axes keywords][manimgx.mobjects.plotting.AxesOptions]:
-            `axis_config` over the plane's own (no ticks, no tips, font size 24), …;
-            `tips` is overridden by it, so tips need `include_tip` in `axis_config`.
+        x_range: x 轴的范围，`[x_min, x_max, x_step]`：网格在每个步长处有一条垂直线。None 表示平面创建时画框的宽度，步长 1。
+        y_range: y 轴的范围，`[y_min, y_max, y_step]`：网格在每个步长处有一条水平线。None 表示平面创建时画框的高度，步长 1。
+        x_length: x 轴的长度，以场景单位计；None 表示每单位一个场景单位。
+        y_length: y 轴的长度，以场景单位计；None 表示每单位一个场景单位。
+        background_line_style: 网格线的 [样式关键字][manimgx.drawing.paint.Style]，覆盖其默认值；None 表示无。
+        faded_line_style: 较暗线的 [样式关键字][manimgx.drawing.paint.Style]；None 表示网格线的样式，宽度和不透明度减半。
+        faded_line_ratio: 较暗线将网格的每个步长分成多少部分：1 表示无较暗线，2 表示每两条网格线之间有一条。
+        **kwargs: [坐标轴关键字][manimgx.mobjects.plotting.AxesOptions]：
+            `axis_config` 覆盖平面自身的（无刻度、无箭头、字号 24）、…；
+            `tips` 被它覆盖，因此箭头需要 `axis_config` 中的 `include_tip`。
 
     Examples:
         ```python
@@ -3457,60 +3093,33 @@ class NumberPlane(_Plane):
 type AzimuthUnits = Literal["PI radians", "TAU radians", "degrees", "gradians"] | None
 
 
-"""How a [PolarPlane][manimgx.PolarPlane] labels its angles: as fractions of π or of τ,
-in degrees, in gradians, or (None) as fractions of a turn."""
+"""[PolarPlane][manimgx.PolarPlane] 如何标注其角度：作为 π 或 τ 的分数、度数、梯度，或（None）作为圈的分数。"""
 
 
 class PolarPlane(_Plane):
-    """A polar plane: circles around its origin, one at every step of the radius, and
-    lines out from it, a fraction of a turn apart; blue over white axes without ticks
-    or tips, unless styled.
+    """极平面：围绕其原点的圆，半径的每一步处一个，以及从原点向外的线，相隔一圈的分数；未设置样式时为蓝色覆盖白色坐标轴，无刻度或箭头。
 
-    The plane is a disc of radius `radius_max`, centered on the scene's origin, its x-
-    and y-axes its radii. [add_coordinates][manimgx.PolarPlane.add_coordinates] numbers
-    the radii and labels the lines' angles, in `azimuth_units`: fractions of π (3π/4),
-    of τ, degrees, gradians, or fractions of a turn.
-    [polar_to_point][manimgx.Axes.polar_to_point] (`pr2pt`) converts polar coordinates
-    to points, and [plot_polar_graph][manimgx.Axes.plot_polar_graph] plots curves
-    r = f(θ); everything [Axes][manimgx.Axes] do, the plane does.
+    该平面是半径为 `radius_max` 的圆盘，居中于场景原点，其 x 轴和 y 轴为其半径。[add_coordinates][manimgx.PolarPlane.add_coordinates] 为半径编号并标注线的角度，以 `azimuth_units` 为单位：π 的分数（3π/4）、τ 的分数、度数、梯度，或圈的分数。
+    [polar_to_point][manimgx.Axes.polar_to_point]（`pr2pt`）将极坐标转换为点，[plot_polar_graph][manimgx.Axes.plot_polar_graph] 绘制曲线 r = f(θ)；[Axes][manimgx.Axes] 能做的一切，平面也能做。
 
-    Background styles and the faded-line ratio are construction inputs; the plane
-    retains its drawn grid rather than those setup attributes.
+    背景样式和较暗线比例是构造输入；平面保留其绘制的网格而非那些设置属性。
 
     Args:
-        radius_max: The radius of the outer circle, in the plane's units; None for half
-            the frame's short side when the plane is made (4).
-        size: The plane's width, its diameter, in scene units; None for one scene unit
-            per unit.
-        radius_step: The distance between two circles, in the plane's units.
-        azimuth_step: How many lines divide the full turn: a line every turn divided
-            by it; None for the units' own: 20 for radians, 36 for degrees, 40 for
-            gradians, 1 for fractions of a turn.
-        azimuth_units: How the angles are labeled: `"PI radians"` (fractions of π),
-            `"TAU radians"` (fractions of τ), `"degrees"`, `"gradians"`, or None
-            (fractions of a turn, as decimals).
-        azimuth_compact_fraction: Whether a fraction of π or τ is written with the
-            constant in its numerator (3π/4), rather than after it (3/4 π).
-        azimuth_offset: The angle of the line labeled 0, in radians, counterclockwise
-            from the right: the lines and their labels turn with it.
-        azimuth_direction: The direction the angles increase in: `"CCW"`,
-            counterclockwise, or `"CW"`, clockwise.
-        azimuth_label_buff: The gap between the outer circle and the angles' labels, in
-            scene units.
-        azimuth_label_font_size: The font size of the angles' labels.
-        radius_config: [Number line keywords][manimgx.NumberLine]
-            for the radii's axes, over the plane's own (no ticks, no tips, 2 wide,
-            font size 24, numbers below and to the left); None for none.
-        background_line_style: [Style keywords][manimgx.drawing.paint.Style] for the
-            circles and lines, over their defaults: blue (`BLUE_D`), 2 wide, opaque;
-            None for none.
-        faded_line_style: [Style keywords][manimgx.drawing.paint.Style] for the fainter
-            circles and lines; None for the others' style, at half their width and
-            opacity.
-        faded_line_ratio: How many parts fainter circles and lines divide each step
-            into: 1 for none.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the plane's group
-            itself: as it has no points, they do not restyle its lines.
+        radius_max: 外圆的半径，以平面的单位计；None 表示平面创建时画框短边的一半（4）。
+        size: 平面的宽度，即其直径，以场景单位计；None 表示每单位一个场景单位。
+        radius_step: 两个圆之间的距离，以平面的单位计。
+        azimuth_step: 多少条线分一整圈：每圈除以它有一条线；None 表示单位自身的：弧度为 20，度数为 36，梯度为 40，圈的分数为 1。
+        azimuth_units: 角度的标注方式：`"PI radians"`（π 的分数）、`"TAU radians"`（τ 的分数）、`"degrees"`、`"gradians"`，或 None（圈的分数，作为小数）。
+        azimuth_compact_fraction: π 或 τ 的分数是否将常数写在分子中（3π/4），而非写在后面（3/4 π）。
+        azimuth_offset: 标注为 0 的线的角度，以弧度计，从右起逆时针方向：线和其标签随之转动。
+        azimuth_direction: 角度增加的方向：`"CCW"`，逆时针，或 `"CW"`，顺时针。
+        azimuth_label_buff: 外圆与角度标签之间的间距，以场景单位计。
+        azimuth_label_font_size: 角度标签的字号。
+        radius_config: 半径坐标轴的 [数轴关键字][manimgx.NumberLine]，覆盖平面自身的（无刻度、无箭头、宽 2、字号 24、数字在下方左侧）；None 表示无。
+        background_line_style: 圆和线的 [样式关键字][manimgx.drawing.paint.Style]，覆盖其默认值：蓝色（`BLUE_D`）、宽 2、不透明；None 表示无。
+        faded_line_style: 较暗圆和线的 [样式关键字][manimgx.drawing.paint.Style]；None 表示其他的样式，宽度和不透明度减半。
+        faded_line_ratio: 较暗圆和线将每个步长分成多少部分：1 表示无。
+        **kwargs: 平面组本身的 [样式关键字][manimgx.drawing.paint.Style]：由于它没有点，它们不会重新设置其线的样式。
 
     Examples:
         ```python
@@ -3632,22 +3241,16 @@ class PolarPlane(_Plane):
         r_values: Iterable[float] | None = None,
         a_values: Iterable[float] | None = None,
     ) -> VGroup:
-        """Number the plane's radii, and make labels for its angles.
+        """为平面的半径编号，并为其角度制作标签。
 
-        The radii are numbered along the x-axis, right of the center; the numbers are
-        added to the axis. The angles' labels, in the plane's `azimuth_units`, go around
-        the outer circle, `azimuth_label_buff` beyond it: placed for a plane centered on
-        the scene's origin, as it is made.
+        半径沿 x 轴编号，在中心右侧；数字添加到坐标轴。角度的标签采用平面的 `azimuth_units`，围绕外圆分布，超出它 `azimuth_label_buff`：按居中于场景原点的平面（即其创建时）放置。
 
         Args:
-            r_values: The radii to number, in the plane's units; None for every
-                circle's but 0.
-            a_values: The angles to label, as fractions of a turn (0.25 is a quarter
-                turn); None for every line's.
+            r_values: 要编号的半径，以平面的单位计；None 表示每个圆的但不含 0。
+            a_values: 要标注的角度，作为圈的分数（0.25 为四分之一圈）；None 表示每条线的。
 
         Returns:
-            A new group of the x-axis, now numbered, and a group of the angles' labels
-            (not added to the plane); kept as the plane's `coordinate_labels`.
+            x 轴（现已编号）和角度标签组的新组（未添加到平面）；保留为平面的 `coordinate_labels`。
         """
         if r_values is None:
             r_values = [r for r in self.get_x_axis().get_tick_range() if r >= 0]
@@ -3673,7 +3276,7 @@ class PolarPlane(_Plane):
         return self.coordinate_labels
 
     def _azimuth_label(self, turns: float) -> MathTex:
-        """The label of the direction `turns` of a full turn, in the plane's units."""
+        """`turns` 圈方向的标签，以平面的单位。"""
         size = self.azimuth_label_font_size
         match self.azimuth_units:
             case "PI radians" | "TAU radians":
@@ -3690,14 +3293,11 @@ class PolarPlane(_Plane):
         r_values: Iterable[float] | None = None,
         a_values: Iterable[float] | None = None,
     ) -> Self:
-        """Number the plane's radii along its x-axis, and label its angles around it,
-        as [get_coordinate_labels][manimgx.PolarPlane.get_coordinate_labels] makes them.
+        """沿 x 轴为平面的半径编号，并围绕其标注角度，按 [get_coordinate_labels][manimgx.PolarPlane.get_coordinate_labels] 的制作方式。
 
         Args:
-            r_values: The radii to number, in the plane's units; None for every
-                circle's but 0.
-            a_values: The angles to label, as fractions of a turn (0.25 is a quarter
-                turn); None for every line's.
+            r_values: 要编号的半径，以平面的单位计；None 表示每个圆的但不含 0。
+            a_values: 要标注的角度，作为圈的分数（0.25 为四分之一圈）；None 表示每条线的。
         """
         self.add(self.get_coordinate_labels(r_values, a_values))
         return self
@@ -3705,19 +3305,16 @@ class PolarPlane(_Plane):
     def get_radian_label(
         self, number: float, **kwargs: Unpack[MathTexOptions]
     ) -> MathTex:
-        """Make the label of an angle in radians: a fraction of π, or of τ if the
-        plane's units are `"TAU radians"`.
+        """制作弧度角度的标签：π 的分数，或若平面单位为 `"TAU radians"` 则为 τ 的分数。
 
-        The fraction is the nearest with a denominator up to 100, written as the plane's
-        `azimuth_compact_fraction` says: 3π/4, or 3/4 π.
+        该分数是分母至多 100 的最接近分数，按平面的 `azimuth_compact_fraction` 书写：3π/4，或 3/4 π。
 
         Args:
-            number: The angle, as a fraction of a turn (0.375 for 3π/4).
-            **kwargs: [Math keywords][manimgx.MathTex]
-                for the label; its font size is 24 unless given.
+            number: 角度，作为圈的分数（0.375 为 3π/4）。
+            **kwargs: 标签的 [数学关键字][manimgx.MathTex]；其字号未给出时为 24。
 
         Returns:
-            A new [MathTex][manimgx.MathTex].
+            一个新的 [MathTex][manimgx.MathTex]。
         """
         kwargs.setdefault("font_size", 24)
         units = (
@@ -3740,16 +3337,9 @@ class PolarPlane(_Plane):
 
 
 class ComplexPlane(NumberPlane):
-    """A complex plane: a [NumberPlane][manimgx.NumberPlane] whose points are complex
-    numbers, x + yi at the point of coordinates (x, y).
+    """复平面：一个 [NumberPlane][manimgx.NumberPlane]，其点为复数，x + yi 位于坐标 (x, y) 处。
 
-    [number_to_point][manimgx.ComplexPlane.number_to_point] (`n2p`) and
-    [point_to_number][manimgx.ComplexPlane.point_to_number] (`p2n`) convert between
-    numbers and points, and [add_coordinates][manimgx.ComplexPlane.add_coordinates]
-    writes the real numbers along the x-axis and the imaginary ones (with `i`) along
-    the y-axis. A function of complex numbers maps the plane with
-    [apply_complex_function][manimgx.Mobject.apply_complex_function]. It takes the
-    arguments of a [NumberPlane][manimgx.NumberPlane], and does everything it does.
+    [number_to_point][manimgx.ComplexPlane.number_to_point]（`n2p`）和 [point_to_number][manimgx.ComplexPlane.point_to_number]（`p2n`）在数字与点之间转换，[add_coordinates][manimgx.ComplexPlane.add_coordinates] 沿 x 轴写实数、沿 y 轴写虚数（带 `i`）。复数函数用 [apply_complex_function][manimgx.Mobject.apply_complex_function] 映射平面。它接收 [NumberPlane][manimgx.NumberPlane] 的参数，并做其能做的一切。
 
     Examples:
         ```python
@@ -3767,28 +3357,26 @@ class ComplexPlane(NumberPlane):
     """
 
     def number_to_point(self, number: float | complex) -> Point3D:
-        """Convert a complex number to its point on the plane: x + yi to the point of
-        coordinates (x, y).
+        """将复数转换为其在平面上的点：x + yi 转为坐标 (x, y) 的点。
 
-        `n2p` is its short name.
+        `n2p` 是其简写名。
 
         Args:
-            number: The number; a real number is on the x-axis.
+            number: 数字；实数在 x 轴上。
 
         Returns:
-            The point, in scene coordinates.
+            点，在场景坐标系中。
         """
         number = complex(number)
         return self.coords_to_point(number.real, number.imag)
 
     def point_to_number(self, point: Point3DLike) -> complex:
-        """Convert a point to the complex number at it: x + yi, for the point's
-        coordinates (x, y).
+        """将点转换为其处的复数：对于点的坐标 (x, y) 为 x + yi。
 
-        `p2n` is its short name.
+        `p2n` 是其简写名。
 
         Args:
-            point: The point, in scene coordinates.
+            point: 点，在场景坐标系中。
         """
         x, y = self.point_to_coords(point)[:2]
         return complex(x, y)
@@ -3805,22 +3393,16 @@ class ComplexPlane(NumberPlane):
     def get_coordinate_labels(
         self, *numbers: float | complex, **kwargs: Unpack[DecimalNumberOptions]
     ) -> VGroup:
-        """Make labels for numbers of the plane: a real number by its point on the
-        x-axis, an imaginary one, with `i`, by its point on the y-axis.
+        """为平面的数字制作标签：实数在其 x 轴上的点旁，虚数（带 `i`）在其 y 轴上的点旁。
 
-        A number is written as its larger part: its imaginary part, by the y-axis, if
-        that is larger in size than its real part; its real part, by the x-axis,
-        otherwise. Each is written as the axis numbers its ticks (see
-        [get_number_mobject][manimgx.NumberLine.get_number_mobject]).
+        数字按其较大的部分书写：若其虚部（在 y 轴旁）的绝对值大于实部，则按虚部；否则按实部（在 x 轴旁）。每个按坐标轴为刻度编号的方式书写（参见 [get_number_mobject][manimgx.NumberLine.get_number_mobject]）。
 
         Args:
-            *numbers: The numbers to label; none for the ticks of both axes, but 0.
-            **kwargs: [Number keywords][manimgx.DecimalNumber]
-                for the labels: `font_size`, `num_decimal_places`, `color`, ….
+            *numbers: 要标注的数字；无表示两个坐标轴的刻度，但不含 0。
+            **kwargs: 标签的 [数字关键字][manimgx.DecimalNumber]：`font_size`、`num_decimal_places`、`color`、…。
 
         Returns:
-            A new group of the labels, kept as the plane's `coordinate_labels`; not
-            added to the plane.
+            标签的新组，保留为平面的 `coordinate_labels`；未添加到平面。
         """
         self.coordinate_labels = VGroup()
         for number in numbers or self._get_default_coordinate_values():
@@ -3840,14 +3422,11 @@ class ComplexPlane(NumberPlane):
     def add_coordinates(  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]  # CE's: numbers, not per-axis values
         self, *numbers: float | complex, **kwargs: Unpack[DecimalNumberOptions]
     ) -> Self:
-        """Label numbers of the plane, as
-        [get_coordinate_labels][manimgx.ComplexPlane.get_coordinate_labels] makes the
-        labels, and add them to the plane.
+        """为平面的数字标注标签，按 [get_coordinate_labels][manimgx.ComplexPlane.get_coordinate_labels] 的制作方式，并将它们添加到平面。
 
         Args:
-            *numbers: The numbers to label; none for the ticks of both axes, but 0.
-            **kwargs: [Number keywords][manimgx.DecimalNumber]
-                for the labels: `font_size`, `num_decimal_places`, `color`, ….
+            *numbers: 要标注的数字；无表示两个坐标轴的刻度，但不含 0。
+            **kwargs: 标签的 [数字关键字][manimgx.DecimalNumber]：`font_size`、`num_decimal_places`、`color`、…。
         """
         self.add(self.get_coordinate_labels(*numbers, **kwargs))
         return self
@@ -3856,26 +3435,19 @@ class ComplexPlane(NumberPlane):
 EPSILON = 0.0001
 
 
-"""How far from 1 probabilities may sum before a sample space adds the rest as a
-part."""
+"""概率之和与 1 的差距超过此值时，样本空间将余数作为一部分添加。"""
 
 
 class SampleSpace(Rectangle):
-    """A sample space: a rectangle standing for all the outcomes, to divide into parts
-    whose areas are probabilities; dark grey, filled, with a thin light grey outline,
-    unless styled.
+    """样本空间：一个代表所有结果的矩形，分为面积即概率的部分；未设置样式时为深灰色、填充、带细浅灰色轮廓。
 
-    [divide_vertically][manimgx.SampleSpace.divide_vertically] splits it into vertical
-    strips, one per probability, from left to right, and keeps them as its
-    `vertical_parts`;
-    [get_division_along_dimension][manimgx.SampleSpace.get_division_along_dimension]
-    makes the parts of a division along either side, in either direction. Each part is
-    a sample space itself, which can be divided in turn.
+    [divide_vertically][manimgx.SampleSpace.divide_vertically] 将其分为垂直条，每个概率一个，从左到右，并保留为其 `vertical_parts`；
+    [get_division_along_dimension][manimgx.SampleSpace.get_division_along_dimension] 制作沿任一侧、在任一方向上的划分的部分。每个部分本身是一个样本空间，可以继续划分。
 
     Args:
-        height: Its height, in scene units.
-        width: Its width, in scene units.
-        default_label_scale_val: Accepted for Manim compatibility; ignored.
+        height: 其高度，以场景单位计。
+        width: 其宽度，以场景单位计。
+        default_label_scale_val: 为 Manim 兼容性而接受；被忽略。
 
     Examples:
         ```python
@@ -3915,14 +3487,13 @@ class SampleSpace(Rectangle):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def complete_p_list(self, p_list: float | Iterable[float]) -> list[float]:
-        """The probabilities of a division, completed to sum to 1: the rest, 1 minus
-        their sum, is added as one more, unless it is within 0.0001 of 0.
+        """划分的概率，补全至和为 1：余数（1 减其和）作为多一个添加，除非它在 0.0001 以内。
 
         Args:
-            p_list: A probability, or probabilities.
+            p_list: 一个概率，或多个概率。
 
         Returns:
-            A new list of the probabilities.
+            概率的新列表。
         """
         new_p_list: list[float] = (
             list(p_list) if isinstance(p_list, Iterable) else [p_list]
@@ -3939,22 +3510,18 @@ class SampleSpace(Rectangle):
         colors: Sequence[ParsableManimColor],
         vect: Vector3D,
     ) -> VGroup:
-        """Make the parts that divide the sample space along a dimension, one per
-        probability, each that fraction of it.
+        """制作沿某维度划分样本空间的部分，每个概率一个，每个为其那个分数。
 
-        The parts follow one another in the direction `vect`, from the space's edge
-        opposite it; they are colored along a gradient of `colors`, and each is a sample
-        space itself.
+        部分在 `vect` 方向上一个接一个，从空间与之相对的边起；它们沿 `colors` 的渐变着色，每个本身是一个样本空间。
 
         Args:
-            p_list: The probabilities: a part is added for the rest, if they sum to less
-                than 1.
-            dim: The dimension divided: 0 for the width, 1 for the height.
-            colors: The colors, a gradient over the parts.
-            vect: The direction the parts follow one another in.
+            p_list: 概率：若其和小于 1，为余数添加一个部分。
+            dim: 被划分的维度：0 为宽度，1 为高度。
+            colors: 颜色，部分上的渐变。
+            vect: 部分一个接一个的方向。
 
         Returns:
-            A new group of the parts, not added to the space.
+            部分的新组，未添加到空间。
         """
         p_list_complete = self.complete_p_list(p_list)
         last_point = self.get_critical_point(-vect)
@@ -3977,17 +3544,15 @@ class SampleSpace(Rectangle):
         colors: Sequence[ParsableManimColor] = (MAROON_B, YELLOW),
         vect: Vector3D = RIGHT,
     ) -> VGroup:
-        """Make vertical strips that divide the sample space, one per probability, from
-        left to right (see
-        [get_division_along_dimension][manimgx.SampleSpace.get_division_along_dimension]).
+        """制作划分样本空间的垂直条，每个概率一个，从左到右（参见 [get_division_along_dimension][manimgx.SampleSpace.get_division_along_dimension]）。
 
         Args:
-            p_list: The probabilities, completed to sum to 1.
-            colors: The colors, a gradient over the strips.
-            vect: The direction the strips follow one another in: RIGHT, from the left.
+            p_list: 概率，补全至和为 1。
+            colors: 颜色，条上的渐变。
+            vect: 条一个接一个的方向：RIGHT，从左起。
 
         Returns:
-            A new group of the strips, not added to the space.
+            条的新组，未添加到空间。
         """
         return self.get_division_along_dimension(p_list, 0, colors, vect)
 
@@ -3997,16 +3562,14 @@ class SampleSpace(Rectangle):
         colors: Sequence[ParsableManimColor] = (MAROON_B, YELLOW),
         vect: Vector3D = RIGHT,
     ) -> Self:
-        """Divide the sample space into vertical strips, one per probability, from left
-        to right: each is that fraction of its width.
+        """将样本空间分为垂直条，每个概率一个，从左到右：每个为其宽度的那个分数。
 
-        The probabilities are completed to sum to 1. The strips are added to the space,
-        as one group, and kept as its `vertical_parts`.
+        概率补全至和为 1。条添加到空间，作为一个组，并保留为其 `vertical_parts`。
 
         Args:
-            p_list: A probability, or probabilities.
-            colors: The strips' colors: a gradient over them.
-            vect: The direction the strips follow one another in: RIGHT, from the left.
+            p_list: 一个概率，或多个概率。
+            colors: 条的颜色：其上的渐变。
+            vect: 条一个接一个的方向：RIGHT，从左起。
 
         Examples:
             ```python
@@ -4028,36 +3591,23 @@ class SampleSpace(Rectangle):
 
 
 class BarChart(Axes):
-    """A bar chart: a bar for each value, rising from the x-axis (or hanging below it,
-    for a negative value), on axes with a numbered y-axis; the bars colored along a
-    gradient.
+    """条形图：每个值一个条，从 x 轴升起（负值则悬挂在其下方），在带编号 y 轴的坐标轴上；条沿渐变着色。
 
-    Each bar stands in its own unit of the x-axis, centered in it and `bar_width` of it
-    wide, and it is as tall as its value, in the y-axis's units. The bars' names go
-    below the x-axis (above it, under a negative bar).
-    [change_bar_values][manimgx.BarChart.change_bar_values] changes the bars, and
-    [get_bar_labels][manimgx.BarChart.get_bar_labels] writes their values beside them.
-    The chart is [Axes][manimgx.Axes]: its x-axis runs from 0 to the number of bars.
+    每个条位于其自身的 x 轴单位中，居中于其中，宽为其 `bar_width`，高为其值（以 y 轴单位计）。条的名称在 x 轴下方（负条下方则在上方）。
+    [change_bar_values][manimgx.BarChart.change_bar_values] 改变条，[get_bar_labels][manimgx.BarChart.get_bar_labels] 在其旁写其值。该图是 [Axes][manimgx.Axes]：其 x 轴从 0 运行到条数。
 
     Args:
-        values: The values, one bar each, from left to right.
-        bar_names: The bars' names, written by the x-axis, typeset as text; None for
-            none.
-        y_range: The y-axis's range, `[y_min, y_max, y_step]`; None to fit the values,
-            from 0 (or the lowest value, if negative) to the highest (or 0), with a step
-            of about one scene unit. Given two numbers, the step is that one.
-        x_length: The x-axis's length, in scene units; None for one scene unit per bar,
-            at most the frame's width less 2.
-        y_length: The y-axis's length, in scene units; None for 4, the frame's height
-            less 4.
-        bar_colors: The bars' colors: a gradient over them, from left to right.
-        bar_width: Each bar's width, as a fraction of its unit of the x-axis.
-        bar_fill_opacity: The bars' fill opacity, from 0 to 1.
-        bar_stroke_width: The width of the bars' outlines, in hundredths of a scene
-            unit.
-        **kwargs: [Axes keywords][manimgx.mobjects.plotting.AxesOptions]:
-            `x_axis_config` (over the chart's: numbers of size 24, typeset with
-            [Tex][manimgx.Tex]), `tips` (default False), ….
+        values: 值，每个条一个，从左到右。
+        bar_names: 条的名称，由 x 轴书写，按文本排版；None 表示无。
+        y_range: y 轴的范围，`[y_min, y_max, y_step]`；None 表示适应值，从 0（或最低值，若为负）到最高值（或 0），步长约一个场景单位。给定两个数字时，步长即为那个。
+        x_length: x 轴的长度，以场景单位计；None 表示每条一个场景单位，至多画框宽度减 2。
+        y_length: y 轴的长度，以场景单位计；None 表示 4，即画框高度减 4。
+        bar_colors: 条的颜色：从左到右的渐变。
+        bar_width: 每个条的宽度，作为其 x 轴单位的分数。
+        bar_fill_opacity: 条的填充不透明度，从 0 到 1。
+        bar_stroke_width: 条轮廓的宽度，以场景单位的百分之一计。
+        **kwargs: [坐标轴关键字][manimgx.mobjects.plotting.AxesOptions]：
+            `x_axis_config`（覆盖图表的：字号 24、用 [Tex][manimgx.Tex] 排版的数字）、`tips`（默认 False）、…。
 
     Examples:
         ```python
@@ -4099,7 +3649,7 @@ class BarChart(Axes):
     ):
         y_length = y_length if y_length is not None else config.frame_height - 4
         self.values = list(values)
-        """The chart's values, one per bar, as they are now."""
+        """图表的值，每个条一个，按当前状态。"""
         self.bar_names = bar_names
         self.bar_colors = list(bar_colors)
         self.bar_width = bar_width
@@ -4121,7 +3671,7 @@ class BarChart(Axes):
         )
         kwargs.setdefault("tips", False)
         self.bars: VGroup = VGroup()
-        """The bars, rectangles, from left to right."""
+        """条，矩形，从左到右。"""
         self.x_labels: VGroup | None = None
         self.bar_labels: VGroup | None = None
         super().__init__(
@@ -4186,18 +3736,16 @@ class BarChart(Axes):
         buff: float = MED_SMALL_BUFF,
         label_constructor: type[ManimTextLabel] = Tex,
     ) -> VGroup:
-        """Make labels of the bars' values: each above its bar (below it, for a
-        negative value), in the bar's color unless given another.
+        """制作条值的标签：每个在其条上方（负值在下方），采用条的颜色，除非给出其他颜色。
 
         Args:
-            color: The labels' color; None for each bar's fill color.
-            font_size: Their font size.
-            buff: The gap between each bar and its label, in scene units.
-            label_constructor: The class they are typeset with: [Tex][manimgx.Tex],
-                [MathTex][manimgx.MathTex], ….
+            color: 标签的颜色；None 表示每个条的填充颜色。
+            font_size: 它们的字号。
+            buff: 每个条与其标签之间的间距，以场景单位计。
+            label_constructor: 它们的排版类：[Tex][manimgx.Tex]、[MathTex][manimgx.MathTex]、…。
 
         Returns:
-            A new group of the labels, from left to right, not added to the chart.
+            标签的新组，从左到右，未添加到图表。
 
         Examples:
             ```python
@@ -4232,17 +3780,13 @@ class BarChart(Axes):
     def change_bar_values(
         self, values: Iterable[float], update_colors: bool = True
     ) -> Self:
-        """Change the bars' values: each bar is stretched to its new height from the
-        x-axis, crossing to its other side if the value changes sign.
+        """改变条的值：每个条从 x 轴拉伸到其新高度，若值变号则跨到另一侧。
 
-        The y-axis stays as it is, and labels made before do not follow; to animate the
-        change, use `.animate`.
+        y 轴保持不变，之前制作的标签不跟随；要为变化制作动画，用 `.animate`。
 
         Args:
-            values: The new values, from left to right; fewer than the bars change the
-                first ones only.
-            update_colors: Whether to color the bars along the chart's gradient again (a
-                bar remade from a value of 0 needs it).
+            values: 新值，从左到右；少于条数则仅改变前几个。
+            update_colors: 是否再次沿图表的渐变为条着色（从值为 0 重建的条需要它）。
 
         Examples:
             ```python

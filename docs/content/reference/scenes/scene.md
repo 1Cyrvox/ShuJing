@@ -1,11 +1,11 @@
 ---
-title: "Scene"
-description: "The scene: its construct method, the plays and waits that pass its time, the mobjects it shows, its sections, and the film it records."
+title: "场景"
+description: "场景：它的 construct 方法、流逝它时间的 play 和 wait、它显示的 mobject、它的段落，以及它录制的影片。"
 ---
 
-# Scene
+# 场景
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -21,19 +21,17 @@ class SceneHero(m.Scene):
         self.wait(0.5)
 ```
 
-A scene runs its `construct` method once, from top to bottom, to make its video. Nothing in
-`construct` shows until a play or an add puts it in the scene, and the scene's time moves
-only in a play or a wait: each frame of the video shows the scene at its own exact time.
+场景从上到下运行一次其 `construct` 方法来生成它的视频。`construct` 中的内容在 play 或 add 将其放入场景之前不会显示，而场景的时间只在 play 或 wait 中移动：视频的每一帧显示场景在其自身精确时刻的状态。
 
-A scene also speaks and plays sounds: see [Sound](../sound/index.md) and
-[Voice](../sound/voice.md).
+场景还会说话和播放声音：参见 [声音](../sound/index.md) 和
+[语音](../sound/voice.md)。
 
 ::: manimgx.Scene
     options:
       heading_level: 2
       members: false
 
-## What happens
+## 发生什么
 
 ::: manimgx.Scene.construct
     options:
@@ -47,7 +45,7 @@ A scene also speaks and plays sounds: see [Sound](../sound/index.md) and
     options:
       heading_level: 3
 
-## Time
+## 时间
 
 ::: manimgx.Scene.play
     options:
@@ -69,7 +67,7 @@ A scene also speaks and plays sounds: see [Sound](../sound/index.md) and
     options:
       heading_level: 3
 
-## What it shows
+## 显示什么
 
 ::: manimgx.Scene.add
     options:
@@ -111,7 +109,7 @@ A scene also speaks and plays sounds: see [Sound](../sound/index.md) and
     options:
       heading_level: 3
 
-## The scene's own updaters
+## 场景自身的更新器
 
 ::: manimgx.Scene.add_updater
     options:
@@ -121,13 +119,13 @@ A scene also speaks and plays sounds: see [Sound](../sound/index.md) and
     options:
       heading_level: 3
 
-## Sections
+## 段落
 
 ::: manimgx.Scene.next_section
     options:
       heading_level: 3
 
-## Its camera and its film
+## 它的摄像机与它的影片
 
 ::: manimgx.Scene.camera
     options:

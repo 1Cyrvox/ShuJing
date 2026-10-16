@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Ported from Manim CE 0.21 (MIT)."""
+"""移植自 Manim CE 0.21（MIT）。"""
 
 from __future__ import annotations
 
@@ -35,34 +35,29 @@ if TYPE_CHECKING:
     category=None,
 )
 class TransformMatchingAbstractBase(AnimationGroup):
-    """The base of the transforms that match the parts of two mobjects: the parts that
-    match move to their counterparts, and the others fade.
+    """匹配两个 mobject 各部分的变换的基类：匹配的部分移动到对应部分，其余部分淡入淡出。
 
-    Each part of `mobject` and of `target_mobject` has a key
-    ([`get_mobject_key`][manimgx.TransformMatchingAbstractBase.get_mobject_key]). The
-    parts of `mobject` whose key a part of the target has transform into the target's
-    parts with that key; the others fade out, moving to where the target's unmatched
-    parts are, as those fade in in their places (unless `transform_mismatches` or
-    `fade_transform_mismatches` has them transform). Parts are matched in their own
-    order, so the result is the same in every run. When the animation finishes,
-    `target_mobject` is in the scene in the place of `mobject`, which is left out of it
-    as it was. A subclass says what the parts are
-    ([`get_mobject_parts`][manimgx.TransformMatchingAbstractBase.get_mobject_parts]) and
-    what their keys are.
+    `mobject` 和 `target_mobject` 的每个部分都有一个键
+    （[`get_mobject_key`][manimgx.TransformMatchingAbstractBase.get_mobject_key]）。
+    `mobject` 中其键存在于目标某部分的那些部分变换为具有该键的目标部分；其余部分淡出，
+    移动到目标未匹配部分所在的位置，同时那些未匹配部分在其位置淡入
+    （除非 `transform_mismatches` 或 `fade_transform_mismatches` 让它们变换）。
+    各部分按自身顺序匹配，因此每次运行结果相同。动画结束时，
+    `target_mobject` 出现在场景中 `mobject` 的位置，而 `mobject` 则按原样被移出场景。
+    子类指明部分是什么
+    （[`get_mobject_parts`][manimgx.TransformMatchingAbstractBase.get_mobject_parts]）
+    以及它们的键是什么。
 
     Args:
-        mobject: The mobject to transform.
-        target_mobject: The mobject it becomes.
-        transform_mismatches: Whether the unmatched parts transform into the target's
-            unmatched parts, rather than fade.
-        fade_transform_mismatches: Whether they cross-fade into the target's unmatched
-            parts (see [`FadeTransformPieces`][manimgx.FadeTransformPieces]), rather
-            than fade.
-        key_map: Pairs of keys to match although they differ: the parts of `mobject`
-            with the first key cross-fade into the target's parts with the second.
-            These matches take precedence over equal keys.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-            each of the animations it plays.
+        mobject: 要变换的 mobject。
+        target_mobject: 它将变成的 mobject。
+        transform_mismatches: 未匹配的部分是否变换为目标的未匹配部分，而非淡入淡出。
+        fade_transform_mismatches: 它们是否交叉淡入到目标的未匹配部分
+            （参见 [`FadeTransformPieces`][manimgx.FadeTransformPieces]），而非淡入淡出。
+        key_map: 尽管不同但仍要匹配的键对：`mobject` 中具有第一个键的部分交叉淡入到
+            目标中具有第二个键的部分。这些匹配优先于相等的键。
+        **kwargs: 它播放的每个动画的
+            [变换选项][manimgx.animation.transform.TransformOptions]。
     """
 
     # the parts are matched in their own order, so the result is the same in every run
@@ -118,11 +113,10 @@ class TransformMatchingAbstractBase(AnimationGroup):
         self.to_add = target_mobject
 
     def get_shape_map(self, mobject: Mobject) -> dict[Hashable, Group]:
-        """Gather the parts of a mobject by their keys.
+        """按键收集 mobject 的各部分。
 
         Returns:
-            For each key, in the order its first part comes, a group of the parts with
-            that key, in order.
+            对于每个键，按其首个部分出现的顺序，返回具有该键的各部分按序组成的组。
         """
         groups: dict[Hashable, tuple[Group, list[Mobject]]] = {}
         for part in self.get_mobject_parts(mobject):
@@ -150,49 +144,43 @@ class TransformMatchingAbstractBase(AnimationGroup):
 
     @staticmethod
     def get_mobject_parts(mobject: Mobject) -> list[Mobject]:
-        """The parts of a mobject that are matched: a subclass says what they are.
+        """被匹配的 mobject 的各部分：由子类指明它们是什么。
 
         Returns:
-            Its parts, in order.
+            它的各部分，按顺序。
         """
         raise NotImplementedError("To be implemented in subclass.")
 
     @staticmethod
     def get_mobject_key(mobject: Mobject) -> Hashable:
-        """The key a part is matched by: a subclass says what it is.
+        """部分据以匹配的键：由子类指明它是什么。
 
         Args:
-            mobject: A part.
+            mobject: 一个部分。
 
         Returns:
-            Its key: parts with equal keys match.
+            它的键：键相等的部分相互匹配。
         """
         raise NotImplementedError("To be implemented in subclass.")
 
 
 class TransformMatchingShapes(TransformMatchingAbstractBase):
-    """Transform a mobject into another by matching their shapes: each part moves to a
-    part of the same shape, and the others fade.
+    """通过匹配形状将一个 mobject 变换为另一个：每个部分移动到同形状的部分，其余部分淡入淡出。
 
-    The parts are the members with points (the letters of a text); two match when they
-    have the same shape, whatever their size and place (their points, centered and
-    scaled to a height of 1, agree to 3 decimals). So a text becomes its anagram letter
-    by letter. When the animation finishes, `target_mobject` is in the scene in the
-    place of `mobject`.
+    各部分是带有点的成员（文本的字母）；当两部分具有相同形状时它们匹配，无论其大小和位置如何
+    （它们的点经居中并缩放至高度为 1 后，在 3 位小数精度上一致）。因此文本逐字母地变为它的
+    字母重排。动画结束时，`target_mobject` 出现在场景中 `mobject` 的位置。
 
     Args:
-        mobject: The mobject to transform.
-        target_mobject: The mobject it becomes.
-        transform_mismatches: Whether the unmatched parts transform into the target's
-            unmatched parts, rather than fade.
-        fade_transform_mismatches: Whether they cross-fade into the target's unmatched
-            parts (see [`FadeTransformPieces`][manimgx.FadeTransformPieces]), rather
-            than fade.
-        key_map: Pairs of keys to match although they differ: the parts of `mobject`
-            with the first key cross-fade into the target's parts with the second.
-            These matches take precedence over equal keys.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-            each of the animations it plays.
+        mobject: 要变换的 mobject。
+        target_mobject: 它将变成的 mobject。
+        transform_mismatches: 未匹配的部分是否变换为目标的未匹配部分，而非淡入淡出。
+        fade_transform_mismatches: 它们是否交叉淡入到目标的未匹配部分
+            （参见 [`FadeTransformPieces`][manimgx.FadeTransformPieces]），而非淡入淡出。
+        key_map: 尽管不同但仍要匹配的键对：`mobject` 中具有第一个键的部分交叉淡入到
+            目标中具有第二个键的部分。这些匹配优先于相等的键。
+        **kwargs: 它播放的每个动画的
+            [变换选项][manimgx.animation.transform.TransformOptions]。
 
     Examples:
         ```python
@@ -225,30 +213,23 @@ class TransformMatchingShapes(TransformMatchingAbstractBase):
 
 
 class TransformMatchingTex(TransformMatchingAbstractBase):
-    """Transform a formula into another by matching their parts: each part moves to a
-    part written the same way, and the others fade.
+    """通过匹配各部分将一个公式变换为另一个：每个部分移动到以相同方式书写的部分，其余部分淡入淡出。
 
-    The parts of a [`MathTex`][manimgx.MathTex] are the strings it is made of: the
-    arguments it is given and what `{{…}}` sets apart in them, split further at its
-    `substrings_to_isolate` and at the strings of its `tex_to_color_map` (a group's
-    parts are its members'). Two parts
-    match when their strings are the same, so give each term that should travel as an
-    argument of its own. When the animation finishes, `target_mobject` is in the scene
-    in the place of `mobject`.
+    [`MathTex`][manimgx.MathTex] 的各部分是构成它的字符串：所给定的参数以及 `{{…}}` 在其中
+    分隔出的内容，并进一步在其 `substrings_to_isolate` 处和其 `tex_to_color_map` 的字符串处
+    切分（组的各部分是其成员的各部分）。当两部分的字符串相同时它们匹配，因此应将每个需要移动
+    的项作为独立参数给出。动画结束时，`target_mobject` 出现在场景中 `mobject` 的位置。
 
     Args:
-        mobject: The formula to transform: a `MathTex`, or a group of them.
-        target_mobject: The formula it becomes.
-        transform_mismatches: Whether the unmatched parts transform into the target's
-            unmatched parts, rather than fade.
-        fade_transform_mismatches: Whether they cross-fade into the target's unmatched
-            parts (see [`FadeTransformPieces`][manimgx.FadeTransformPieces]), rather
-            than fade.
-        key_map: Pairs of strings to match although they differ: the parts of `mobject`
-            written the first way cross-fade into the target's parts written the second.
-            These matches take precedence over equal keys.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-            each of the animations it plays.
+        mobject: 要变换的公式：一个 `MathTex`，或一组 `MathTex`。
+        target_mobject: 它将变成的公式。
+        transform_mismatches: 未匹配的部分是否变换为目标的未匹配部分，而非淡入淡出。
+        fade_transform_mismatches: 它们是否交叉淡入到目标的未匹配部分
+            （参见 [`FadeTransformPieces`][manimgx.FadeTransformPieces]），而非淡入淡出。
+        key_map: 尽管不同但仍要匹配的字符串对：以第一种方式书写的 `mobject` 部分交叉淡入到
+            以第二种方式书写的目标部分。这些匹配优先于相等的键。
+        **kwargs: 它播放的每个动画的
+            [变换选项][manimgx.animation.transform.TransformOptions]。
 
     Examples:
         ```python

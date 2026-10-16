@@ -10,12 +10,12 @@
       {% include "mx/parameters.html.jinja" with context %}
     {% elif section.kind.value == "returns" %}
       {% for returned in section.value %}
-        <p class="mx-returns"><span class="mx-label">Returns</span>
+        <p class="mx-returns"><span class="mx-label">返回</span>
           {{ returned.description|convert_markdown(heading_level, html_id, autoref_hook=autoref_hook, strip_paragraph=True) }}</p>
       {% endfor %}
     {% elif section.kind.value == "raises" %}
       {% for raised in section.value %}
-        <p class="mx-raises"><span class="mx-label">Raises</span> <code>{{ raised.annotation }}</code>
+        <p class="mx-raises"><span class="mx-label">抛出</span> <code>{{ raised.annotation }}</code>
           {{ raised.description|convert_markdown(heading_level, html_id, autoref_hook=autoref_hook, strip_paragraph=True) }}</p>
       {% endfor %}
     {% elif section.kind.value == "yields" %}

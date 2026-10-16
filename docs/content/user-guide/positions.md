@@ -1,16 +1,14 @@
-# Positions
+# 位置
 
-You choose where each mobject is. ManimGX doesn't arrange them for you: it puts each one
-at the position that you give it. This page shows how positions work.
+由你来决定每个 mobject 的位置。ManimGX 不会为你排列它们：它将每个 mobject 放在你给定的位置。本页展示位置是如何工作的。
 
-## The frame
+## 画面框
 
-The frame is the rectangle that the video shows. Positions are measured in units, and the
-frame's short side is 8 units, in a wide video and in a tall one:
+画面框是视频显示的矩形。位置以单位来衡量，画面框的短边为 8 个单位，无论是宽屏视频还是竖屏视频：
 
 === "16:9"
 
-    ```python fold title="The figure's code"
+    ```python fold title="图形代码"
     import manimgx as m
 
 
@@ -44,7 +42,7 @@ frame's short side is 8 units, in a wide video and in a tall one:
 
 === "9:16"
 
-    ```python fold title="The figure's code"
+    ```python fold title="图形代码"
     import manimgx as m
 
     m.config.pixel_width, m.config.pixel_height = 1080, 1920
@@ -78,26 +76,23 @@ frame's short side is 8 units, in a wide video and in a tall one:
         return m.VGroup(grid, square, center, center_label, edges)
     ```
 
-A position is a point, written as three numbers: `[x, y, 0]`.
+位置是一个点，写成三个数字：`[x, y, 0]`。
 
-- The center of the frame is `[0, 0, 0]`.
-- `x` grows to the right, and `y` grows upward.
-- The third number is the depth, for 3D. In a flat scene, it is 0.
+- 画面框的中心是 `[0, 0, 0]`。
+- `x` 向右增长，`y` 向上增长。
+- 第三个数字是深度，用于 3D。在平面场景中，它为 0。
 
-A video is wide (16:9) unless you make it tall (9:16). To make it tall, put this line
-after `import manimgx as m`:
+视频默认是宽屏（16:9），除非你将其设为竖屏（9:16）。要设为竖屏，请在 `import manimgx as m` 之后加入这一行：
 
 ```py
 m.config.pixel_width, m.config.pixel_height = 1080, 1920
 ```
 
-Or give the size to the command: `manimgx render scene.py -r 1080x1920`. Both frames
-have the same square in their middle, 8 units on each side. What you put in that square
-looks the same in both.
+或者将尺寸传给命令：`manimgx render scene.py -r 1080x1920`。两个画面框的中间都有相同的正方形，每边 8 个单位。你放在该正方形中的内容在两者中看起来是一样的。
 
-## Put a mobject at a point
+## 将 mobject 放到某一点
 
-`move_to` puts the center of a mobject at a point:
+`move_to` 将 mobject 的中心放到某一点：
 
 ```python
 import manimgx as m
@@ -114,29 +109,26 @@ class Points(m.Scene):
         self.add(grid, yellow, blue)
 ```
 
-`m.NumberPlane()` draws a line at every unit, and `add_coordinates` numbers them. A grid
-helps you see positions while you work.
+`m.NumberPlane()` 在每个单位处画一条线，`add_coordinates` 为它们标注数字。网格有助于你在工作时查看位置。
 
-## Directions
+## 方向
 
-ManimGX has names for directions. Each name is a point:
+ManimGX 为方向提供了名称。每个名称都是一个点：
 
-| Name | Point |
+| 名称 | 点 |
 | --- | --- |
 | `m.RIGHT`, `m.LEFT` | `[1, 0, 0]`, `[-1, 0, 0]` |
 | `m.UP`, `m.DOWN` | `[0, 1, 0]`, `[0, -1, 0]` |
-| `m.UR`, `m.UL`, `m.DR`, `m.DL` | the diagonals: up and right `[1, 1, 0]`, up and left, down and right, down and left |
-| `m.ORIGIN` | `[0, 0, 0]`, the center |
+| `m.UR`, `m.UL`, `m.DR`, `m.DL` | 对角线：右上 `[1, 1, 0]`，左上，右下，左下 |
+| `m.ORIGIN` | `[0, 0, 0]`，即中心 |
 
-Multiply a direction by a number, and add directions together, to make other points:
-`3 * m.RIGHT + 2 * m.UP` is `[3, 2, 0]`.
+将一个方向乘以一个数字，并将方向相加，可以构造其他点：`3 * m.RIGHT + 2 * m.UP` 即为 `[3, 2, 0]`。
 
-To move a mobject by an amount from where it is, use `shift`: `dot.shift(2 * m.LEFT)`
-moves the dot 2 units to the left.
+要将 mobject 从其当前位置移动一定量，请使用 `shift`：`dot.shift(2 * m.LEFT)` 将点向左移动 2 个单位。
 
-## Put a mobject next to another
+## 将 mobject 放在另一个旁边
 
-`next_to` puts a mobject next to another one, in a direction:
+`next_to` 将一个 mobject 放在另一个旁边，沿某个方向：
 
 ```python
 import manimgx as m
@@ -152,12 +144,11 @@ class NextTo(m.Scene):
         self.add(square, above, right)
 ```
 
-The gap is 0.25 units. To change it, give `buff`: `above.next_to(square, m.UP, buff=1)`.
+间距为 0.25 个单位。要更改它，请给出 `buff`：`above.next_to(square, m.UP, buff=1)`。
 
-## Put a mobject at an edge
+## 将 mobject 放到边缘
 
-`to_edge` moves a mobject to an edge of the frame, and `to_corner` moves it to a corner.
-They leave a margin of 0.5 units:
+`to_edge` 将 mobject 移动到画面框的边缘，`to_corner` 将其移动到角落。它们会留出 0.5 个单位的边距：
 
 ```python
 import manimgx as m
@@ -172,13 +163,11 @@ class Edges(m.Scene):
         self.add(title, note)
 ```
 
-Because they find the frame's edges, they work in both a wide and a tall video.
+因为它们会找到画面框的边缘，所以它们在宽屏和竖屏视频中都能工作。
 
-## Line mobjects up
+## 将 mobject 排列成行
 
-A group holds several mobjects: `m.VGroup(circle, square, triangle)`. `arrange` puts its
-mobjects in a line, each one next to the one before it, and puts the line in the middle of
-the frame:
+一个组包含多个 mobject：`m.VGroup(circle, square, triangle)`。`arrange` 将其中的 mobject 排成一行，每个紧挨着前一个，并将该行放在画面框的中间：
 
 ```python
 import manimgx as m
@@ -194,16 +183,12 @@ class Row(m.Scene):
         self.add(shapes)
 ```
 
-`m.RIGHT` makes a row, and `m.DOWN` makes a column. `buff` is the gap between them. A
-group moves as one mobject: `shapes.to_edge(m.DOWN)` moves all three shapes.
+`m.RIGHT` 排成一行，`m.DOWN` 排成一列。`buff` 是它们之间的间距。一个组作为一个整体 mobject 移动：`shapes.to_edge(m.DOWN)` 会移动所有三个形状。
 
-## Chain the calls
+## 链式调用
 
-`move_to`, `shift`, `next_to`, `to_edge` and `arrange` give back the mobject. So you can
-write the calls one after the other: `m.Text("A title").to_edge(m.UP)` makes a text and
-moves it to the top.
+`move_to`、`shift`、`next_to`、`to_edge` 和 `arrange` 都会返回该 mobject。因此你可以将调用一个接一个地写下去：`m.Text("A title").to_edge(m.UP)` 创建一段文本并将其移到顶部。
 
-## Next
+## 下一步
 
-[Mobjects](mobjects.md) shows the kinds of mobjects that you can place, and how to
-change their color, size and angle.
+[Mobject](mobjects.md)将展示你可以放置的各类 mobject，以及如何更改它们的颜色、大小和角度。

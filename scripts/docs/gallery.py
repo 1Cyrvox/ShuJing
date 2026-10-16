@@ -136,7 +136,7 @@ def page(film: Film) -> str:
 
 def nav(groups: list[tuple[str, list[Film]]]) -> str:
     """The Gallery's navigation: its first page, then each group's films."""
-    lines = ["nav:", "  - All films: index.md"]
+    lines = ["nav:", "  - 全部影片: index.md"]
     for title, films in groups:
         lines.append(f"  - {json.dumps(title)}:")
         lines += [f"      - {film.page}" for film in films]

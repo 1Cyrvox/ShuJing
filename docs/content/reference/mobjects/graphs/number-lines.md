@@ -1,11 +1,11 @@
 ---
-title: "Number lines"
-description: "One axis with ticks, numbers and labels, on an even or a logarithmic scale."
+title: "数轴"
+description: "带有刻度、数字和标签的单根坐标轴，采用均匀刻度或对数刻度。"
 ---
 
-# Number lines
+# 数轴
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -21,13 +21,9 @@ class NumberLinesHero(m.Scene):
         self.wait()
 ```
 
-A number line is a line with a number at each of its points. Its range, `[start, end,
-step]`, gives its first and last numbers and the step between its ticks; its length is in
-the frame's units. [n2p][manimgx.NumberLine.number_to_point] turns a number into its point
-on the line, to put anything at a number.
+数轴是一条在每个点处标有数字的直线。其范围 `[start, end, step]` 给出了首尾数字以及刻度之间的步长；其长度以帧的单位表示。[n2p][manimgx.NumberLine.number_to_point] 将一个数字转换为该数字在数轴上的点，以便将任何对象放置在某个数字处。
 
-Axes are number lines too: each axis of [Axes][manimgx.Axes] is one, and takes the keywords
-below.
+坐标轴也是数轴：[Axes][manimgx.Axes] 的每根轴都是一个数轴，并接受以下关键字参数。
 
 ::: manimgx.NumberLine
     options:
@@ -37,9 +33,9 @@ below.
     options:
       heading_level: 2
 
-## Scales
+## 刻度
 
-A line's scale places its numbers: evenly, or by their logarithms. Give it as `scaling`.
+数轴的刻度决定其数字的放置方式：均匀放置，或按对数放置。通过 `scaling` 指定。
 
 ::: manimgx.LinearBase
     options:

@@ -1,11 +1,11 @@
 ---
-title: "Vector fields"
-description: "A vector at every point of the plane, drawn as arrows or as stream lines, and the mobjects it carries."
+title: "向量场"
+description: "平面上每一点处的向量，绘制为箭头或流线，以及它所携带的 mobject。"
 ---
 
-# Vector fields
+# 向量场
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 import numpy as np
 
@@ -26,10 +26,7 @@ class VectorFieldsHero(m.Scene):
         self.wait(3)
 ```
 
-A vector field gives a vector at every point of the plane: a function from a point to a
-vector. Draw it as arrows, one at each point of a grid, or as stream lines, the paths that
-particles would follow. The field's color shows its strength. A field also moves mobjects:
-it carries them as a current carries a leaf.
+向量场为平面上每一点赋予一个向量：一个从点到向量的函数。可以将其绘制为箭头（在网格的每一点处各一个），或绘制为流线（即粒子将遵循的路径）。场的颜色表示其强度。场还可以移动 mobject：如同水流携带一片落叶般将它们带走。
 
 ::: manimgx.VectorField
     options:
@@ -42,3 +39,5 @@ it carries them as a current carries a leaf.
 ::: manimgx.StreamLines
     options:
       heading_level: 2
+
+::: manimgx.animation.timeline.Untimed

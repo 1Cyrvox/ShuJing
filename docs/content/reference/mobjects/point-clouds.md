@@ -1,11 +1,11 @@
 ---
-title: "Point clouds"
-description: "Mobjects drawn as points, each a dot of its own color."
+title: "点云"
+description: "以点绘制的 mobject，每个点都是具有自身颜色的圆点。"
 ---
 
-# Point clouds
+# 点云
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 import numpy as np
 
@@ -27,8 +27,8 @@ class PointCloudsHero(m.Scene):
         self.wait()
 ```
 
-A point cloud is a mobject drawn as points: each point a dot of its own color, as wide as
-the cloud's stroke. Clouds suit what is many and small: dust, stars, samples.
+点云是以点绘制的 mobject：每个点都是一个具有自身颜色的圆点，宽度等于点云的
+描边宽度。点云适合表示数量多且体积小的事物：尘埃、星辰、样本。
 
 ::: manimgx.PMobject
     options:

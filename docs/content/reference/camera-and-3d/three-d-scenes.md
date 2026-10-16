@@ -1,11 +1,11 @@
 ---
-title: "3D scenes"
-description: "A scene seen in three dimensions: set where the camera looks from, move it in a play, turn it around the scene."
+title: "3D 场景"
+description: "以三维观察的场景：设置相机的观察位置，在播放中移动它，使其围绕场景转动。"
 ---
 
-# 3D scenes
+# 3D 场景
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 import numpy as np
 
@@ -33,10 +33,9 @@ class ThreeDScenesHero(m.ThreeDScene):
         self.wait(3)
 ```
 
-A 3D scene is a scene whose camera looks at the frame from an angle. Two angles give it:
-`phi`, from straight above (0 looks straight down, as a flat scene does), and `theta`,
-around the vertical axis. The camera stays aimed at the frame's center; it shows the scene in
-perspective, and what is nearer covers what is farther.
+3D 场景是相机从某个角度观察画框的场景。两个角度决定它：`phi`，自正上方度量（0 为正下方
+俯视，如同平面场景），以及 `theta`，绕垂直轴度量。相机始终对准画框中心；它以透视方式显示
+场景，近处物体遮挡远处物体。
 
 ::: manimgx.ThreeDScene
     options:

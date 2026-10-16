@@ -1,11 +1,11 @@
 ---
-title: "Positions"
-description: "Where a mobject is in the frame, and the methods that move it to a point, beside another mobject or to an edge."
+title: "位置"
+description: "mobject 在画面中的位置，以及将其移动到某一点、另一个 mobject 旁边或边缘的方法。"
 ---
 
-# Positions
+# 位置
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -34,22 +34,19 @@ class PositionsHero(m.Scene):
         self.wait()
 ```
 
-Every mobject has a place in the frame. A place is a point, three numbers `[x, y, z]`,
-measured in units from the frame's center. x grows to the right, y grows upward, and z
-grows out of the screen, toward the viewer. The frame's short side is 8 units: a wide
-video shows y from −4 to 4, and x from about −7.1 to 7.1.
+每个 mobject 在画面中都有一个位置。位置是一个点，即三个数字 `[x, y, z]`，以画面中心为
+原点按单位度量。x 向右增长，y 向上增长，z 向屏幕外、朝向观察者增长。画面的短边为 8 个
+单位：宽屏视频的 y 范围为 −4 到 4，x 范围约为 −7.1 到 7.1。
 
-A mobject's place is its bounding box: the smallest box, along the axes, around what it
-draws. Its center, its edges and its corners are points of that box. The methods below read
-those points, and move the mobject so that one of them goes where you say. Each method
-moves the mobject's parts with it, and gives the mobject back, so that calls chain:
-`m.Text("Title").scale(1.5).to_edge(m.UP)`.
+mobject 的位置是其包围盒：沿坐标轴方向围绕其绘制内容的最小盒子。其中心、边缘和角都是
+该盒子的点。以下方法读取这些点，并移动 mobject 使其中某个点到达你指定的位置。每个方法
+都会连同移动 mobject 的组成部分，并返回该 mobject，因此调用可以链式进行：
+`m.Text("Title").scale(1.5).to_edge(m.UP)`。
 
-## Directions
+## 方向
 
-The axis directions are unit vectors; the diagonals are sums of them. Multiply a direction
-by a number, and add directions together, to make other points: `3 * m.RIGHT + 2 * m.UP`
-is `[3, 2, 0]`.
+轴向是单位向量；对角线方向是它们的和。将方向乘以一个数，或将多个方向相加，可以构造其他
+点：`3 * m.RIGHT + 2 * m.UP` 即为 `[3, 2, 0]`。
 
 <div class="mx-constants" markdown>
 
@@ -111,9 +108,9 @@ is `[3, 2, 0]`.
 
 </div>
 
-## Where a mobject is
+## mobject 的位置
 
-Each of these reads a point of the mobject's bounding box, or one of its coordinates.
+以下每个方法读取 mobject 包围盒的一个点，或其某个坐标。
 
 ::: manimgx.Mobject.get_center
     options:
@@ -163,7 +160,7 @@ Each of these reads a point of the mobject's bounding box, or one of its coordin
     options:
       heading_level: 3
 
-## Move a mobject
+## 移动 mobject
 
 ::: manimgx.Mobject.move_to
     options:
@@ -189,9 +186,9 @@ Each of these reads a point of the mobject's bounding box, or one of its coordin
     options:
       heading_level: 3
 
-## Place a mobject by another
+## 依据另一个 mobject 放置
 
-A gap between two mobjects is a buff. These are its usual sizes.
+两个 mobject 之间的间距称为 buff。以下是其常用尺寸。
 
 <div class="mx-constants" markdown>
 
@@ -241,7 +238,7 @@ A gap between two mobjects is a buff. These are its usual sizes.
     options:
       heading_level: 3
 
-## Place a mobject in the frame
+## 在画面中放置 mobject
 
 ::: manimgx.Mobject.to_edge
     options:
@@ -259,10 +256,9 @@ A gap between two mobjects is a buff. These are its usual sizes.
     options:
       heading_level: 3
 
-## Compute a point
+## 计算点
 
-Points are NumPy arrays, so NumPy computes with them. These functions do what a scene
-often needs.
+点是 NumPy 数组，因此可使用 NumPy 进行计算。以下函数完成场景中常见的操作。
 
 ::: manimgx.interpolate
     options:

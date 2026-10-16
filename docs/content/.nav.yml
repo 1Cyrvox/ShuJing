@@ -1,13 +1,13 @@
-# The site's navigation (awesome-nav): the navbar's tabs. The User Guide is read in this
-# order: Welcome, the home page, which is the README; the Quickstart; Learn, a course in
-# which each chapter needs only the ones before it; then the reference, written by hand. The
-# other sections order themselves (reference/.nav.yml, and gallery/.nav.yml, which
-# scripts/docs/gallery.py writes).
+# 站点导航（awesome-nav）：导航栏的标签。用户指南按以下
+# 顺序阅读：欢迎，即首页，也就是 README；快速入门；学习，一门
+# 课程，其中每一章只需之前章节的知识；然后是参考，手写而成。其他
+# 分区自行排序（reference/.nav.yml，以及 gallery/.nav.yml，由
+# scripts/docs/gallery.py 生成）。
 nav:
-  - User Guide:
-      - Welcome: index.md
+  - 用户指南:
+      - 欢迎: index.md
       - user-guide/quickstart.md
-      - Learn:
+      - 学习:
           - user-guide/the-basics.md
           - user-guide/positions.md
           - user-guide/mobjects.md
@@ -19,7 +19,7 @@ nav:
           - user-guide/sound-and-voice.md
           - user-guide/rendering.md
           - user-guide/coming-from-manim-ce.md
-      - Reference: reference
-  - Gallery: gallery
-  - Developer Guide: developer-guide
-  - Changelog: changelog.md
+      - 参考: reference
+  - 画廊: gallery
+  - 开发者指南: developer-guide
+  - 变更日志: changelog.md

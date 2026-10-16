@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Colors and immutable paint shared by paths, points and meshes.
+"""路径、点与网格共用的颜色与不可变画料。
 
-Colors retain exact RGBA beside their string form. Paint owns the brushes and
-appearance of a drawing; its geometry kind gives each brush row its meaning.
+颜色在字符串形式之外保留精确的 RGBA。画料拥有绘图所用的画刷与外观；
+其几何类型决定了每一行画刷的含义。
 """
 
 import colorsys
@@ -143,7 +143,7 @@ __all__ = [
 ]
 
 type Floats = npt.NDArray[np.float64]
-"""A NumPy array of floats."""
+"""一个由浮点数组成的 NumPy 数组。"""
 
 # ── mixing: one rule for every blend of colors ─────────────────────────────────
 # Colors mix in OKLab, where lightness moves evenly (the midpoint of two colors sits exactly
@@ -170,17 +170,17 @@ _LAB_INV: Floats = np.linalg.inv(_LAB)
 
 @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
 def to_oklab(rgb: Floats) -> Floats:
-    """Convert sRGB colors to OKLab, the color space colors are mixed in.
+    """将 sRGB 颜色转换为 OKLab，即颜色混合所用的颜色空间。
 
-    Along a straight line in OKLab, colors pass through those the eye sees between its
-    ends, and lightness changes evenly.
+    在 OKLab 中沿一条直线，颜色会经过人眼在其两端之间所看到的颜色，
+    且亮度均匀变化。
 
     Args:
-        rgb: Red, green and blue, from 0 to 1, along the last axis: an array of shape
-            (…, 3).
+        rgb: 红、绿、蓝，取值从 0 到 1，沿最后一轴排列：形状为
+            (…, 3) 的数组。
 
     Returns:
-        Lightness L and the axes a and b, as an array of the same shape.
+        亮度 L 及 a、b 两轴，为同形状的数组。
     """
     linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
     return np.cbrt(linear @ _LMS.T) @ _LAB.T
@@ -188,14 +188,13 @@ def to_oklab(rgb: Floats) -> Floats:
 
 @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
 def from_oklab(lab: Floats) -> Floats:
-    """Convert OKLab colors to sRGB, clipped to the colors a screen shows.
+    """将 OKLab 颜色转换为 sRGB，并裁剪到屏幕可显示的颜色范围。
 
     Args:
-        lab: Lightness L and the axes a and b, along the last axis: an array of shape
-            (…, 3).
+        lab: 亮度 L 及 a、b 两轴，沿最后一轴排列：形状为 (…, 3) 的数组。
 
     Returns:
-        Red, green and blue, from 0 to 1, as an array of the same shape.
+        红、绿、蓝，取值从 0 到 1，为同形状的数组。
     """
     linear = np.clip(((lab @ _LAB_INV.T) ** 3) @ _LMS_INV.T, 0.0, 1.0)
     return np.where(
@@ -207,8 +206,8 @@ _LABS: Memo[int, tuple[Floats, Floats]] = Memo(1 << 12)
 
 
 def _lab(rgba: Floats) -> Floats:
-    """OKLab of an RGBA array's colors — once per array when the array cannot change (a
-    paint's rows are read-only): a tween mixes the same two paints on every frame."""
+    """一个 RGBA 数组各颜色的 OKLab——当数组不可变时每个数组只计算一次（画料的
+    各行为只读）：补间在每一帧上混合相同的两个画料。"""
     if rgba.flags.writeable:
         return to_oklab(rgba[..., :3])
     known = _LABS.recall(id(rgba), lambda: (rgba, to_oklab(rgba[..., :3])))
@@ -219,21 +218,20 @@ def _lab(rgba: Floats) -> Floats:
 
 @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
 def mix_rgba(a: Floats, b: Floats, t: float | Floats) -> Floats:
-    """Mix colors given as rows of red, green, blue and opacity: `a` at 0, `b` at 1.
+    """混合以红、绿、蓝及不透明度各行为形式给出的颜色：`a` 对应 0，`b` 对应 1。
 
-    Every blend of colors in ManimGX mixes this way. The colors mix in OKLab, weighted
-    by their opacities, so a transparent color does not tint the mix; the opacity mixes
-    evenly. Rows of one color only change their opacity.
+    ManimGX 中所有颜色的混合都按此方式进行。颜色在 OKLab 中混合，并按其不透明度
+    加权，因此透明颜色不会给混合结果着色；不透明度均匀混合。仅一种颜色的各行
+    只改变其不透明度。
 
     Args:
-        a: The colors at 0: red, green, blue and opacity, from 0 to 1, along the last
-            axis.
-        b: The colors at 1, an array of the same shape.
-        t: How far from `a` to `b`, from 0 to 1: one fraction for every row, or one per
-            row (an array of `a`'s shape without its last axis).
+        a: 对应 0 的颜色：红、绿、蓝及不透明度，取值从 0 到 1，沿最后一轴排列。
+        b: 对应 1 的颜色，为同形状的数组。
+        t: 从 `a` 到 `b` 的距离，取值从 0 到 1：对所有行共用一个分数，或每行一个
+            （一个去掉了 `a` 最后一轴的数组）。
 
     Returns:
-        The mixed colors, an array of the same shape; exactly `a` at 0 and `b` at 1.
+        混合后的颜色，为同形状的数组；在 0 处恰为 `a`，在 1 处恰为 `b`。
     """
     rows = isinstance(t, np.ndarray) and t.ndim > 0
     if rows:
@@ -262,31 +260,30 @@ def mix_rgba(a: Floats, b: Floats, t: float | Floats) -> Floats:
 
 
 type ParsableManimColor = ManimColor | str | int | Sequence[float] | np.ndarray
-"""Anything [ManimColor][manimgx.ManimColor] reads as a color: a color, a hex string
-(`"#58C4DD"`) or a color's name (`"BLUE"`), an integer (`0x58C4DD`), or three or four
-numbers (red, green, blue and opacity)."""
+"""任何 [ManimColor][manimgx.ManimColor] 可读取为颜色的对象：一个颜色、一个十六进制字符串
+（`"#58C4DD"`）或颜色名（`"BLUE"`）、一个整数（`0x58C4DD`），或三到四个
+数字（红、绿、蓝及不透明度）。"""
 
 # a hex color: `#` or `0x`, then 3, 4, 6 or 8 digits (the opacity's last, when there are 4 or 8)
 _HEX = re.compile(r"(?:#|0x)([0-9A-F]{3,4}|[0-9A-F]{6}|[0-9A-F]{8})", re.IGNORECASE)
 
 
 class ManimColor(str):
-    """A color: red, green, blue and opacity, from 0 to 1, which is also its hex string.
+    """一种颜色：红、绿、蓝及不透明度，取值从 0 到 1，同时也是其十六进制字符串。
 
-    As a string it is `"#RRGGBB"`, or `"#RRGGBBAA"` when translucent, so it goes
-    wherever a string does; [to_rgba][manimgx.ManimColor.to_rgba] gives its values.
-    `ManimColor(value, alpha=1.0)` reads `value` as a color, of opacity `alpha` (from 0
-    to 1) where `value` gives none. `value` is:
+    作为字符串时为 `"#RRGGBB"`，半透明时为 `"#RRGGBBAA"`，因此凡字符串可去之处它亦可去；
+    [to_rgba][manimgx.ManimColor.to_rgba] 给出其数值。`ManimColor(value, alpha=1.0)`
+    将 `value` 读取为颜色，其不透明度为 `alpha`（取值从 0 到 1），用于 `value` 未给出
+    不透明度的情况。`value` 可以是：
 
-    - a hex string, `"#FC6255"` or `"0xFC6255"`, of 3, 4, 6 or 8 digits (the fourth of
-      four, and the last two of eight, are the opacity);
-    - a color's name, in any case: `"BLUE"`, `"blue_c"`;
-    - an integer, `0xFC6255`;
-    - three or four numbers, red, green, blue and opacity: from 0 to 1 if all are
-      floats, from 0 to 255 otherwise (`(1.0, 0.5, 0.0)` is orange, `(1, 0.5, 0)` nearly
-      black);
-    - another color, copied as it is;
-    - None, for black.
+    - 一个十六进制字符串，`"#FC6255"` 或 `"0xFC6255"`，含 3、4、6 或 8 位数字（四位时
+      第四位为不透明度，八位时最后两位为不透明度）；
+    - 一个颜色名，大小写不限：`"BLUE"`、`"blue_c"`；
+    - 一个整数，`0xFC6255`；
+    - 三到四个数字，红、绿、蓝及不透明度：若全为浮点数则取值从 0 到 1，否则从 0 到 255
+      （`(1.0, 0.5, 0.0)` 为橙色，`(1, 0.5, 0)` 近乎黑色）；
+    - 另一个颜色，按原样复制；
+    - None，表示黑色。
 
     Examples:
         ```python
@@ -340,17 +337,17 @@ class ManimColor(str):
         value: "ParsableManimColor | Sequence[ParsableManimColor] | None",
         alpha: float = 1.0,
     ) -> Self | list[Self]:
-        """Read one color, or a list of colors from a list or tuple of them.
+        """从单个颜色或由其组成的列表或元组中读取一个或多个颜色。
 
-        A color of this class is returned as it is.
+        属于本类的颜色按原样返回。
 
         Args:
-            value: A color in any form [ManimColor][manimgx.ManimColor] reads (three or
-                four numbers are one color), or a list or tuple of them.
-            alpha: The opacity, from 0 to 1, of those that give none.
+            value: 任何 [ManimColor][manimgx.ManimColor] 可读取形式的颜色（三或四个
+                数字视为一个颜色），或由其组成的列表或元组。
+            alpha: 未给出不透明度者的不透明度，取值从 0 到 1。
 
         Returns:
-            The color, or a list of the colors.
+            该颜色，或由这些颜色组成的列表。
         """
         if (
             value is None
@@ -361,103 +358,102 @@ class ManimColor(str):
         return [cls.parse(v, alpha) for v in value]
 
     def to_rgb(self) -> np.ndarray:
-        """The color's red, green and blue.
+        """颜色的红、绿、蓝分量。
 
         Returns:
-            An array of three floats, from 0 to 1.
+            一个由三个浮点数组成的数组，取值从 0 到 1。
         """
         return self._rgba[:3]
 
     def to_rgba(self) -> np.ndarray:
-        """The color's red, green, blue and opacity.
+        """颜色的红、绿、蓝及不透明度。
 
         Returns:
-            An array of four floats, from 0 to 1.
+            一个由四个浮点数组成的数组，取值从 0 到 1。
         """
         return self._rgba
 
     @deprecated("use to_rgba", category=None)
     def to_rgba_with_alpha(self, alpha: float) -> np.ndarray:
-        """The color's red, green and blue, with another opacity.
+        """颜色的红、绿、蓝分量，并替换为另一个不透明度。
 
         Args:
-            alpha: The opacity, from 0 to 1.
+            alpha: 不透明度，取值从 0 到 1。
 
         Returns:
-            An array of red, green, blue and `alpha`.
+            由红、绿、蓝及 `alpha` 组成的数组。
         """
         return np.array((*self._rgba[:3], alpha))
 
     def to_hex(self, with_alpha: bool = False) -> str:
-        """The color as a hex string, `"#RRGGBB"`, in capitals.
+        """以大写十六进制字符串 `"#RRGGBB"` 表示的颜色。
 
         Args:
-            with_alpha: Whether to add the opacity's two digits: `"#RRGGBBAA"`.
+            with_alpha: 是否追加不透明度的两位数字：`"#RRGGBBAA"`。
 
         Returns:
-            The string.
+            该字符串。
         """
         r, g, b, a = _bytes(self._rgba)
         return f"#{r:02X}{g:02X}{b:02X}" + (f"{a:02X}" if with_alpha else "")
 
     def interpolate(self, other: "ManimColor", alpha: float) -> "ManimColor":
-        """The color a fraction of the way from this one to another, mixed as every
-        blend of colors is: in OKLab, where the colors between two are those the eye sees
-        between them.
+        """从本颜色到另一颜色之间某分数位置处的颜色，按所有颜色混合的方式混合：
+        在 OKLab 中，两色之间的颜色即人眼在其间所看到的颜色。
 
         Args:
-            other: The color at 1.
-            alpha: How far toward it, from 0 (this color) to 1 (`other`).
+            other: 对应 1 的颜色。
+            alpha: 朝其移动的距离，从 0（本颜色）到 1（`other`）。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return ManimColor(tuple(mix_rgba(self._rgba, other._rgba, alpha)))
 
     def opacity(self, opacity: float) -> "ManimColor":
-        """This color with another opacity.
+        """具有另一个不透明度的本颜色。
 
         Args:
-            opacity: The opacity, from 0 (transparent) to 1 (opaque).
+            opacity: 不透明度，从 0（透明）到 1（不透明）。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return ManimColor((*self._rgba[:3], float(opacity)))
 
     def lighter(self, blend: float = 0.2) -> "ManimColor":
-        """This color mixed toward white, its opacity kept.
+        """向白色混合后的本颜色，保持其不透明度。
 
         Args:
-            blend: How far toward white, from 0 (this color) to 1 (white).
+            blend: 朝白色移动的距离，从 0（本颜色）到 1（白色）。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return self.interpolate(WHITE, blend).opacity(self._rgba[3])
 
     def darker(self, blend: float = 0.2) -> "ManimColor":
-        """This color mixed toward black, its opacity kept.
+        """向黑色混合后的本颜色，保持其不透明度。
 
         Args:
-            blend: How far toward black, from 0 (this color) to 1 (black).
+            blend: 朝黑色移动的距离，从 0（本颜色）到 1（黑色）。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return self.interpolate(BLACK, blend).opacity(self._rgba[3])
 
     @classmethod
     def from_hex(cls, hex_str: str, alpha: float = 1.0) -> "ManimColor":
-        """The color of a hex string, read as the constructor reads it (`"#RRGGBB"`,
-        `"#RGB"`, with or without opacity digits; a color's name too).
+        """由十六进制字符串表示的颜色，按构造函数的方式读取（`"#RRGGBB"`、
+        `"#RGB"`，含或不含不透明度数字；也可为颜色名）。
 
         Args:
-            hex_str: The string.
-            alpha: The opacity, from 0 to 1, if the string gives none.
+            hex_str: 该字符串。
+            alpha: 当字符串未给出不透明度时的不透明度，取值从 0 到 1。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return cls(hex_str, alpha)
 
@@ -465,26 +461,26 @@ class ManimColor(str):
     def from_rgb(
         cls, rgb: Sequence[float] | Floats, alpha: float = 1.0
     ) -> "ManimColor":
-        """The color of a red, green and blue.
+        """由红、绿、蓝构成的颜色。
 
         Args:
-            rgb: Red, green and blue, from 0 to 1.
-            alpha: The opacity, from 0 to 1.
+            rgb: 红、绿、蓝，取值从 0 到 1。
+            alpha: 不透明度，取值从 0 到 1。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return cls(tuple(float(x) for x in rgb), alpha)
 
     @classmethod
     def from_rgba(cls, rgba: Sequence[float] | Floats) -> "ManimColor":
-        """The color of a red, green, blue and opacity.
+        """由红、绿、蓝及不透明度构成的颜色。
 
         Args:
-            rgba: Red, green, blue and opacity, from 0 to 1.
+            rgba: 红、绿、蓝及不透明度，取值从 0 到 1。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return cls(tuple(float(x) for x in rgba[:3]), float(rgba[3]))
 
@@ -492,15 +488,15 @@ class ManimColor(str):
     def from_hsv(
         cls, hsv: Sequence[float] | Floats, alpha: float = 1.0
     ) -> "ManimColor":
-        """The color of a hue, saturation and value.
+        """由色相、饱和度与明度构成的颜色。
 
         Args:
-            hsv: Hue, saturation and value, each a float from 0 to 1: a hue of 0 (or 1)
-                is red, 1/3 green, 2/3 blue.
-            alpha: The opacity, from 0 to 1.
+            hsv: 色相、饱和度与明度，各为从 0 到 1 的浮点数：色相为 0（或 1）时为红色，
+                1/3 为绿色，2/3 为蓝色。
+            alpha: 不透明度，取值从 0 到 1。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return cls(colorsys.hsv_to_rgb(*hsv[:3]), alpha)
 
@@ -508,37 +504,36 @@ class ManimColor(str):
     def from_hsl(
         cls, hsl: Sequence[float] | Floats, alpha: float = 1.0
     ) -> "ManimColor":
-        """The color of a hue, saturation and lightness.
+        """由色相、饱和度与亮度构成的颜色。
 
         Args:
-            hsl: Hue, saturation and lightness, each from 0 to 1: a hue of 0 (or 1) is
-                red, 1/3 green, 2/3 blue; a lightness of 0.5 is the full color.
-            alpha: The opacity, from 0 to 1.
+            hsl: 色相、饱和度与亮度，各取值从 0 到 1：色相为 0（或 1）时为红色，
+                1/3 为绿色，2/3 为蓝色；亮度为 0.5 时为纯色。
+            alpha: 不透明度，取值从 0 到 1。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         hue, saturation, lightness = hsl[:3]
         return cls(colorsys.hls_to_rgb(hue, lightness, saturation), alpha)
 
     def to_hsv(self) -> np.ndarray:
-        """The color's hue, saturation and value.
+        """颜色的色相、饱和度与明度。
 
         Returns:
-            An array of three floats, from 0 to 1.
+            一个由三个浮点数组成的数组，取值从 0 到 1。
         """
         return np.array(colorsys.rgb_to_hsv(*self.to_rgb()))
 
     @deprecated("use HSV(...)", category=None)
     def into[C: "ManimColor"](self, cls: type[C]) -> C:
-        """This color as an instance of another color class, such as
-        [HSV][manimgx.HSV].
+        """本颜色作为另一个颜色类（例如 [HSV][manimgx.HSV]）的实例。
 
         Args:
-            cls: The class: ManimColor or a subclass of it.
+            cls: 该类：ManimColor 或其子类。
 
         Returns:
-            A new color of that class, of the same value.
+            该类的一个新颜色，值与本颜色相同。
         """
         return _made(cls, self._rgba.copy())
 
@@ -548,27 +543,26 @@ class ManimColor(str):
         light: "ManimColor | None" = None,
         dark: "ManimColor | None" = None,
     ) -> "ManimColor":
-        """A color that stands out against this one, as text on it would: dark on a
-        light color, light on a dark one.
+        """一种与本颜色形成对比、能从其上脱颖而出的颜色，如同文字落于其上一般：
+        浅色之上用深色，深色之上用浅色。
 
         Args:
-            threshold: The luma (0.30 red + 0.59 green + 0.11 blue), from 0 to 1,
-                above which this color counts as light.
-            light: The color for a dark color; None for white.
-            dark: The color for a light color; None for black.
+            threshold: 亮度（0.30 红 + 0.59 绿 + 0.11 蓝），取值从 0 到 1，
+                超过此值则本颜色视为浅色。
+            light: 用于深色的颜色；None 表示白色。
+            dark: 用于浅色的颜色；None 表示黑色。
 
         Returns:
-            `dark` or `light`.
+            `dark` 或 `light`。
         """
         luminance = colorsys.rgb_to_yiq(*self.to_rgb())[0]
         return (dark or BLACK) if luminance > threshold else (light or WHITE)
 
     def invert(self) -> "ManimColor":
-        """The color's complement: each of red, green and blue taken from 1, the opacity
-        kept.
+        """颜色的补色：红、绿、蓝各分量取自 1 减原值，不透明度保持不变。
 
         Returns:
-            A new color.
+            一个新颜色。
         """
         return ManimColor((*(1.0 - self._rgba[:3]), self._rgba[3]))
 
@@ -576,8 +570,7 @@ class ManimColor(str):
         return f"{type(self).__name__}('{self}')"
 
     def __str__(self) -> str:
-        """The hex of the color's value (a color changed since it was made, as an `HSV` can be,
-        says what it is now)."""
+        """颜色值的十六进制表示（自创建以来已改变的颜色，如 `HSV` 可能如此，描述的是其当前值）。"""
         return _hex(self._rgba)
 
     def __reduce__(self) -> tuple[object, ...]:
@@ -594,7 +587,7 @@ def _hex(rgba: np.ndarray) -> str:
 
 
 def _made[C: ManimColor](cls: type[C], rgba: np.ndarray) -> C:
-    """A color of class `cls` with the value `rgba` (as it stands: no parsing)."""
+    """类 `cls` 的一个颜色，值为 `rgba`（按原样：不做解析）。"""
     color = str.__new__(cls, _hex(rgba))
     color._rgba = rgba
     return color
@@ -653,55 +646,55 @@ def _parse(value: "ParsableManimColor | None", alpha: float) -> np.ndarray:
 
 @deprecated("color_to_rgb(color) is ManimColor(color).to_rgb(): use it", category=None)
 def color_to_rgb(color: ParsableManimColor) -> np.ndarray:
-    """The red, green and blue of a color.
+    """颜色的红、绿、蓝分量。
 
     Args:
-        color: The color, in any form [ManimColor][manimgx.ManimColor] reads.
+        color: 任何 [ManimColor][manimgx.ManimColor] 可读取形式的颜色。
 
     Returns:
-        An array of three floats, from 0 to 1.
+        一个由三个浮点数组成的数组，取值从 0 到 1。
     """
     return ManimColor(color).to_rgb()
 
 
 @deprecated("rgb_to_color(rgb) is ManimColor.from_rgb(rgb): use it", category=None)
 def rgb_to_color(rgb: Sequence[float] | np.ndarray) -> ManimColor:
-    """The color of a red, green and blue.
+    """由红、绿、蓝构成的颜色。
 
     Args:
-        rgb: Red, green and blue, from 0 to 1.
+        rgb: 红、绿、蓝，取值从 0 到 1。
 
     Returns:
-        A new, opaque color.
+        一个新的不透明颜色。
     """
     return ManimColor(tuple(float(x) for x in rgb))
 
 
 def invert_color(color: ParsableManimColor) -> ManimColor:
-    """A color's complement: each of red, green and blue taken from 1, the opacity kept.
+    """颜色的补色：红、绿、蓝各分量取自 1 减原值，不透明度保持不变。
 
     Args:
-        color: The color, in any form [ManimColor][manimgx.ManimColor] reads.
+        color: 任何 [ManimColor][manimgx.ManimColor] 可读取形式的颜色。
 
     Returns:
-        A new color.
+        一个新颜色。
     """
     return ManimColor(color).invert()
 
 
 def interpolate_color(a: ManimColor, b: ManimColor, alpha: float) -> ManimColor:
-    """The color a fraction of the way from one color to another.
+    """从一个颜色到另一个颜色之间某分数位置处的颜色。
 
-    The two mix as every blend of colors does: in OKLab, where the colors between two
-    are those the eye sees between them.
+    两色按所有颜色混合的方式混合：在 OKLab 中，两色之间的颜色即人眼在其间所
+    看到的颜色。
 
     Args:
-        a: The color at 0.
-        b: The color at 1.
-        alpha: How far from `a` to `b`, from 0 to 1.
+        a: 对应 0 的颜色。
+        b: 对应 1 的颜色。
+        alpha: 从 `a` 到 `b` 的距离，取值从 0 到 1。
 
     Returns:
-        A new color.
+        一个新颜色。
 
     Examples:
         ```python
@@ -725,18 +718,17 @@ def interpolate_color(a: ManimColor, b: ManimColor, alpha: float) -> ManimColor:
 def color_gradient(
     reference_colors: Sequence[ParsableManimColor], length_of_output: int
 ) -> list[ManimColor]:
-    """Colors evenly spaced along a gradient through reference colors, from the first to
-    the last.
+    """沿穿过参考颜色的渐变均匀分布的颜色，从第一个到最后一个。
 
-    Each is mixed between the two reference colors on either side of it, as
-    [interpolate_color][manimgx.interpolate_color] mixes them.
+    每个颜色在其两侧的两个参考颜色之间混合，混合方式同
+    [interpolate_color][manimgx.interpolate_color]。
 
     Args:
-        reference_colors: The colors the gradient runs through, evenly spaced along it.
-        length_of_output: How many colors to return; one is the last reference color.
+        reference_colors: 渐变所经过的颜色，沿其均匀分布。
+        length_of_output: 返回的颜色数；为 1 时即最后一个参考颜色。
 
     Returns:
-        The colors, in order along the gradient.
+        沿渐变有序排列的颜色。
 
     Examples:
         ```python
@@ -767,15 +759,15 @@ def color_gradient(
 
 
 def average_color(*colors: ParsableManimColor) -> ManimColor:
-    """The average of colors, taken in OKLab: the color the eye sees as their middle.
+    """颜色的平均值，在 OKLab 中取：即人眼所感知的居中颜色。
 
-    Their opacities are left out: the average is opaque.
+    各颜色的不透明度不参与计算：平均结果为不透明颜色。
 
     Args:
-        *colors: The colors, in any form [ManimColor][manimgx.ManimColor] reads.
+        *colors: 各颜色，可为任何 [ManimColor][manimgx.ManimColor] 可读取的形式。
 
     Returns:
-        A new, opaque color.
+        一个新的不透明颜色。
     """
     lab = np.mean([to_oklab(ManimColor(c).to_rgb()) for c in colors], axis=0)
     return ManimColor(tuple(from_oklab(lab)))
@@ -784,28 +776,27 @@ def average_color(*colors: ParsableManimColor) -> ManimColor:
 type Colorscale = (
     Sequence[ParsableManimColor] | Sequence[tuple[ParsableManimColor, float]]
 )
-"""Colors for a range of values: colors spread evenly over the range, or (color, value)
-pairs, each color at its value (see [colors_by_value][manimgx.colors_by_value])."""
+"""某一取值范围所对应的颜色：在范围内均匀分布的颜色，或 (color, value) 配对，
+每种颜色对应其取值（参见 [colors_by_value][manimgx.colors_by_value]）。"""
 
 
 def colors_by_value(
     colorscale: Colorscale, values: Iterable[float], low: float, high: float
 ) -> list[ManimColor]:
-    """The color of each value on a colorscale: mixed between the colors on either side
-    of it, and held beyond the colorscale's ends.
+    """色阶上各取值对应的颜色：在其两侧的颜色之间混合，在色阶两端之外保持不变。
 
-    The colors mix as every blend of colors does: in OKLab, where the colors between
-    two are those the eye sees between them.
+    颜色按所有颜色混合的方式混合：在 OKLab 中，两色之间的颜色即人眼在其间所
+    看到的颜色。
 
     Args:
-        colorscale: Colors spread evenly from `low` to `high`, or (color, value) pairs,
-            each color at its value, in increasing order of value.
-        values: The values to color.
-        low: The value of the first color, when the colors are spread evenly.
-        high: The value of the last color, when the colors are spread evenly.
+        colorscale: 从 `low` 到 `high` 均匀分布的颜色，或 (color, value) 配对，
+            每种颜色对应其取值，按取值递增排列。
+        values: 待着色的取值。
+        low: 当颜色均匀分布时第一个颜色对应的取值。
+        high: 当颜色均匀分布时最后一个颜色对应的取值。
 
     Returns:
-        One color per value, in order.
+        每个取值对应一个颜色，按顺序排列。
     """
     rows = rgbas_by_value(colorscale, list(values), low, high)
     return [ManimColor(tuple(row)) for row in rows]
@@ -815,23 +806,21 @@ def colors_by_value(
 def rgbas_by_value(
     colorscale: Colorscale, values: npt.ArrayLike, low: float, high: float
 ) -> Floats:
-    """The color of each value on a colorscale, as a row of red, green, blue and
-    opacity: [colors_by_value][manimgx.colors_by_value], for many values at once.
+    """色阶上各取值对应的颜色，以红、绿、蓝及不透明度各行的形式返回：
+    即 [colors_by_value][manimgx.colors_by_value]，一次处理多个取值。
 
-    Each value's color is mixed between the colors on either side of it, as every blend
-    of colors mixes (see [mix_rgba][manimgx.mix_rgba]), and held beyond the
-    colorscale's ends.
+    每个取值的颜色在其两侧的颜色之间混合，混合方式同所有颜色的混合
+    （参见 [mix_rgba][manimgx.mix_rgba]），在色阶两端之外保持不变。
 
     Args:
-        colorscale: Colors spread evenly from `low` to `high`, or (color, value) pairs,
-            each color at its value, in increasing order of value.
-        values: The values to color: numbers, in an array of any shape (read in
-            order, flattened).
-        low: The value of the first color, when the colors are spread evenly.
-        high: The value of the last color, when the colors are spread evenly.
+        colorscale: 从 `low` 到 `high` 均匀分布的颜色，或 (color, value) 配对，
+            每种颜色对应其取值，按取值递增排列。
+        values: 待着色的取值：数字，可为任意形状的数组（按顺序展平读取）。
+        low: 当颜色均匀分布时第一个颜色对应的取值。
+        high: 当颜色均匀分布时最后一个颜色对应的取值。
 
     Returns:
-        An (n, 4) array, a row per value, each from 0 to 1.
+        一个 (n, 4) 数组，每个取值一行，各分量取值从 0 到 1。
     """
     # the pivots are the colors' values, given or spread evenly over [low, high]
     if all(isinstance(c, (tuple, list)) and len(c) == 2 for c in colorscale):
@@ -855,30 +844,30 @@ def rgbas_by_value(
 
 
 def random_color() -> ManimColor:
-    """A named color, drawn at random.
+    """随机抽取的一个命名颜色。
 
-    Python's `random` draws it, so `random.seed` makes it repeatable; see
-    [RandomColorGenerator][manimgx.RandomColorGenerator] for a stream of its own.
+    由 Python 的 `random` 抽取，因此 `random.seed` 可使其可复现；若需独立流，参见
+    [RandomColorGenerator][manimgx.RandomColorGenerator]。
 
     Returns:
-        One of the named colors.
+        命名颜色之一。
     """
     return random.choice(list(PALETTE.values()))
 
 
 def random_bright_color() -> ManimColor:
-    """A light color, drawn at random: its red, green and blue each from 0.5 to 1.
+    """随机抽取的一个浅色：其红、绿、蓝各分量取值从 0.5 到 1。
 
-    NumPy's global generator draws it, so `np.random.seed` makes it repeatable.
+    由 NumPy 的全局生成器抽取，因此 `np.random.seed` 可使其可复现。
 
     Returns:
-        A new, opaque color.
+        一个新的不透明颜色。
     """
     return ManimColor(tuple(1.0 - 0.5 * np.random.random(3)))
 
 
 def _numbers(value: object) -> TypeIs[Sequence[float] | np.ndarray]:
-    """An rgb(a) tuple or array: one color, not several."""
+    """一个 rgb(a) 元组或数组：单个颜色，而非多个。"""
     return isinstance(value, (Sequence, np.ndarray)) and all(
         isinstance(x, (int, float, np.integer, np.floating)) for x in value
     )
@@ -888,14 +877,14 @@ def _numbers(value: object) -> TypeIs[Sequence[float] | np.ndarray]:
 def parse_colors(
     value: ParsableManimColor | Iterable[ParsableManimColor] | None,
 ) -> list[ManimColor]:
-    """Read one color or several, as a list.
+    """读取一个或多个颜色，以列表形式返回。
 
     Args:
-        value: A color in any form [ManimColor][manimgx.ManimColor] reads (three or four
-            numbers are one color), several colors, or None for black.
+        value: 任何 [ManimColor][manimgx.ManimColor] 可读取形式的颜色（三或四个
+            数字视为一个颜色）、多个颜色，或 None 表示黑色。
 
     Returns:
-        The colors, in a list.
+        这些颜色，以列表形式。
     """
     if value is None:
         return [BLACK]
@@ -1002,18 +991,18 @@ PALETTE: Final[dict[str, ManimColor]] = {
     for name, value in globals().items()
     if isinstance(value, ManimColor) and name.isupper()
 }
-"""The named colors, by name: `PALETTE["BLUE"]` is `BLUE`. A color's name, in any case,
-is read as the color."""
+"""按名称索引的命名颜色：`PALETTE["BLUE"]` 即 `BLUE`。颜色名大小写不限，
+均可读取为对应颜色。"""
 
 
 class HSV(ManimColor):
-    """A color made from a hue, saturation and value, which can be read and set.
+    """由色相、饱和度与明度构成的颜色，可读取也可设置。
 
-    `HSV(hsv, alpha=1.0)` takes the hue, saturation and value, each from 0 to 1, and
-    the opacity: a fourth number of `hsv`, if given, or else `alpha`, from 0 to 1.
-    Setting [hue][manimgx.HSV.hue], [saturation][manimgx.HSV.saturation] or
-    [value][manimgx.HSV.value] changes the color, as a value and as its `str`; it still
-    compares equal to (and hashes as) the string it was made as.
+    `HSV(hsv, alpha=1.0)` 接收色相、饱和度与明度，各取值从 0 到 1，以及
+    不透明度：若 `hsv` 给出第四个数则取之，否则取 `alpha`，取值从 0 到 1。
+    设置 [hue][manimgx.HSV.hue]、[saturation][manimgx.HSV.saturation] 或
+    [value][manimgx.HSV.value] 会改变颜色，既改变其值也改变其 `str`；它仍与
+    创建时的字符串相等（并按其哈希）。
 
     Examples:
         ```python
@@ -1045,27 +1034,23 @@ class HSV(ManimColor):
     h = hue = property(
         lambda self: float(self.to_hsv()[0]), lambda self, v: self._set(0, v)
     )
-    """The color's hue, from 0 to 1: 0 (or 1) red, 1/3 green, 2/3 blue. Set it to change
-    the color."""
+    """颜色的色相，取值从 0 到 1：0（或 1）为红色，1/3 为绿色，2/3 为蓝色。设置它可改变颜色。"""
     s = saturation = property(
         lambda self: float(self.to_hsv()[1]), lambda self, v: self._set(1, v)
     )
-    """The color's saturation, from 0 (grey) to 1 (the full color). Set it to change the
-    color."""
+    """颜色的饱和度，取值从 0（灰色）到 1（纯色）。设置它可改变颜色。"""
     v = value = property(
         lambda self: float(self.to_hsv()[2]), lambda self, v: self._set(2, v)
     )
-    """The color's value, from 0 (black) to 1 (the brightest). Set it to change the
-    color."""
+    """颜色的明度，取值从 0（黑色）到 1（最亮）。设置它可改变颜色。"""
 
 
 class RandomColorGenerator:
-    """A stream of colors drawn at random, the same for the same seed.
+    """随机抽取的颜色流，相同种子得到相同流。
 
     Args:
-        seed: The seed; None for a different stream each run.
-        sample_colors: The colors to draw from; None (or no colors) for the named
-            colors.
+        seed: 种子；None 表示每次运行得到不同的流。
+        sample_colors: 抽取范围；None（或无颜色）表示命名颜色。
 
     Examples:
         ```python
@@ -1093,7 +1078,7 @@ class RandomColorGenerator:
         self.colors = sample_colors or list(PALETTE.values())
 
     def next(self) -> ManimColor:
-        """The stream's next color: one of its colors, drawn at random."""
+        """流的下一个颜色：从其颜色中随机抽取的一个。"""
         return self.choice(self.colors)
 
 
@@ -1106,23 +1091,22 @@ type Colors = ParsableManimColor | Sequence[ParsableManimColor]
 
 @dataclass(frozen=True)
 class Material:
-    """How a surface reflects light: a physically based model, its base color the mobject's fill.
+    """表面如何反射光线：一种基于物理的模型，其基色为 mobject 的填充色。
 
-    A mobject with a material is lit by the scene's lights
-    ([`SunLight`][manimgx.SunLight], [`PointLight`][manimgx.PointLight],
-    [`SpotLight`][manimgx.SpotLight], [`AmbientLight`][manimgx.AmbientLight],
-    [`EnvironmentLight`][manimgx.EnvironmentLight]) in a three-dimensional scene, and a mobject without one keeps Manim's shading
-    (`shade_in_3d`). Surfaces are lit, and so are flat filled shapes (their fill: a
-    shape's strokes keep their color); the shadows of whatever the scene shows fall on
-    them. What is fixed in the frame is not in the scene, and is not lit. A material
-    tweens: its numbers are mixed like colors.
+    带有材质的 mobject 由场景中的光源
+    （[`SunLight`][manimgx.SunLight]、[`PointLight`][manimgx.PointLight]、
+    [`SpotLight`][manimgx.SpotLight]、[`AmbientLight`][manimgx.AmbientLight]、
+    [`EnvironmentLight`][manimgx.EnvironmentLight]）在三维场景中照亮，未带材质者保持 Manim 的着色
+    （`shade_in_3d`）。表面会被照亮，平面填充形状亦然（其填充：形状的描边保持其
+    颜色）；场景中所展示物体的阴影会落在其上。固定于画面中的内容不在场景中，亦不被照亮。
+    材质可补间：其数值按颜色方式混合。
 
     Args:
-        metallic: How metallic it is, from 0 (a dielectric: plastic, paint, stone, skin) to 1
-            (a metal, whose reflections take its color).
-        roughness: How rough it is, from 0 (a mirror finish: sharp highlights) to 1 (matte).
-        reflectance: How much a dielectric reflects when seen head on, from 0 to 1 (0.5: 4%,
-            most materials; 0.35: water's 2%; 1: 16%, gems).
+        metallic: 金属感的程度，从 0（电介质：塑料、油漆、石头、皮肤）到 1
+            （金属，其反射取其颜色）。
+        roughness: 粗糙程度，从 0（镜面光洁：锐利高光）到 1（哑光）。
+        reflectance: 电介质正对时反射多少，取值从 0 到 1（0.5：4%，
+            多数材料；0.35：水的 2%；1：16%，宝石）。
 
     Examples:
         ```python
@@ -1150,7 +1134,7 @@ class Material:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def mixed(self, other: "Material", alpha: float) -> "Material":
-        """This material's numbers moved `alpha` of the way to `other`'s."""
+        """本材质的数值朝 `other` 移动了 `alpha` 比例后的结果。"""
         return Material(
             *(
                 a + (b - a) * alpha
@@ -1171,121 +1155,119 @@ class Material:
 
 
 class _Look(TypedDict, total=False):
-    """Look's keys, open, for the keywords that add to them."""
+    """Look 的键，开放，用于向其添加的关键字。"""
 
     background_stroke_color: Colors | None
-    """The color of an outline drawn behind the fill (default black)."""
+    """绘制于填充之后的轮廓颜色（默认黑色）。"""
     background_stroke_opacity: float | Sequence[float]
-    """The outline's opacity, from 0 to 1 (default 1)."""
+    """轮廓的不透明度，取值从 0 到 1（默认 1）。"""
     background_stroke_width: float
-    """The outline's width, in hundredths of a scene unit (default 0: none)."""
+    """轮廓的宽度，以场景单位的百分之一计（默认 0：无）。"""
     sheen_factor: float
-    """How much the colors lighten toward `sheen_direction`, from -1 to 1 (default 0);
-    a negative factor darkens."""
+    """颜色朝 `sheen_direction` 变亮的程度，取值从 -1 到 1（默认 0）；
+    负值变暗。"""
     sheen_direction: Vector3DLike
-    """The direction the colors lighten toward (default [`UL`][manimgx.UL])."""
+    """颜色变亮的方向（默认 [`UL`][manimgx.UL]）。"""
     joint_type: LineJointType | None
-    """How the stroke is joined where its path turns: round, beveled or mitered, as a
-    two-dimensional scene draws it (see [LineJointType][manimgx.LineJointType]; default
-    AUTO: mitered)."""
+    """描边在路径转折处的连接方式：圆角、斜切或斜接，按二维场景的绘制方式
+    （参见 [LineJointType][manimgx.LineJointType]；默认 AUTO：斜接）。"""
     cap_style: CapStyleType
-    """How the stroke ends, at each end it shows (an open path's, a dash's): round, butt
-    or square, as a two-dimensional scene draws it (see
-    [CapStyleType][manimgx.CapStyleType]; default AUTO: butt)."""
+    """描边在其显示的每一端的端点样式（开放路径的端点、虚线的端点）：圆头、平头
+    或方头，按二维场景的绘制方式（参见
+    [CapStyleType][manimgx.CapStyleType]；默认 AUTO：平头）。"""
     shade_in_3d: bool
-    """Whether a three-dimensional scene's light shades the mobject."""
+    """三维场景的光是否对该 mobject 着色。"""
     material: Material | None
-    """How its surface reflects the scene's lights in a three-dimensional scene (see
-    [Material][manimgx.Material]); None: Manim's shading (default)."""
+    """其表面在三维场景中如何反射场景的光（参见
+    [Material][manimgx.Material]）；None：Manim 的着色（默认）。"""
     name: str | None
-    """A name for the mobject; its class's name if not given."""
+    """mobject 的名称；未给出时为其类名。"""
     z_index: float
-    """Its place in the drawing order: a higher index is drawn over a lower one
-    (default 0)."""
+    """其在绘制顺序中的位置：索引较高者绘制于较低者之上
+    （默认 0）。"""
     target: "Mobject | None"
-    """The state [`MoveToTarget`][manimgx.MoveToTarget] moves the mobject to."""
+    """[`MoveToTarget`][manimgx.MoveToTarget] 将 mobject 移动至的状态。"""
 
 
 class Look(_Look, total=False, closed=True):
-    """The style keywords that are not paint.
+    """非画料类的样式关键字。
 
-    A mobject whose paint comes from its source (an SVG file, typeset text) takes these,
-    with [`Repaint`][manimgx.drawing.paint.Repaint] to paint over its source's colors.
+    画料来自其源（SVG 文件、排版文本）的 mobject 接收这些关键字，
+    并用 [`Repaint`][manimgx.drawing.paint.Repaint] 覆盖其源的颜色。
     """
 
 
 class Repaint(TypedDict, total=False):
-    """Paint over the paint a mobject's source gives its parts.
+    """覆盖 mobject 的源赋予其各部分的画料。
 
-    An SVG file and typeset text color their own parts; each of these keywords, when given,
-    paints over them, and when absent (or None) keeps the source's.
+    SVG 文件和排版文本为其自身各部分着色；这些关键字每一个在给出时覆盖之，
+    未给出（或为 None）时保持源的画料。
     """
 
     color: Colors | None
-    """The color of both fill and stroke."""
+    """填充与描边共用的颜色。"""
     opacity: float | None
-    """The opacity of both fill and stroke, from 0 to 1."""
+    """填充与描边共用的不透明度，取值从 0 到 1。"""
     fill_color: Colors | None
-    """The fill's color."""
+    """填充的颜色。"""
     fill_opacity: float | Sequence[float] | None
-    """The fill's opacity, from 0 to 1."""
+    """填充的不透明度，取值从 0 到 1。"""
     stroke_color: Colors | None
-    """The stroke's color."""
+    """描边的颜色。"""
     stroke_opacity: float | Sequence[float] | None
-    """The stroke's opacity, from 0 to 1."""
+    """描边的不透明度，取值从 0 到 1。"""
     stroke_width: float | None
-    """The stroke's width, in hundredths of a scene unit."""
+    """描边的宽度，以场景单位的百分之一计。"""
 
 
 class _StyleBase(_Look, total=False):
-    """StyleBase's keys, open, for the keywords that add to them."""
+    """StyleBase 的键，开放，用于向其添加的关键字。"""
 
     fill_color: Colors | None
-    """The fill's color; `color` if not given. Several colors make a gradient along
-    `sheen_direction`."""
+    """填充的颜色；未给出时为 `color`。多个颜色沿 `sheen_direction` 构成渐变。"""
     fill_opacity: float | Sequence[float]
-    """The fill's opacity, from 0 to 1 (default 0: no fill)."""
+    """填充的不透明度，取值从 0 到 1（默认 0：无填充）。"""
     stroke_color: Colors | None
-    """The stroke's color; `color` if not given. Several colors make a gradient."""
+    """描边的颜色；未给出时为 `color`。多个颜色构成渐变。"""
     stroke_opacity: float | Sequence[float]
-    """The stroke's opacity, from 0 to 1 (default 1)."""
+    """描边的不透明度，取值从 0 到 1（默认 1）。"""
     stroke_width: float
-    """The stroke's width, in hundredths of a scene unit (default 4; 0: no stroke)."""
+    """描边的宽度，以场景单位的百分之一计（默认 4；0：无描边）。"""
 
 
 class StyleBase(_StyleBase, total=False, closed=True):
-    """Every style keyword but `color`.
+    """除 `color` 之外的每一个样式关键字。
 
-    A class that takes `color` by position declares it itself, and the rest with this.
+    按位置接收 `color` 的类自行声明它，其余通过本类声明。
     """
 
 
 class _Style(_StyleBase, total=False):
-    """Style's keys, open, for the keywords that add to them."""
+    """Style 的键，开放，用于向其添加的关键字。"""
 
     color: Colors | None
-    """The color of both fill and stroke (default white); None for the class's default."""
+    """填充与描边共用的颜色（默认白色）；None 表示该类的默认值。"""
 
 
 class Style(_Style, total=False, closed=True):
-    """The style keywords: one vocabulary for every mobject and every group.
+    """样式关键字：每个 mobject 与每个组共用的统一词汇。
 
-    Every mobject takes these keywords, and each class sets its own defaults for them
-    (a [`Circle`][manimgx.Circle] is red, a [`Dot`][manimgx.Dot] is filled). A color is
-    anything [`ManimColor`][manimgx.ManimColor] parses: a named color such as `BLUE`,
-    a hex string, or RGB values.
+    每个 mobject 接收这些关键字，各类为其设置各自的默认值
+    （[`Circle`][manimgx.Circle] 为红色，[`Dot`][manimgx.Dot] 为填充）。颜色可为
+    [`ManimColor`][manimgx.ManimColor] 可解析的任何形式：命名颜色如 `BLUE`、
+    十六进制字符串或 RGB 值。
     """
 
 
 class Fill(TypedDict):
-    """A fill's color and opacity: an image's style (`ImageMobject.get_style()`)."""
+    """填充的颜色与不透明度：图像的样式（`ImageMobject.get_style()`）。"""
 
     fill_color: ManimColor
     fill_opacity: float
 
 
 class SimpleStyle(Fill):
-    """A style by its first brushes (`VMobject.get_style(simple=True)`)."""
+    """按其前几个画刷表示的样式（`VMobject.get_style(simple=True)`）。"""
 
     stroke_color: ManimColor
     stroke_opacity: float
@@ -1293,7 +1275,7 @@ class SimpleStyle(Fill):
 
 
 class StyleSnapshot(TypedDict):
-    """A style, brush by brush (`VMobject.get_style()`): `set_style(**snapshot)` restores it."""
+    """逐画刷表示的样式（`VMobject.get_style()`）：`set_style(**snapshot)` 可恢复之。"""
 
     fill_color: list[ManimColor]
     fill_opacity: list[float]
@@ -1308,11 +1290,10 @@ class StyleSnapshot(TypedDict):
 
 
 def key_of(value: object) -> object:
-    """A plain value as a memo's key, by what it is: a color by its exact RGBA (not its
-    hex), a small array by its dtype and bytes, a path by its text, a list or tuple
-    item by item. Scalar types distinguish integer RGB from normalized floats.
-    Anything else (a mobject, a function, a picture) raises TypeError: what is made
-    from it is not remembered."""
+    """将一个普通值作为记忆的键，按其本身：颜色按其精确 RGBA（而非其十六进制），
+    小数组按其 dtype 与字节，路径按其文本，列表或元组逐项比较。标量类型可区分
+    整数 RGB 与归一化浮点数。其他任何对象（mobject、函数、图像）抛出 TypeError：
+    由其生成的内容不予记忆。"""
     if isinstance(value, ManimColor):
         return (ManimColor, *value.to_rgba())
     if value is None:
@@ -1339,8 +1320,8 @@ def rgbas(
     color: ParsableManimColor | Iterable[ParsableManimColor] | None,
     opacity: float | Iterable[float] | None,
 ) -> RGBA_Array:
-    """CE `generate_rgbas_array` without sheen (None color: black; None opacity: 0), parsed once
-    per distinct (color, opacity)."""
+    """CE 的 `generate_rgbas_array`，不含光泽（None 颜色：黑色；None 不透明度：0），按不同
+    的 (color, opacity) 各解析一次。"""
     try:
         key = (key_of(color), key_of(opacity))
     except TypeError:
@@ -1364,24 +1345,23 @@ def _rgbas(
 
 
 def stretch[T](values: list[T], n: int) -> list[T]:
-    """CE `make_even` for one list: repeat entries so the list has length n."""
+    """CE 的 `make_even` 用于单个列表：重复条目使列表长度为 n。"""
     if len(values) == n:
         return values
     return [values[i * len(values) // n] for i in range(n)]
 
 
 def stretch_array(array: np.ndarray, n: int) -> np.ndarray:
-    """Stretch an array to `n` items, repeating its items evenly, in order.
+    """将数组拉伸到 `n` 项，按顺序均匀重复其各项。
 
-    Item `i` of the result is item `i * len(array) // n` of the array.
+    结果的第 `i` 项为数组的第 `i * len(array) // n` 项。
 
     Args:
-        array: The items, along its first axis.
-        n: How many items the result has: at least as many as the array has (fewer
-            raise ValueError).
+        array: 各项，沿其第一轴排列。
+        n: 结果所含项数：至少与数组项数相同（更少则抛出 ValueError）。
 
     Returns:
-        The array itself if it has `n` items; else a new one.
+        若数组本身有 `n` 项则返回其自身；否则返回一个新数组。
     """
     cur = len(array)
     if cur == n:
@@ -1393,15 +1373,15 @@ def stretch_array(array: np.ndarray, n: int) -> np.ndarray:
 
 @deprecated("stretch_array_to_length is stretch_array: use it", category=None)
 def stretch_array_to_length(array: np.ndarray, n: int) -> np.ndarray:
-    """Manim CE's name for [stretch_array][manimgx.stretch_array]."""
+    """Manim CE 对 [stretch_array][manimgx.stretch_array] 的命名。"""
     return stretch_array(array, n)
 
 
 def frozen(values: npt.ArrayLike, held: object = None) -> np.ndarray:
-    """Adopt an internal float array as read-only; keep `held` when they are equal.
+    """将内部浮点数组收为只读；当二者相等时保留 `held`。
 
-    Inputs are fresh buffers or values already owned by paint. Public style
-    setters copy borrowed arrays before transferring them here.
+    输入为新建的缓冲区或已由画料拥有的值。公共样式设置器在将借用的数组转入此处前
+    会先复制之。
     """
     array = np.asarray(values, dtype=float)
     if isinstance(held, np.ndarray) and unchanged(array, held):
@@ -1414,11 +1394,11 @@ def frozen(values: npt.ArrayLike, held: object = None) -> np.ndarray:
 
 
 class Paint:
-    """How a mobject is painted, as a value: a change makes a new paint, so copies share one and
-    what is derived from it (a record) holds while a mobject keeps it. It stores only what differs
-    from the default (the class attributes). A tween's paint leaves brushes (None) to its `mix`
-    (brushes_a, brushes_b, t), which the player mixes. Capturing brush inputs
-    materializes any prior mixes; no source paint or its other resources is kept."""
+    """mobject 的绘制方式，以值的形式表示：一次更改产生新画料，因此副本共享同一画料，
+    而由其派生的内容（记录）在 mobject 保持它期间亦保持不变。它仅存储与默认值（类属性）
+    不同的部分。补间的画料将画刷（None）留给其 `mix`
+    （brushes_a, brushes_b, t），由播放器混合。捕获画刷输入会使任何先前的混合具象化；
+    不保留任何源画料及其其他资源。"""
 
     _fill: RGBA_Array | None = frozen([[1.0, 1.0, 1.0, 0.0]])
     _stroke: RGBA_Array | None = frozen([[1.0, 1.0, 1.0, 1.0]])
@@ -1465,7 +1445,7 @@ class Paint:
         return b if b is not None else self._mixed("background")
 
     def _mixed(self, name: str) -> RGBA_Array:
-        """A brush left to the tween, read here: mixed as the player mixes it, once."""
+        """留给补间的画刷，在此读取：按播放器的方式混合，仅一次。"""
         known = self._derived.get(("brush", name))
         if known is None:
             assert self.mix is not None
@@ -1477,7 +1457,7 @@ class Paint:
         return cast("RGBA_Array", known)
 
     def ends(self, name: str) -> tuple[RGBA_Array, RGBA_Array]:
-        """A brush's two arrays as the player draws them, mixed by `mix`."""
+        """播放器绘制画刷两个数组的方式，由 `mix` 混合。"""
         own = getattr(self, _SLOTS[name])
         if own is not None:
             return own, own
@@ -1487,14 +1467,12 @@ class Paint:
         return a[index], b[index]
 
     def but(self, **changes: object) -> "Paint":
-        """This paint with some fields changed (`fill`, `stroke`, `background`: brushes) —
-        itself when they change nothing (arrays equal to those it holds), and the same paint
-        for the same plain changes, so what was derived from it holds too. Textures are
-        borrowed resources: equal only by identity, and their changes are not remembered.
+        """本画料在某些字段更改后的结果（`fill`、`stroke`、`background`：画刷）——
+        当更改未产生变化时（数组与所持有者相等）返回自身，且相同的普通更改得到同一画料，
+        因此由其派生的内容亦保持。纹理为借用的资源：仅按身份判等，其更改不予记忆。
 
-        Internal brush and direction arrays transfer ownership: callers must not
-        change them or their aliases afterward. Public mobject style setters
-        snapshot borrowed values before deriving a paint.
+        内部画刷与方向数组转移所有权：调用者此后不得更改它们或其别名。公共 mobject
+        样式设置器在派生画料前会先对借用的值做快照。
         """
         try:
             key: tuple[object, ...] | None = (
@@ -1550,9 +1528,9 @@ class Paint:
         return new
 
     def window(self, steps: int) -> tuple[float, float]:
-        """The reveal window over u ∈ [0, steps] — what the player draws. u counts a shape's
-        steps: a path's curves (its parameter, paced by `pace`), a cloud's points, a mesh's
-        triangles, a surface's faces; a step the window reaches into shows, with all it draws."""
+        """在 u ∈ [0, steps] 上的揭示窗口——即播放器所绘制的部分。u 计数一个形状的
+        步数：路径的曲线（其参数，由 `pace` 定速）、点云的点、网格的三角形、曲面的面；
+        窗口所及的步连同其全部绘制内容一并显示。"""
         if self.pace is None:
             return float(self.trim[0]) * steps, float(self.trim[1]) * steps
         s, u = self.pace
@@ -1565,8 +1543,8 @@ class Paint:
         color: ParsableManimColor | Iterable[ParsableManimColor] | None,
         opacity: float | Iterable[float] | None,
     ) -> "Paint":
-        """CE `update_rgbas_array`: colors and/or opacities written into one brush — remembered,
-        and the paint itself when nothing changes."""
+        """CE 的 `update_rgbas_array`：将颜色和/或不透明度写入一个画刷——予以记忆，
+        当无变化时返回画料自身。"""
         try:
             key: tuple[object, ...] | None = (
                 "updated",
@@ -1617,7 +1595,7 @@ class Paint:
 
     @staticmethod
     def aligned(a: "Paint", b: "Paint") -> tuple["Paint", "Paint"]:
-        """Both paints with the same number of brush rows (CE `align_rgbas`)."""
+        """两个画刷行数相同的画料（CE 的 `align_rgbas`）。"""
         changes_a: dict[str, np.ndarray] = {}
         changes_b: dict[str, np.ndarray] = {}
         for name in _BRUSHES:
@@ -1631,8 +1609,8 @@ class Paint:
         )
 
     def mixed(self, a: "Paint", b: "Paint", alpha: float) -> "Paint":
-        """This paint with a's numeric fields blended into b's (joint, cap… stay this paint's):
-        brushes left to the tween (`mix`, OKLab, by the player), the rest linearly."""
+        """本画料在 a 的数值字段混合到 b 的之后的结果（joint、cap… 保持本画料的值）：
+        画刷留给补间（`mix`，OKLab，由播放器处理），其余线性混合。"""
         changes: dict[str, object] = {
             "pace": b.pace if alpha == 1.0 or a.pace is None else a.pace,
             "dash": (
@@ -1687,8 +1665,8 @@ _LERPED = (
 
 
 def _kept(name: str, value: object) -> object:
-    """A change as a key: plain values by value; a read-only array a paint keeps by identity (the
-    derived paint holds it, so no other array can take its id while remembered)."""
+    """将一次更改作为键：普通值按值比较；只读数组由画料按身份保留（派生画料持有它，
+    因此在其被记忆期间没有其他数组能取其 id）。"""
     if name == "texture" and isinstance(value, np.ndarray):
         raise TypeError(type(value))
     if (
@@ -1709,9 +1687,8 @@ _NUMBERS = (int, float, np.number)
 
 
 def _same_number(value: object, held: object) -> bool:
-    """Whether `value` is a number, or a tuple of numbers (a dash), equal to the one held: a
-    change to it is none (an equal width of another type, or another object, keeps the
-    paint)."""
+    """`value` 是否为一个数，或由数组成的元组（虚线参数），且与所持有者相等：对其的
+    更改等同于无更改（另一类型但相等的宽度，或另一对象，保持画料不变）。"""
     if isinstance(value, _NUMBERS):  # (as floats: a numpy scalar's == is a ufunc's)
         return isinstance(held, _NUMBERS) and float(value) == float(held)
     return (
@@ -1729,8 +1706,8 @@ _NUMERIC = frozenset({"stroke_width", "background_width", "sheen_factor", "dash"
 
 
 class PaintAttribute[G, S = G]:
-    """A CE style attribute of a mobject (`mob.joint_type`), kept in its paint's `field` (G: what
-    is read, S: what may be set; the paint keeps arrays as float values)."""
+    """mobject 的一个 CE 样式属性（`mob.joint_type`），保存在其画料的 `field` 中（G：读取
+    的内容，S：可设置的内容；画料将数组保存为浮点值）。"""
 
     def __init__(self, field: str) -> None:
         self.field = field

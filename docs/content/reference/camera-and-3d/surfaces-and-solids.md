@@ -1,11 +1,11 @@
 ---
-title: "Surfaces and solids"
-description: "Surfaces of functions, spheres, tori, cylinders, cones, cubes and polyhedra, lines and arrows in space, and meshes."
+title: "曲面与立体"
+description: "函数曲面、球面、环面、柱面、锥面、立方体和多面体，空间中的线与箭头，以及网格。"
 ---
 
-# Surfaces and solids { #manimgx.mobjects.three_d }
+# 曲面与立体 { #manimgx.mobjects.three_d }
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -26,12 +26,11 @@ class SurfacesHero(m.ThreeDScene):
         self.wait()
 ```
 
-A surface is the set of points a function of two numbers makes: `func(u, v)` for u and v over
-their ranges. A sphere, a torus, a cylinder and a cone are surfaces with their functions
-made for you. A solid with flat faces is a polyhedron, from a cube to an icosahedron. All
-show in a [3D scene](three-d-scenes.md), shaded by its lights.
+曲面是由双变量函数生成的点集：在 u 和 v 各自取值范围内的 `func(u, v)`。球面、环面、柱面和
+锥面是已为你生成函数的曲面。具有平面的立体是多面体，从立方体到二十面体。它们都显示在
+[3D 场景](three-d-scenes.md)中，由其灯光着色。
 
-## Surfaces
+## 曲面
 
 ::: manimgx.Surface
     options:
@@ -55,7 +54,7 @@ show in a [3D scene](three-d-scenes.md), shaded by its lights.
       heading_level: 3
       inherited_members: [set_direction]
 
-## Solids
+## 立体
 
 ::: manimgx.Cube
     options:
@@ -89,7 +88,7 @@ show in a [3D scene](three-d-scenes.md), shaded by its lights.
     options:
       heading_level: 3
 
-## Lines and points in space
+## 空间中的线与点
 
 ::: manimgx.Line3D
     options:
@@ -103,13 +102,13 @@ show in a [3D scene](three-d-scenes.md), shaded by its lights.
     options:
       heading_level: 3
 
-## Meshes
+## 网格
 
 ::: manimgx.MeshMobject
     options:
       heading_level: 3
 
-## Spherical coordinates
+## 球坐标
 
 ::: manimgx.spherical_to_cartesian
     options:
@@ -118,3 +117,8 @@ show in a [3D scene](three-d-scenes.md), shaded by its lights.
 ::: manimgx.cartesian_to_spherical
     options:
       heading_level: 3
+
+::: manimgx.mobjects.three_d.SurfaceLook
+::: manimgx.mobjects.three_d.SurfaceOptions
+::: manimgx.mobjects.three_d.PolyhedronOptions
+::: manimgx.mobjects.three_d.Line3DOptions

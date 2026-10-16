@@ -1,11 +1,11 @@
 ---
-title: "Groups"
-description: "Mobjects made of other mobjects, and the methods that add, remove, arrange and sort a mobject's parts."
+title: "分组"
+description: "由其他 mobject 构成的 mobject，以及添加、移除、排列和排序 mobject 组成部分的方法。"
 ---
 
-# Groups
+# 分组
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -25,13 +25,13 @@ class GroupsHero(m.Scene):
         self.wait()
 ```
 
-A mobject can hold other mobjects, its parts. A group holds nothing else: its parts are
-what it shows. Move, scale, color or animate a group, and every part changes with it.
+mobject 可以持有其他 mobject，即其组成部分。分组不持有其他任何东西：其组成部分就是它所
+展示的内容。移动、缩放、着色或动画化一个分组，每个组成部分都会随之变化。
 
-`m.VGroup` and `m.Group` are one class, by two names: Manim CE's code writes both. A group
-is a list of its parts: `group[0]` is the first one, `group[1:3]` is a group of
-the second and the third, `len(group)` counts them, and `for part in group:` goes through
-them. Every mobject's parts work the same way: a formula's terms, a graph's axes.
+`m.VGroup` 和 `m.Group` 是同一个类的两个名称：Manim CE 的代码中两者都有使用。分组是其
+组成部分的列表：`group[0]` 是第一个，`group[1:3]` 是由第二个和第三个组成的分组，
+`len(group)` 计数其数量，`for part in group:` 遍历它们。每个 mobject 的组成部分都以相同
+方式工作：公式的项、图表的坐标轴。
 
 ::: manimgx.Group
     options:
@@ -41,7 +41,7 @@ them. Every mobject's parts work the same way: a formula's terms, a graph's axes
     options:
       heading_level: 2
 
-## Add and remove parts
+## 添加与移除组成部分
 
 ::: manimgx.Mobject.add_to_back
     options:
@@ -63,7 +63,7 @@ them. Every mobject's parts work the same way: a formula's terms, a graph's axes
     options:
       heading_level: 3
 
-## Lay parts out
+## 排列组成部分
 
 ::: manimgx.Mobject.arrange
     options:
@@ -73,7 +73,7 @@ them. Every mobject's parts work the same way: a formula's terms, a graph's axes
     options:
       heading_level: 3
 
-## Order parts
+## 排序组成部分
 
 ::: manimgx.Mobject.sort
     options:
@@ -87,7 +87,7 @@ them. Every mobject's parts work the same way: a formula's terms, a graph's axes
     options:
       heading_level: 3
 
-## Name parts
+## 命名组成部分
 
 ::: manimgx.VDict
     options:
@@ -96,3 +96,6 @@ them. Every mobject's parts work the same way: a formula's terms, a graph's axes
 ::: manimgx.index_labels
     options:
       heading_level: 3
+
+::: manimgx.mobject.Beside
+::: manimgx.mobjects.numbers.NumberStyle

@@ -1,11 +1,11 @@
 ---
-title: "Plotting"
-description: "The graph of a function on axes, in their coordinates, and what explains it: its label, the area under it, its slope, its derivative."
+title: "绘图"
+description: "坐标轴上函数的图像，使用其坐标系，以及用以阐释它的内容：其标签、下方的面积、其斜率及其导数。"
 ---
 
-# Plotting
+# 绘图
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -36,14 +36,11 @@ class PlottingHero(m.Scene):
         self.wait()
 ```
 
-[plot][manimgx.Axes.plot] draws the graph of a Python function of x on axes, in their
-coordinates: it is a curve, a mobject as any other, to style and animate. The axes then
-make what explains it: a label at its end, the area under it, rectangles for its integral,
-its slope at a point, the graph of its derivative.
+[plot][manimgx.Axes.plot] 在坐标轴上以轴的坐标系绘制一个关于 x 的 Python 函数的图像：它是一条曲线，一个与其他任何 mobject 一样的 mobject，可供设置样式和制作动画。坐标轴随后生成用以阐释它的内容：其末端的标签、其下方的面积、用于其积分的矩形、某点处的斜率、其导数的图像。
 
-These methods make new mobjects, and add nothing: add them to the scene, or animate them.
+这些方法创建新的 mobject，但不添加任何内容到场景中：你需要自行将它们添加到场景中，或为其制作动画。
 
-## Graphs
+## 图像
 
 ::: manimgx.Axes.plot
     options:
@@ -69,7 +66,7 @@ These methods make new mobjects, and add nothing: add them to the scene, or anim
     options:
       heading_level: 3
 
-## Points on a graph
+## 图像上的点
 
 ::: manimgx.Axes.input_to_graph_point
     options:
@@ -95,7 +92,7 @@ These methods make new mobjects, and add nothing: add them to the scene, or anim
     options:
       heading_level: 3
 
-## Areas
+## 面积
 
 ::: manimgx.Axes.get_area
     options:
@@ -105,7 +102,7 @@ These methods make new mobjects, and add nothing: add them to the scene, or anim
     options:
       heading_level: 3
 
-## Slopes
+## 斜率
 
 ::: manimgx.Axes.slope_of_tangent
     options:
@@ -122,3 +119,8 @@ These methods make new mobjects, and add nothing: add them to the scene, or anim
 ::: manimgx.mobjects.plotting.SecantSlopeGroup
     options:
       heading_level: 3
+
+::: manimgx.mobjects.plotting.CurveOptions
+::: manimgx.mobjects.plotting.ImplicitOptions
+::: manimgx.mobjects.plotting.PlotOptions
+::: manimgx.mobjects.plotting.AxisLine

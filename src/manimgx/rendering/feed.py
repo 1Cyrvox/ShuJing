@@ -1,13 +1,11 @@
-"""Feed the player: shapes once, then one 336-byte record per object and frame.
+"""向播放器喂数据：形状上传一次，此后每个对象每一帧一条 336 字节的记录。
 
-A shape is uploaded as its object defines it, and the player derives what drawing needs. A path
-goes as control points in its own space, with its subpaths as curve ranges, so a reveal is a
-window over u = curve index + t, and the player flattens curves at the size they are drawn; a
-mesh goes as its points, texture coordinates and triangles, and the player sums its faces into
-its vertices' normals (unless a surface's spline supplies them). An
-upload is named by content and resource kind (`digest`), so identical resources upload once.
-A record is an object's blend terms (two shape keys, two 3×4 matrices), reveal window, brushes,
-widths and flags; the camera is one 4×4 matrix."""
+形状按其对象所定义的方式上传，播放器据此推导出绘制所需的内容。一条路径以其自身
+空间中的控制点上传，其子路径作为曲线区间，因此揭示（reveal）是 u = 曲线索引 + t 上
+的一个窗口，播放器在曲线被绘制时的大小上将其展平；一个网格以其点、纹理坐标和三角形
+上传，播放器将其各面累加到其顶点的法线中（除非曲面的样条已提供法线）。一次上传按
+内容和资源种类命名（`digest`），因此相同的资源只上传一次。一条记录是一个对象的混合
+项（两个形状键、两个 3×4 矩阵）、揭示窗口、画笔、宽度和标志；相机是一个 4×4 矩阵。"""
 
 import functools
 import itertools
@@ -112,28 +110,27 @@ KEYS = ("key1", "key2", "fill_rows", "stroke_rows", "fill_rows2", "stroke_rows2"
 
 
 def unpack(record: bytes | None) -> np.void | None:
-    """A record's fields (for mixing records of a pure play)."""
+    """一条记录的字段（用于混合纯播放的记录）。"""
     return None if record is None else np.frombuffer(record, RECORD)[0]
 
 
 def place(m: np.ndarray, a: np.ndarray) -> np.ndarray:
-    """m ∘ a for 3×4 affine maps: a shape's placement over its affine class —
-    [L | t] ∘ [A | b] = L·[A | b] + [0 | t]."""
+    """3×4 仿射映射的 m ∘ a：一个形状在其仿射类上的放置 ——
+    [L | t] ∘ [A | b] = L·[A | b] + [0 | t]。"""
     out = m[:, :3] @ a
     out[:, 3] += m[:, 3]
     return out
 
 
 def structure(points: np.ndarray) -> list[tuple[int, int, bool]]:
-    """Subpaths as curve ranges (first curve, end curve, closed), by CE's break rule."""
+    """按 CE 的断开规则，将子路径作为曲线区间（起始曲线、结束曲线、是否闭合）返回。"""
     return [(a // 4, b // 4, closed) for a, b, closed in subpath_ranges(points, 1e-6)]
 
 
 def union(
     a: list[tuple[int, int, bool]], b: list[tuple[int, int, bool]]
 ) -> list[tuple[int, int, bool]]:
-    """The subpaths of a morph between two aligned shapes: a break wherever either breaks, closed
-    only where both are."""
+    """两个对齐形状之间变形的子路径：在任一形状断开处断开，仅当两者都闭合时才闭合。"""
     starts = sorted({s for s, _, _ in a} | {s for s, _, _ in b})
     end = max(e for _, e, _ in a + b)
     closed_a = {(s, e) for s, e, c in a if c}
@@ -145,15 +142,15 @@ def union(
 def control(
     points: np.ndarray, ranges: list[tuple[int, int, bool]]
 ) -> tuple[bytes, bytes]:
-    """(control points, subpaths) of one path shape as the player takes them: float64 x, y, z per
-    control point, four per curve; (first curve, end curve, closed, 0) per subpath."""
+    """一条路径形状按播放器所需格式返回的（控制点、子路径）：每个控制点为 float64 的
+    x、y、z，每条曲线四个；每个子路径为（起始曲线、结束曲线、是否闭合、0）。"""
     whole = points[: len(points) // 4 * 4]
     subpaths = np.array([(c0, c1, int(closed), 0) for c0, c1, closed in ranges], "<u4")
     return np.ascontiguousarray(whole, "<f8").tobytes(), subpaths.tobytes()
 
 
 def centroid_area(points: np.ndarray) -> list[float]:
-    """Mean of the control points and their Newell area vector (one closed polygon)."""
+    """控制点的均值及其 Newell 面积向量（一个闭合多边形）。"""
     nxt = np.roll(points, -1, axis=0)
     area = np.array(
         [
@@ -184,9 +181,9 @@ SURFACE_STEPS = 16  # at most, per face and direction
 @forgets
 @functools.cache
 def _derivative(n: int, periodic: bool) -> np.ndarray:
-    """(n × n) tangents, per sample step, of the C² cubic spline through n evenly spaced values:
-    periodic (the last value repeats the first) or not-a-knot (below four values: the
-    polynomial through them)."""
+    """穿过 n 个等间距值的 C² 三次样条在每个采样步上的 (n × n) 切向量：
+    周期情形（最后一个值重复第一个）或 not-a-knot 情形（少于四个值时：穿过它们
+    的多项式）。"""
     if n < 4:
         few = [
             [[0.0]],
@@ -210,7 +207,7 @@ def _derivative(n: int, periodic: bool) -> np.ndarray:
 
 
 def _hermite(x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Cubic Hermite bases at x (value at 0, at 1; tangent at 0, at 1) and their slopes."""
+    """x 处的三次 Hermite 基（0 处的值、1 处的值；0 处的切线、1 处的切线）及其斜率。"""
     x2, x3 = x * x, x * x * x
     value = np.stack([2 * x3 - 3 * x2 + 1, 3 * x2 - 2 * x3, x3 - 2 * x2 + x, x3 - x2])
     slope = np.stack(
@@ -220,8 +217,9 @@ def _hermite(x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 def _cells(g: np.ndarray) -> np.ndarray:
-    """Each cell's bicubic Hermite data from the spline through grid `g` ((u + 1) × (v + 1) ×
-    dims): (4, 4, u, v, dims) — [value at s 0, 1; ∂u at s 0, 1] × [the same along t, ∂v].
+    """由穿过网格 `g` 的样条得到的每个单元的双三次 Hermite 数据（(u + 1) × (v + 1) ×
+    dims）：(4, 4, u, v, dims) —— [s 为 0、1 处的值；s 为 0、1 处的 ∂u] × [沿 t 的
+    同一组、∂v]。
     """
     tol = 1e-7 * (1.0 + np.abs(g[..., :3]).max())
     du = _derivative(len(g), bool(np.abs(g[0, :, :3] - g[-1, :, :3]).max() <= tol))
@@ -246,8 +244,8 @@ def _cells(g: np.ndarray) -> np.ndarray:
 def _patches(
     cells: np.ndarray, x: np.ndarray, *, derivatives: bool = True
 ) -> tuple[np.ndarray, ...]:
-    """Points, and when requested their derivatives, of every cell at (s, t) ∈ x × x:
-    each (u, v, len(x), len(x), dims)."""
+    """每个单元在 (s, t) ∈ x × x 处的点，以及（当请求时）其导数：
+    每个为 (u, v, len(x), len(x), dims)。"""
     value, slope = _hermite(x)
     along_t = np.einsum("bq,abuvd->auvqd", value, cells)
     points = np.einsum("ap,auvqd->uvpqd", value, along_t)
@@ -259,10 +257,10 @@ def _patches(
 
 
 def surface_steps(g: np.ndarray, linear: np.ndarray) -> int:
-    """Estimate cells per face and direction from midpoint deviation after `linear`.
+    """在 `linear` 之后根据中点偏差估计每个面每个方向的单元数。
 
-    SURFACE_TOLERANCE is the target of this estimate, not a guaranteed error bound;
-    refinement is capped at SURFACE_STEPS and midpoint sampling can miss curvature.
+    SURFACE_TOLERANCE 是此估计的目标值，并非保证的误差界；
+    细化以 SURFACE_STEPS 为上限，且中点采样可能漏掉曲率。
     """
     mid = _patches(_cells(g[..., :3]), np.array([0.5]), derivatives=False)[0][
         :, :, 0, 0
@@ -277,9 +275,9 @@ def surface_steps(g: np.ndarray, linear: np.ndarray) -> int:
 @forgets
 @functools.cache
 def _face_layout(m: int) -> tuple[np.ndarray, np.ndarray]:
-    """A refined face's vertices, as (p, q) on its (m + 1)² lattice — its edge loop first
-    ((0,0) → (m,0) → (m,m) → (0,m) → (0,0): the face's own loop, 4m + 1 with the first
-    repeated), then its inside — and its 2m² triangles, as indices into them."""
+    """一个细化面的顶点，以其 (m + 1)² 网格上的 (p, q) 表示 —— 先是其边环
+    （(0,0) → (m,0) → (m,m) → (0,m) → (0,0)：面自身的环，4m + 1 个顶点且首尾
+    重复），再是其内部点 —— 以及其 2m² 个三角形，作为指向它们的索引。"""
     loop = [(p, 0) for p in range(m)] + [(m, q) for q in range(m)]
     loop += [(p, m) for p in range(m, 0, -1)] + [(0, q) for q in range(m, -1, -1)]
     order = np.array(loop + [(p, q) for p in range(1, m) for q in range(1, m)])
@@ -296,8 +294,8 @@ def _face_layout(m: int) -> tuple[np.ndarray, np.ndarray]:
 def refine_surface(
     g: np.ndarray, m: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
-    """A surface grid drawn: every face's block of the spline's points (any extra columns
-    alike), their normals, the triangles, the block's size."""
+    """绘制的曲面网格：每个面的样条点块（任何多余列相同）、
+    其法线、三角形以及块的大小。"""
     x = np.linspace(0.0, 1.0, m + 1)
     cells = _cells(g)
     points, ds, dt = _patches(cells, x)
@@ -325,7 +323,7 @@ def refine_surface(
 
 
 def rotation(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """CE's camera orbit: world → camera axes."""
+    """CE 的相机轨道：世界坐标 → 相机坐标轴。"""
 
     def rz(a: float) -> np.ndarray:
         return np.array(
@@ -338,19 +336,18 @@ def rotation(phi: float, theta: float, gamma: float) -> np.ndarray:
 
 
 def linear(rgb: np.ndarray) -> np.ndarray:
-    """sRGB-encoded colors in linear light (what light adds)."""
+    """sRGB 编码颜色对应的线性光下的颜色（光所叠加的量）。"""
     return np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
 
 
 def lighting(camera: "Camera", lights: "list[Light]") -> list[float]:
-    """A view's lights, four vectors each, `LIGHTS` of them (the first ones): where (an ambient
-    light: nowhere; a sun: its direction; a point or spot: its point; an environment: its
-    picture's right) and its kind; its color in linear light times its intensity, and a
-    point's or spot's reach (an environment: its picture's id, 0 the studio); a spot's axis
-    (an environment: its picture's up) and the scale and offset of its cone's falloff,
-    and whether it casts shadows (an environment: its picture's sun, which the engine
-    lights by as a sun of the view's). A scene with no lights has the camera's: a sun
-    from its light source, and a dim ambient light (as Manim's shading always has its light).
+    """一个视图的光照，每盏灯四个向量，共 `LIGHTS` 盏（取最前面的若干盏）：位置
+    （环境光：无位置；平行光：其方向；点光源或聚光灯：其位置；环境光照：其图像
+    的右轴）及其种类；线性光下的颜色乘以强度，以及点光源或聚光灯的照射范围
+    （环境光照：其图像的 id，0 表示工作室）；聚光灯的轴向（环境光照：其图像的
+    上轴）及其锥形衰减的缩放与偏移，以及是否投射阴影（环境光照：其图像的太阳，
+    引擎将其作为该视图的一盏平行光来照明）。没有光的场景使用相机的光：一盏来自
+    其光源的平行光和一盏暗淡的环境光（因为 Manim 的着色始终带有其光）。
     """
     if not lights:
         sun = np.asarray(camera.light_source.get_center(), dtype=float)
@@ -416,16 +413,16 @@ def lighting(camera: "Camera", lights: "list[Light]") -> list[float]:
 
 
 def lit(mobjects: "list[Mobject]") -> "list[Light]":
-    """The lights among a view's mobjects."""
+    """一个视图中各 mobject 里的光。"""
     return [m for m in mobjects if isinstance(m, Light)]
 
 
 def view(
     camera: "Camera", width: int, height: int, lights: "list[Light] | None" = None
 ) -> tuple[bytes, np.ndarray, bool]:
-    """(uniform bytes, world → clip matrix, 3D?) of a camera; 2D is orthographic, so the painter's
-    order stands. Reads only the camera's mobjects (`get_mobjects_indicating_movement`) and settings,
-    and the view's `lights` (a 3D view's: those that light the mobjects with a material).
+    """一个相机的（uniform 字节、世界 → 裁剪矩阵、是否为 3D）；2D 为正交投影，因此
+    绘制者的顺序保持不变。仅读取相机的 mobject（`get_mobjects_indicating_movement`）
+    及其设置，以及该视图的 `lights`（3D 视图的：那些为带材质的 mobject 照明的光）。
     """
     hw, hh = camera.frame_width / 2, camera.frame_height / 2
     center = np.asarray(camera.frame_center, dtype=float)
@@ -493,7 +490,7 @@ def _same_topology(
     a: "tuple[np.ndarray | Lattice, np.ndarray | None] | None",
     b: "tuple[np.ndarray | Lattice, np.ndarray | None] | None",
 ) -> bool:
-    """Topology and UV values are immutable; retaining them also retains their identity."""
+    """拓扑和 UV 值是不可变的；保留它们也就保留了它们的身份。"""
     if a is None or b is None:
         return a is b
     return a[0] is b[0] and a[1] is b[1]
@@ -501,8 +498,8 @@ def _same_topology(
 
 @dataclass(slots=True)
 class Growth:
-    """A growing path as the player has it: its key (None until it grows), its curves, its uploads
-    afresh (a new subpath began) and its last subpath's first point."""
+    """播放器所持有的一条生长中的路径：其键（生长完成前为 None）、其曲线数、
+    其重新上传次数（新子路径开始时）以及其最后一个子路径的起始点。"""
 
     key: int | None
     curves: int
@@ -511,13 +508,13 @@ class Growth:
 
 
 Player: type[_engine.Player] | None = getattr(_engine, "Player", None)
-"""The engine's player, which draws with the GPU; None in Pyodide, whose engine has no GPU (a
-film is then recorded as a take, with a `Recorder`)."""
+"""引擎的播放器，用 GPU 绘制；在 Pyodide 中为 None，因为其引擎没有 GPU
+（此时影片以一个 `Recorder` 记录为一次拍摄）。"""
 
 
 class Feeder:
-    """Turns a frame's display list into player records, uploading what appears the first time:
-    to the GPU's player, or to a recorder writing them into a take."""
+    """将一帧的显示列表转换为播放器记录，并在首次出现时上传：
+    上传到 GPU 的播放器，或上传到将其写入一次拍摄的记录器。"""
 
     def __init__(
         self, width: int, height: int, player: "_engine.Player | Recorder"
@@ -568,15 +565,15 @@ class Feeder:
 
     # ── residency ────────────────────────────────────────────────────────────
     def shown(self, records: np.ndarray, last: int) -> None:
-        """The keys these records draw stay resident at least until frame `last` + KEEP."""
+        """这些记录所绘制的键至少驻留到 `last` + KEEP 帧。"""
         keys = np.concatenate([records[name] for name in (*KEYS, "texture")]).tolist()
         self.last_used.update(dict.fromkeys(keys, last))
         self.last_used.pop(0, None)
 
     def sweep(self, pinned: Sequence[bytes] = (), *, pressed: bool = False) -> None:
-        """Evict what no frame has shown for KEEP frames (frames mark what they show every MARK
-        frames; the film holds back at most one frame). Memory pressure keeps only the latest
-        frame and the records pinned by the caller, including every pending camera view."""
+        """驱逐已 KEEP 帧未被任何帧显示的资源（帧每 MARK 帧标记其显示的内容；
+        影片至多暂存一帧）。内存压力下仅保留最新帧以及调用者钉住的记录，包括
+        所有待处理的相机视图。播放器还保留其排队中的导出重试仍需要的资源。"""
         stored, dead = self.player.stored()
         pressed |= stored - dead + sum(self.texture_bytes.values()) > BUDGET
         if self.frames - self.swept < SWEEP and not pressed:
@@ -592,7 +589,11 @@ class Feeder:
         # it is only forgotten
         resident = [k for k in stale if self.sizes.get(k, -1) != -1]
         if resident:
-            self.player.evict(resident)
+            accepted = set(self.player.evict(resident))
+            blocked = set(resident) - accepted
+            stale = [key for key in stale if key not in blocked]
+        if not stale:
+            return
         self.evictions += 1
         gone = set(stale)
         for key in stale:
@@ -616,8 +617,8 @@ class Feeder:
 
     # ── uploads ──────────────────────────────────────────────────────────────
     def grown(self, shape: Shape) -> tuple[int, np.ndarray] | None:
-        """A growing path (a prefix of a log seen growing): uploaded whole once, then only the curves it
-        gains. None at first sight: a log that never grows is an ordinary shape."""
+        """一条生长中的路径（一条日志中观察到正在生长的前缀）：整体上传一次，此后
+        仅上传其新增的曲线。首次见到时返回 None：从不生长的日志即普通形状。"""
         log = shape.log
         assert log is not None
         points = shape.array
@@ -662,8 +663,8 @@ class Feeder:
         return key, IDENTITY
 
     def path(self, shape: Shape) -> tuple[int, np.ndarray]:
-        """(key, A): the shape's affine class, uploaded once, and where it is placed — or, for
-        a path that grows, the path itself (see `grown`)."""
+        """(key, A)：该形状的仿射类，上传一次，及其放置位置 —— 或者，对于
+        一条生长中的路径，即路径本身（见 `grown`）。"""
         if shape.log is not None and (placed := self.grown(shape)) is not None:
             return placed
         key, canonical, a = shape.affine
@@ -680,8 +681,8 @@ class Feeder:
         return key, a
 
     def pair(self, a: Shape, b: Shape) -> list[tuple[int, np.ndarray]]:
-        """Keys and placements of a morph pair: the classes themselves if their subpaths agree, else
-        both uploaded again with the union of their subpaths (once per pair)."""
+        """一个变形对的键和放置：若两者的子路径一致则用各自的类本身，否则
+        将两者以子路径的并集重新上传（每对一次）。"""
         (ka, aa), (kb, ab) = self.path(a), self.path(b)
         sa, sb = self.structures.get(ka), self.structures.get(kb)
         if sa is None or sb is None or sa == sb:
@@ -716,8 +717,8 @@ class Feeder:
         return key, a
 
     def surface_steps(self, shape: Shape, grid: tuple[int, int] | None) -> int:
-        """A surface shape's refinement m (0: not a surface's grid — drawn as its faces), once
-        per shape: its own size decides, not where a frame puts it (a morph keeps its m).
+        """一个曲面形状的细化 m（0：非曲面网格 —— 按其面绘制），每个形状一次：
+        由其自身大小决定，而非某帧放置它的位置（变形保持其 m 不变）。
         """
         if grid is None:
             return 0
@@ -738,8 +739,8 @@ class Feeder:
         uvs: np.ndarray | None,
         steps: int = 0,
     ) -> tuple[int, np.ndarray]:
-        """Upload explicit triangles or lower a sample lattice to refined spline cells:
-        the faces it draws, cut from its whole lattice's spline."""
+        """上传显式三角形，或将采样网格降阶为细化的样条单元：
+        即它所绘制的面，从其整个网格的样条中切出。"""
         lattice = topology if isinstance(topology, Lattice) else None
         steps = steps if lattice is not None else 0
         known = self.mesh_keys.get(id(shape))
@@ -801,8 +802,8 @@ class Feeder:
     def per_vertex(
         self, rows: np.ndarray, n: int, key: int, lattice: Lattice | None
     ) -> np.ndarray:
-        """A mesh's rows, one per vertex the player draws: each drawn lattice cell's paint
-        row repeats on every vertex of its refined block. No lattice: an ordinary mesh's.
+        """一个网格的行，播放器绘制的每个顶点一行：每个被绘制的网格单元的绘制行
+        在其细化块的每个顶点上重复。无网格时：即普通网格的情形。
         """
         count = n if lattice is None else lattice.u * lattice.v
         rows = rows if len(rows) == count else stretch_array(rows, count)
@@ -836,8 +837,7 @@ class Feeder:
         return key
 
     def lights(self, mobjects: "list[Mobject]") -> "list[Light]":
-        """The lights among a view's mobjects, their environments' pictures uploaded the first
-        time."""
+        """一个视图中各 mobject 里的光，其环境光照的图像在首次出现时上传。"""
         lights = lit(mobjects)
         for light in lights:
             p = light.picture if isinstance(light, EnvironmentLight) else None
@@ -867,7 +867,7 @@ class Feeder:
     def frame(
         self, camera: "Camera", mobjects: "list[Mobject]"
     ) -> tuple[bytes, bytes, list[CameraView]]:
-        """(view, records, camera views to draw first) — the arguments of `Player.render`."""
+        """(视图、记录、需先绘制的相机视图) —— 即 `Player.render` 的参数。"""
         self.sweep()
         self.latest = []
         cameras: list[CameraView] = []
@@ -885,8 +885,8 @@ class Feeder:
         height: int,
         cameras: list[CameraView],
     ) -> int:
-        """The texture key of what `seen_by` sees — everything but `display` — drawn at the size
-        `display` covers on screen (CE's rule), before the view that shows it."""
+        """`seen_by` 所见内容（除 `display` 外的一切）的纹理键 —— 按 `display` 在
+        屏幕上覆盖的大小绘制（CE 的规则），在显示它的视图之前绘制。"""
         key = digest(b"camera", id(seen_by).to_bytes(8, "little"))
         if all(c[0] != key for c in cameras):
             w = max(1, int(width * display.width / camera.frame_width))
@@ -936,11 +936,10 @@ class Feeder:
         cameras: list[CameraView],
         fixed: "set[Mobject]",
     ) -> bytes | None:
-        """One object's record (336 bytes), or None if it draws nothing. It is a function of the
-        object's geometry and paint (values), a mesh's topology (indices or lattice dimensions, with uvs:
-        values too), its camera flags and lighting, so it is kept on the object and remade only
-        when one of them changes (or what it draws was evicted); a camera's picture is remade
-        every frame."""
+        """一个对象的记录（336 字节），若不绘制任何内容则为 None。它是对象的几何与
+        绘制（值）、网格拓扑（索引或网格维度及 uvs：亦为值）、其相机标志与光照的
+        函数，因此保存在对象上，仅当其中之一变化（或其所绘内容被驱逐）时才重新
+        生成；相机的图像每帧重新生成。"""
         g: Blend = mob._geometry
         if not g.terms:
             return None
@@ -996,7 +995,7 @@ class Feeder:
         cameras: list[CameraView],
         fixed: bool,
     ) -> tuple[bytes, tuple[int, ...]] | None:
-        """(record, the keys it draws) — see `record`; `fixed`: is it fixed in the frame?"""
+        """(记录, 它所绘制的键) —— 见 `record`；`fixed`：是否固定在帧中？"""
         g: Blend = mob._geometry
         p = mob.paint
         # key1, key2; fill rows, stroke rows of paint 1, of paint 2; texture, flags
@@ -1121,10 +1120,10 @@ class Feeder:
         mobjects: "list[Mobject]",
         leaves: "list[tuple[Mobject, list[Mobject], Path, np.ndarray, np.ndarray]]",
     ) -> Iterator[tuple[bytes, bytes]]:
-        """Mix whole keyframe intervals on the CPU; upload an interval when it first appears.
+        """在 CPU 上混合整个关键帧区间；区间在首次出现时上传。
 
-        A leaf that cannot be mixed is materialized when its frame is yielded, so a long
-        play never makes every future shape resident on the GPU before drawing its first.
+        无法混合的叶节点在其帧被产出时才物化，因此一次长播放不会在绘制第一帧
+        之前就把每个未来形状都驻留到 GPU 上。
         """
         self.sweep()
         frames = len(leaves[0][3]) if leaves else 0
@@ -1231,8 +1230,8 @@ class Feeder:
         leaves: "list[tuple[Mobject, list[Mobject], Path, np.ndarray, np.ndarray]]",
         frames: int,
     ) -> list[bytes] | None:
-        """Each frame's view of a pure play that moves the camera or a light (None if it moves
-        neither): their leaves stepped frame by frame, the view read after each step."""
+        """移动相机或光源的纯播放中每一帧的视图（若两者都不移动则为 None）：
+        其叶节点逐帧步进，每步之后读取视图。"""
         lights = self.lights(mobjects)
         own = {
             id(m)
@@ -1261,8 +1260,8 @@ class Feeder:
         args: tuple,
         live: np.void | None,
     ) -> np.ndarray | None:
-        """The leaf's records between keyframes a and b at every t: shapes by the path's coefficients,
-        paints as the player mixes them (b's is paint 2); None unless both are one-term paths.
+        """叶节点在关键帧 a 与 b 之间每个 t 处的记录：形状按路径系数混合，
+        绘制由播放器混合（b 的为绘制 2）；除非两者均为单项路径，否则为 None。
         """
         if not (isinstance(a, VMobject) and isinstance(b, VMobject)) or live is None:
             return None

@@ -1,6 +1,6 @@
-title: "Graphs"
+title: "图形"
 nav:
-  - Overview: index.md
+  - 概览: index.md
   - axes.md
   - plotting.md
   - number-lines.md

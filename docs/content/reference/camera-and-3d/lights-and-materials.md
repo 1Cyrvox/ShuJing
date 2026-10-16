@@ -1,11 +1,11 @@
 ---
-title: "Lights and materials"
-description: "The lights of a 3D scene, from the sun to a spotlight, and the materials that say how a surface reflects them."
+title: "灯光与材质"
+description: "3D 场景的灯光，从太阳到聚光灯，以及描述曲面如何反射它们的材质。"
 ---
 
-# Lights and materials
+# 灯光与材质
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -24,14 +24,13 @@ class LightsHero(m.ThreeDScene):
         self.wait()
 ```
 
-A 3D scene is lit by its lights: add them as you add mobjects. A sun lights everything from
-one direction; a bulb lights around it, fading with distance; a spotlight lights a cone; the
-sky lights everything a little, from all around. Without lights, a scene keeps Manim's
-plain shading.
+3D 场景由其灯光照明：像添加 mobject 一样添加它们。太阳从一个方向照亮一切；灯泡在周围照明，
+随距离衰减；聚光灯照亮一个锥形区域；天空从四面八方将一切微微照亮。没有灯光时，场景保持
+Manim 的普通着色。
 
-A mobject's material says how its surface reflects light: rough or smooth, plastic or metal.
+mobject 的材质描述其曲面如何反射光线：粗糙或光滑，塑料或金属。
 
-## Lights
+## 灯光
 
 ::: manimgx.Light
     options:
@@ -57,7 +56,7 @@ A mobject's material says how its surface reflects light: rough or smooth, plast
     options:
       heading_level: 3
 
-## Materials
+## 材质
 
 ::: manimgx.Material
     options:

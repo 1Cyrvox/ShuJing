@@ -1,11 +1,10 @@
-# Camera and 3D
+# 相机与 3D
 
-The camera decides what the video shows. Its frame is a rectangle in the scene: the frame
-that [Positions](positions.md) measures. Move the frame, and the view moves with it.
+相机决定了视频所显示的内容。它的取景框是场景中的一个矩形：即 [位置](positions.md) 所度量的那个框。移动取景框，视图也随之移动。
 
-## Pan and zoom
+## 平移与缩放
 
-`self.camera.frame` is a mobject. Animate it as any other mobject:
+`self.camera.frame` 是一个 mobject。可以像对待任何其他 mobject 一样对它进行动画：
 
 ```python
 import manimgx as m
@@ -23,16 +22,15 @@ class Zoom(m.Scene):
         self.play(frame.animate.scale(4).move_to(m.ORIGIN), run_time=2)
 ```
 
-- Move the frame to pan: `frame.animate.move_to(point)`.
-- Scale it to zoom: a frame half as large shows everything twice as large.
+- 移动取景框以平移：`frame.animate.move_to(point)`。
+- 缩放取景框以缩放：取景框缩小为一半时，所有内容显示为两倍大小。
 
-## Three dimensions
+## 三维
 
-To make a scene in 3D, make it from `m.ThreeDScene`. Its camera looks at the frame from
-two angles:
+要制作 3D 场景，可让其继承自 `m.ThreeDScene`。它的相机从两个角度观察取景框：
 
-- `phi`, its angle from straight above: 0 looks straight down, as in a flat scene.
-- `theta`, its angle around the vertical axis.
+- `phi`，相机自正上方的俯角：0 表示正下方俯视，如同平面场景。
+- `theta`，相机绕垂直轴的角度。
 
 ```python
 import manimgx as m
@@ -63,17 +61,12 @@ class Hill(m.ThreeDScene):
         self.wait(3)
 ```
 
-- `self.set_camera_orientation(phi=..., theta=...)` turns the camera at once, and
-  `self.move_camera(...)` turns it in an animation.
-- `self.begin_ambient_camera_rotation(rate=0.3)` turns the camera around the scene, until
-  `self.stop_ambient_camera_rotation()`.
-- `self.add_fixed_in_frame_mobjects(title)` keeps a mobject still on the screen while the
-  camera moves: here, the title stays in its corner.
+- `self.set_camera_orientation(phi=..., theta=...)` 一次性转动相机，而 `self.move_camera(...)` 则在动画中转动它。
+- `self.begin_ambient_camera_rotation(rate=0.3)` 让相机围绕场景持续转动，直到调用 `self.stop_ambient_camera_rotation()`。
+- `self.add_fixed_in_frame_mobjects(title)` 在相机移动时让某个 mobject 在屏幕上保持不动：这里标题始终停留在它的角落。
 
-Every mobject has three coordinates, so flat mobjects work in 3D too. The
-[reference][manimgx.mobjects.three_d] shows the mobjects made for 3D, such as
-spheres and cubes.
+每个 mobject 都有三个坐标，因此平面 mobject 也能在 3D 中使用。[参考][manimgx.mobjects.three_d] 展示了专为 3D 制作的 mobject，例如球体和立方体。
 
-## Next
+## 下一步
 
-[Sound and voice](sound-and-voice.md) shows how to add sound and a voice to your video.
+[声音与语音](sound-and-voice.md) 展示了如何为你的视频添加声音和语音。

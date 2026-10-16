@@ -1,11 +1,11 @@
 ---
-title: "Rate functions"
-description: "How an animation paces itself: smoothly, steadily, with a rush, a bounce or a wiggle. Every rate function, to play and to scrub."
+title: "速率函数"
+description: "动画如何把握节奏：平滑地、匀速地、带冲刺、带弹跳或带摆动。每一个速率函数，可播放可拖动。"
 ---
 
-# Rate functions { #manimgx.animation.easing }
+# 速率函数 { #manimgx.animation.easing }
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -33,18 +33,18 @@ class RateFunctionsHero(m.Scene):
         self.wait()
 ```
 
-An animation runs from 0, its start, to 1, its end. Its rate function says how far along the
-change is at each moment of that time: `rate_func(t)` for t from 0 to 1. The default,
-[smooth][manimgx.smooth], starts slowly, speeds up and ends slowly; [linear][manimgx.linear]
-keeps one speed. Give another to `play` or to any animation:
-`self.play(square.animate.shift(m.RIGHT), rate_func=m.rush_into)`.
+动画从 0（其起点）运行到 1（其终点）。其速率函数说明在这段时间的每个时刻变化进行
+到了多远：对于从 0 到 1 的 t，为 `rate_func(t)`。默认的
+[smooth][manimgx.smooth] 开始缓慢、加速、结束缓慢；[linear][manimgx.linear] 保持
+匀速。将其他速率函数传给 `play` 或任意动画：
+`self.play(square.animate.shift(m.RIGHT), rate_func=m.rush_into)`。
 
-A rate function may go past 1 and back, for a bounce, or come back to 0, so that the
-animation ends where it started. Choose one to see it move:
+速率函数可以超过 1 再返回，以产生弹跳效果，也可以回到 0，使动画在起点结束。选择一个
+来观看其运动：
 
 <div class="mx-rates" data-rates="smooth linear rush_into rush_from slow_into double_smooth there_and_back there_and_back_with_pause running_start lingering wiggle exponential_decay smoothstep smootherstep ease_in_back ease_in_bounce ease_in_circ ease_in_cubic ease_in_elastic ease_in_expo ease_in_out_back ease_in_out_bounce ease_in_out_circ ease_in_out_cubic ease_in_out_elastic ease_in_out_expo ease_in_out_quad ease_in_out_quart ease_in_out_quint ease_in_out_sine ease_in_quad ease_in_quart ease_in_quint ease_in_sine ease_out_back ease_out_bounce ease_out_circ ease_out_cubic ease_out_elastic ease_out_expo ease_out_quad ease_out_quart ease_out_quint ease_out_sine"></div>
 
-## The usual ones
+## 常用函数
 
 ::: manimgx.smooth
     options:
@@ -102,10 +102,10 @@ animation ends where it started. Choose one to see it move:
     options:
       heading_level: 3
 
-## Easing curves
+## 缓动曲线
 
-The easing curves are the web's: each eases in (starts slowly), eases out (ends slowly), or
-both, with a curve of its own.
+缓动曲线取自 Web 标准：每条曲线缓入（开始缓慢）、缓出（结束缓慢），或两者兼具，各有
+其自己的曲线。
 
 <div class="mx-rows" markdown>
 
@@ -231,10 +231,9 @@ both, with a curve of its own.
 
 </div>
 
-## Make your own
+## 自行制作
 
-A rate function is any Python function from a number to a number. These make one from
-another.
+速率函数是任意从数值到数值的 Python 函数。以下函数从另一个函数构造出一个。
 
 ::: manimgx.squish_rate_func
     options:

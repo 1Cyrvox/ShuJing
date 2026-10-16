@@ -1,6 +1,6 @@
-title: "Text and math"
+title: "文本与数学"
 nav:
-  - Overview: index.md
+  - 概览: index.md
   - text.md
   - math.md
   - numbers.md

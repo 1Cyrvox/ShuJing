@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Global scene configuration (a small, typed subset of CE's `config`)."""
+"""全局场景配置（CE `config` 的一个小而有类型的子集）。"""
 
 from dataclasses import dataclass, field
 from typing import Literal, overload
@@ -18,52 +18,49 @@ from manimgx.typing import Point3D, Vector3D
 
 @dataclass
 class Config:
-    """The configuration scenes are made and rendered with: the video's size, frame rate
-    and background, and the frame's size in scene units.
+    """场景创建与渲染所用的配置：视频的尺寸、帧率和背景，以及画面在场景单位中的尺寸。
 
-    There is one, [`config`][manimgx.config.config]. Set its fields before making a
-    scene: a scene's camera, and the mobjects that fill the frame, take their sizes and
-    the background from it when they are made, and [`render`][manimgx.Scene.render]
-    takes the video's size and frame rate when it starts. It can be read and set as a
-    dictionary too, as Manim code does: `config["frame_width"]`,
-    `config["pixel_height"] = 720`.
+    该配置只有一个实例：[`config`][manimgx.config.config]。在创建场景之前设置其字段：
+    场景的摄像机以及填满画面的 mobject 在创建时从该配置获取各自的尺寸和背景，
+    [`render`][manimgx.Scene.render] 在启动时获取视频的尺寸和帧率。它也可以像
+    Manim 代码那样以字典方式读取和设置：`config["frame_width"]`、
+    `config["pixel_height"] = 720`。
 
-    The frame has the video's proportions, and its short side is 8 units: a wide video
-    (16:9) shows about 14.2 × 8 units, a tall one (9:16) 8 × 14.2. So what fits in the
-    8 × 8 square at the center fits both, at the same size.
+    画面具有视频的宽高比，其短边为 8 个单位：宽屏视频（16:9）显示约 14.2 × 8 个单位，
+    竖屏视频（9:16）显示 8 × 14.2。因此，能放入中央 8 × 8 正方形的内容，
+    在两种比例下都能以相同尺寸完整显示。
     """
 
     pixel_width: int = 1920
-    """The width of the video, in pixels (default 1920)."""
+    """视频的宽度，以像素为单位（默认 1920）。"""
     pixel_height: int = 1080
-    """The height of the video, in pixels (default 1080). For a tall video (9:16), make
-    it the larger: `config.pixel_width, config.pixel_height = 1080, 1920`."""
+    """视频的高度，以像素为单位（默认 1080）。对于竖屏视频（9:16），应将其设为
+    较大的值：`config.pixel_width, config.pixel_height = 1080, 1920`。"""
     frame_rate: float = 60
-    """How many frames a second the film has (default 60): frame k shows the scene at
-    exactly k / `frame_rate` seconds. A video needs a whole number."""
+    """影片每秒包含的帧数（默认 60）：第 k 帧恰好在 k / `frame_rate` 秒处显示场景。
+    视频要求该值为整数。"""
     simulation_rate: int = 60  # the simulation clock of `manimgx.animation.clock`
-    """How many times a second the simulation clock ticks (default 60).
+    """模拟时钟每秒滴答的次数（默认 60）。
 
-    A time-based updater that is not a [flow][manimgx.mobject.flow] is simulated:
-    it steps at each tick of this clock and at the end of each play and wait, never at
-    frames, so it takes the same steps at any frame rate, and a frame shows it as its
-    last step left it. While one is in the scene, the scene computes every tick. At 60
-    frames a second each frame is a tick, so the ticks cost nothing more; at a frame
-    rate that divides it (10, 12, 15, 20, 30), every frame falls on a tick too.
+    非[流][manimgx.mobject.flow]的时间更新器以模拟方式运行：它在此时钟的每次
+    滴答以及每次 play 和 wait 结束时步进，从不在帧上步进，因此在任何帧率下都执行
+    相同的步进，帧所显示的是其最后一次步进留下的状态。当更新器处于场景中时，
+    场景会计算每一次滴答。在每秒 60 帧时，每一帧恰好是一次滴答，因此滴答不产生
+    额外开销；在能整除 60 的帧率（10、12、15、20、30）下，每一帧也恰好落在
+    一次滴答上。
     """
     background_color: ParsableManimColor = BLACK
-    """The color of the background (default black)."""
+    """背景的颜色（默认黑色）。"""
     background_opacity: float = 1.0
-    """The opacity of the background, from 0 to 1 (default 1)."""
+    """背景的不透明度，取值范围 0 到 1（默认 1）。"""
     _frame_height: float | None = field(default=None, repr=False)
-    """The frame's height as set, if it was (`frame_height`)."""
+    """画面被设定时的高度（`frame_height`）。"""
 
     @property
     def frame_height(self) -> float:
-        """The height of the frame, in scene units. Unless set, the frame's short side is
-        8 units: a wide video's frame is 8 high, a tall one's as high as its proportions
-        make it when it is 8 wide (about 14.2 at 9:16). Its width follows from the
-        video's proportions."""
+        """画面的高度，以场景单位表示。除非另行设置，画面的短边为 8 个单位：
+        宽屏视频的画面高为 8，竖屏视频的画面在其宽为 8 时由宽高比决定高度
+        （9:16 时约 14.2）。画面的宽度由视频的宽高比决定。"""
         if self._frame_height is not None:
             return self._frame_height
         return 8.0 * max(1.0, self.pixel_height / self.pixel_width)
@@ -74,52 +71,48 @@ class Config:
 
     @property
     def frame_width(self) -> float:
-        """The width of the frame, in scene units: `frame_height` times the video's
-        aspect ratio (about 14.2 at 16:9, 8 at 9:16)."""
+        """画面的宽度，以场景单位表示：`frame_height` 乘以视频的宽高比
+        （16:9 时约 14.2，9:16 时为 8）。"""
         return self.frame_height * self.pixel_width / self.pixel_height
 
     @property
     def frame_x_radius(self) -> float:
-        """Half the frame's width, in scene units: the x of its right edge."""
+        """画面宽度的一半，以场景单位表示：即其右边缘的 x 坐标。"""
         return self.frame_width / 2
 
     @property
     def frame_y_radius(self) -> float:
-        """Half the frame's height, in scene units (4 for a wide video): the y of its top
-        edge."""
+        """画面高度的一半，以场景单位表示（宽屏视频为 4）：即其上边缘的 y 坐标。"""
         return self.frame_height / 2
 
     @property
     def top(self) -> "Point3D":
-        """The middle of the frame's top edge: `frame_y_radius` up from the origin."""
+        """画面上边缘的中点：从原点向上 `frame_y_radius` 个单位。"""
         return self.frame_y_radius * np.array([0.0, 1.0, 0.0])
 
     @property
     def bottom(self) -> "Point3D":
-        """The middle of the frame's bottom edge: `frame_y_radius` down from the
-        origin."""
+        """画面下边缘的中点：从原点向下 `frame_y_radius` 个单位。"""
         return -self.top
 
     @property
     def right_side(self) -> "Point3D":
-        """The middle of the frame's right edge: `frame_x_radius` right of the
-        origin."""
+        """画面右边缘的中点：从原点向右 `frame_x_radius` 个单位。"""
         return self.frame_x_radius * np.array([1.0, 0.0, 0.0])
 
     @property
     def left_side(self) -> "Point3D":
-        """The middle of the frame's left edge: `frame_x_radius` left of the origin."""
+        """画面左边缘的中点：从原点向左 `frame_x_radius` 个单位。"""
         return -self.right_side
 
     @property
     def aspect_ratio(self) -> float:
-        """The video's width over its height: `pixel_width / pixel_height` (16:9 by
-        default)."""
+        """视频宽度与高度之比：`pixel_width / pixel_height`（默认 16:9）。"""
         return self.pixel_width / self.pixel_height
 
     @property
     def background(self) -> ManimColor:
-        """The color of the background, as a [`ManimColor`][manimgx.ManimColor]."""
+        """背景的颜色，以 [`ManimColor`][manimgx.ManimColor] 表示。"""
         return ManimColor(self.background_color)
 
     # CE's dict-style access (`config["frame_width"]`), typed by key
@@ -172,9 +165,9 @@ class Config:
 
 
 config = Config()
-"""The configuration every scene is made and rendered with, as `m.config`: a
-[`Config`][manimgx.config.Config]. Set its fields before making a scene:
-`m.config.pixel_width, m.config.pixel_height = 1280, 720`."""
+"""每个场景创建与渲染所用的配置，以 `m.config` 访问：一个
+[`Config`][manimgx.config.Config]。在创建场景之前设置其字段：
+`m.config.pixel_width, m.config.pixel_height = 1280, 720`。"""
 
 
 class _PixelUnits:
@@ -189,15 +182,14 @@ class _PixelUnits:
     "use a fraction of config.frame_width or config.frame_height", category=None
 )
 class Percent:
-    """A length as a percentage of the frame's width or height: `25 * Percent(X_AXIS)`
-    is a quarter of the frame's width, in scene units.
+    """以画面宽度或高度的百分比表示的长度：`25 * Percent(X_AXIS)` 表示画面宽度的
+    四分之一，以场景单位表示。
 
-    The frame's size is read when the unit is made.
+    画面的尺寸在创建该单位时读取。
 
     Args:
-        axis: [X_AXIS][manimgx.X_AXIS] for the frame's width, [Y_AXIS][manimgx.Y_AXIS]
-            for its height; [Z_AXIS][manimgx.Z_AXIS], which has no length, raises an
-            exception.
+        axis: [X_AXIS][manimgx.X_AXIS] 对应画面宽度，[Y_AXIS][manimgx.Y_AXIS]
+            对应画面高度；[Z_AXIS][manimgx.Z_AXIS] 无长度，会抛出异常。
     """
 
     def __init__(self, axis: Vector3D) -> None:
@@ -216,9 +208,9 @@ class Percent:
 
 
 Pixels = _PixelUnits()
-"""Pixels as a unit of length: `100 * Pixels` is the width of 100 of the rendered
-frame's pixels, in scene units, as the configuration sets them when multiplied."""
+"""以像素作为长度单位：`100 * Pixels` 表示渲染画面中 100 个像素的宽度，
+以场景单位表示，其值在乘法运算时由配置决定。"""
 Degrees = constants.PI / 180
-"""One degree, in radians: `30 * Degrees` is 30°, as [DEGREES][manimgx.DEGREES] is."""
+"""一度的弧度值：`30 * Degrees` 表示 30°，与 [DEGREES][manimgx.DEGREES] 相同。"""
 Munits = 1
-"""One scene unit: `2 * Munits` is 2, a length written in scene units."""
+"""一个场景单位：`2 * Munits` 即为 2，以场景单位表示的长度。"""

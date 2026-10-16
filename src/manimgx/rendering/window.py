@@ -1,16 +1,14 @@
-"""Window: ManimGX's player in a window of its own, on this machine's screen, drawn by its GPU.
+"""Window：ManimGX 的播放器，运行在自身独立的窗口中，位于本机屏幕上，由本机 GPU 绘制。
 
-A window plays the takes it is sent (see [`Film`][manimgx.Film]): each frame as soon as it is
-recorded, any frame again at once. A newer take — the scene run again — replaces the one shown
-at the same moment, once it gets there: an edit never loses the place.
+窗口播放发送给它的片段（见 [`Film`][manimgx.Film]）：每一帧在录制时即刻播放，任意一帧可立即重播。
+更新的片段——即场景重新运行——会在到达的同一时刻替换当前显示的内容：编辑不会丢失位置。
 
     with m.Window() as window:
         MyScene().render(take=window)
         window.wait()  # until it is closed
 
-The window is a process of its own, which the take reaches through a pipe: it plays on while
-the scene runs, and a scene's process stays free for the scene. It closes when it is closed, or
-when the process that opened it closes it, or ends.
+窗口是一个独立进程，片段通过管道到达该进程：它在场景运行时持续播放，
+而场景的进程则保持空闲以服务场景。窗口在自身被关闭、打开它的进程关闭它或结束时关闭。
 """
 
 import contextlib
@@ -29,17 +27,17 @@ from manimgx.rendering.film import Cut
 
 
 class Window:
-    """ManimGX's player in a window on this machine's screen, which plays the takes it is sent.
+    """ManimGX 的播放器，运行在本机屏幕的窗口中，播放发送给它的片段。
 
-    A window is a [`Take`][manimgx.rendering.film.Take]: hand it to
-    [`Scene.render`][manimgx.Scene.render] as `take`, and it plays the film as it is recorded.
-    Once it is closed, a film sent to it is cut (see [`Cut`][manimgx.rendering.film.Cut]).
+    窗口是一个 [`Take`][manimgx.rendering.film.Take]：将其传给
+    [`Scene.render`][manimgx.Scene.render] 作为 `take`，它会在录制时播放影片。
+    一旦窗口关闭，发送给它的影片即被剪切（见 [`Cut`][manimgx.rendering.film.Cut]）。
 
-    Its viewer can ask for another of the file's scenes (N and P).
+    其查看者可请求该文件的其它场景（N 和 P）。
 
     Args:
-        title: The window's title.
-        time: Where its playhead starts, in seconds.
+        title: 窗口的标题。
+        time: 播放头起始位置，以秒为单位。
     """
 
     def __init__(self, title: str = "ManimGX", *, time: float = 0.0) -> None:
@@ -55,15 +53,15 @@ class Window:
         )
         self._asked: queue.Queue[str] = queue.Queue()
         self.failure: str | None = None
-        """Why the window failed, if it did (no screen to open on, no GPU): it is closed."""
+        """窗口失败的原因（若失败）：无可打开的屏幕、无 GPU 等：此时窗口已关闭。"""
         self._listening = threading.Thread(target=self._listen, daemon=True)
         self._listening.start()
 
     def __call__(self, data: bytes) -> None:
-        """Send the window the take's next bytes.
+        """向窗口发送片段的下一批字节。
 
         Raises:
-            Cut: The window is closed: the film is cut there.
+            Cut: 窗口已关闭：影片在此处被剪切。
         """
         pipe = self._process.stdin
         if pipe is None or pipe.closed:
@@ -78,48 +76,47 @@ class Window:
 
     @deprecated("ManimGX's machinery: ManimGX preview calls it", category=None)
     def scenes(self, names: Sequence[str], playing: str) -> None:
-        """Tell the window the file's scenes, and the one it plays: its viewer can ask for
-        the others (N, P; see [`asked`][manimgx.Window.asked]).
+        """告知窗口该文件的场景列表及当前播放的场景：其查看者可请求
+        其它场景（N、P；见 [`asked`][manimgx.Window.asked]）。
 
         Args:
-            names: The file's scenes, in order.
-            playing: The one its takes are of now.
+            names: 该文件的场景，按顺序排列。
+            playing: 当前片段所对应的场景。
         """
         self._say({"scenes": list(names), "scene": playing})
 
     @deprecated("ManimGX's machinery: ManimGX preview calls it", category=None)
     def failed(self, error: BaseException, trace: str, line: int | None = None) -> None:
-        """Show the scene's error over the last picture it made, until the next take.
+        """在最后生成的画面上显示场景错误，直至下一片段。
 
         Args:
-            trace: What to show: the lines of the scene's code it went through, and the error.
-            line: The line of the scene's file it failed at, if any.
+            trace: 要显示的内容：场景代码所经过的行及错误信息。
+            line: 场景文件中失败的行号（若有）。
         """
         fault = {"message": str(error), "type": type(error).__name__}
         self._say({"error": {**fault, "trace": trace, "line": line}})
 
     def _say(self, note: dict[str, object]) -> None:
-        """A note between takes (the director's JSON, see `Film`): nothing, to a closed
-        window."""
+        """片段之间的通知（导演的 JSON，见 `Film`）：对已关闭的窗口而言为无操作。"""
         with contextlib.suppress(Cut):
             self(_engine.note(json.dumps(note)))
 
     @property
     def open(self) -> bool:
-        """Whether the window is open: until its viewer closes it, or it is closed."""
+        """窗口是否处于打开状态：直至其查看者关闭它，或其自身被关闭。"""
         return self._process.poll() is None
 
     @deprecated("ManimGX's machinery: ManimGX preview calls it", category=None)
     def asked(self) -> str | None:
-        """The scene the viewer asked for last, if they asked since (N, P: the next or the
-        previous of the file's scenes)."""
+        """查看者最近请求的场景（若自上次以来有请求）：N、P 分别表示该文件场景的
+        下一个或上一个。"""
         name = None
         while not self._asked.empty():
             name = self._asked.get_nowait()
         return name
 
     def wait(self, timeout: float | None = None) -> bool:
-        """Wait until the window is closed, at most `timeout` seconds; whether it was."""
+        """等待直至窗口关闭，最多等待 `timeout` 秒；返回是否已关闭。"""
         try:
             self._process.wait(timeout)
         except subprocess.TimeoutExpired:
@@ -128,7 +125,7 @@ class Window:
         return True
 
     def close(self) -> None:
-        """Close the window."""
+        """关闭窗口。"""
         pipe = self._process.stdin
         if pipe is not None and not pipe.closed:
             with contextlib.suppress(OSError):
@@ -149,8 +146,8 @@ class Window:
         self.close()
 
     def _listen(self) -> None:
-        """What the window says, a line of JSON each, as it comes: a scene its viewer asks
-        for, or why it failed; its end of the pipe closed once it has said all."""
+        """窗口所发出的内容，每行一个 JSON，按到达顺序处理：查看者请求的场景，
+        或失败原因；当全部发出后，其管道端即关闭。"""
         assert self._process.stdout is not None
         with self._process.stdout as lines:
             for line in lines:
@@ -167,7 +164,7 @@ class Window:
 
 
 def _main() -> None:
-    """The window's own process (`Window` starts it): the window, until it is closed."""
+    """窗口自身的进程（由 `Window` 启动）：即窗口本身，直至其被关闭。"""
     import signal
 
     from manimgx.drawing.typesetting import FONTS

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Ported from Manim CE 0.21 (MIT)."""
+"""移植自 Manim CE 0.21（MIT）。"""
 
 from __future__ import annotations
 
@@ -27,94 +27,82 @@ _ROW = ("submobjects", "initial_height", "background_rectangle")
 
 
 class _NumberStyle(_Style, total=False):
-    """NumberStyle's keys, open, for the keywords that add to them."""
+    """NumberStyle 的键，开放，用于向其中添加的关键字。"""
 
     mob_class: type[ManimTextLabel]
-    """The class each character is typeset with (default [MathTex][manimgx.MathTex])."""
+    """每个字符排版所用的类（默认为 [MathTex][manimgx.MathTex]）。"""
     include_sign: bool
-    """Whether a number that is not negative is written with a plus sign (default
-    False)."""
+    """非负数是否带加号书写（默认为 False）。"""
     group_with_commas: bool
-    """Whether the digits before the decimal point are grouped in threes by commas,
-    12,345 (default True)."""
+    """小数点前的数字是否按三位一组用逗号分组，如 12,345（默认为 True）。"""
     digit_buff_per_font_unit: float
-    """The gap between characters, per unit of font size: 0.001, the default, is 0.048
-    scene units at font size 48."""
+    """字符之间的间距，按字体大小单位计：默认值 0.001 在字体大小 48 时为 0.048 个场景单位。"""
     show_ellipsis: bool
-    """Whether "…" follows the number, for a value that goes on (default False)."""
+    """数字后是否跟"…"，用于表示持续变化的值（默认为 False）。"""
     unit: str | None
-    r"""A unit after the number, in LaTeX math: `"^\circ"` for degrees, `r"\text{ m}"`;
-    one that starts with "^" is raised to the number's top (default None)."""
+    r"""数字后的单位，以 LaTeX 数学表示：`"^\circ"` 表示度，`r"\text{ m}"` 表示米；
+    以 "^" 开头的单位会提升到数字的顶部（默认为 None）。"""
     unit_buff_per_font_unit: float
-    """The gap before the unit, beyond the gap between characters, per unit of font
-    size (default 0)."""
+    """单位前的间距，超出字符间距之外的部分，按字体大小单位计（默认为 0）。"""
     include_background_rectangle: bool
-    """Whether a background rectangle is behind the number (default False)."""
+    """数字后是否有背景矩形（默认为 False）。"""
     edge_to_fix: Vector3DLike
-    """The edge, as a direction, that stays where it is when a new value changes the
-    number's width (default LEFT: it grows to the right)."""
+    """当新值改变数字宽度时保持不动的边缘，以方向表示（默认为 LEFT：向右生长）。"""
     font_size: float
-    """The characters' font size, as `mob_class` measures it (default 48)."""
+    """字符的字体大小，以 `mob_class` 的度量方式计（默认为 48）。"""
 
 
 class NumberStyle(_NumberStyle, total=False, closed=True):
-    """How a number is written: [DecimalNumber][manimgx.DecimalNumber]'s keywords but
-    its number of decimal places, for the classes that pass them on.
+    """数字的书写方式：[DecimalNumber][manimgx.DecimalNumber] 的关键字，但不包括
+    其小数位数，供传递这些关键字的类使用。
 
-    Beyond these, they take the [style keywords][manimgx.drawing.paint.Style].
+    除此之外，它们还接受[样式关键字][manimgx.drawing.paint.Style]。
     """
 
 
 class DecimalNumberOptions(_NumberStyle, total=False, closed=True):
-    """[DecimalNumber][manimgx.DecimalNumber]'s keywords, for the classes that pass them
-    on: a number line's labels.
+    """[DecimalNumber][manimgx.DecimalNumber] 的关键字，供传递它们的类使用：
+    数轴的标签。
 
-    Beyond these, they take the
-    [number keywords][manimgx.mobjects.numbers.NumberStyle].
+    除此之外，它们还接受
+    [数字关键字][manimgx.mobjects.numbers.NumberStyle]。
     """
 
     num_decimal_places: int
-    """How many digits follow the decimal point (default 2)."""
+    """小数点后跟随的数字位数（默认为 2）。"""
 
 
 class DecimalNumber[V: (float, complex) = float](VMobject):
-    r"""A number, written with a fixed number of decimal places: white and filled
-    unless styled.
+    r"""一个数字，以固定的小数位数书写：默认为白色且填充，除非另行设置样式。
 
-    Its parts are its characters, in order, each typeset by `mob_class`: the sign, the
-    digits, the commas and the decimal point; then "…" and the unit, if any (and a
-    background rectangle before them all, if asked for). The number shown is rounded (a
-    negative one that rounds to zero loses its sign, in either component of a complex
-    number), and a complex one is written `a+bi`.
-    [set_value][manimgx.DecimalNumber.set_value] shows another
-    number, keeping the font size, the color and the edge `edge_to_fix` where they are:
-    driven by a [value tracker][manimgx.ValueTracker], or by
-    [ChangeDecimalToValue][manimgx.ChangeDecimalToValue], the number counts on screen.
+    其组成部分依次为各个字符，每个字符由 `mob_class` 排版：符号、数字、逗号和小数点；
+    然后是"…"和单位（如果有的话）（若要求，则在所有这些之前有一个背景矩形）。
+    所显示的数字经过舍入（舍入为零的负数会丢失其符号，复数的任一分量亦然），
+    复数以 `a+bi` 形式书写。
+    [set_value][manimgx.DecimalNumber.set_value] 显示另一个数字，
+    同时保持字体大小、颜色以及边缘 `edge_to_fix` 不变：
+    由[值跟踪器][manimgx.ValueTracker]或
+    [ChangeDecimalToValue][manimgx.ChangeDecimalToValue] 驱动时，数字在屏幕上计数。
 
-    A type checker follows the initial value's kind: real by default, complex for a
-    complex initial value. Use `DecimalNumber[complex](0)` to start real and later
-    accept complex values.
+    类型检查器会根据初始值的类型推断：默认为实数，复数初始值则为复数。
+    使用 `DecimalNumber[complex](0)` 可从实数开始，之后再接受复数值。
 
     Args:
-        number: The number to show; a complex one too.
-        num_decimal_places: How many digits follow the decimal point.
-        mob_class: The class each character is typeset with.
-        include_sign: Whether a number that is not negative is written with a plus
-            sign.
-        group_with_commas: Whether the digits before the decimal point are grouped in
-            threes by commas.
-        digit_buff_per_font_unit: The gap between characters, per unit of font size
-            (0.001: 0.048 scene units at 48).
-        show_ellipsis: Whether "…" follows the number.
-        unit: A unit after the number, in LaTeX math (`"^\circ"`, `r"\text{ m}"`); one
-            that starts with "^" is raised to the number's top.
-        unit_buff_per_font_unit: The gap before the unit, beyond the gap between
-            characters, per unit of font size.
-        include_background_rectangle: Whether a background rectangle is behind the
-            number.
-        edge_to_fix: The edge, as a direction, that stays where it is when a new value
-            changes the number's width.
-        font_size: The characters' font size, as `mob_class` measures it.
+        number: 要显示的数字；也可以是复数。
+        num_decimal_places: 小数点后跟随的数字位数。
+        mob_class: 每个字符排版所用的类。
+        include_sign: 非负数是否带加号书写。
+        group_with_commas: 小数点前的数字是否按三位一组用逗号分组。
+        digit_buff_per_font_unit: 字符之间的间距，按字体大小单位计
+            （0.001：在 48 时为 0.048 个场景单位）。
+        show_ellipsis: 数字后是否跟"…"。
+        unit: 数字后的单位，以 LaTeX 数学表示（`"^\circ"`、`r"\text{ m}"`）；
+            以 "^" 开头的单位会提升到数字的顶部。
+        unit_buff_per_font_unit: 单位前的间距，超出字符间距之外的部分，
+            按字体大小单位计。
+        include_background_rectangle: 数字后是否有背景矩形。
+        edge_to_fix: 当新值改变数字宽度时保持不动的边缘，以方向表示。
+        font_size: 字符的字体大小，以 `mob_class` 的度量方式计。
 
     Examples:
         ```python
@@ -173,8 +161,8 @@ class DecimalNumber[V: (float, complex) = float](VMobject):
 
     @property
     def font_size(self) -> float:
-        """The number's font size: the one it was made with, times how much it has been
-        scaled since. Set it, to a positive size, to scale the number to it."""
+        """数字的字体大小：创建时的大小乘以自此以后的缩放比例。将其设置为一个
+        正值，可将数字缩放到该大小。"""
         return_value: float = self.height / self.initial_height * self._font_size
         return return_value
 
@@ -186,7 +174,7 @@ class DecimalNumber[V: (float, complex) = float](VMobject):
             self.scale(font_val / self.font_size)
 
     def _row_key(self, shown: str) -> tuple[object, ...]:
-        """The displayed row, before placement and final repaint."""
+        """显示的一行，在放置和最终重绘之前。"""
         return (
             type(self),
             shown,
@@ -200,8 +188,8 @@ class DecimalNumber[V: (float, complex) = float](VMobject):
         )
 
     def _set_submobjects_from_number(self, number: V) -> tuple[object, ...]:
-        """The glyphs of `number` about the origin at the constructed font size: laid out once per
-        string and layout, then copied."""
+        """`number` 的字形位于原点处、按构造时的字体大小：每个字符串和布局排版一次，
+        然后复制。"""
         self.number = number
         shown = self._get_num_string(number)
         key = self._row_key(shown)
@@ -291,24 +279,23 @@ class DecimalNumber[V: (float, complex) = float](VMobject):
     ) = None
 
     def get_value(self) -> V:
-        """The number shown, as it was given: not rounded."""
+        """所显示的数字，按给定值返回：未经舍入。"""
         return self.number
 
     def increment_value(self, delta_t: V = 1) -> Self:
-        """Show the number plus `delta_t`.
+        """显示数字加上 `delta_t` 后的值。
 
         Args:
-            delta_t: What to add.
+            delta_t: 要相加的值。
         """
         return self.set_value(self.get_value() + delta_t)
 
     def set_value(self, number: V) -> Self:
-        """Show another number, keeping the look: the font size, the edge `edge_to_fix`
-        where it is, and the color — every character takes the number's own, so a color
-        given to single characters is not kept.
+        """显示另一个数字，保持外观不变：字体大小、边缘 `edge_to_fix` 的位置以及
+        颜色——每个字符都取数字自身的颜色，因此赋予单个字符的颜色不会被保留。
 
         Args:
-            number: The number to show.
+            number: 要显示的数字。
 
         Examples:
             ```python
@@ -352,16 +339,15 @@ class DecimalNumber[V: (float, complex) = float](VMobject):
 
 
 class Integer(DecimalNumber):
-    """An integer: a [DecimalNumber][manimgx.DecimalNumber] with no decimal places,
-    white and filled unless styled.
+    """一个整数：没有小数位的 [DecimalNumber][manimgx.DecimalNumber]，
+    默认为白色且填充，除非另行设置样式。
 
-    A number with a fractional part is shown rounded, and
-    [get_value][manimgx.Integer.get_value] rounds it too.
+    带小数部分的数字会舍入显示，且
+    [get_value][manimgx.Integer.get_value] 也会对其舍入。
 
     Args:
-        number: The number to show.
-        num_decimal_places: How many digits follow the decimal point: none unless
-            given.
+        number: 要显示的数字。
+        num_decimal_places: 小数点后跟随的数字位数：除非给定，否则为零。
 
     Examples:
         ```python
@@ -385,27 +371,27 @@ class Integer(DecimalNumber):
         super().__init__(number=number, num_decimal_places=num_decimal_places, **kwargs)
 
     def get_value(self) -> int:
-        """The number shown: the number given, rounded to an integer."""
+        """所显示的数字：将给定数字舍入为整数。"""
         return int(np.round(super().get_value()))
 
 
 class Variable(VMobject):
-    """A named value: a label, "=", and a number that shows a value tracker's value.
+    """一个带名称的值：由一个标签、"=" 和一个显示值跟踪器值的数字组成。
 
-    Its parts are its [label][manimgx.Variable.label], followed by "=", and its
-    [value][manimgx.Variable.value], a [DecimalNumber][manimgx.DecimalNumber] or an
-    [Integer][manimgx.Integer] that shows its [tracker][manimgx.Variable.tracker]'s
-    value at every frame: animate the tracker, and the number counts.
+    其组成部分依次为它的 [label][manimgx.Variable.label]，接着是 "="，以及它的
+    [value][manimgx.Variable.value]——一个 [DecimalNumber][manimgx.DecimalNumber] 或
+    [Integer][manimgx.Integer]，在每一帧显示其
+    [tracker][manimgx.Variable.tracker] 的值：对跟踪器进行动画，数字即开始计数。
 
     Args:
-        var: The value it starts with.
-        label: The label: a string, typeset as math ([MathTex][manimgx.MathTex]), or a
-            text or math mobject.
-        var_type: The number's class: DecimalNumber or a subclass, such as Integer.
-        num_decimal_places: How many digits follow the decimal point. Integer classes
-            use their own precision defaults instead.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the group itself; its
-            parts keep their own (color them through `label` and `value`).
+        var: 起始值。
+        label: 标签：一个字符串，以数学形式排版（[MathTex][manimgx.MathTex]），
+            或一个文本或数学 mobject。
+        var_type: 数字的类：DecimalNumber 或其子类，例如 Integer。
+        num_decimal_places: 小数点后跟随的数字位数。Integer 类
+            使用其自身的精度默认值。
+        **kwargs: 组本身的[样式关键字][manimgx.drawing.paint.Style]；其
+            各部分保留各自的样式（通过 `label` 和 `value` 为它们着色）。
 
     Examples:
         ```python
@@ -432,12 +418,11 @@ class Variable(VMobject):
         **kwargs: Unpack[Style],
     ):
         self.label = MathTex(label) if isinstance(label, str) else label
-        """The label, followed by "=", one of its submobjects."""
+        """标签，后接 "="，是其子对象之一。"""
         equals = MathTex("=").next_to(self.label, RIGHT)
         self.label.add(equals)
         self.tracker = ValueTracker(var)
-        """The value tracker the number shows: set or animate it to change the
-        number."""
+        """数字所显示的值跟踪器：设置或对其动画以改变数字。"""
         self.value = (
             var_type(self.tracker.get_value())
             if issubclass(var_type, Integer)
@@ -445,7 +430,7 @@ class Variable(VMobject):
                 self.tracker.get_value(), num_decimal_places=num_decimal_places
             )
         )
-        """The number, which shows the tracker's value at every frame."""
+        """数字，在每一帧显示跟踪器的值。"""
         self.value.add_updater(self._update_value).next_to(self.label, RIGHT)
         super().__init__(**kwargs)
         self.add(self.label, self.value)
@@ -457,20 +442,19 @@ class Variable(VMobject):
 def index_labels(
     mobject: Mobject, label_height: float = 0.15, **kwargs: Unpack[NumberStyle]
 ) -> VGroup:
-    r"""Number the submobjects of a mobject: an [Integer][manimgx.Integer] at the center
-    of each, on a dark outline, to find a part's index.
+    r"""为一个 mobject 的子对象编号：在每个子对象中心放置一个
+    [Integer][manimgx.Integer]，带深色轮廓，用于查找某个部分的索引。
 
-    A debugging help: add the labels to the scene to see them; they don't follow the
-    mobject.
+    一种调试辅助：将标签添加到场景中即可看到它们；它们不跟随该 mobject。
 
     Args:
-        mobject: The mobject whose submobjects are numbered, from 0.
-        label_height: Each label's height, in scene units.
-        **kwargs: [Number keywords][manimgx.mobjects.numbers.NumberStyle] (a black
-            background stroke 5 wide unless given).
+        mobject: 其子对象从 0 开始编号的 mobject。
+        label_height: 每个标签的高度，以场景单位计。
+        **kwargs: [数字关键字][manimgx.mobjects.numbers.NumberStyle]（除非给定，
+            否则使用宽度为 5 的黑色背景描边）。
 
     Returns:
-        A new group of the labels, in order.
+        由标签按顺序组成的新组。
 
     Examples:
         ```python

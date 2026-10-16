@@ -1,14 +1,13 @@
-"""The ManimGX command line: a scene rendered to video, inspected, presented,
-and previewed live.
+"""ManimGX 命令行：将场景渲染为视频、检视、演示，以及实时预览。
 
-    manimgx render scene.py [Scene] [-o video.mp4]      the video, a storyboard, layout problems
-    manimgx inspect scene.py [Scene] [-t 0,2.5,end]    timeline, storyboard, layout problems
-    manimgx present scene.py [Scene]                    its sections as slides, in the browser
-    manimgx preview scene.py [Scene]                    a window playing it, again on each save
+    manimgx render scene.py [Scene] [-o video.mp4]      视频、分镜图、布局问题
+    manimgx inspect scene.py [Scene] [-t 0,2.5,end]    时间线、分镜图、布局问题
+    manimgx present scene.py [Scene]                    其各节作为幻灯片，在浏览器中展示
+    manimgx preview scene.py [Scene]                    播放窗口，每次保存时重新生成
 
-What a command writes goes to stdout, one line per file, then its report; errors go to stderr.
-Exit 0 on success, 1 when the scene fails (or `inspect` finds problems), 2 when the command is
-wrong. Help is plain text when piped (an agent's shell), rich on a terminal.
+命令所写入的内容输出到 stdout，每个文件一行，随后是报告；错误输出到 stderr。
+成功时退出码为 0，场景失败（或 `inspect` 发现问题）时为 1，命令有误时为 2。
+当输出被管道重定向时（如智能体的 shell），帮助信息为纯文本；在终端中则为富文本。
 """
 
 import sys
@@ -54,21 +53,21 @@ def manimgx(
             "--version",
             callback=_version,
             is_eager=True,
-            help="Show the version and exit.",
+            help="显示版本号并退出。",
         ),
     ] = False,
 ) -> None:
-    """The animation engine for agents: blazingly fast math and 3D videos with Manim's Python API, on a Rust GPU core.
+    """面向智能体的动画引擎：以 Manim 的 Python API 极速生成数学和 3D 视频，底层基于 Rust GPU 核心。
 
-    A scene file is Manim CE code: `import manimgx as m`, a class deriving m.Scene, its
-    `construct`. Work in a loop:
+    场景文件是 Manim CE 代码：`import manimgx as m`，一个继承 m.Scene 的类及其
+    `construct`。在循环中工作：
 
     \b
-        manimgx inspect scene.py            timeline, storyboard, layout problems
-        manimgx inspect scene.py -t 1.5,end  inspect specific moments
-        manimgx render scene.py             the video (MP4), with the same report
+        manimgx inspect scene.py            时间线、分镜图、布局问题
+        manimgx inspect scene.py -t 1.5,end  检视特定时刻
+        manimgx render scene.py             视频（MP4），附带相同报告
 
-    Files are written beside the scene file; each command prints what it wrote."""
+    文件写在场景文件旁边；每个命令会打印其写入的文件。"""
 
 
 app.command()(render)

@@ -1,11 +1,11 @@
 ---
 title: "Mobjects"
-description: "What a video shows. Every mobject has a place in the frame, a size, a style and parts."
+description: "视频所展示的内容。每个 mobject 在画面中都有位置、尺寸、样式和组成部分。"
 ---
 
 # Mobjects
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -33,155 +33,154 @@ class MobjectsHero(m.Scene):
         self.wait()
 ```
 
-A mobject is anything a video shows: a shape, a text, a formula, a graph. Making a mobject
-doesn't show it: [add][manimgx.Scene.add] it to the scene, or [play][manimgx.Scene.play] an
-animation that brings it in.
+mobject 是视频所展示的任何东西：一个形状、一段文本、一个公式、一张图表。创建 mobject
+并不会显示它：将其[添加][manimgx.Scene.add]到场景中，或[播放][manimgx.Scene.play]一段
+将其引入的动画。
 
-Every mobject has three things:
+每个 mobject 都有三样东西：
 
-- **Points**, which give its place and its shape. They are in units: the frame's short side
-  is 8 units, and its center is the point `[0, 0, 0]`.
-- **A style**: the color and opacity of its stroke and of its fill.
-- **Parts**, which are mobjects too: a group's members, a formula's terms, a graph's axes.
-  What you do to a mobject, you do to all its parts.
+- **点**，决定其位置和形状。点以单位度量：画面的短边为 8 个单位，其中心为点
+  `[0, 0, 0]`。
+- **样式**：其描边和填充的颜色与不透明度。
+- **组成部分**，它们也是 mobject：一个分组的成员、一个公式的项、一个图表的坐标轴。
+  你对 mobject 所做的操作，也会作用于其所有组成部分。
 
-Every mobject can do what the first pages tell, whatever its kind: be placed, sized and
-turned, styled, grouped and copied. The pages after them tell each kind of mobject.
+无论何种类型，每个 mobject 都能完成前面几页所述的操作：放置、调整尺寸和旋转、设置样式、
+分组和复制。随后的几页介绍每种类型的 mobject。
 
-## What every mobject can do
+## 每个 mobject 都能做什么
 
 <div class="grid cards mx-cards" markdown>
 
 -   ![](film:PositionsHero)
 
-    [**Positions**](positions.md)
+    [**位置**](positions.md)
 
     ---
 
-    Points and directions, and the methods that place a mobject: at a point, by another
-    mobject, at the frame's edge.
+    点与方向，以及放置 mobject 的方法：在某一点、依据另一个 mobject、在画面边缘。
 
 -   ![](film:SizeAndAngleHero)
 
-    [**Size and angle**](size-and-angle.md)
+    [**尺寸与角度**](size-and-angle.md)
 
     ---
 
-    Scale, stretch, turn and flip a mobject, or move every point through a function.
+    缩放、拉伸、旋转和翻转 mobject，或通过函数移动每个点。
 
 -   ![](film:StyleHero)
 
-    [**Style**](style.md)
+    [**样式**](style.md)
 
     ---
 
-    Stroke and fill, color and opacity, gradients, and what covers what.
+    描边与填充、颜色与不透明度、渐变，以及覆盖关系。
 
 -   ![](film:ColorsHero)
 
-    [**Colors**](colors.md)
+    [**颜色**](colors.md)
 
     ---
 
-    The named colors, and the functions that make, blend and choose colors.
+    命名颜色，以及创建、混合和选择颜色的函数。
 
 -   ![](film:GroupsHero)
 
-    [**Groups**](groups.md)
+    [**分组**](groups.md)
 
     ---
 
-    Mobjects made of mobjects: add, remove, arrange and sort the parts.
+    由 mobject 组成的 mobject：添加、移除、排列和排序组成部分。
 
 -   ![](film:CopiesAndStatesHero)
 
-    [**Copies and states**](copies-and-states.md)
+    [**副本与状态**](copies-and-states.md)
 
     ---
 
-    Copy a mobject, keep its state to come back to, and prepare a state to move to.
+    复制 mobject，保留其状态以便返回，以及准备一个要移动到的状态。
 
 -   ![](film:PathsHero)
 
-    [**Paths**](paths.md)
+    [**路径**](paths.md)
 
     ---
 
-    The curves a shape is made of: draw a path of your own, and find points along one.
+    构成形状的曲线：绘制自定义路径，并沿路径查找点。
 
 </div>
 
-## Kinds of mobjects
+## mobject 的类型
 
 <div class="grid cards mx-cards" markdown>
 
 -   ![](film:LinesAndArrows)
 
-    [**Shapes**](shapes/index.md)
+    [**形状**](shapes/index.md)
 
     ---
 
-    Lines and arrows, circles and arcs, polygons, and shapes made from other shapes.
+    线与箭头、圆与弧、多边形，以及由其他形状构成的形状。
 
 -   ![](film:AnnotationsHero)
 
-    [**Annotations**](annotations.md)
+    [**标注**](annotations.md)
 
     ---
 
-    Braces, labels, frames, underlines and angle marks: what points at other mobjects.
+    大括号、标签、边框、下划线和角度标记：指向其他 mobject 的元素。
 
 -   ![](film:TextAndMathHero)
 
-    [**Text and math**](text-and-math/index.md)
+    [**文本与数学**](text-and-math/index.md)
 
     ---
 
-    Words, formulas and numbers, set by Typst inside ManimGX.
+    由 Typst 在 ManimGX 中排版的文字、公式和数字。
 
 -   ![](film:GraphsHero)
 
-    [**Graphs**](graphs/index.md)
+    [**图表**](graphs/index.md)
 
     ---
 
-    Axes, number lines and planes, the graphs of functions and data, vector fields.
+    坐标轴、数轴和平面、函数与数据的图形、向量场。
 
 -   ![](film:NetworksHero)
 
-    [**Networks**](networks.md)
+    [**网络**](networks.md)
 
     ---
 
-    Vertices joined by edges, laid out for you, which grow and change.
+    由边连接的顶点，自动布局，可增长和变化。
 
 -   ![](film:MatricesAndTablesHero)
 
-    [**Matrices and tables**](matrices-and-tables.md)
+    [**矩阵与表格**](matrices-and-tables.md)
 
     ---
 
-    Entries in rows and columns, between brackets or between lines.
+    按行列排列的元素，位于括号或线条之间。
 
 -   ![](film:ImagesAndSvgHero)
 
-    [**Images and SVG**](images-and-svg.md)
+    [**图像与 SVG**](images-and-svg.md)
 
     ---
 
-    Pictures from files or pixels, and drawings read from SVG files.
+    来自文件或像素的图片，以及从 SVG 文件读取的绘图。
 
 -   ![](film:PointCloudsHero)
 
-    [**Point clouds**](point-clouds.md)
+    [**点云**](point-clouds.md)
 
     ---
 
-    Mobjects drawn as points, each a dot of its own color.
+    以点形式绘制的 mobject，每个点都是其自身颜色的圆点。
 
 </div>
 
-## The mobject
+## mobject
 
 ::: manimgx.Mobject
     options:

@@ -1,11 +1,11 @@
 ---
-title: "Camera and 3D"
-description: "What the frame shows: pan and zoom over a flat scene, or look at a three-dimensional one from any angle, lit by lights."
+title: "相机与 3D"
+description: "画面所呈现的内容：在平面场景上平移和缩放，或从任意角度观察三维场景，并由灯光照明。"
 ---
 
-# Camera and 3D
+# 相机与 3D
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -21,13 +21,12 @@ class CameraAnd3DHero(m.ThreeDScene):
         self.wait(4)
 ```
 
-The camera decides what the video shows. Its frame is a rectangle in the scene: the frame
-that positions are measured in. Move the frame, and the view moves with it; scale it, and
-the view zooms. In three dimensions, the camera looks at the frame from an angle that you
-choose, and turns around it while the scene plays.
+相机决定视频呈现的内容。其画框是场景中的一个矩形：即用于度量位置的画框。移动画框，视图随之
+移动；缩放画框，视图随之缩放。在三维中，相机从你选择的角度观察画框，并在场景播放时围绕它
+转动。
 
-Every mobject has three coordinates, so flat mobjects show in 3D too. Surfaces and solids are
-made for it, and lights shade them.
+每个 mobject 都有三个坐标，因此平面 mobject 也能在 3D 中显示。曲面和立体专为三维而设，
+灯光为它们着色。
 
 <div class="grid cards mx-cards" markdown>
 
@@ -37,30 +36,30 @@ made for it, and lights shade them.
 
     ---
 
-    The frame: pan and zoom. The look of the picture, and what stays fixed on the screen.
+    画框：平移与缩放。画面的外观，以及在屏幕上保持固定的内容。
 
 -   ![](film:ThreeDScenesHero)
 
-    [**3D scenes**](three-d-scenes.md)
+    [**3D 场景**](three-d-scenes.md)
 
     ---
 
-    Look at a scene from any angle, move the camera, turn it around the scene.
+    从任意角度观察场景，移动相机，使其围绕场景转动。
 
 -   ![](film:SurfacesHero)
 
-    [**Surfaces and solids**](surfaces-and-solids.md)
+    [**曲面与立体**](surfaces-and-solids.md)
 
     ---
 
-    Surfaces of functions, spheres, tori, cylinders, cones, cubes and polyhedra.
+    函数曲面、球面、环面、柱面、锥面、立方体和多面体。
 
 -   ![](film:LightsHero)
 
-    [**Lights and materials**](lights-and-materials.md)
+    [**灯光与材质**](lights-and-materials.md)
 
     ---
 
-    Sun, bulbs, spotlights and the sky, and how surfaces reflect them.
+    太阳、灯泡、聚光灯和天空，以及曲面如何反射它们。
 
 </div>

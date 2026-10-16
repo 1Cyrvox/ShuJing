@@ -1,20 +1,19 @@
-"""fal.ai's text-to-speech models, as voices: `Fal(model, **settings)`.
+"""fal.ai 的文本转语音模型，作为声音使用：`Fal(model, **settings)`。
 
-[fal](https://fal.ai) runs text-to-speech models behind one API and one key. `Fal` supports
-the models below:
+[fal](https://fal.ai) 在一套 API 和一个密钥背后运行文本转语音模型。`Fal` 支持以下
+模型：
 
-| Model | Its settings | Words timed |
+| 模型 | 其设置 | 单词时间 |
 | --- | --- | --- |
-| `fal-ai/elevenlabs/tts/eleven-v3` (the default) | [`ElevenV3`][manimgx.audio.fal.ElevenV3] | by the model |
-| `fal-ai/minimax/speech-2.8-hd` | [`MiniMax`][manimgx.audio.fal.MiniMax] | estimated |
-| `google/gemini-3.8-flash-tts` | [`Gemini`][manimgx.audio.fal.Gemini] | estimated |
-| `fal-ai/inworld-tts` | [`Inworld`][manimgx.audio.fal.Inworld] | estimated |
-| `fal-ai/qwen-3-tts/text-to-speech/1.7b` | [`Qwen`][manimgx.audio.fal.Qwen] | estimated |
+| `fal-ai/elevenlabs/tts/eleven-v3`（默认） | [`ElevenV3`][manimgx.audio.fal.ElevenV3] | 由模型给出 |
+| `fal-ai/minimax/speech-2.8-hd` | [`MiniMax`][manimgx.audio.fal.MiniMax] | 估算 |
+| `google/gemini-3.8-flash-tts` | [`Gemini`][manimgx.audio.fal.Gemini] | 估算 |
+| `fal-ai/inworld-tts` | [`Inworld`][manimgx.audio.fal.Inworld] | 估算 |
+| `fal-ai/qwen-3-tts/text-to-speech/1.7b` | [`Qwen`][manimgx.audio.fal.Qwen] | 估算 |
 
-A model takes settings of its own, typed per model: a type checker knows which settings a
-model takes and which values (its voices, say), and `Fal` checks their names as it is made.
-The key is `FAL_KEY`'s (fal's dashboard gives one), or `key=`; it never names the voice in the
-cache.
+每个模型接受各自的设置，按模型进行类型标注：类型检查器知道某个模型接受哪些设置
+以及哪些取值（比如它的声音），而 `Fal` 在构造时会检查设置名称是否合法。密钥取自
+`FAL_KEY`（fal 的控制台会提供一个），或通过 `key=` 传入；它从不在缓存中命名声音。
 """
 
 import json
@@ -33,99 +32,98 @@ from manimgx.audio.sound import Speech, timed
 
 
 class ElevenV3(TypedDict, total=False, closed=True):
-    """The settings of ElevenLabs' Eleven v3 (`fal-ai/elevenlabs/tts/eleven-v3`), which times
-    its words. Its text may carry audio tags: `[whispers]`, `[laughs]`, `[excited]`…"""
+    """ElevenLabs 的 Eleven v3（`fal-ai/elevenlabs/tts/eleven-v3`）的设置，该模型会为
+    其单词计时。其文本可携带音频标签：`[whispers]`、`[laughs]`、`[excited]`……"""
 
     voice: str
-    """A voice's name or ID in ElevenLabs' library: Aria, Roger, Sarah, Laura, Charlie,
-    George, Callum, River, Liam, Charlotte, Alice, Matilda, Will, Jessica, Eric, Chris, Brian,
-    Daniel, Lily, Bill… (default "Rachel")."""
+    """ElevenLabs 声音库中某个声音的名称或 ID：Aria、Roger、Sarah、Laura、Charlie、
+    George、Callum、River、Liam、Charlotte、Alice、Matilda、Will、Jessica、Eric、Chris、
+    Brian、Daniel、Lily、Bill……（默认 "Rachel"）。"""
     stability: float
-    """How steady the voice is, from 0 (expressive) to 1 (steady) (default 0.5)."""
+    """声音的稳定程度，从 0（富有表现力）到 1（稳定）（默认 0.5）。"""
     language_code: str | None
-    """The language, as an ISO 639-1 code ("en", "de"…) (default: the text's)."""
+    """语言，以 ISO 639-1 代码表示（"en"、"de"……）（默认：文本自身的语言）。"""
     apply_text_normalization: Literal["auto", "on", "off"]
-    """Whether numbers and the like are spelled out before they are said (default "auto":
-    as the model sees fit)."""
+    """数字等内容在朗读前是否拼读出来（默认 "auto"：由模型自行判断）。"""
 
 
 class MiniMaxVoice(TypedDict, total=False):
-    """A MiniMax voice and how it speaks."""
+    """一个 MiniMax 声音及其说话方式。"""
 
     voice_id: str
-    """The voice: Wise_Woman, Friendly_Person, Inspirational_girl, Deep_Voice_Man, Calm_Woman,
-    Casual_Guy, Lively_Girl, Patient_Man, Young_Knight, Determined_Man, Lovely_Girl,
-    Decent_Boy, Imposing_Manner, Elegant_Man, Abbess, Sweet_Girl_2, Exuberant_Girl, or a
-    cloned voice's ID (default "Wise_Woman")."""
+    """声音：Wise_Woman、Friendly_Person、Inspirational_girl、Deep_Voice_Man、Calm_Woman、
+    Casual_Guy、Lively_Girl、Patient_Man、Young_Knight、Determined_Man、Lovely_Girl、
+    Decent_Boy、Imposing_Manner、Elegant_Man、Abbess、Sweet_Girl_2、Exuberant_Girl，或
+    克隆声音的 ID（默认 "Wise_Woman"）。"""
     speed: float
-    """How fast, from 0.5 to 2 (default 1)."""
+    """语速，从 0.5 到 2（默认 1）。"""
     vol: float
-    """How loud, from 0.01 to 10 (default 1)."""
+    """音量，从 0.01 到 10（默认 1）。"""
     pitch: int
-    """How high, in semitones from -12 to 12 (default 0)."""
+    """音高，以半音为单位，从 -12 到 12（默认 0）。"""
     emotion: (
         Literal["happy", "sad", "angry", "fearful", "disgusted", "surprised", "neutral"]
         | None
     )
-    """The emotion it speaks with (default: as the text reads)."""
+    """说话时带有的情绪（默认：按文本语气而定）。"""
     english_normalization: bool
-    """Whether English numbers are read more carefully, a little slower (default False)."""
+    """英文数字是否朗读得更仔细、稍慢一些（默认 False）。"""
 
 
 class MiniMaxAudio(TypedDict, total=False):
-    """The audio MiniMax makes."""
+    """MiniMax 生成的音频。"""
 
     sample_rate: Literal[8000, 16000, 22050, 24000, 32000, 44100]
-    """Samples a second (default 32000)."""
+    """每秒采样数（默认 32000）。"""
     bitrate: Literal[32000, 64000, 128000, 256000]
-    """Bits a second, for MP3 (default 128000)."""
+    """每秒比特数，用于 MP3（默认 128000）。"""
     format: Literal["mp3", "flac"]
-    """The file's format (default "mp3")."""
+    """文件格式（默认 "mp3"）。"""
     channel: Literal[1, 2]
-    """Channels: 1 (mono) or 2 (stereo) (default 1)."""
+    """声道数：1（单声道）或 2（立体声）（默认 1）。"""
 
 
 class MiniMaxLoudness(TypedDict, total=False):
-    """How MiniMax evens out the audio's loudness."""
+    """MiniMax 如何均衡音频响度。"""
 
     enabled: bool
-    """Whether it does (default True)."""
+    """是否启用（默认 True）。"""
     target_loudness: float
-    """The loudness it aims at, in LUFS, from -70 to -10 (default -18)."""
+    """目标响度，以 LUFS 为单位，从 -70 到 -10（默认 -18）。"""
     target_range: float
-    """The loudness range, in LU, from 0 to 20 (default 8)."""
+    """响度范围，以 LU 为单位，从 0 到 20（默认 8）。"""
     target_peak: float
-    """The highest peak, in dBTP, from -3 to 0 (default -0.5)."""
+    """最高峰值，以 dBTP 为单位，从 -3 到 0（默认 -0.5）。"""
 
 
 class MiniMaxTimbre(TypedDict, total=False):
-    """How MiniMax changes the voice itself."""
+    """MiniMax 如何改变声音本身。"""
 
     pitch: int
-    """Higher or lower, from -100 to 100 (default 0)."""
+    """更高或更低，从 -100 到 100（默认 0）。"""
     intensity: int
-    """More or less energetic, from -100 to 100 (default 0)."""
+    """更强或更弱，从 -100 到 100（默认 0）。"""
     timbre: int
-    """Its tone's color, from -100 to 100 (default 0)."""
+    """音色的色彩，从 -100 到 100（默认 0）。"""
 
 
 class MiniMaxPronunciation(TypedDict, total=False):
-    """How MiniMax pronounces particular words."""
+    """MiniMax 如何读特定词语。"""
 
     tone_list: list[str]
-    """Each word and its pronunciation: `"text/(pronunciation)"` (Chinese tones 1 to 5:
-    `"燕少飞/(yan4)(shao3)(fei1)"`)."""
+    """每个词及其发音：`"text/(pronunciation)"`（中文声调 1 到 5：
+    `"燕少飞/(yan4)(shao3)(fei1)"`）。"""
 
 
 class MiniMax(TypedDict, total=False, closed=True):
-    """The settings of MiniMax Speech 2.8 HD (`fal-ai/minimax/speech-2.8-hd`). Its text may
-    carry pauses, `<#0.5#>` (in seconds), and interjections: `(laughs)`, `(sighs)`, `(coughs)`,
-    `(clears throat)`, `(gasps)`, `(sniffs)`, `(groans)`, `(yawns)`."""
+    """MiniMax Speech 2.8 HD（`fal-ai/minimax/speech-2.8-hd`）的设置。其文本可携带
+    停顿 `<#0.5#>`（以秒为单位）以及感叹词：`(laughs)`、`(sighs)`、`(coughs)`、
+    `(clears throat)`、`(gasps)`、`(sniffs)`、`(groans)`、`(yawns)`。"""
 
     voice_setting: MiniMaxVoice
-    """The voice and how it speaks ([`MiniMaxVoice`][manimgx.audio.fal.MiniMaxVoice])."""
+    """声音及其说话方式（[`MiniMaxVoice`][manimgx.audio.fal.MiniMaxVoice]）。"""
     audio_setting: MiniMaxAudio
-    """The audio it makes ([`MiniMaxAudio`][manimgx.audio.fal.MiniMaxAudio])."""
+    """生成的音频（[`MiniMaxAudio`][manimgx.audio.fal.MiniMaxAudio]）。"""
     language_boost: (
         Literal[
             "Chinese",
@@ -169,20 +167,20 @@ class MiniMax(TypedDict, total=False, closed=True):
         ]
         | None
     )
-    """A language or dialect it listens for (default: none)."""
+    """模型所关注的一种语言或方言（默认：无）。"""
     normalization_setting: MiniMaxLoudness
-    """How it evens out the loudness
-    ([`MiniMaxLoudness`][manimgx.audio.fal.MiniMaxLoudness])."""
+    """如何均衡响度
+    （[`MiniMaxLoudness`][manimgx.audio.fal.MiniMaxLoudness]）。"""
     voice_modify: MiniMaxTimbre | None
-    """How it changes the voice itself ([`MiniMaxTimbre`][manimgx.audio.fal.MiniMaxTimbre])."""
+    """如何改变声音本身（[`MiniMaxTimbre`][manimgx.audio.fal.MiniMaxTimbre]）。"""
     pronunciation_dict: MiniMaxPronunciation | None
-    """How it pronounces particular words
-    ([`MiniMaxPronunciation`][manimgx.audio.fal.MiniMaxPronunciation])."""
+    """如何读特定词语
+    （[`MiniMaxPronunciation`][manimgx.audio.fal.MiniMaxPronunciation]）。"""
 
 
 class Gemini(TypedDict, total=False, closed=True):
-    """The settings of Google's Gemini 3.8 Flash TTS (`google/gemini-3.8-flash-tts`). Its text
-    may carry vocal events: `<laugh>`, `<sigh>`."""
+    """Google 的 Gemini 3.8 Flash TTS（`google/gemini-3.8-flash-tts`）的设置。其文本可
+    携带发声事件：`<laugh>`、`<sigh>`。"""
 
     voice: Literal[
         "Achernar",
@@ -216,15 +214,15 @@ class Gemini(TypedDict, total=False, closed=True):
         "Zephyr",
         "Zubenelgenubi",
     ]
-    """The voice (default "Kore")."""
+    """声音（默认 "Kore"）。"""
     style_instructions: str | None
-    """How to say it, in words: "Warm and unhurried, like a patient teacher." (default:
-    none)."""
+    """以文字描述如何朗读，例如："Warm and unhurried, like a patient teacher."（默认：
+    无）。"""
 
 
 class Inworld(TypedDict, total=False, closed=True):
-    """The settings of Inworld TTS-1.5 Max (`fal-ai/inworld-tts`), which speaks up to 2,000
-    characters a line."""
+    """Inworld TTS-1.5 Max（`fal-ai/inworld-tts`）的设置，每行最多可朗读 2,000 个
+    字符。"""
 
     voice: Literal[
         "Loretta (en)",
@@ -341,13 +339,13 @@ class Inworld(TypedDict, total=False, closed=True):
         "Nour (ar)",
         "Omar (ar)",
     ]
-    """The voice, with its language (default "Craig (en)")."""
+    """声音，及其所属语言（默认 "Craig (en)"）。"""
     sample_rate_hertz: Literal[8000, 16000, 24000, 32000, 40000, 48000]
-    """Samples a second (default 48000)."""
+    """每秒采样数（默认 48000）。"""
 
 
 class Qwen(TypedDict, total=False, closed=True):
-    """The settings of Alibaba's Qwen3-TTS 1.7B (`fal-ai/qwen-3-tts/text-to-speech/1.7b`)."""
+    """阿里巴巴的 Qwen3-TTS 1.7B（`fal-ai/qwen-3-tts/text-to-speech/1.7b`）的设置。"""
 
     voice: (
         Literal[
@@ -363,7 +361,7 @@ class Qwen(TypedDict, total=False, closed=True):
         ]
         | None
     )
-    """The voice (default: the model's)."""
+    """声音（默认：由模型决定）。"""
     language: Literal[
         "Auto",
         "English",
@@ -377,34 +375,33 @@ class Qwen(TypedDict, total=False, closed=True):
         "Portuguese",
         "Russian",
     ]
-    """The language (default "Auto": the text's)."""
+    """语言（默认 "Auto"：文本自身的语言）。"""
     prompt: str | None
-    """How to say it, in words (not what to say) (default: none)."""
+    """以文字描述如何朗读（而非朗读什么内容）（默认：无）。"""
     speaker_voice_embedding_file_url: str | None
-    """A cloned voice: the URL of the speaker embedding `fal-ai/qwen-3-tts/clone-voice`
-    made; it overrides `voice` and `prompt` (default: none)."""
+    """克隆声音：由 `fal-ai/qwen-3-tts/clone-voice` 生成的说话人嵌入的 URL；它会覆盖
+    `voice` 和 `prompt`（默认：无）。"""
     reference_text: str | None
-    """What the cloned voice's recording says, which helps it sound like it (default:
-    none)."""
+    """克隆声音的录音所朗读的内容，有助于让合成声音更像原声（默认：无）。"""
     temperature: float | None
-    """How varied the delivery is, above 0 and up to 1 (default 0.9)."""
+    """朗读的变化程度，大于 0 且不超过 1（默认 0.9）。"""
     top_k: int | None
-    """Sampling: from the k likeliest sounds (default 50)."""
+    """采样：从 k 个最可能的声音中采样（默认 50）。"""
     top_p: float | None
-    """Sampling: from the likeliest sounds that make up p of the chance, 0 to 1 (default 1)."""
+    """采样：从累计概率达到 p 的最可能的声音中采样，0 到 1（默认 1）。"""
     repetition_penalty: float | None
-    """How strongly it avoids repeating itself (default 1.05)."""
+    """避免自我重复的强度（默认 1.05）。"""
     subtalker_dosample: bool | None
-    """Whether its second stage samples (default True)."""
+    """第二阶段是否进行采样（默认 True）。"""
     subtalker_temperature: float | None
-    """Its second stage's temperature, 0 to 1 (default 0.9)."""
+    """第二阶段的温度，0 到 1（默认 0.9）。"""
     subtalker_top_k: int | None
-    """Its second stage's top k (default 50)."""
+    """第二阶段的 top k（默认 50）。"""
     subtalker_top_p: float | None
-    """Its second stage's top p, 0 to 1 (default 1)."""
+    """第二阶段的 top p，0 到 1（默认 1）。"""
     max_new_tokens: int | None
-    """The most sound it makes, in its codec's tokens, 1 to 8192 (default 8192 here: fal's
-    own, 200, can cut a long line short)."""
+    """生成声音的上限，以其编解码器的 token 数为单位，1 到 8192（此处默认 8192：fal
+    自身的默认值 200 可能会把长句截断）。"""
 
 
 type Model = Literal[
@@ -414,13 +411,13 @@ type Model = Literal[
     "fal-ai/inworld-tts",
     "fal-ai/qwen-3-tts/text-to-speech/1.7b",
 ]
-"""The models `Fal` speaks through."""
+"""`Fal` 所使用的模型。"""
 
 
 @dataclass(frozen=True, slots=True)
 class _Spec:
-    """How a model is asked: the input its text goes in, its settings, what is sent unless a
-    setting says otherwise, and what is always sent."""
+    """模型的请求方式：文本所放入的输入字段、其设置、未显式指定时发送的默认值，
+    以及始终发送的固定值。"""
 
     text: str
     settings: type
@@ -446,16 +443,17 @@ _MODELS: dict[str, _Spec] = {
 
 @dataclass(frozen=True, slots=True, init=False, repr=False)
 class Fal:
-    """A text-to-speech model on fal.ai, as a voice: `Fal(model, **settings)`, where the
-    settings are the model's own ([`ElevenV3`][manimgx.audio.fal.ElevenV3] for the default).
+    """fal.ai 上的文本转语音模型，作为声音使用：`Fal(model, **settings)`，其中
+    settings 为该模型自身的设置（默认模型为
+    [`ElevenV3`][manimgx.audio.fal.ElevenV3]）。
 
     Args:
-        model: The model's ID on fal.
-        key: fal's API key; by default `FAL_KEY`.
-        **settings: The model's settings.
+        model: 模型在 fal 上的 ID。
+        key: fal 的 API 密钥；默认取 `FAL_KEY`。
+        **settings: 模型的设置。
 
     Examples:
-        A scene's voice, in its class:
+        在场景类中定义一个声音：
 
         ```py
         voice = m.voices.Fal(
@@ -466,11 +464,11 @@ class Fal:
     """
 
     model: Model
-    """The model's ID on fal."""
+    """模型在 fal 上的 ID。"""
     settings: dict[str, object]
-    """The model's settings, as given."""
+    """模型的设置，按传入原样保存。"""
     key: str | None = field(default=None, compare=False)
-    """fal's API key, if given; else `FAL_KEY` is read as the voice speaks."""
+    """fal 的 API 密钥，若已传入则使用之；否则在声音朗读时读取 `FAL_KEY`。"""
 
     @overload
     def __init__(
@@ -540,7 +538,7 @@ class Fal:
         object.__setattr__(self, "key", key)
 
     def __repr__(self) -> str:
-        """The call that makes it, without its key: what names it in the cache."""
+        """构造它的调用形式，不含密钥：即在缓存中命名它的字符串。"""
         given = "".join(f", {k}={v!r}" for k, v in self.settings.items())
         return f"Fal({self.model!r}{given})"
 
@@ -570,8 +568,8 @@ class Fal:
 
 
 def _ordered(value: object) -> object:
-    """`value` with every dict in it ordered by its keys: one voice, one name, however its
-    settings were written."""
+    """将 `value` 中每个字典按键排序后的结果：无论设置如何书写，同一个声音只有
+    一个命名。"""
     if isinstance(value, dict):
         return {k: _ordered(v) for k, v in sorted(value.items())}
     if isinstance(value, list):
@@ -580,10 +578,9 @@ def _ordered(value: object) -> object:
 
 
 def _pieces(stamps: object) -> list[tuple[str, float, float]]:
-    """A model's timing of its text, as fal passes it on, as timed pieces of the text: items of
-    a text, a start and an end (words or characters), or ElevenLabs' alignments (characters,
-    with their starts and ends). Empty if there is none, or if it runs backwards: the words
-    are then estimated."""
+    """模型对其文本的计时结果，按 fal 透传的格式，返回为文本的带时间片段：每个片段
+    包含一段文本（单词或字符）、起始时间和结束时间，或 ElevenLabs 的对齐信息（字符
+    及其起止时间）。若无计时信息，或时间倒序，则返回空列表：此时单词时间将被估算。"""
     pieces: list[tuple[str, float, float]] = []
     for item in stamps if isinstance(stamps, list) else ():
         if not isinstance(item, dict):
@@ -610,8 +607,8 @@ def _fetch(
     body: dict[str, object] | None = None,
     headers: dict[str, str] | None = None,
 ) -> bytes:
-    """GET `url`, or POST `body` to it as JSON; the response's bytes (an HTTP error says what
-    the service said)."""
+    """GET 请求 `url`，或将 `body` 以 JSON 形式 POST 到该 URL；返回响应的字节流
+    （HTTP 错误会附带服务端返回的说明）。"""
     request = urllib.request.Request(
         url,
         data=None if body is None else json.dumps(body).encode(),

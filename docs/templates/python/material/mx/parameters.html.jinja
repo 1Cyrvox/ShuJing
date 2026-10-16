@@ -25,10 +25,10 @@
   "manimgx.animation.transform.TransformOptions": "transform",
 } %}
 {% set vocabularies = {
-  "style": ("the style keywords", "manimgx.drawing.paint.Style"),
-  "tip": ("the tip keywords", "manimgx.mobjects.shapes.TippedBase"),
-  "animation": ("the animation keywords", "manimgx.animation.timeline.AnimationOptions"),
-  "transform": ("the transform keywords", "manimgx.animation.transform.TransformOptions"),
+  "style": ("样式关键字", "manimgx.drawing.paint.Style"),
+  "tip": ("箭头关键字", "manimgx.mobjects.shapes.TippedBase"),
+  "animation": ("动画关键字", "manimgx.animation.timeline.AnimationOptions"),
+  "transform": ("变换关键字", "manimgx.animation.transform.TransformOptions"),
 } %}
 {% set kw = namespace(param=none, options=none, seen=[], covered=[], links=[]) %}
 {% if function %}
@@ -70,7 +70,7 @@
             {% endif %}
           {% endif %}
           {% if owner.path and owner.path not in entry %}
-            {% set link = ("the <code>" ~ owner.name ~ "</code> keywords", owner.path) %}
+            {% set link = ("<code>" ~ owner.name ~ "</code> 关键字", owner.path) %}
             {% if link not in kw.links %}{% set kw.links = kw.links + [link] %}{% endif %}
             {% set kw.covered = kw.covered + options.mro() | map(attribute="path") | list %}
           {% else %}
@@ -85,11 +85,11 @@
     {% endif %}
   </dl>
   {% if kw.links %}
-    <p class="mx-also">It also takes
+    <p class="mx-also">还接受
       {% for text, target in kw.links -%}
-        {% if not loop.first %}{% if loop.last %} and {% else %}, {% endif %}{% endif -%}
+        {% if not loop.first %}{% if loop.last %} 和 {% else %}、{% endif %}{% endif -%}
         <autoref identifier="{{ target }}">{{ text|safe }}</autoref>
-      {%- endfor %}.</p>
+      {%- endfor %}。</p>
   {% elif kw.param and not kw.options %}
     <div class="mx-also">{{ kw.param.description|convert_markdown(heading_level, html_id, autoref_hook=autoref_hook) }}</div>
   {% endif %}

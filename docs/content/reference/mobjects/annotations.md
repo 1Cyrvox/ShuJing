@@ -1,11 +1,11 @@
 ---
-title: "Annotations"
-description: "What points at, frames, labels and measures other mobjects: braces, labels, frames, underlines, crosses and angle marks."
+title: "标注"
+description: "指向、框选、标注和度量其他 mobject 的元素：花括号、标签、边框、下划线、叉号和角标记。"
 ---
 
-# Annotations
+# 标注
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -25,12 +25,12 @@ class AnnotationsHero(m.Scene):
         self.wait()
 ```
 
-An annotation points at another mobject, frames it, labels it or measures it. Most take the
-mobject when you make them and fit it: a brace as long as its side, a frame around it, a
-line under it. They don't follow it afterward; to make one follow, redraw it at every frame
-with [always_redraw][manimgx.always_redraw].
+标注指向另一个 mobject，为其加框、贴标签或度量它。大多数标注在创建时接收该
+mobject 并与之贴合：与其边等长的花括号、环绕其周围的边框、其下方的线条。此后
+它们不会跟随该 mobject；若要使其跟随，需用 [always_redraw][manimgx.always_redraw]
+在每一帧重新绘制。
 
-## Braces
+## 花括号
 
 ::: manimgx.Brace
     options:
@@ -52,7 +52,7 @@ with [always_redraw][manimgx.always_redraw].
     options:
       heading_level: 3
 
-## Frames and marks
+## 边框与标记
 
 ::: manimgx.SurroundingRectangle
     options:
@@ -78,7 +78,7 @@ with [always_redraw][manimgx.always_redraw].
     options:
       heading_level: 3
 
-## Labels
+## 标签
 
 ::: manimgx.Label
     options:
@@ -100,7 +100,7 @@ with [always_redraw][manimgx.always_redraw].
     options:
       heading_level: 3
 
-## Angles
+## 角
 
 ::: manimgx.Angle
     options:
@@ -113,3 +113,8 @@ with [always_redraw][manimgx.always_redraw].
 ::: manimgx.Elbow
     options:
       heading_level: 3
+
+::: manimgx.mobject.Placement
+::: manimgx.mobjects.text.TypstOptions
+::: manimgx.mobjects.shapes.AngleOptions
+::: manimgx.mobjects.shapes.AngleShape

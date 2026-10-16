@@ -1,6 +1,6 @@
-title: "Camera and 3D"
+title: "相机与 3D"
 nav:
-  - Overview: index.md
+  - 概览: index.md
   - camera.md
   - three-d-scenes.md
   - surfaces-and-solids.md

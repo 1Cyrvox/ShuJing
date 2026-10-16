@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"Frames, braces and labels placed relative to existing geometric objects."
+"相对于已有几何对象放置的边框、花括号和标签。"
 
 from __future__ import annotations
 
@@ -87,33 +87,29 @@ if TYPE_CHECKING:
 
 
 class FrameOptions(_Style, total=False, closed=True):
-    """The keywords of a rectangle made around a mobject, as a
-    [SurroundingRectangle][manimgx.SurroundingRectangle] or a
-    [BackgroundRectangle][manimgx.BackgroundRectangle] is: its margin and its corners,
-    with the style keywords (for the classes that pass them on)."""
+    """围绕 mobject 制作的矩形的关键字，作为
+    [SurroundingRectangle][manimgx.SurroundingRectangle] 或
+    [BackgroundRectangle][manimgx.BackgroundRectangle] 的是：其边距和其圆角，
+    以及样式关键字（适用于会传递它们的类）。"""
 
     buff: float | tuple[float, float]
-    """The margin around the mobject, in scene units: one for all sides, or
-    (horizontal, vertical) (default 0.1 around a surrounding rectangle, 0 behind a
-    background rectangle)."""
+    """围绕 mobject 的边距，以场景单位表示：一个值用于所有边，或
+    (水平, 垂直)（默认为：环绕矩形周围 0.1，背景矩形后面 0）。"""
     corner_radius: float
-    """The radius of the rectangle's corners, in scene units (default 0: square
-    corners)."""
+    """矩形圆角的半径，以场景单位表示（默认 0：直角）。"""
 
 
 class SurroundingRectangle(RoundedRectangle):
-    r"""A rectangle around mobjects: around their bounding box, all of them together,
-    with a margin; bright yellow (`PURE_YELLOW`) unless styled.
+    r"""围绕 mobject 的矩形：围绕它们的包围盒，将它们全部包含在内，
+    带有边距；亮黄色（`PURE_YELLOW`），除非另行设置样式。
 
-    It is sized and placed when it is made, and does not follow the mobjects
-    afterwards.
+    其尺寸和位置在创建时确定，之后不再跟随这些 mobject。
 
     Args:
-        *mobjects: The mobjects to surround.
-        buff: The margin around them, in scene units: one for all sides, or
-            (horizontal, vertical).
-        corner_radius: The radius of its corners, in scene units: 0 for square
-            corners.
+        *mobjects: 要环绕的 mobject。
+        buff: 围绕它们的边距，以场景单位表示：一个值用于所有边，或
+            (水平, 垂直)。
+        corner_radius: 其圆角的半径，以场景单位表示：0 表示直角。
 
     Examples:
         ```python
@@ -166,18 +162,17 @@ class SurroundingRectangle(RoundedRectangle):
 
 
 class BackgroundRectangle(SurroundingRectangle):
-    """A rectangle behind mobjects, in the background's color and three quarters
-    opaque, so they stand out from what lies behind them; without an outline.
+    """位于 mobject 后面的矩形，使用背景颜色且四分之三不透明，
+    使它们从背后的内容中凸显出来；没有轮廓线。
 
-    Its color is the scene's background color when it is made, unless given. It goes
-    behind the mobjects: add it to the scene before them.
+    其颜色在创建时取场景的背景色，除非另行指定。它位于
+    mobject 之后：在它们之前将其添加到场景中。
 
     Args:
-        *mobjects: The mobjects to go behind.
-        buff: The margin around them, in scene units: one for all sides, or
-            (horizontal, vertical).
-        corner_radius: The radius of its corners, in scene units: 0 for square
-            corners.
+        *mobjects: 要位于其后的 mobject。
+        buff: 围绕它们的边距，以场景单位表示：一个值用于所有边，或
+            (水平, 垂直)。
+        corner_radius: 其圆角的半径，以场景单位表示：0 表示直角。
 
     Examples:
         ```python
@@ -213,17 +208,16 @@ class BackgroundRectangle(SurroundingRectangle):
 
 
 class Cross(VGroup):
-    """A cross, an X: two lines from corner to corner of a mobject's bounding box, or of
-    a square 2 on a side at the origin; red, 6 wide, unless styled.
+    """叉号，即 X 形：从 mobject 包围盒的对角到对角的两条线，或
+    原点处边长为 2 的正方形的对角线；红色，宽 6，除非另行设置样式。
 
     Args:
-        mobject: The mobject to cross out: the cross is stretched over its bounding
-            box; None for none.
-        stroke_color: The color of its lines.
-        stroke_width: The width of its lines, in hundredths of a scene unit.
-        scale_factor: How much larger than the bounding box (or the square) it is,
-            about its center.
-        color: The color of its lines, in place of `stroke_color`; None to use that.
+        mobject: 要划叉的 mobject：叉号被拉伸覆盖其包围盒；None 表示不针对任何对象。
+        stroke_color: 其线条的颜色。
+        stroke_width: 其线条的宽度，以百分之一场景单位表示。
+        scale_factor: 相对包围盒（或正方形）放大的倍数，
+            以其中心为基准。
+        color: 其线条的颜色，代替 `stroke_color`；None 表示使用前者。
 
     Examples:
         ```python
@@ -259,13 +253,13 @@ class Cross(VGroup):
 
 
 class Underline(Line):
-    """A line under a mobject: as wide as it, `buff` below it; white unless styled.
+    """位于 mobject 下方的线：与其等宽，在其下方 `buff` 处；白色，除非另行设置样式。
 
-    It is sized and placed when it is made, and does not follow the mobject afterwards.
+    其尺寸和位置在创建时确定，之后不再跟随该 mobject。
 
     Args:
-        mobject: The mobject to underline.
-        buff: The gap between the mobject and the line, in scene units.
+        mobject: 要加下划线的 mobject。
+        buff: mobject 与线之间的间距，以场景单位表示。
 
     Examples:
         ```python
@@ -289,30 +283,30 @@ class Underline(Line):
 
 
 class Label(VGroup):
-    """A label on a background, in a frame: text or math, over an opaque rectangle in
-    the background's color, inside a thin white outline.
+    """位于背景之上、边框之中的标签：文本或数学式，置于一个使用背景色
+    的不透明矩形之上，外围有一圈细白色轮廓。
 
-    A string is typeset as math, white, at font size 48 (see
-    [MathTex][manimgx.MathTex]); a mobject of text or math is used as it is. Its parts
-    are its submobjects, in drawing order: its
-    [background_rect][manimgx.Label.background_rect], its
-    [rendered_label][manimgx.Label.rendered_label] and its
-    [frame][manimgx.Label.frame].
+    字符串会被排版为数学式，白色，字号 48（参见
+    [MathTex][manimgx.MathTex]）；文本或数学 mobject 则按原样使用。其各部分
+    为其子 mobject，按绘制顺序排列：其
+    [background_rect][manimgx.Label.background_rect]、其
+    [rendered_label][manimgx.Label.rendered_label] 和其
+    [frame][manimgx.Label.frame]。
 
     Args:
-        label: The label: a string, typeset as math, or a text or math mobject.
-        label_config: [MathTex
-            keywords][manimgx.MathTex] for a string
-            label, over white at font size 48.
-        box_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            background, over a margin of 0.05 and an opaque fill (see
-            [BackgroundRectangle][manimgx.BackgroundRectangle]).
-        frame_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            frame, over white, a margin of 0.05 and an outline 0.5 wide.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the group itself; its
-            parts keep the styles the configs give them.
+        label: 标签：一个字符串，排版为数学式，或一个文本/数学 mobject。
+        label_config: 针对字符串
+            标签的 [MathTex 关键字][manimgx.MathTex]，
+            默认为白色、字号 48。
+        box_config: 针对背景的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]，
+            默认边距 0.05 且不透明填充（参见
+            [BackgroundRectangle][manimgx.BackgroundRectangle]）。
+        frame_config: 针对边框的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]，
+            默认白色、边距 0.05 且宽 0.5 的轮廓线。
+        **kwargs: 组本身的 [样式关键字][manimgx.drawing.paint.Style]；其
+            各部分保留各配置所赋予的样式。
 
     Examples:
         ```python
@@ -351,7 +345,7 @@ class Label(VGroup):
         )
         if isinstance(label, str):
             self.rendered_label: ManimTextLabel = MathTex(label, **label_style)
-            """The label's text or math, a submobject."""
+            """标签的文本或数学式，一个子 mobject。"""
         elif isinstance(label, Typst):
             self.rendered_label = label
         else:
@@ -359,34 +353,32 @@ class Label(VGroup):
                 "Unsupported label type. Must be MathTex, Tex, Text or Typst."
             )
         self.background_rect = BackgroundRectangle(self.rendered_label, **box_style)
-        """The rectangle behind the label, a submobject."""
+        """标签背后的矩形，一个子 mobject。"""
         self.frame = SurroundingRectangle(self.rendered_label, **frame_style)
-        """The outline around the label, a submobject."""
+        """标签外围的轮廓，一个子 mobject。"""
         self.add(self.background_rect, self.rendered_label, self.frame)
 
 
 class LabeledLine(Line):
-    """A line with a label on it: a [Label][manimgx.Label] centered at a point
-    `label_position` of the way from the line's start to its end; white unless styled.
+    """带有标签的线：一个 [Label][manimgx.Label] 居中于从线的起点到终点
+    沿途 `label_position` 比例处；白色，除非另行设置样式。
 
-    The label is a submobject, the line's [label][manimgx.LabeledLine.label]. It is
-    placed on the straight way between the ends, even when the line is bent.
+    标签是一个子 mobject，即线的 [label][manimgx.LabeledLine.label]。它
+    被放置在两端之间的直线路径上，即使线是弯折的也是如此。
 
     Args:
-        label: The label: a string, typeset as math, or a text or math mobject.
-        label_position: Where the label goes, as a proportion of the way from the
-            line's start (0) to its end (1).
-        label_config: [MathTex
-            keywords][manimgx.MathTex] for a string
-            label (see [Label][manimgx.Label]).
-        box_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            label's background.
-        frame_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            label's frame.
-        start: Where the line starts: a point, or a mobject (see [Line][manimgx.Line]).
-        end: Where it ends: a point, or a mobject.
+        label: 标签：一个字符串，排版为数学式，或一个文本/数学 mobject。
+        label_position: 标签的位置，以从线的起点 (0) 到终点 (1) 的
+            比例表示。
+        label_config: 针对字符串
+            标签的 [MathTex 关键字][manimgx.MathTex]
+            （参见 [Label][manimgx.Label]）。
+        box_config: 针对标签背景的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]。
+        frame_config: 针对标签边框的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]。
+        start: 线的起点：一个点，或一个 mobject（参见 [Line][manimgx.Line]）。
+        end: 线的终点：一个点，或一个 mobject。
 
     Examples:
         ```python
@@ -424,33 +416,31 @@ class LabeledLine(Line):
             box_config=box_config,
             frame_config=frame_config,
         )
-        """The label, a submobject."""
+        """标签，一个子 mobject。"""
         line_start, line_end = self.get_start_and_end()
         self.label.move_to(line_start + (line_end - line_start) * label_position)
         self.add(self.label)
 
 
 class LabeledArrow(LabeledLine, Arrow):
-    """An arrow with a label on it: a [LabeledLine][manimgx.LabeledLine] that is an
-    [Arrow][manimgx.Arrow], stopping 0.25 short of its ends unless given another
-    `buff`; white unless styled.
+    """带有标签的箭头：一个作为 [Arrow][manimgx.Arrow] 的
+    [LabeledLine][manimgx.LabeledLine]，在其两端各留 0.25 的间距，除非另行指定
+    `buff`；白色，除非另行设置样式。
 
     Args:
-        label: The label: a string, typeset as math, or a text or math mobject.
-        label_position: Where the label goes, as a proportion of the way from the
-            arrow's start (0) to its tip's point (1).
-        label_config: [MathTex
-            keywords][manimgx.MathTex] for a string
-            label (see [Label][manimgx.Label]).
-        box_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            label's background.
-        frame_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            label's frame.
-        start: Where the arrow starts: a point, or a mobject (see [Line][manimgx.Line]).
-        end: Where it points to: a point, or a mobject.
-        **kwargs: [Line keywords][manimgx.Line].
+        label: 标签：一个字符串，排版为数学式，或一个文本/数学 mobject。
+        label_position: 标签的位置，以从箭头起点 (0) 到箭尖点 (1) 的
+            比例表示。
+        label_config: 针对字符串
+            标签的 [MathTex 关键字][manimgx.MathTex]
+            （参见 [Label][manimgx.Label]）。
+        box_config: 针对标签背景的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]。
+        frame_config: 针对标签边框的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]。
+        start: 箭头的起点：一个点，或一个 mobject（参见 [Line][manimgx.Line]）。
+        end: 箭头指向的位置：一个点，或一个 mobject。
+        **kwargs: [线的关键字][manimgx.Line]。
 
     Examples:
         ```python
@@ -475,28 +465,26 @@ class LabeledArrow(LabeledLine, Arrow):
 
 
 class LabeledPolygram(Polygram):
-    """A polygram with a label inside it, at its pole of inaccessibility: the point
-    inside it farthest from its edges, found to within `precision`; blue unless styled.
+    """带有内部标签的多边形，标签位于其不可及极点处：即
+    其内部距离边缘最远的点，在 `precision` 精度内求得；蓝色，除非另行设置样式。
 
-    The first group of vertices is its outline, and the others are holes the label is
-    kept out of. The label is a submobject, [label][manimgx.LabeledPolygram.label];
-    `pole` is where it is, and `radius` how far that is from the nearest edge.
+    第一组顶点为其外轮廓，其余各组为孔洞，标签会被排除在这些孔洞之外。标签
+    是一个子 mobject，即 [label][manimgx.LabeledPolygram.label]；
+    `pole` 为其所在位置，`radius` 为该位置到最近边缘的距离。
 
     Args:
-        *vertex_groups: The groups of vertices, each a closed path (see
-            [Polygram][manimgx.Polygram]): the outline first, then its holes.
-        label: The label: a string, typeset as math, or a text or math mobject.
-        precision: Allowed error in the largest distance from the polygon's edges,
-            in scene units. Several label positions can meet this radius tolerance.
-        label_config: [MathTex
-            keywords][manimgx.MathTex] for a string
-            label (see [Label][manimgx.Label]).
-        box_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            label's background.
-        frame_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            label's frame.
+        *vertex_groups: 各顶点组，每组为一条闭合路径（参见
+            [Polygram][manimgx.Polygram]）：先外轮廓，再其孔洞。
+        label: 标签：一个字符串，排版为数学式，或一个文本/数学 mobject。
+        precision: 多边形边缘最大距离所允许的误差，
+            以场景单位表示。多个标签位置都可能满足此半径容差。
+        label_config: 针对字符串
+            标签的 [MathTex 关键字][manimgx.MathTex]
+            （参见 [Label][manimgx.Label]）。
+        box_config: 针对标签背景的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]。
+        frame_config: 针对标签边框的
+            [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]。
 
     Examples:
         ```python
@@ -530,7 +518,7 @@ class LabeledPolygram(Polygram):
             box_config=box_config,
             frame_config=frame_config,
         )
-        """The label, a submobject."""
+        """标签，一个子 mobject。"""
         rings = []
         for group in vertex_groups:
             ring = np.asarray(group, dtype=float)
@@ -546,34 +534,32 @@ class LabeledPolygram(Polygram):
 
 
 class BraceOptions(_Style, total=False, closed=True):
-    """A [brace][manimgx.Brace]'s keywords but its direction, for the classes that pass
-    them on.
+    """[花括号][manimgx.Brace] 除方向外的关键字，适用于会传递它们的类。
 
-    Beyond these, they take the [style keywords][manimgx.drawing.paint.Style].
+    除此之外，它们还接受 [样式关键字][manimgx.drawing.paint.Style]。
     """
 
     buff: float
-    """The gap between the mobject and the brace, in scene units (default 0.2)."""
+    """mobject 与花括号之间的间距，以场景单位表示（默认 0.2）。"""
     sharpness: float
-    """How sharp the brace's tip and ends are: the higher, the narrower its curls
-    (default 2)."""
+    """花括号尖端和两端的尖锐程度：值越高，其卷曲越窄
+    （默认 2）。"""
 
 
 class Brace(VMobjectFromSVGPath):
-    """A curly brace along a side of a mobject, as long as the mobject is wide there:
-    filled white, without an outline, unless styled.
+    """沿 mobject 某一边的花括号，长度与 mobject 在该方向的宽度相同：
+    填充白色，无轮廓线，除非另行设置样式。
 
-    The brace lies `buff` beyond the mobject's bounding box, on the side `direction`
-    points to, spanning the mobject across that direction, its tip pointing away; the
-    mobject is left as it is. [get_text][manimgx.Brace.get_text] and
-    [get_tex][manimgx.Brace.get_tex] label its tip.
+    花括号位于 mobject 包围盒以外 `buff` 处，在 `direction` 所指向的一侧，
+    横跨 mobject 在该方向上的范围，其尖端朝外；mobject 本身保持不变。
+    [get_text][manimgx.Brace.get_text] 和
+    [get_tex][manimgx.Brace.get_tex] 可在其尖端处添加标签。
 
     Args:
-        mobject: The mobject to brace.
-        direction: The side the brace is on, as a direction (DOWN: below).
-        buff: The gap between the mobject and the brace, in scene units.
-        sharpness: How sharp the brace's tip and ends are: the higher, the narrower its
-            curls.
+        mobject: 要加花括号的 mobject。
+        direction: 花括号所在的一侧，以方向表示（DOWN：下方）。
+        buff: mobject 与花括号之间的间距，以场景单位表示。
+        sharpness: 花括号尖端和两端的尖锐程度：值越高，其卷曲越窄。
 
     Examples:
         ```python
@@ -649,16 +635,15 @@ class Brace(VMobjectFromSVGPath):
     def put_at_tip(
         self, mob: Mobject, use_next_to: bool = True, **kwargs: Unpack[Placement]
     ) -> Self:
-        """Put a mobject at the brace's tip, beyond it.
+        """将一个 mobject 放在花括号的尖端处，在其外侧。
 
         Args:
-            mob: The mobject to put there.
-            use_next_to: Whether it goes next to the tip, on the side the brace points
-                to (its direction rounded to one of the eight compass directions); if
-                not, its center goes from the tip along the brace's direction, by half
-                its width and `buff`.
-            **kwargs: [Placement keywords][manimgx.mobject.Placement]: `buff`, the
-                gap, is 0.25 unless given.
+            mob: 要放置在该处的 mobject。
+            use_next_to: 是否将其放在尖端旁边，位于花括号所指向的一侧
+                （其方向四舍五入到八个罗盘方向之一）；若否，则其中心从尖端
+                沿花括号方向移动其宽度的一半加 `buff` 的距离。
+            **kwargs: [Placement 关键字][manimgx.mobject.Placement]：`buff`，
+                即间距，除非另行指定，默认为 0.25。
         """
         if use_next_to:
             mob.next_to(self.get_tip(), np.round(self.get_direction()), **kwargs)
@@ -670,15 +655,15 @@ class Brace(VMobjectFromSVGPath):
         return self
 
     def get_text(self, *text: str, **kwargs: Unpack[Placement]) -> Tex:
-        """Make a label of LaTeX text at the brace's tip, as
-        [put_at_tip][manimgx.Brace.put_at_tip] puts it.
+        """在花括号尖端处制作一个 LaTeX 文本标签，放置方式如同
+        [put_at_tip][manimgx.Brace.put_at_tip]。
 
         Args:
-            *text: The label, in LaTeX: a string per part (see [Tex][manimgx.Tex]).
-            **kwargs: [Placement keywords][manimgx.mobject.Placement].
+            *text: 标签，以 LaTeX 表示：每部分一个字符串（参见 [Tex][manimgx.Tex]）。
+            **kwargs: [Placement 关键字][manimgx.mobject.Placement]。
 
         Returns:
-            A new [Tex][manimgx.Tex], at the tip; add it to the scene.
+            一个新的 [Tex][manimgx.Tex]，位于尖端处；需将其添加到场景中。
 
         Examples:
             ```python
@@ -702,36 +687,36 @@ class Brace(VMobjectFromSVGPath):
         return text_mob
 
     def get_tex(self, *tex: str, **kwargs: Unpack[Placement]) -> MathTex:
-        """Make a label of LaTeX math at the brace's tip, as
-        [put_at_tip][manimgx.Brace.put_at_tip] puts it.
+        """在花括号尖端处制作一个 LaTeX 数学标签，放置方式如同
+        [put_at_tip][manimgx.Brace.put_at_tip]。
 
         Args:
-            *tex: The label, in LaTeX: a string per part (see
-                [MathTex][manimgx.MathTex]).
-            **kwargs: [Placement keywords][manimgx.mobject.Placement].
+            *tex: 标签，以 LaTeX 表示：每部分一个字符串（参见
+                [MathTex][manimgx.MathTex]）。
+            **kwargs: [Placement 关键字][manimgx.mobject.Placement]。
 
         Returns:
-            A new [MathTex][manimgx.MathTex], at the tip; add it to the scene.
+            一个新的 [MathTex][manimgx.MathTex]，位于尖端处；需将其添加到场景中。
         """
         tex_mob = MathTex(*tex)
         self.put_at_tip(tex_mob, **kwargs)
         return tex_mob
 
     def get_tip(self) -> Point3D:
-        """The brace's tip: the point of its middle cusp.
+        """花括号的尖端：其中心尖点的位置。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.points[28]
 
     def get_direction(  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]  # CE's: a brace's direction is a vector, a path's a winding
         self,
     ) -> Vector3D:
-        """The direction the brace points to: from its center to its tip.
+        """花括号所指向的方向：从其中心到其尖端。
 
         Returns:
-            A unit vector.
+            一个单位向量。
         """
         vect = self.get_tip() - self.get_center()
         return vect / np.linalg.norm(vect)
@@ -743,42 +728,42 @@ type LabelMaker = Callable[
 
 
 class BraceLabelOptions(_Style, total=False, closed=True):
-    """A [brace label][manimgx.BraceLabel]'s keywords but its label's class, for the
-    classes that choose it.
+    """[花括号标签][manimgx.BraceLabel] 除标签类之外的关键字，适用于
+    选择该类的类。
 
-    Beyond these, they take the [style keywords][manimgx.drawing.paint.Style].
+    除此之外，它们还接受 [样式关键字][manimgx.drawing.paint.Style]。
     """
 
     brace_direction: Vector3DLike
-    """The side the brace is on, as a direction (default DOWN: below)."""
+    """花括号所在的一侧，以方向表示（默认 DOWN：下方）。"""
     font_size: float
-    """The label's font size (default 48)."""
+    """标签的字号（默认 48）。"""
     buff: float
-    """The gap between the mobject and the brace, in scene units (default 0.2)."""
+    """mobject 与花括号之间的间距，以场景单位表示（默认 0.2）。"""
     brace_config: BraceOptions | None
-    """[Brace keywords][manimgx.Brace], over `buff` (default
-    None)."""
+    """[花括号关键字][manimgx.Brace]，覆盖 `buff`（默认
+    None）。"""
 
 
 class BraceLabel(VMobject):
-    r"""A brace along a side of a mobject, and a label at its tip: math unless another
-    label class is given.
+    r"""沿 mobject 某一边的花括号，以及在其尖端处的标签：除非另行指定
+    标签类，否则为数学式。
 
-    Its parts are its [brace][manimgx.BraceLabel.brace] and its
-    [label][manimgx.BraceLabel.label].
+    其各部分为其 [brace][manimgx.BraceLabel.brace] 和其
+    [label][manimgx.BraceLabel.label]。
 
     Args:
-        obj: The mobject to brace.
-        text: The label: a string, or several (as a [MathTex][manimgx.MathTex]'s
-            parts).
-        brace_direction: The side the brace is on, as a direction.
-        label_constructor: The label's class: MathTex, or another text class.
-        font_size: The label's font size.
-        buff: The gap between the mobject and the brace, in scene units.
-        brace_config: [Brace keywords][manimgx.Brace], over
-            `buff`.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the group itself, and
-            of the label when `text` is several strings.
+        obj: 要加花括号的 mobject。
+        text: 标签：一个字符串，或多个（作为 [MathTex][manimgx.MathTex] 的
+            各部分）。
+        brace_direction: 花括号所在的一侧，以方向表示。
+        label_constructor: 标签的类：MathTex，或其他文本类。
+        font_size: 标签的字号。
+        buff: mobject 与花括号之间的间距，以场景单位表示。
+        brace_config: [花括号关键字][manimgx.Brace]，覆盖
+            `buff`。
+        **kwargs: 组本身的 [样式关键字][manimgx.drawing.paint.Style]，且当
+            `text` 为多个字符串时，也作为标签的样式关键字。
 
     Examples:
         ```python
@@ -814,25 +799,25 @@ class BraceLabel(VMobject):
             brace_direction,
             **(BraceOptions(buff=buff) | (brace_config or BraceOptions())),
         )
-        """The brace, a part."""
+        """花括号，一个组成部分。"""
         if isinstance(text, str):
             self.label: ManimTextLabel = self.label_constructor(
                 text, font_size=font_size
             )
-            """The label, at the brace's tip: a part."""
+            """位于花括号尖端处的标签：一个组成部分。"""
         else:
             self.label = self.label_constructor(*text, font_size=font_size, **kwargs)
         self.brace.put_at_tip(self.label)
         self.add(self.brace, self.label)
 
     def change_label(self, *text: str, **kwargs: Unpack[TypstOptions]) -> Self:
-        """Replace the label with a new one, made of `text` by the label class, at the
-        brace's tip.
+        """用由标签类以 `text` 生成的新标签替换原标签，放在花括号的
+        尖端处。
 
         Args:
-            *text: The new label's strings.
-            **kwargs: [Typst keywords][manimgx.mobjects.text.TypstOptions]
-                for it (at font size 48 unless given).
+            *text: 新标签的字符串。
+            **kwargs: 针对其的 [Typst 关键字][manimgx.mobjects.text.TypstOptions]
+                （除非另行指定，字号为 48）。
         """
         self.remove(self.label)
         self.label = self.label_constructor(*text, **kwargs)
@@ -842,13 +827,13 @@ class BraceLabel(VMobject):
 
 
 class BraceText(BraceLabel):
-    """A brace along a side of a mobject, and a label of text at its tip: a
-    [BraceLabel][manimgx.BraceLabel] whose label is a [Text][manimgx.Text].
+    """沿 mobject 某一边的花括号，以及在其尖端处的文本标签：一个
+    标签为 [Text][manimgx.Text] 的 [BraceLabel][manimgx.BraceLabel]。
 
     Args:
-        obj: The mobject to brace.
-        text: The label's text.
-        label_constructor: The label's class.
+        obj: 要加花括号的 mobject。
+        text: 标签的文本。
+        label_constructor: 标签的类。
 
     Examples:
         ```python
@@ -875,14 +860,14 @@ class BraceText(BraceLabel):
 
 
 class BraceBetweenPoints(Brace):
-    """A brace spanning the segment between two points.
+    """横跨两点之间线段的花括号。
 
     Args:
-        point_1: One end.
-        point_2: The other end.
-        direction: The side the brace is on, as a direction; ORIGIN (the default) for
-            the right-hand side going from `point_1` to `point_2` (below, for points
-            from left to right).
+        point_1: 一端。
+        point_2: 另一端。
+        direction: 花括号所在的一侧，以方向表示；ORIGIN（默认值）表示
+            从 `point_1` 到 `point_2` 行进方向的右侧（对于从左到右的两点，
+            即下方）。
 
     Examples:
         ```python
@@ -914,11 +899,11 @@ class BraceBetweenPoints(Brace):
 
 
 class ArcBrace(Brace):
-    """A brace bent along an arc, outside it or inside.
+    """沿圆弧弯曲的花括号，位于其外侧或内侧。
 
     Args:
-        arc: The arc to brace; None for one of radius 1, from -1 to 1 radian.
-        direction: RIGHT for the brace outside the arc, LEFT for inside.
+        arc: 要加花括号的圆弧；None 表示半径为 1、从 -1 到 1 弧度的圆弧。
+        direction: RIGHT 表示花括号在圆弧外侧，LEFT 表示在内侧。
 
     Examples:
         ```python
@@ -963,18 +948,18 @@ class ArcBrace(Brace):
 
 
 class LabeledDot(Dot):
-    r"""A dot with a label in its middle: a disc just large enough for the label unless
-    given a radius; white, without an outline, unless styled.
+    r"""中间带标签的点：一个刚好能容纳标签的圆盘，除非给定半径；
+    白色，无轮廓线，除非另行设置样式。
 
-    It is made at the origin, and the label, centered on it, is its submobject.
+    它在原点处创建，标签居中于其上，是其子 mobject。
 
     Args:
-        label: The label: a string, typeset as math in black (see
-            [MathTex][manimgx.MathTex]), or a mobject, as it is.
-        radius: Its radius, in scene units; None for half the diagonal of the label's
-            bounding box, plus `buff`.
-        buff: The margin between the label's corners and the dot's edge, in scene
-            units, when the radius fits the label.
+        label: 标签：一个字符串，排版为黑色的数学式（参见
+            [MathTex][manimgx.MathTex]），或一个 mobject，按原样使用。
+        radius: 其半径，以场景单位表示；None 表示标签包围盒对角线的一半
+            加 `buff`。
+        buff: 当半径适配标签时，标签各角与点边缘之间的边距，以场景
+            单位表示。
 
     Examples:
         ```python

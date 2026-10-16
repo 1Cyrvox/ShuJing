@@ -1,4 +1,4 @@
-"""Array aliases, by rank: a point is 1-D, an array of points 2-D (numpy types the rank, not the 3)."""
+"""数组别名，按秩区分：点是 1-D，点的数组是 2-D（numpy 标注的是秩，而非 3）。"""
 
 from collections.abc import Callable, Sequence
 from os import PathLike

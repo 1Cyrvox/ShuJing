@@ -1,11 +1,11 @@
 ---
-title: "Size and angle"
-description: "How large a mobject is and which way it turns, and the methods that scale, stretch, turn, flip and reshape it."
+title: "尺寸与角度"
+description: "mobject 的大小和转向，以及缩放、拉伸、旋转、翻转和重塑它的方法。"
 ---
 
-# Size and angle
+# 尺寸与角度
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -39,15 +39,14 @@ class SizeAndAngleHero(m.Scene):
         self.wait()
 ```
 
-A mobject's size is its bounding box's: its [width][manimgx.Mobject.width] and its
-[height][manimgx.Mobject.height]. Most shapes take their size when you make them (a
-circle its `radius`, a text its `font_size`); these methods change it later, about the
-mobject's center unless you give another point.
+mobject 的尺寸即其包围盒的尺寸：其[宽度][manimgx.Mobject.width]和
+[高度][manimgx.Mobject.height]。大多数形状在创建时确定尺寸（圆通过 `radius`，文本通过
+`font_size`）；以下方法在之后更改尺寸，默认围绕 mobject 的中心，除非你指定其他点。
 
-An angle is in radians: a whole turn is `m.TAU`, half a turn `m.PI`, and `30 * m.DEGREES`
-is 30 degrees. A positive angle turns counterclockwise.
+角度以弧度表示：完整一圈为 `m.TAU`，半圈为 `m.PI`，`30 * m.DEGREES` 即 30 度。正角度
+逆时针旋转。
 
-## Size
+## 尺寸
 
 ::: manimgx.Mobject.width
     options:
@@ -93,7 +92,7 @@ is 30 degrees. A positive angle turns counterclockwise.
     options:
       heading_level: 3
 
-## Angle
+## 角度
 
 <div class="mx-constants" markdown>
 
@@ -123,7 +122,7 @@ is 30 degrees. A positive angle turns counterclockwise.
     options:
       heading_level: 3
 
-## Any change
+## 任意变换
 
 ::: manimgx.Mobject.put_start_and_end_on
     options:
@@ -144,3 +143,5 @@ is 30 degrees. A positive angle turns counterclockwise.
 ::: manimgx.Mobject.set
     options:
       heading_level: 3
+
+::: manimgx.mobject.Pivot

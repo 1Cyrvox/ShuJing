@@ -1,11 +1,11 @@
 ---
-title: "Numbers"
-description: "Numbers written with a set number of decimal places, integers, and named values that follow a tracker."
+title: "数字"
+description: "以设定小数位数书写的数字、整数，以及跟随追踪器的命名值。"
 ---
 
-# Numbers
+# 数字
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -25,10 +25,10 @@ class NumbersHero(m.Scene):
         self.wait()
 ```
 
-A number is a text that knows its value. [set_value][manimgx.DecimalNumber.set_value] shows
-another value in its place, with the same look, so a number can count while a scene plays:
-by an [updater](../../updaters/index.md) that sets it at every frame, or by
-[ChangeDecimalToValue][manimgx.ChangeDecimalToValue].
+数字是知道自身值的文本。[set_value][manimgx.DecimalNumber.set_value] 在其位置显示另一个
+值，外观保持不变，因此数字可在场景播放时计数：通过在每个帧设置它的
+[更新器](../../updaters/index.md)，或通过
+[ChangeDecimalToValue][manimgx.ChangeDecimalToValue]。
 
 ::: manimgx.DecimalNumber
     options:
@@ -42,7 +42,7 @@ by an [updater](../../updaters/index.md) that sets it at every frame, or by
     options:
       heading_level: 2
 
-## Count to a value
+## 计数至某个值
 
 ::: manimgx.ChangeDecimalToValue
     options:

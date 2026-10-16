@@ -1,11 +1,11 @@
 ---
-title: "Planes"
-description: "Grids of coordinates that fill the frame: the number plane, the complex plane, the polar plane."
+title: "平面"
+description: "填满帧的坐标网格：数平面、复平面、极坐标平面。"
 ---
 
-# Planes
+# 平面
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -20,14 +20,9 @@ class PlanesHero(m.Scene):
         self.wait()
 ```
 
-A plane is axes with a grid: a line at every step of each axis. Unless you size it, a number
-plane fills the frame, with the frame's own coordinates, so that a point of the plane is the
-point of the frame: it is the grid to see positions by. A complex plane reads its points as
-complex numbers, and a polar plane draws circles around its center and rays out of it.
+平面是带有网格的坐标轴：每根轴的每个步长处都有一条线。除非你指定其尺寸，否则数平面会填满帧，并使用帧自身的坐标系，使得平面上的点就是帧上的点：它是用于查看位置的网格。复平面将其点读取为复数，极坐标平面则围绕其中心绘制圆并从中心向外绘制射线。
 
-A plane bends with everything on it: insert more curves first
-([prepare_for_nonlinear_transform][manimgx.NumberPlane.prepare_for_nonlinear_transform]),
-and its lines curve smoothly.
+平面会与其上的所有内容一起弯曲：先插入更多曲线（[prepare_for_nonlinear_transform][manimgx.NumberPlane.prepare_for_nonlinear_transform]），其线条便会平滑地弯曲。
 
 ::: manimgx.NumberPlane
     options:
@@ -42,9 +37,9 @@ and its lines curve smoothly.
     options:
       heading_level: 2
 
-## Complex numbers and points
+## 复数与点
 
-A point `[x, y, 0]` stands for the complex number x + yi.
+点 `[x, y, 0]` 表示复数 x + yi。
 
 ::: manimgx.complex_to_R3
     options:
@@ -57,3 +52,5 @@ A point `[x, y, 0]` stands for the complex number x + yi.
 ::: manimgx.complex_func_to_R3_func
     options:
       heading_level: 3
+
+::: manimgx.mobjects.plotting.AxesOptions

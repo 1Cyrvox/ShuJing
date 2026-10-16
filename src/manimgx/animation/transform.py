@@ -1,7 +1,7 @@
-"""Transforms: keyframe evaluation, recorded method calls, and concurrent leaf composition.
+"""变换：关键帧求值、记录的方法调用，以及并发叶组合。
 
-A Transform moves geometry and paint between states; Animate derives those states
-from recorded calls. The play's compositor combines transforms sharing a leaf."""
+Transform 在状态之间移动几何与绘制；Animate 从记录的调用中推导这些状态。
+play 的合成器将共享同一叶的变换组合起来。"""
 
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ if TYPE_CHECKING:
     from manimgx.mobjects.vector_field import StreamLines, VectorField
 
     class _Of[T](Protocol):
-        """A proxy of a T (covariant: `_Of[Circle]` is an `_Of[VMobject]`)."""
+        """T 的代理（协变：`_Of[Circle]` 是一个 `_Of[VMobject]`）。"""
 
         @property
         def mobject(self) -> T: ...
@@ -106,8 +106,8 @@ if TYPE_CHECKING:
         S4: Mobject = Never,
         **P4 = ...,
     ]:
-        """A mobject method as a proxy records it: for mobjects of kind S (the method's own
-        class), the method's parameters P, returning the proxy — per kind, first match.
+        """一个 mobject 方法作为代理记录它：对于类型 S（方法自身所属的类）的 mobject，
+        方法的参数为 P，返回该代理——按类型逐一匹配，取第一个匹配项。
         """
 
         @overload
@@ -124,7 +124,7 @@ if TYPE_CHECKING:
             raise NotImplementedError  # typing only
 
     def _on[K](kind: type[K], /) -> K:
-        """A K, for its bound methods: their parameters without `self`, returning K."""
+        """一个 K，用于其绑定方法：其参数不含 `self`，返回 K。"""
         raise NotImplementedError  # typing only
 
     @overload
@@ -159,7 +159,7 @@ if TYPE_CHECKING:
     ) -> _Method[A, PA, B, PB, C, PC, D, PD]: ...
 
     def recorded(*methods: object) -> object:
-        """A method a proxy records, from each kind's bound method (its kind is what it returns)."""
+        """代理所记录的方法，来自每个类型的绑定方法（其类型即为其返回值的类型）。"""
         raise NotImplementedError  # typing only
 
 
@@ -167,63 +167,56 @@ __all__ = ["Animate", "Transform"]
 
 
 class TransformOptions(_AnimationOptions, total=False, closed=True):
-    """The options a transform takes, by keyword: the animation options and its path."""
+    """变换所接受的选项，按关键字给出：动画选项及其路径。"""
 
     path_func: PathFunc | None
-    """How each point travels from its start to its end: a function of the start points,
-    the end points and the progress (see [paths][manimgx.Path]); it replaces
-    `path_arc` and `path_arc_centers` (default None: a straight path)."""
+    """每个点从起点到终点的行进方式：以起点、终点和进度为参数的函数
+    （参见 [paths][manimgx.Path]）；它替代 `path_arc` 和 `path_arc_centers`
+    （默认 None：直线路径）。"""
     path_arc: float
-    """The angle each point turns through on its way, in radians: 0 is a straight path,
-    and a positive angle turns counterclockwise about `path_arc_axis` (default 0)."""
+    """每个点在行进过程中转过的角度，以弧度为单位：0 为直线路径，
+    正角度表示绕 `path_arc_axis` 逆时针旋转（默认 0）。"""
     path_arc_axis: Vector3DLike
-    """The axis the arcs of `path_arc` turn about (default [`OUT`][manimgx.OUT]: in the
-    plane of the screen)."""
+    """`path_arc` 的弧所绕的轴（默认 [`OUT`][manimgx.OUT]：在屏幕平面内）。"""
     path_arc_centers: Point3DLike | Point3DLike_Array | None
-    """A point the mobject turns about by `path_arc` on its way, or one for each of its
-    points (default None: each point turns about the center of its own arc)."""
+    """mobject 在行进过程中绕其转过 `path_arc` 的点，或为每个点各指定一个
+    （默认 None：每个点绕自身弧的中心旋转）。"""
     replace_mobject_with_target_in_scene: bool
-    """Whether the target takes the mobject's place in the scene when the animation
-    finishes, as with [`ReplacementTransform`][manimgx.ReplacementTransform]
-    (default False)."""
+    """动画结束时目标是否取代 mobject 在场景中的位置，如同
+    [`ReplacementTransform`][manimgx.ReplacementTransform]（默认 False）。"""
 
 
 class Transform[M: Mobject = Mobject](Animation[M]):
-    """Transform a mobject into the shape and style of another.
+    """将一个 mobject 变换为另一个的形状和样式。
 
-    The mobject stays in the scene and ends looking like `target_mobject`, which is not
-    added (with [`ReplacementTransform`][manimgx.ReplacementTransform], the target takes
-    the mobject's place). Their parts are matched up one to one (the side with fewer
-    parts gains some, and so do the points of each pair), so the mobject may end with
-    more parts than it had. Each point travels from its start to its end in a straight
-    line, or along an arc with `path_arc`.
+    该 mobject 留在场景中，结束时外观与 `target_mobject` 一致，后者不会被添加
+    （使用 [`ReplacementTransform`][manimgx.ReplacementTransform] 时，目标会取代
+    mobject 的位置）。它们的各部分被一一对应匹配（部分较少的一侧会增加一些，
+    每一对的点也是如此），因此 mobject 最终可能拥有比原来更多的部分。每个点
+    从起点到终点沿直线行进，或通过 `path_arc` 沿弧行进。
 
-    Transforms that begin together on one mobject compose: `square.animate.shift(RIGHT)`
-    and `Rotate(square)` played together move the square and turn it. One that begins
-    later takes the mobject over from where the others have brought it. A target that
-    has updaters and is not in the scene moves while the animation plays (the animation
-    runs its updaters), and the mobject follows it.
+    在同一 mobject 上同时开始的变换会进行合成：`square.animate.shift(RIGHT)` 与
+    `Rotate(square)` 一起播放会移动并旋转正方形。较晚开始的变换会从其他变换
+    将该 mobject 带到的位置接管它。带有更新器且不在场景中的目标会在动画播放
+    期间移动（动画会运行其更新器），mobject 会跟随它。
 
     Args:
-        mobject: The mobject to transform.
-        target_mobject: The mobject it turns into; None creates an empty target when
-            `keys` is omitted. Passing only `keys` leaves `target_mobject` as None.
-        path_func: How each point travels from its start to its end: a function of the
-            start points, the end points and the progress (see
-            [paths][manimgx.Path]); it replaces `path_arc` and `path_arc_centers`.
-            None: a straight path.
-        path_arc: The angle each point turns through on its way, in radians: 0 is a
-            straight path, and a positive angle turns counterclockwise.
-        path_arc_axis: The axis the arcs of `path_arc` turn about.
-        path_arc_centers: A point the mobject turns about by `path_arc` on its way, or
-            one for each of its points; None: each point turns about the center of its
-            own arc.
-        replace_mobject_with_target_in_scene: Whether an independent target takes
-            the mobject's place when the animation finishes. Presets without
-            such a target retain their usual removal or restoration behavior.
-        keys: Two or more states to pass through, in order: None for the mobject as the
-            animation starts, a function of it, or a mobject, copied when the animation
-            starts. Without them, the states are the mobject and `target_mobject`.
+        mobject: 要变换的 mobject。
+        target_mobject: 它要变成的 mobject；当省略 `keys` 时，None 会创建一个空
+            目标。仅传入 `keys` 时 `target_mobject` 保持为 None。
+        path_func: 每个点从起点到终点的行进方式：以起点、终点和进度为参数的函数
+            （参见 [paths][manimgx.Path]）；它替代 `path_arc` 和 `path_arc_centers`。
+            None：直线路径。
+        path_arc: 每个点在行进过程中转过的角度，以弧度为单位：0 为直线路径，
+            正角度表示逆时针旋转。
+        path_arc_axis: `path_arc` 的弧所绕的轴。
+        path_arc_centers: mobject 在行进过程中绕其转过 `path_arc` 的点，或为每个
+            点各指定一个；None：每个点绕自身弧的中心旋转。
+        replace_mobject_with_target_in_scene: 动画结束时独立的目标是否取代
+            mobject 的位置。没有此类目标的预设保留其通常的移除或恢复行为。
+        keys: 依次经过的两个或更多状态：None 表示动画开始时的 mobject，为其函数，
+            或为一个 mobject，在动画开始时复制。未提供时，状态为 mobject 和
+            `target_mobject`。
 
     Examples:
         ```python
@@ -278,9 +271,9 @@ class Transform[M: Mobject = Mobject](Animation[M]):
 
     @property
     def path_arc(self) -> float:
-        """The angle each point turns through on its way, in radians.
+        """每个点在行进过程中转过的角度，以弧度为单位。
 
-        Setting it makes the path an arc of that angle about `path_arc_axis`.
+        设置它会使路径成为绕 `path_arc_axis` 的该角度的弧。
         """
         return self._path_arc
 
@@ -291,10 +284,9 @@ class Transform[M: Mobject = Mobject](Animation[M]):
 
     @property
     def path_func(self) -> PathFunc:
-        """How each point travels from its start to its end.
+        """每个点从起点到终点的行进方式。
 
-        A function of the start points, the end points and the progress; setting None
-        keeps the current one.
+        以起点、终点和进度为参数的函数；设置为 None 会保留当前的路径函数。
         """
         return self._path_func
 
@@ -331,12 +323,10 @@ class Transform[M: Mobject = Mobject](Animation[M]):
     @functools.cached_property
     @deprecated("ManimGX's machinery: the play calls it", category=None)
     def motion(self) -> tuple[tuple[Step, ...], Floats] | None:
-        """The motion that carries the mobject from its first keyframe to its last, or
-        None.
+        """将 mobject 从其第一个关键帧带到最后一个关键帧的运动，或为 None。
 
-        For transforms that compose: its steps (turns about points of the mobject as it
-        began, and moves; a straight path's is the move of its center) and the whole
-        motion undone. None when the path is not a motion.
+        对于可合成的变换：其步骤（绕 mobject 在其初始状态下的某些点转动，以及移动；
+        直线路径的步骤即为其中心的移动）以及整个运动的逆。当路径不是运动时为 None。
         """
         path, frames = self.path_func, self.frames
         if not (isinstance(path, Path) and path.kind == "motion" and len(frames) == 2):
@@ -347,11 +337,10 @@ class Transform[M: Mobject = Mobject](Animation[M]):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def moving_target(self) -> bool:
-        """Whether the target moves while the animation plays.
+        """目标在动画播放期间是否移动。
 
-        It does when it is a mobject of its own with updaters that the scene does not
-        run: the animation runs them (`advance`), and the keyframes follow it. Decided
-        once, when first asked.
+        当目标是一个独立的、带有场景不运行的更新器的 mobject 时它会移动：动画运行
+        它们（`advance`），关键帧跟随它。在首次询问时决定一次。
         """
         # decided once: not a walk of the scene per animation, nor of the target per
         # frame
@@ -423,7 +412,7 @@ class Transform[M: Mobject = Mobject](Animation[M]):
 
 
 class _Call:
-    """A method call, with mobject arguments captured when it is written."""
+    """一次方法调用，在写入时捕获 mobject 参数。"""
 
     __slots__ = ("args", "function", "kwargs")
 
@@ -473,15 +462,15 @@ _FIELDS = (  # every paint field a tween changes but the sheen's direction
 
 
 class Compositor:
-    """A play's leaves, and the tweens driving each (`Scene.play` makes one per play)."""
+    """一次 play 的叶，以及驱动每个叶的补间（`Scene.play` 每次 play 创建一个）。"""
 
     def __init__(self) -> None:
         self.leaves: dict[int, _Leaf] = {}
         self.finished: set[int] = set()  # the tweens that have finished
 
     def join(self, tween: Transform) -> None:
-        """`tween` begins: it joins the tweens on a leaf they have not moved since they began (the leaf
-        is then shared), and takes over any other leaf."""
+        """`tween` 开始：它加入某个叶上自其他补间开始以来未移动该叶的补间
+        （该叶随后被共享），并接管任何其他叶。"""
         for leaf in tween.mobject.family_members_with_points():
             entry = self.leaves.get(id(leaf))
             if entry is not None and entry.found(leaf):
@@ -497,8 +486,8 @@ class Compositor:
     def write(
         self, leaf: Mobject, tween: Transform, a: Mobject, b: Mobject, t: float
     ) -> bool:
-        """Write a shared `leaf` as `tween` has it — between keyframes a and b, at t — with
-        the other tweens driving it. False: the tween writes it itself."""
+        """将共享的 `leaf` 写为 `tween` 所给的状态——在关键帧 a 和 b 之间、
+        位置 t 处——与驱动它的其他补间一起。返回 False：由该补间自行写入。"""
         entry = self.leaves[id(leaf)]
         part = next((p for p in entry.parts if p.tween is tween), None)
         if part is None:  # the leaf was taken over from it
@@ -515,14 +504,14 @@ class _Part:
 
 
 class _Leaf:
-    """A leaf as its tweens found it when they began, and those tweens."""
+    """一个叶在其补间开始时的状态，以及那些补间。"""
 
     def __init__(self, leaf: Mobject, tween: Transform) -> None:
         self.leaf, self.geometry, self.paint = leaf, leaf._geometry, leaf.paint
         self.parts = [_Part(tween)]
 
     def found(self, leaf: Mobject) -> bool:
-        """Is the leaf as its tweens found it (none of them has moved it)?"""
+        """该叶是否与其补间发现它时一致（没有补间移动过它）？"""
         return leaf._geometry is self.geometry and leaf.paint is self.paint
 
     def compose(self) -> bool:
@@ -563,8 +552,8 @@ class _Leaf:
 
 
 def _channels(before: object, value: np.ndarray, own: np.ndarray) -> np.ndarray:
-    """A brush that two tweens change: its colors the last changer's, and its opacities (a
-    brush of other rows: the last changer's whole)."""
+    """被两个补间改变的笔刷：其颜色取最后改变者的，其不透明度也取最后改变者的
+    （其他行的笔刷：整体取最后改变者的）。"""
     if not (
         isinstance(before, np.ndarray) and before.shape == value.shape == own.shape
     ):
@@ -578,7 +567,7 @@ def _channels(before: object, value: np.ndarray, own: np.ndarray) -> np.ndarray:
 
 
 class _Methods:
-    """Every `-> Self` method of the library, by the class that defines it (see the module doc)."""
+    """库中每个 `-> Self` 的方法，按定义它的类索引（参见模块文档）。"""
 
     if TYPE_CHECKING:
         # Mobject
@@ -821,30 +810,28 @@ class _Methods:
 
 
 class Animate[M: Mobject](Transform[M], _Methods):
-    """An animation of a mobject's method calls.
+    """mobject 方法调用的动画。
 
-    It is what [`mobject.animate`][manimgx.Mobject.animate] returns. Call methods on it
-    as on the mobject, `square.animate.shift(RIGHT).scale(2)`, and play it: it is the
-    animation. Each call is recorded and tried at once on a copy, so a wrong call fails
-    where it is written, and the calls are carried out on the mobject as it is when the
-    animation begins (in a [`Succession`][manimgx.Succession], after the parts before
-    it). When it finishes, the mobject is exactly what the calls make of it.
+    它是 [`mobject.animate`][manimgx.Mobject.animate] 的返回值。像在 mobject 上
+    一样调用其方法，`square.animate.shift(RIGHT).scale(2)`，然后播放它：它就是
+    该动画。每个调用都会被记录，并立即在副本上尝试，因此错误的调用会在其书写
+    处失败；这些调用会在动画开始时（在 [`Succession`][manimgx.Succession] 中，
+    在它之前的部分之后）按 mobject 当时的状态执行。当它结束时，mobject 恰好
+    是这些调用所产生的结果。
 
-    The mobject moves as the calls do: a turn among them (`rotate`, `flip`) turns it
-    rigidly, through its whole angle (`rotate(TAU)` is a full turn), about its pivot as
-    the motion carries it; any other call moves its
-    center in a straight line; and the rest of the change (a scale, a color, a new
-    shape) happens along the way. A `path_arc` or `path_func` of its own replaces that
-    motion.
+    mobject 随调用的执行而移动：其中的一次旋转（`rotate`、`flip`）会将其刚性地
+    转过完整角度（`rotate(TAU)` 是一整圈），绕其随运动携带的枢轴旋转；任何其他
+    调用会将其中心沿直线移动；其余的变化（缩放、颜色、新形状）则沿路发生。
+    自身的 `path_arc` 或 `path_func` 会替代该运动。
 
-    Called before any method, it takes the animation's
-    [options][manimgx.animation.transform.TransformOptions]:
-    `square.animate(run_time=2, rate_func=linear).shift(RIGHT)`. It also takes an edit,
-    a function applied to the mobject as a method would be:
-    `square.animate(lambda mob: mob.shift(RIGHT))`.
+    在任何方法之前调用它会设置动画的
+    [选项][manimgx.animation.transform.TransformOptions]：
+    `square.animate(run_time=2, rate_func=linear).shift(RIGHT)`。它也接受一个编辑，
+    即一个以方法形式作用于 mobject 的函数：
+    `square.animate(lambda mob: mob.shift(RIGHT))`。
 
     Args:
-        mobject: The mobject whose method calls are animated.
+        mobject: 其方法调用被动画化的 mobject。
 
     Examples:
         ```python
@@ -880,22 +867,21 @@ class Animate[M: Mobject](Transform[M], _Methods):
         /,
         **anim_args: Unpack[TransformOptions],
     ) -> Self:
-        """Set the animation's options, before any method is recorded; and record a
-        function of the mobject, as a method's call is recorded.
+        """在记录任何方法之前设置动画的选项；并记录一个作用于 mobject 的函数，
+        如同记录一次方法调用。
 
-        A function can make any change, with methods of your own class too, and a type
-        checker checks it against the mobject's class: `box.animate(lambda b: b.grow(2))`.
-        (`box.animate.grow(2)` works as well, but through `animate` a type checker knows
-        only ManimGX's methods.)
+        函数可以做出任意改变，也可使用你自己类的方法，类型检查器会按 mobject 的
+        类对其进行检查：`box.animate(lambda b: b.grow(2))`。
+        （`box.animate.grow(2)` 也能工作，但通过 `animate` 类型检查器只知道
+        ManimGX 的方法。）
 
         Args:
-            function: A function that changes the mobject: tried at once on a copy, so a
-                wrong call fails where it is written, and carried out as recorded methods
-                are. None for none.
-            **anim_args: [Transform options][manimgx.animation.transform.TransformOptions].
+            function: 一个改变 mobject 的函数：立即在副本上尝试，因此错误的调用
+                会在其书写处失败，并像记录的方法一样执行。None 表示不记录。
+            **anim_args: [变换选项][manimgx.animation.transform.TransformOptions]。
 
         Returns:
-            This animation, for chaining.
+            本动画，用于链式调用。
         """
         if self._chaining and anim_args:
             raise ValueError(
@@ -931,14 +917,14 @@ class Animate[M: Mobject](Transform[M], _Methods):
         args: tuple[object, ...],
         kwargs: dict[str, object],
     ) -> None:
-        """Record a call of `function` on the mobject, tried at once on the target: a
-        wrong call fails where it is written."""
+        """记录一次对 mobject 调用 `function`，立即在目标上尝试：错误的调用
+        会在其书写处失败。"""
         function(self._target, *args, **kwargs)
         own = {id(m) for mob in (self.mobject, self._target) for m in mob.get_family()}
         self.methods.append(_Call(function, args, kwargs, own))
 
     def _recorder(self, name: str) -> Callable[..., Animation]:
-        """The mobject's method `name`, which records its calls."""
+        """mobject 的方法 `name`，记录其调用。"""
         if name.startswith("_") or "_target" not in self.__dict__:
             raise AttributeError(name)
         method = getattr(self._target, name)
@@ -969,8 +955,7 @@ class Animate[M: Mobject](Transform[M], _Methods):
         __getattr__ = _recorder
 
     def _replay(self, target: Mobject) -> Mobject:
-        """The recorded calls, carried out on (a copy of) the object as it is when the animation
-        begins, on their arguments as written."""
+        """所记录的调用，在动画开始时在（副本的）对象上按其书写时的参数执行。"""
         turns = [_turn(item) for item in self.methods]
         if self._path_func is not self._chosen or not any(turns):
             for item in self.methods:
@@ -1006,8 +991,8 @@ class Animate[M: Mobject](Transform[M], _Methods):
 def _turn(
     item: _Call,
 ) -> tuple[float, Floats, Callable[[Mobject], Floats]] | None:
-    """(angle, axis, pivot) of a recorded call that turns the object (`rotate`, `flip`,
-    `rotate_about_origin`), the pivot as the call finds it; None for any other call."""
+    """使对象旋转的记录调用（`rotate`、`flip`、`rotate_about_origin`）的
+    (angle, axis, pivot)，pivot 为调用所找到的枢轴；其他调用返回 None。"""
     func = item.function
     name = getattr(func, "__name__", "")
     if name not in ("rotate", "flip", "rotate_about_origin"):
@@ -1032,16 +1017,16 @@ def _turn(
 
 
 class Always[M: Mobject](_Methods):
-    """A mobject's method calls, each made again at every frame.
+    """mobject 的方法调用，每一帧都重新执行。
 
-    It is what [`mobject.always`][manimgx.Mobject.always] returns. Each call, as
-    `label.always.next_to(dot, UP)`, is made at once and then at every frame, as an
-    updater of the mobject; calls chain. Their arguments are taken as they are written:
-    pass mobjects (`dot`), which the call reads anew at every frame, not values computed
-    from them (`dot.get_center()`), which stay as they were.
+    它是 [`mobject.always`][manimgx.Mobject.always] 的返回值。每个调用，如
+    `label.always.next_to(dot, UP)`，会立即执行一次，然后在每一帧作为 mobject
+    的更新器执行；调用可链式进行。其参数按书写时的形式取用：传入 mobject
+    （`dot`），调用在每一帧重新读取它；不要传入从其计算的值
+    （`dot.get_center()`），后者会保持原样不变。
 
     Args:
-        mobject: The mobject whose method calls become updaters.
+        mobject: 其方法调用成为更新器的 mobject。
     """
 
     def __init__(self, mobject: M) -> None:
@@ -1049,11 +1034,11 @@ class Always[M: Mobject](_Methods):
 
     @property
     def mobject(self) -> M:  # (typing: the proxy of a mobject of this kind)
-        """The mobject whose method calls become updaters."""
+        """其方法调用成为更新器的 mobject。"""
         return self._mobject
 
     def _updater(self, name: str) -> Callable[..., Self]:
-        """The mobject's method `name`, whose calls become its updaters."""
+        """mobject 的方法 `name`，其调用成为它的更新器。"""
         if name.startswith("_"):
             raise AttributeError(name)
 

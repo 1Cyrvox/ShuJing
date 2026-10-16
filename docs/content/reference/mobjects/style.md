@@ -1,11 +1,11 @@
 ---
-title: "Style"
-description: "A mobject's fill and stroke, their colors and opacities, gradients, and what covers what."
+title: "样式"
+description: "mobject 的填充与描边、它们的颜色与不透明度、渐变，以及覆盖关系。"
 ---
 
-# Style
+# 样式
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -33,13 +33,12 @@ class StyleHero(m.Scene):
         self.wait()
 ```
 
-A shape has a stroke, its outline, and a fill, its inside. Each has a color and an
-opacity, from 0 (unseen) to 1 (solid), and the stroke has a width, in hundredths of a unit.
-Most shapes are made with a stroke and no fill: give `fill_opacity` to fill them.
+形状有描边（其轮廓）和填充（其内部）。各自都有颜色和不透明度，取值从 0（不可见）到
+1（完全不透明），描边还有宽度，以单位的百分之一为单位。大多数形状默认有描边无填充：设置
+`fill_opacity` 来填充它们。
 
-Every mobject takes the same style keywords when you make it, and each kind sets its own
-defaults (a circle is red, a dot is filled). The methods below change the style later,
-for the mobject and all its parts.
+创建时每个 mobject 都接受相同的样式关键字，每种类型有自己的默认值（圆为红色，点为填充）。
+以下方法在之后更改样式，作用于 mobject 及其所有组成部分。
 
 ::: manimgx.drawing.paint.Style
     options:
@@ -47,7 +46,7 @@ for the mobject and all its parts.
       inherited_members: true
       members: [color, fill_color, fill_opacity, stroke_color, stroke_opacity, stroke_width, background_stroke_color, background_stroke_opacity, background_stroke_width, sheen_factor, sheen_direction, joint_type, cap_style, shade_in_3d, material, z_index, name, target]
 
-## Color and opacity
+## 颜色与不透明度
 
 ::: manimgx.Mobject.set_color
     options:
@@ -109,18 +108,18 @@ for the mobject and all its parts.
     options:
       heading_level: 3
 
-## Over a source's colors
+## 覆盖源颜色
 
-Text and SVG drawings come with colors of their own. These keywords paint over them.
+文本和 SVG 绘图自带颜色。以下关键字用于覆盖这些颜色。
 
 ::: manimgx.drawing.paint.Repaint
     options:
       heading_level: 3
 
-## Gradients and sheen
+## 渐变与光泽
 
-A list of colors, given where one color goes, makes a gradient: `set_color([m.BLUE,
-m.YELLOW])` blends one into the other across the mobject.
+给定一个颜色列表以及某种颜色的位置，即可生成渐变：`set_color([m.BLUE,
+m.YELLOW])` 在 mobject 上将一种颜色渐变为另一种。
 
 ::: manimgx.Mobject.set_color_by_gradient
     options:
@@ -142,7 +141,7 @@ m.YELLOW])` blends one into the other across the mobject.
     options:
       heading_level: 3
 
-## Ends and corners of a stroke
+## 描边的端点与角
 
 ::: manimgx.CapStyleType
     options:
@@ -156,10 +155,9 @@ m.YELLOW])` blends one into the other across the mobject.
     options:
       heading_level: 3
 
-## What covers what
+## 覆盖关系
 
-A mobject added later covers one added before. A higher z-index covers a lower one,
-whatever the order.
+后添加的 mobject 覆盖先添加的。无论添加顺序如何，z-index 较高者覆盖较低者。
 
 ::: manimgx.Mobject.set_z_index
     options:
@@ -177,8 +175,10 @@ whatever the order.
     options:
       heading_level: 3
 
-## A class's defaults
+## 类的默认值
 
 ::: manimgx.Mobject.set_default
     options:
       heading_level: 3
+
+::: manimgx.mobject.BackgroundOptions

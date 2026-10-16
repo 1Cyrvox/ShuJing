@@ -1,11 +1,11 @@
 ---
-title: "Voice"
-description: "A voice that explains: say a line while animations play during its words, choose a voice, read captions, or make a voice of your own."
+title: "语音"
+description: "解释的语音：在动画于其词语间播放时说出一行、选择语音、读取字幕，或制作你自己的语音。"
 ---
 
-# Voice
+# 语音
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -23,15 +23,9 @@ class VoiceHero(m.Scene):
         self.wait()
 ```
 
-[say][manimgx.Scene.say] speaks a line with the scene's voice, and plays animations while it
-speaks. Put the words of each animation in brackets, and give the animations in the same
-order: each starts with the first of its words. The scene waits until the line ends, so
-lines don't overlap; change the words, and the animations follow the new words.
+[say][manimgx.Scene.say] 用场景的语音说出一行，并在它说话时播放动画。将每个动画的词语放在方括号中，并按相同顺序给出动画：每个从它的第一个词开始。场景等待直到该行结束，因此各行不会重叠；改变词语，动画跟随新词语。
 
-The scene's voice speaks through a text-to-speech service. ManimGX keeps what it says in a
-folder named `voice/`, next to the scene's file, so the scene renders again without the
-service, and only a changed line goes to it again. What the voice says becomes the video's
-captions.
+场景的语音通过文本转语音服务说话。ManimGX 将它说的内容保存在场景文件旁边名为 `voice/` 的文件夹中，因此场景无需服务即可再次渲染，并且只有改变的行再次发送给它。语音说的内容成为视频的字幕。
 
 ::: manimgx.Scene.say
     options:
@@ -49,16 +43,15 @@ captions.
     options:
       heading_level: 2
 
-## Voices
+## 语音
 
-The voices ManimGX brings are fal.ai's: `m.voices.Fal`, with the model you choose and its
-settings. Your editor shows each model's settings.
+ManimGX 提供的语音是 fal.ai 的：`m.voices.Fal`，附带你选择的模型及其设置。你的编辑器显示每个模型的设置。
 
 ::: manimgx.audio.fal.Fal
     options:
       heading_level: 3
 
-### Models { #manimgx.audio.fal }
+### 模型 { #manimgx.audio.fal }
 
 ::: manimgx.audio.fal.ElevenV3
     options:
@@ -100,16 +93,15 @@ settings. Your editor shows each model's settings.
     options:
       heading_level: 4
 
-## Captions
+## 字幕
 
 ::: manimgx.Scene.add_subcaption
     options:
       heading_level: 3
 
-## A voice of your own
+## 自定义语音
 
-A voice is any function from a text to a [Speech][manimgx.Speech]: a sound that knows its
-words, and when each is said. Any text-to-speech service can be one.
+语音是从文本到 [Speech][manimgx.Speech] 的任意函数：一种知道它的词语以及每个词何时说出的声音。任何文本转语音服务都可以成为一个语音。
 
 ::: manimgx.audio.Voice
     options:

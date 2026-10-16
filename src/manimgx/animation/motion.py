@@ -3,12 +3,11 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Animation presets built from the shared lifecycle and transform primitives.
+"""基于共享的生命周期与变换原语构建的动画预设。
 
-A reveal is paint, so drawing, passing flashes and border reveals use the same
-Transform as movement and morphing; whole-object procedures use Animation. Showing a
-group's parts in turn is visibility, not paint: the scene leaves the parts not shown yet
-out of the picture (`Animation.hidden`)."""
+显现即绘制，因此绘制、掠过的闪光与边框显现使用与移动和变形相同的
+Transform；整体对象的过程使用 Animation。依次展示一个组的各个部分属于可见性，
+而非绘制：场景将尚未展示的部分置于画面之外（`Animation.hidden`）。"""
 
 from __future__ import annotations
 
@@ -134,18 +133,17 @@ __all__ = [
 
 
 def trimmed(mob: Mobject, a: float, b: float) -> Mobject:
-    """Set which stretch of each path of a mobject is drawn.
+    """设置一个 mobject 的每条路径中哪一段被绘制。
 
-    The stretch is paint state, which each frame applies when it draws: the points are
-    not changed.
+    该段是绘制状态，由每一帧在绘制时应用：点不会被改变。
 
     Args:
-        mob: The mobject whose parts with points are trimmed.
-        a: Where the drawn stretch begins, as a fraction of each path's length.
-        b: Where it ends; (0, 0) draws nothing, (0, 1) the whole path.
+        mob: 被裁剪其带点的部分的 mobject。
+        a: 被绘制段的起始位置，以每条路径长度的分数表示。
+        b: 被绘制段的结束位置；(0, 0) 不绘制任何内容，(0, 1) 绘制整条路径。
 
     Returns:
-        The mobject, for chaining.
+        该 mobject，用于链式调用。
     """
     for leaf in mob.family_members_with_points():
         leaf.paint = leaf.paint.but(trim=np.array([a, b]), pace=leaf.reveal_pace())
@@ -153,14 +151,13 @@ def trimmed(mob: Mobject, a: float, b: float) -> Mobject:
 
 
 class Create(Transform):
-    """Draw a mobject into view along its paths, one part after another.
+    """沿其路径将一个 mobject 绘制到视图中，一个部分接一个部分地显现。
 
-    The mobject joins the scene when the animation begins. Each part is revealed from its
-    start to its end; with the default `lag_ratio` of 1, a part begins when the one before
-    it is drawn.
+    该 mobject 在动画开始时加入场景。每个部分从其起点到终点被显现；
+    使用默认的 `lag_ratio` 1，一个部分在前一个部分绘制完成后开始显现。
 
     Args:
-        mobject: The mobject to draw.
+        mobject: 要绘制的 mobject。
 
     Examples:
         ```python
@@ -181,15 +178,14 @@ class Create(Transform):
 
 
 class Uncreate(Create):
-    """Undraw a mobject along its paths, and take it out of the scene.
+    """沿其路径擦除一个 mobject，并将其移出场景。
 
-    Each part is erased from its end back to its start, one part after another in the
-    order [`Create`][manimgx.Create] draws them. The mobject leaves the scene when the
-    animation finishes.
+    每个部分从其终点向起点被擦除，按 [`Create`][manimgx.Create] 绘制它们的顺序
+    一个接一个地进行。该 mobject 在动画结束时离开场景。
 
     Args:
-        mobject: The mobject to undraw.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions].
+        mobject: 要擦除的 mobject。
+        **kwargs: [动画选项][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -213,16 +209,16 @@ class Uncreate(Create):
 
 
 class ShowPassingFlash(Transform):
-    """Flash a stretch of a mobject's path along it, from its start to past its end.
+    """沿一个 mobject 的路径闪过一段，从其起点到越过其终点。
 
-    A window, `time_width` of the path's length, travels along the mobject, which shows
-    only what lies inside it. The mobject joins the scene for the flash and leaves
-    it at the end, even if it was there before (flash a copy to keep the original); its
-    paths are whole again afterward.
+    一个长度为路径长度 `time_width` 的窗口沿该 mobject 移动，mobject 仅显示
+    位于窗口内的部分。该 mobject 在闪光期间加入场景并在结束时离开场景，
+    即使它之前就在场景中也是如此（若要保留原对象，请闪过其副本）；
+    其路径在之后恢复完整。
 
     Args:
-        mobject: The mobject whose paths the window travels along.
-        time_width: The window's length, as a fraction of the path's length.
+        mobject: 窗口沿其路径移动的 mobject。
+        time_width: 窗口的长度，以路径长度的分数表示。
 
     Examples:
         ```python
@@ -262,20 +258,20 @@ class ShowPassingFlash(Transform):
 
 
 class DrawBorderThenFill(Transform):
-    """Draw a mobject's outline, then fill it in.
+    """先绘制一个 mobject 的轮廓，再将其填充。
 
-    In the first half, each part's border is drawn along its path, `stroke_width` wide,
-    in the paint the part is seen in: its own stroke, if it draws one, or else its fill
-    (a gradient stays one), unless `stroke_color` is given. In the second, the fill
-    comes in while the border turns into the part's own stroke; where the part draws no
-    stroke, the border thins away in the same paint. The parts end as they were. The
-    mobject joins the scene when the animation begins. It runs 2 seconds, eased by
-    [`double_smooth`][manimgx.double_smooth]: smoothly in each half.
+    在前半段，每个部分的边框沿其路径被绘制，宽度为 `stroke_width`，
+    使用该部分所呈现的绘制颜色：若其绘制描边则为其自身的描边，否则为其填充
+    （渐变保持为一色），除非给定了 `stroke_color`。在后半段，填充出现的同时
+    边框转变为该部分自身的描边；对于不绘制描边的部分，边框以相同绘制颜色
+    变细直至消失。各部分最终恢复原状。该 mobject 在动画开始时加入场景。
+    动画运行 2 秒，由 [`double_smooth`][manimgx.double_smooth] 缓动：
+    两半段各自平滑过渡。
 
     Args:
-        vmobject: The mobject to draw.
-        stroke_width: The border's width, in hundredths of a scene unit.
-        stroke_color: The border's color; None for the paint each part is seen in.
+        vmobject: 要绘制的 mobject。
+        stroke_width: 边框的宽度，以场景单位的百分之一为单位。
+        stroke_color: 边框的颜色；None 表示使用每个部分所呈现的绘制颜色。
 
     Examples:
         ```python
@@ -315,12 +311,12 @@ class DrawBorderThenFill(Transform):
         self.stroke_width, self.stroke_color = stroke_width, stroke_color
 
     def _undrawn(self, mobject: Mobject) -> Mobject:
-        """Its outline, none of it drawn yet: where it starts."""
+        """其轮廓，尚未绘制任何部分：起始状态。"""
         return trimmed(self._outline(mobject), 0, 0)
 
     def _border(self, part: Mobject) -> None:
-        """A part's stroke as its border: its own stroke if it draws one, else its fill (every
-        row, so a gradient stays one; at its opacity); in `stroke_color`, if given."""
+        """一个部分的描边作为其边框：若其绘制描边则为其自身的描边，否则为其填充
+        （每一行，使渐变保持为一色；在其透明度处）；若给定了 `stroke_color` 则使用之。"""
         p = part.paint
         if not _draws_stroke(p):
             part.paint = p.but(stroke=p.fill)
@@ -334,8 +330,8 @@ class DrawBorderThenFill(Transform):
         return m.set_fill(opacity=0)
 
     def _filled(self, m: Mobject) -> Mobject:
-        """The object, but a part that draws no stroke has its unseen stroke in its border's
-        paint: its border thins away in it, not in a color it never shows."""
+        """该对象，但不绘制描边的部分将其不可见的描边置于其边框的
+        绘制颜色中：其边框在该颜色中变细消失，而非在它从不显示的颜色中。"""
         self._own = [(part, part.paint) for part in m.family_members_with_points()]
         for part, paint in self._own:
             if not _draws_stroke(paint):
@@ -353,19 +349,18 @@ def _draws_stroke(paint: Paint) -> bool:
 
 
 class Write(DrawBorderThenFill):
-    r"""Write a mobject as if by hand: each part's outline drawn, then filled in.
+    r"""如同手写一般书写一个 mobject：每个部分先绘制轮廓，再填充。
 
-    The drawing of [`DrawBorderThenFill`][manimgx.DrawBorderThenFill], at an even pace
-    (`linear`), its parts staggered: `lag_ratio` is 4 divided by the number of parts, at
-    most 0.2, and it runs 1 second for fewer than 15 parts, 2 seconds otherwise. The
-    mobject joins the scene when the animation begins. [`Unwrite`][manimgx.Unwrite]
-    erases it.
+    采用 [`DrawBorderThenFill`][manimgx.DrawBorderThenFill] 的绘制方式，以匀速
+    （`linear`）进行，各部分交错显现：`lag_ratio` 为 4 除以部分数，至多为 0.2，
+    当部分数少于 15 时运行 1 秒，否则运行 2 秒。该 mobject 在动画开始时加入场景。
+    [`Unwrite`][manimgx.Unwrite] 可将其擦除。
 
     Args:
-        vmobject: The mobject to write, as a text or a formula.
-        reverse: Whether to write the parts from the last to the first (they keep their
-            order, so the later ones stay drawn over the earlier ones); the mobject then
-            leaves the scene when the animation finishes (unless given `remover=False`).
+        vmobject: 要书写的 mobject，如文本或公式。
+        reverse: 是否从最后一个部分向第一个部分书写（它们保持自身顺序，
+            因此较后的部分仍绘制在较前的部分之上）；此时该 mobject 在动画结束时
+            离开场景（除非给定 `remover=False`）。
 
     Examples:
         ```python
@@ -404,17 +399,16 @@ class Write(DrawBorderThenFill):
 
 
 class Unwrite(Write):
-    """Erase a mobject as if writing it backward, and take it out of the scene.
+    """如同倒退书写一般擦除一个 mobject，并将其移出场景。
 
-    The reverse of [`Write`][manimgx.Write]: each part's fill fades into its outline,
-    and the outline is undrawn, one part shortly after another, by default the last
-    part first. The parts keep their order while it plays, so the later ones stay drawn
-    over the earlier ones. The mobject leaves the scene when the animation finishes.
+    [`Write`][manimgx.Write] 的逆过程：每个部分的填充渐变为其轮廓，
+    然后轮廓被擦除，一个部分接一个部分地进行，默认从最后一个部分开始。
+    各部分在播放期间保持自身顺序，因此较后的部分仍绘制在较前的部分之上。
+    该 mobject 在动画结束时离开场景。
 
     Args:
-        vmobject: The mobject to erase.
-        reverse: Whether to erase the parts from the last to the first; False erases
-            from the first.
+        vmobject: 要擦除的 mobject。
+        reverse: 是否从最后一个部分向第一个部分擦除；False 表示从第一个部分开始擦除。
 
     Examples:
         ```python
@@ -481,20 +475,17 @@ class _Fade(Transform):
 
 
 class FadeIn(_Fade):
-    """Fade mobjects into view.
+    """将 mobjects 淡入视图。
 
-    They start transparent (moved back by `shift`, or at `target_position`, and `scale`
-    times their size) and arrive as they are. They join the scene when the animation
-    begins.
+    它们起始为透明状态（被 `shift` 向后移动，或位于 `target_position`，
+    大小为自身的 `scale` 倍），并最终到达自身原状。它们在动画开始时加入场景。
 
     Args:
-        *mobjects: The mobjects to fade in, together; at least one.
-        shift: The direction and distance they move while fading in: they start this far
-            behind their places.
-        target_position: Where they start from, when no `shift` is given: a point, or a
-            mobject's center.
-        scale: Their size at the start, relative to their own.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions].
+        *mobjects: 要一同淡入的 mobjects；至少一个。
+        shift: 它们在淡入时移动的方向与距离：起始时落后其最终位置这么远。
+        target_position: 未给定 `shift` 时它们的起始位置：一个点，或一个 mobject 的中心。
+        scale: 起始时的大小，相对于自身大小。
+        **kwargs: [变换选项][manimgx.animation.transform.TransformOptions]。
 
     Examples:
         ```python
@@ -525,19 +516,18 @@ class FadeIn(_Fade):
 
 
 class FadeOut(_Fade):
-    """Fade mobjects out of view, and take them out of the scene.
+    """将 mobjects 淡出视图，并将其移出场景。
 
-    They end transparent (moved along `shift`, or to `target_position`, and `scale`
-    times their size). They leave the scene when the animation finishes, and are then as
-    they were before it: adding them again shows them.
+    它们终止为透明状态（沿 `shift` 移动，或到达 `target_position`，
+    大小为自身的 `scale` 倍）。它们在动画结束时离开场景，并恢复为动画之前的状态：
+    再次添加它们即可显示。
 
     Args:
-        *mobjects: The mobjects to fade out, together; at least one.
-        shift: The direction and distance they move while fading out.
-        target_position: Where they go, when no `shift` is given: a point, or a
-            mobject's center.
-        scale: Their size at the end, relative to their own.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions].
+        *mobjects: 要一同淡出的 mobjects；至少一个。
+        shift: 它们在淡出时移动的方向与距离。
+        target_position: 未给定 `shift` 时它们前往的位置：一个点，或一个 mobject 的中心。
+        scale: 终止时的大小，相对于自身大小。
+        **kwargs: [变换选项][manimgx.animation.transform.TransformOptions]。
 
     Examples:
         ```python
@@ -571,16 +561,16 @@ class FadeOut(_Fade):
 
 
 class GrowFromPoint(Transform):
-    """Grow a mobject from a point.
+    """从一个点生长出一个 mobject。
 
-    It starts shrunk to nothing at `point`, in `point_color` if given, and grows to its
-    size and place. The mobject joins the scene when the animation begins.
+    它起始为在 `point` 处缩为一点的状态（若给定 `point_color` 则使用该颜色），
+    并生长至自身大小与位置。该 mobject 在动画开始时加入场景。
 
     Args:
-        mobject: The mobject to grow.
-        point: The point it grows from, or a mobject whose center it grows from (taken
-            when the animation is made).
-        point_color: The color it starts in; None for its own.
+        mobject: 要生长的 mobject。
+        point: 生长起自的点，或一个以其中心为生长起点的 mobject
+            （在动画创建时取定）。
+        point_color: 起始颜色；None 表示使用其自身颜色。
 
     Examples:
         ```python
@@ -619,14 +609,14 @@ class GrowFromPoint(Transform):
 
 
 class GrowFromCenter(GrowFromPoint):
-    """Grow a mobject from its center.
+    """从一个 mobject 的中心生长出该 mobject。
 
-    It starts shrunk to nothing at its center, in `point_color` if given. The mobject
-    joins the scene when the animation begins.
+    它起始为在其中心处缩为一点的状态（若给定 `point_color` 则使用该颜色）。
+    该 mobject 在动画开始时加入场景。
 
     Args:
-        mobject: The mobject to grow.
-        point_color: The color it starts in; None for its own.
+        mobject: 要生长的 mobject。
+        point_color: 起始颜色；None 表示使用其自身颜色。
 
     Examples:
         ```python
@@ -656,16 +646,16 @@ class GrowFromCenter(GrowFromPoint):
 
 
 class GrowFromEdge(GrowFromPoint):
-    """Grow a mobject from an edge or a corner of its bounding box.
+    """从一个 mobject 的边界框的某条边或某个角生长出该 mobject。
 
-    It starts shrunk to nothing there, in `point_color` if given. The mobject joins the
-    scene when the animation begins.
+    它起始为在该处缩为一点的状态（若给定 `point_color` 则使用该颜色）。
+    该 mobject 在动画开始时加入场景。
 
     Args:
-        mobject: The mobject to grow.
-        edge: The direction of the edge (as [`DOWN`][manimgx.DOWN], its bottom) or the
-            corner (as [`UR`][manimgx.UR], its top right) it grows from.
-        point_color: The color it starts in; None for its own.
+        mobject: 要生长的 mobject。
+        edge: 生长起自的边的方向（如 [`DOWN`][manimgx.DOWN] 表示底边）或
+            角的方向（如 [`UR`][manimgx.UR] 表示右上角）。
+        point_color: 起始颜色；None 表示使用其自身颜色。
 
     Examples:
         ```python
@@ -699,13 +689,13 @@ class GrowFromEdge(GrowFromPoint):
 
 
 class GrowArrow(GrowFromPoint):
-    """Grow an arrow from its start; its tip grows with it.
+    """从其起点生长出一支箭；其箭尖随之生长。
 
-    The arrow joins the scene when the animation begins.
+    该箭在动画开始时加入场景。
 
     Args:
-        arrow: The arrow to grow.
-        point_color: The color it starts in; None for its own.
+        arrow: 要生长的箭。
+        point_color: 起始颜色；None 表示使用其自身颜色。
 
     Examples:
         ```python
@@ -740,15 +730,14 @@ class GrowArrow(GrowFromPoint):
 
 
 class SpinInFromNothing(GrowFromCenter):
-    """Grow a mobject from its center while spinning it into place.
+    """从一个 mobject 的中心生长出该 mobject，同时旋转着就位。
 
-    It turns through `angle` as it grows (counterclockwise, for a positive angle). The
-    mobject joins the scene when the animation begins.
+    它在生长过程中转过 `angle` 角度（正角度为逆时针方向）。该 mobject 在动画开始时加入场景。
 
     Args:
-        mobject: The mobject to spin in.
-        angle: How far it turns on its way, in radians.
-        point_color: The color it starts in; None for its own.
+        mobject: 要旋转着生长的 mobject。
+        angle: 途中转过的角度，以弧度为单位。
+        point_color: 起始颜色；None 表示使用其自身颜色。
 
     Examples:
         ```python
@@ -782,15 +771,15 @@ class SpinInFromNothing(GrowFromCenter):
 
 
 class Indicate(Transform):
-    """Draw attention to a mobject: enlarge and color it for a moment.
+    """引起对一个 mobject 的注意：暂时放大并着色。
 
-    It grows to `scale_factor` times its size in `color`, and comes back as it was
-    (eased by [`there_and_back`][manimgx.there_and_back]).
+    它生长至 `scale_factor` 倍大小并变为 `color` 颜色，然后恢复原状
+    （由 [`there_and_back`][manimgx.there_and_back] 缓动）。
 
     Args:
-        mobject: The mobject to indicate.
-        scale_factor: How many times its size it grows to.
-        color: The color it turns.
+        mobject: 要引起注意的 mobject。
+        scale_factor: 生长至其自身大小的多少倍。
+        color: 它所变成的颜色。
 
     Examples:
         ```python
@@ -823,24 +812,21 @@ class Indicate(Transform):
 
 
 class Rotate(Transform):
-    """Rotate a mobject rigidly about a point.
+    """将一个 mobject 绕某点刚性旋转。
 
-    It turns by `angle` about `axis` around one pivot: `about_point`, or the point of
-    its bounding box at `about_edge`, or its center, taken from the mobject as it is
-    when the rotation begins. Every point travels along a circle about the pivot, so the
-    mobject keeps its shape on the way, and an angle of [`TAU`][manimgx.TAU] is a full
-    turn.
+    它绕 `axis` 轴转过 `angle` 角度，围绕一个枢轴：`about_point`，或其边界框上
+    `about_edge` 方向的点，或其中心，该枢轴取自旋转开始时 mobject 的状态。
+    每个点沿绕枢轴的圆周移动，因此 mobject 在途中保持其形状，
+    而 [`TAU`][manimgx.TAU] 的角度为一整圈。
 
     Args:
-        mobject: The mobject to rotate.
-        angle: The angle, in radians, counterclockwise about `axis`.
-        axis: The axis it turns about; the default, [`OUT`][manimgx.OUT], turns it in
-            the plane of the screen.
-        about_point: The pivot; None to take it from `about_edge`, or the center.
-        about_edge: The direction of the point of its bounding box it turns about, when
-            no `about_point` is given.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions]; a
-            `path_func` or `path_arc_centers` of its own replaces the turn on the way.
+        mobject: 要旋转的 mobject。
+        angle: 旋转角度，以弧度为单位，绕 `axis` 逆时针方向。
+        axis: 旋转所绕的轴；默认为 [`OUT`][manimgx.OUT]，即在屏幕平面内旋转。
+        about_point: 枢轴；None 表示取自 `about_edge` 或中心。
+        about_edge: 未给定 `about_point` 时，所绕的边界框上点的方向。
+        **kwargs: [变换选项][manimgx.animation.transform.TransformOptions]；
+            其自身的 `path_func` 或 `path_arc_centers` 会替换途中的旋转路径。
 
     Examples:
         ```python
@@ -886,8 +872,7 @@ class Rotate(Transform):
         )
 
     def _turned(self, mob: Mobject) -> Mobject:
-        """Where it ends: turned through the whole angle about its pivot (a method, so
-        that a copy of the animation turns about its own)."""
+        """其终止状态：绕其枢轴转过整个角度（作为方法，使得该动画的副本绕其自身的枢轴旋转）。"""
         return mob.rotate(self.angle, self.axis, about_point=self.about_point)
 
     def _pivot(self, mob: Mobject) -> Point3D:
@@ -917,15 +902,15 @@ class Rotate(Transform):
 
 
 class ReplacementTransform(Transform):
-    """Transform a mobject into another, which then takes its place in the scene.
+    """将一个 mobject 变换为另一个，后者随后取代其在场景中的位置。
 
-    It plays as [`Transform`][manimgx.Transform] does; when it finishes,
-    `target_mobject` is in the scene where the mobject was, and the mobject is not: go
-    on animating the target.
+    其播放方式与 [`Transform`][manimgx.Transform] 相同；动画结束时，
+    `target_mobject` 位于场景中 mobject 原先所在的位置，而 mobject 不再在场景中：
+    可继续对目标进行动画。
 
     Args:
-        mobject: The mobject to transform; it leaves the scene.
-        target_mobject: The mobject it turns into, which takes its place.
+        mobject: 要变换的 mobject；它将离开场景。
+        target_mobject: 它所变成的 mobject，取代其位置。
 
     Examples:
         ```python
@@ -953,14 +938,14 @@ class ReplacementTransform(Transform):
 
 
 class TransformFromCopy(Transform):
-    """Transform a copy of a mobject into another, leaving the mobject where it is.
+    """将一个 mobject 的副本变换为另一个，而该 mobject 留在原处。
 
-    `target_mobject` joins the scene, starting as a copy of the mobject and turning into
-    itself; the mobject stays as it is.
+    `target_mobject` 加入场景，起始为该 mobject 的副本并变为自身；
+    该 mobject 保持原状。
 
     Args:
-        mobject: The mobject the copy is made from.
-        target_mobject: The mobject the copy turns into; it joins the scene.
+        mobject: 制作副本所用的 mobject。
+        target_mobject: 副本所变成的 mobject；它加入场景。
 
     Examples:
         ```python
@@ -991,14 +976,14 @@ class TransformFromCopy(Transform):
 
 
 class ClockwiseTransform(Transform):
-    """Transform a mobject into another along clockwise half circles.
+    """沿顺时针半圆将一个 mobject 变换为另一个。
 
-    Each point travels from its start to its end clockwise along a half circle: a
-    [`Transform`][manimgx.Transform] whose `path_arc` is −π, unless given another.
+    每个点从其起点到终点沿顺时针半圆移动：即一个
+    `path_arc` 为 −π 的 [`Transform`][manimgx.Transform]，除非另行指定。
 
     Args:
-        mobject: The mobject to transform.
-        target_mobject: The mobject whose shape and style it takes.
+        mobject: 要变换的 mobject。
+        target_mobject: 它所取得的形状与样式的 mobject。
 
     Examples:
         ```python
@@ -1026,14 +1011,14 @@ class ClockwiseTransform(Transform):
 
 
 class CounterclockwiseTransform(Transform):
-    """Transform a mobject into another along counterclockwise half circles.
+    """沿逆时针半圆将一个 mobject 变换为另一个。
 
-    Each point travels from its start to its end counterclockwise along a half circle: a
-    [`Transform`][manimgx.Transform] whose `path_arc` is π, unless given another.
+    每个点从其起点到终点沿逆时针半圆移动：即一个
+    `path_arc` 为 π 的 [`Transform`][manimgx.Transform]，除非另行指定。
 
     Args:
-        mobject: The mobject to transform.
-        target_mobject: The mobject whose shape and style it takes.
+        mobject: 要变换的 mobject。
+        target_mobject: 它所取得的形状与样式的 mobject。
 
     Examples:
         ```python
@@ -1062,14 +1047,14 @@ class CounterclockwiseTransform(Transform):
 
 
 class MoveToTarget[M: Mobject = Mobject](Transform[M]):
-    """Transform a mobject into its `target`.
+    """将一个 mobject 变换为其 `target`。
 
-    Make the target first with [`generate_target`][manimgx.Mobject.generate_target], a
-    copy of the mobject, and change it as you like; the animation transforms the mobject
-    into it. A mobject without a target raises a ValueError.
+    先用 [`generate_target`][manimgx.Mobject.generate_target] 创建目标，它是该
+    mobject 的副本，可随意修改；该动画将该 mobject 变换为目标。
+    没有目标的 mobject 会引发 ValueError。
 
     Args:
-        mobject: The mobject to transform; its `target` is what it becomes.
+        mobject: 要变换的 mobject；其 `target` 是它所变成的对象。
 
     Examples:
         ```python
@@ -1096,18 +1081,17 @@ class MoveToTarget[M: Mobject = Mobject](Transform[M]):
 
 
 class _ApplyMethod(Transform):
-    """Transform a mobject into what a call of one of its methods makes of it: what
-    `ApplyMethod` and the animations that apply one method (`Restore`, …) are made of.
+    """将一个 mobject 变换为调用其某个方法后所得的结果：即
+    `ApplyMethod` 以及应用某一方法的各种动画（`Restore` 等）的构成基础。
 
-    The call is carried out when the animation begins, on the mobject as it is then. Its
-    arguments are taken as written, when the animation is made: a mobject among them
-    that is not part of this one is a copy of it as it was then. The method's keywords
-    go in a dict after its positional arguments (the animation's own keywords are its
-    options): `_ApplyMethod(square.scale, 2, {"about_edge": DL})`.
+    该调用在动画开始时执行，作用于当时状态的 mobject。其参数在动画创建时
+    按所写形式取定：其中不属于该 mobject 的 mobject 取为当时状态的副本。
+    方法的关键字参数放在其位置参数之后的字典中（动画自身的关键字为其选项）：
+    `_ApplyMethod(square.scale, 2, {"about_edge": DL})`。
 
     Args:
-        method: A method of a mobject, not called: `square.scale`.
-        *args: The method's arguments; a dict at the end holds its keywords.
+        method: 一个 mobject 的方法，未调用：`square.scale`。
+        *args: 该方法的参数；末尾的字典持有其关键字参数。
     """
 
     def __init__(
@@ -1138,26 +1122,26 @@ class _ApplyMethod(Transform):
     category=None,
 )
 class ApplyMethod(_ApplyMethod):
-    """Transform a mobject into what a call of one of its methods makes of it: Manim
-    CE's older way to write [`.animate`][manimgx.Mobject.animate].
-    `ApplyMethod(square.scale, 2)` is `square.animate.scale(2)`.
+    """将一个 mobject 变换为调用其某个方法后所得的结果：Manim
+    CE 中编写 [`.animate`][manimgx.Mobject.animate] 的旧方式。
+    `ApplyMethod(square.scale, 2)` 即 `square.animate.scale(2)`。
 
     Args:
-        method: A method of a mobject, not called: `square.scale`.
-        *args: The method's arguments; a dict at the end holds its keywords.
+        method: 一个 mobject 的方法，未调用：`square.scale`。
+        *args: 该方法的参数；末尾的字典持有其关键字参数。
     """
 
 
 class ApplyPointwiseFunction(_ApplyMethod):
-    """Transform a mobject into its image under a function of a point.
+    """将一个 mobject 变换为在一个点的函数下的像。
 
-    Each point p travels in a straight line to `function(p)`, and a path's curves are
-    mapped as [apply_function][manimgx.Mobject.apply_function] maps them, cut into more
-    curves where the function bends them. It runs 3 seconds.
+    每个点 p 沿直线移动到 `function(p)`，路径的曲线按
+    [apply_function][manimgx.Mobject.apply_function] 的方式映射，
+    在函数使其弯曲处被切分为更多曲线。运行 3 秒。
 
     Args:
-        function: A function from a point to where it goes, in scene coordinates.
-        mobject: The mobject to move.
+        function: 从一个点到其去向的函数，以场景坐标表示。
+        mobject: 要移动的 mobject。
 
     Examples:
         ```python
@@ -1196,11 +1180,11 @@ class ApplyPointwiseFunction(_ApplyMethod):
     category=None,
 )
 class FadeToColor(_ApplyMethod):
-    """Change a mobject's color, gradually: `mobject.animate.set_color(color)`.
+    """逐渐改变一个 mobject 的颜色：`mobject.animate.set_color(color)`。
 
     Args:
-        mobject: The mobject to recolor.
-        color: The color it turns.
+        mobject: 要重新着色的 mobject。
+        color: 它所变成的颜色。
     """
 
     def __init__(
@@ -1217,11 +1201,11 @@ class FadeToColor(_ApplyMethod):
     category=None,
 )
 class ScaleInPlace(_ApplyMethod):
-    """Scale a mobject about its center: `mobject.animate.scale(scale_factor)`.
+    """关于一个 mobject 的中心对其进行缩放：`mobject.animate.scale(scale_factor)`。
 
     Args:
-        mobject: The mobject to scale.
-        scale_factor: The factor it is scaled by: 2 doubles its size.
+        mobject: 要缩放的 mobject。
+        scale_factor: 缩放因子：2 使其大小加倍。
     """
 
     def __init__(
@@ -1231,13 +1215,12 @@ class ScaleInPlace(_ApplyMethod):
 
 
 class ShrinkToCenter(_ApplyMethod):
-    """Shrink a mobject to nothing at its center.
+    """将一个 mobject 在其中心处收缩为一点。
 
-    It stays in the scene, shrunk to a point: pass `remover=True` to take it out when
-    the animation finishes.
+    它留在场景中，缩为一点：传入 `remover=True` 可在动画结束时将其移出场景。
 
     Args:
-        mobject: The mobject to shrink.
+        mobject: 要收缩的 mobject。
 
     Examples:
         ```python
@@ -1262,13 +1245,13 @@ class ShrinkToCenter(_ApplyMethod):
 
 
 class Restore(_ApplyMethod):
-    """Transform a mobject back into the state it saved.
+    """将一个 mobject 变换回其所保存的状态。
 
-    Save the state first with [`save_state`][manimgx.Mobject.save_state]; the animation
-    transforms the mobject into it.
+    先用 [`save_state`][manimgx.Mobject.save_state] 保存状态；该动画将
+    mobject 变换为该状态。
 
     Args:
-        mobject: The mobject to restore.
+        mobject: 要恢复的 mobject。
 
     Examples:
         ```python
@@ -1291,15 +1274,14 @@ class Restore(_ApplyMethod):
 
 
 class ApplyFunction(Transform):
-    """Transform a mobject into what a function makes of it.
+    """将一个 mobject 变换为一个函数对其作用后的结果。
 
-    The function gets a copy of the mobject when the animation begins, and returns the
-    state to transform into: the copy, changed, or a new mobject (anything else raises a
-    TypeError).
+    该函数在动画开始时收到该 mobject 的副本，并返回要变换到的状态：
+    即该副本经修改后的结果，或一个新的 mobject（其他返回值会引发 TypeError）。
 
     Args:
-        function: A function from a copy of the mobject to its end state.
-        mobject: The mobject to transform.
+        function: 从该 mobject 的副本到其终止状态的函数。
+        mobject: 要变换的 mobject。
 
     Examples:
         ```python
@@ -1338,15 +1320,15 @@ class ApplyFunction(Transform):
 
 
 class ApplyMatrix(ApplyPointwiseFunction):
-    """Transform a mobject by a matrix: each point p goes to M·p.
+    """以矩阵变换一个 mobject：每个点 p 变为 M·p。
 
-    A 2 × 2 matrix acts on x and y, keeping z; a 3 × 3 one on all three (any other shape
-    raises a ValueError). The points travel in straight lines. It runs 3 seconds.
+    2 × 2 矩阵作用于 x 和 y，保持 z 不变；3 × 3 矩阵作用于全部三个坐标
+    （其他形状会引发 ValueError）。各点沿直线移动。运行 3 秒。
 
     Args:
-        matrix: The matrix, 2 × 2 or 3 × 3, as nested lists or an array.
-        mobject: The mobject to transform.
-        about_point: The point that stays where it is.
+        matrix: 矩阵，2 × 2 或 3 × 3，以嵌套列表或数组表示。
+        mobject: 要变换的 mobject。
+        about_point: 保持不动的点。
 
     Examples:
         ```python
@@ -1384,14 +1366,14 @@ class ApplyMatrix(ApplyPointwiseFunction):
 
 
 class ApplyComplexFunction(_ApplyMethod):
-    """Transform a mobject into its image under a function of a complex number.
+    """将一个 mobject 变换为在一个复数函数下的像。
 
-    Each point (x, y, z) is taken as x + iy and travels in a straight line to its image
-    under the function, keeping z, and a path's curves are mapped as
-    [apply_function][manimgx.Mobject.apply_function] maps them.
+    每个点 (x, y, z) 被视为 x + iy，沿直线移动到其在该函数下的像，
+    保持 z 不变，路径的曲线按 [apply_function][manimgx.Mobject.apply_function]
+    的方式映射。
 
     Args:
-        function: A function from a complex number to a complex number.
+        function: 从复数到复数的函数。
         mobject: The mobject to move.
 
     Examples:
@@ -1419,13 +1401,12 @@ class ApplyComplexFunction(_ApplyMethod):
 
 
 class CyclicReplace(Transform):
-    """Move each mobject to the place of the next one, and the last to the first's.
+    """将每个 mobject 移动到下一个的位置，并将最后一个移到第一个的位置。
 
-    Each travels along an arc, of 90° by default (`path_arc`). A group given alone is
-    taken as the mobjects.
+    每个沿弧线移动，默认为 90°（`path_arc`）。单独给出的组被视为这些 mobject。
 
     Args:
-        *mobjects: The mobjects, in the order of the cycle.
+        *mobjects: 这些 mobject，按循环顺序排列。
 
     Examples:
         ```python
@@ -1462,14 +1443,14 @@ class CyclicReplace(Transform):
 
 
 class Swap(CyclicReplace):
-    """Swap the places of two mobjects, each along an arc.
+    """交换两个 mobject 的位置，各自沿弧线移动。
 
-    The same as [`CyclicReplace`][manimgx.CyclicReplace], which with two mobjects moves
-    each to the other's place.
+    与 [`CyclicReplace`][manimgx.CyclicReplace] 相同，后者对两个 mobject
+    将每个移到另一个的位置。
 
     Args:
-        *mobjects: The two mobjects.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions].
+        *mobjects: 这两个 mobject。
+        **kwargs: [变换选项][manimgx.animation.transform.TransformOptions]。
 
     Examples:
         ```python
@@ -1489,20 +1470,18 @@ class Swap(CyclicReplace):
 
 
 class FadeTransform(Transform):
-    """Cross-fade a mobject into another, each moving onto the other's place and size.
+    """将一个 mobject 交叉淡入为另一个，各自移向对方的位置与大小。
 
-    The mobject fades out as it moves and stretches onto `target_mobject`, and the
-    target fades in from the mobject's place and size. When it finishes, the target is
-    in the scene and the mobject is not (it is back as it was when the animation was
-    made).
+    该 mobject 在移动并拉伸到 `target_mobject` 的过程中淡出，
+    而目标从该 mobject 的位置与大小淡入。动画结束时，目标位于场景中，
+    而该 mobject 不在场景中（它恢复为动画创建时的状态）。
 
     Args:
-        mobject: The mobject to fade out.
-        target_mobject: The mobject to fade in; it joins the scene.
-        stretch: Whether each is stretched to the other's width and height; if not, it
-            is scaled evenly to match the dimension `dim_to_match`.
-        dim_to_match: The dimension matched when not stretching: 0 the width, 1 the
-            height.
+        mobject: 要淡出的 mobject。
+        target_mobject: 要淡入的 mobject；它加入场景。
+        stretch: 是否各自被拉伸到对方的宽度和高度；若否，则均匀缩放以匹配
+            维度 `dim_to_match`。
+        dim_to_match: 不拉伸时匹配的维度：0 为宽度，1 为高度。
 
     Examples:
         ```python
@@ -1542,29 +1521,28 @@ class FadeTransform(Transform):
         )
 
     def _fading_in(self, group: Mobject) -> Mobject:
-        """Where it starts: the target ghosted onto the mobject."""
+        """起始状态：目标虚化叠加到该 mobject 上。"""
         return self._ghosted(group, 1, 0)
 
     def _faded_out(self, group: Mobject) -> Mobject:
-        """Where it ends: the mobject ghosted onto the target."""
+        """终止状态：该 mobject 虚化叠加到目标上。"""
         return self._ghosted(group, 0, 1)
 
     def _ghosted(self, group: Mobject, i: int, j: int) -> Mobject:
-        """The group with its part i ghosted onto its part j."""
+        """该组将其第 i 个部分虚化叠加到第 j 个部分上。"""
         self.ghost_to(group[i], group[j])
         return group
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def ghost_to(self, source: Mobject, target: Mobject) -> None:
-        """Fit a mobject onto another and make it transparent.
+        """将一个 mobject 拟合到另一个上并使其透明。
 
-        It is stretched, or scaled to match (`stretch`, `dim_to_match`): the state one
-        side of the cross-fade fades from or to. `begin` calls it for both sides.
+        它被拉伸，或缩放以匹配（`stretch`、`dim_to_match`）：即交叉淡入
+        一侧所淡出或淡入的状态。`begin` 对两侧都调用它。
 
         Args:
-            source: The mobject to fit and make transparent.
-            target: The mobject it is fitted onto; if it is empty, `source` stays in
-                place.
+            source: 要拟合并使其透明的 mobject。
+            target: 它所拟合到的 mobject；若其为空，`source` 留在原处。
         """
         if target.get_num_points() or target.submobjects:
             source.replace(target, stretch=self.stretch, dim_to_match=self.dim_to_match)
@@ -1578,19 +1556,18 @@ class FadeTransform(Transform):
 
 
 class FadeTransformPieces(FadeTransform):
-    """Cross-fade a mobject into another, part by part.
+    """将一个 mobject 逐部分交叉淡入为另一个。
 
-    The parts of the two are matched up, and each part cross-fades onto its match as
-    [`FadeTransform`][manimgx.FadeTransform] does for a whole.
+    两者的各部分被配对，每个部分如 [`FadeTransform`][manimgx.FadeTransform]
+    对整体所做的那样交叉淡入到其匹配部分。
 
     Args:
-        mobject: The mobject to fade out.
-        target_mobject: The mobject to fade in; it joins the scene.
-        stretch: Whether each part is stretched to its match's width and height; if not,
-            it is scaled evenly to match the dimension `dim_to_match`.
-        dim_to_match: The dimension matched when not stretching: 0 the width, 1 the
-            height.
-        **kwargs: [Transform options][manimgx.animation.transform.TransformOptions].
+        mobject: 要淡出的 mobject。
+        target_mobject: 要淡入的 mobject；它加入场景。
+        stretch: 是否每个部分被拉伸到其匹配部分的宽度和高度；若否，
+            则均匀缩放以匹配维度 `dim_to_match`。
+        dim_to_match: 不拉伸时匹配的维度：0 为宽度，1 为高度。
+        **kwargs: [变换选项][manimgx.animation.transform.TransformOptions]。
 
     Examples:
         ```python
@@ -1618,16 +1595,16 @@ class FadeTransformPieces(FadeTransform):
 
 
 class FocusOn(Transform):
-    """Close a spotlight in on a point.
+    """将聚光灯收拢到一个点。
 
-    A transparent disc covering the frame shrinks onto `focus_point`, turning `color` at
-    `opacity` as it closes, and is gone when the animation finishes; it follows a
-    mobject that moves. It runs 2 seconds.
+    一个覆盖整个画面的透明圆盘收缩到 `focus_point` 上，在收拢过程中变为
+    `color` 颜色、`opacity` 不透明度，并在动画结束时消失；它跟随一个
+    移动的 mobject。运行 2 秒。
 
     Args:
-        focus_point: The point to focus on, or a mobject whose center to focus on.
-        opacity: The disc's opacity at the end.
-        color: The disc's color.
+        focus_point: 要聚焦的点，或要聚焦其中心的 mobject。
+        opacity: 圆盘在结束时的不透明度。
+        color: 圆盘的颜色。
 
     Examples:
         ```python
@@ -1668,15 +1645,15 @@ class FocusOn(Transform):
 
 
 class UpdateFromFunc[M: Mobject = Mobject](Animation[M]):
-    """Call a function on a mobject at every frame, for the animation's run time.
+    """在动画运行期间的每一帧对一个 mobject 调用一个函数。
 
-    The function gets the mobject, not the progress: use it to keep a mobject up to date
-    while other animations play. The mobject's own updaters act on it directly
-    (`suspend_mobject_updating` is False).
+    该函数接收该 mobject，而非进度：用于在其他动画播放时保持一个 mobject
+    为最新状态。该 mobject 自身的更新器直接作用于它
+    （`suspend_mobject_updating` 为 False）。
 
     Args:
-        mobject: The mobject to update.
-        update_function: A function of the mobject, called at every frame.
+        mobject: 要更新的 mobject。
+        update_function: 该 mobject 的函数，在每一帧调用。
 
     Examples:
         ```python
@@ -1714,15 +1691,15 @@ class UpdateFromFunc[M: Mobject = Mobject](Animation[M]):
 
 
 class UpdateFromAlphaFunc[M: Mobject = Mobject](Animation[M]):
-    """Call a function on a mobject at every frame, with the animation's progress.
+    """在每一帧对一个 mobject 调用一个函数，并传入动画的进度。
 
-    The function gets the mobject and the progress, eased by the rate function, and sets
-    the mobject as it is at that progress. The mobject's own updaters act on it directly
-    (`suspend_mobject_updating` is False).
+    该函数接收该 mobject 与经速率函数缓动后的进度，并将该 mobject 设置为
+    该进度处的状态。该 mobject 自身的更新器直接作用于它
+    （`suspend_mobject_updating` 为 False）。
 
     Args:
-        mobject: The mobject to update.
-        update_function: A function of the mobject and the eased progress, from 0 to 1.
+        mobject: 要更新的 mobject。
+        update_function: 该 mobject 与缓动后进度的函数，进度从 0 到 1。
 
     Examples:
         ```python
@@ -1759,14 +1736,14 @@ class UpdateFromAlphaFunc[M: Mobject = Mobject](Animation[M]):
 
 
 class MaintainPositionRelativeTo(Animation):
-    """Keep a mobject at the same offset from another's center, at every frame.
+    """在每一帧使一个 mobject 与另一个 mobject 的中心保持相同的偏移。
 
-    The offset is the one between their centers when the animation is made; play it
-    together with the animations that move `tracked_mobject`.
+    该偏移动画创建时为两者中心之间的偏移；将其与移动 `tracked_mobject` 的
+    动画一同播放。
 
     Args:
-        mobject: The mobject to keep in place.
-        tracked_mobject: The mobject it follows.
+        mobject: 要保持位置的 mobject。
+        tracked_mobject: 它所跟随的 mobject。
 
     Examples:
         ```python
@@ -1806,19 +1783,17 @@ class MaintainPositionRelativeTo(Animation):
 
 
 class Rotating(Rotate):
-    """Rotate a mobject at a steady pace: by default, a full turn in 5 seconds.
+    """以匀速旋转一个 mobject：默认为 5 秒内转一整圈。
 
-    A [`Rotate`][manimgx.Rotate] whose angle is [`TAU`][manimgx.TAU] unless given
-    another, at an even pace (`linear`), over 5 seconds.
+    即一个角度为 [`TAU`][manimgx.TAU]（除非另行指定）的 [`Rotate`][manimgx.Rotate]，
+    以匀速（`linear`）进行，历时 5 秒。
 
     Args:
-        mobject: The mobject to rotate.
-        angle: The angle, in radians, counterclockwise about `axis`.
-        axis: The axis it turns about; the default, [`OUT`][manimgx.OUT], turns it in
-            the plane of the screen.
-        about_point: The pivot; None to take it from `about_edge`, or the center.
-        about_edge: The direction of the point of its bounding box it turns about, when
-            no `about_point` is given.
+        mobject: 要旋转的 mobject。
+        angle: 旋转角度，以弧度为单位，绕 `axis` 逆时针方向。
+        axis: 旋转所绕的轴；默认为 [`OUT`][manimgx.OUT]，即在屏幕平面内旋转。
+        about_point: 枢轴；None 表示取自 `about_edge` 或中心。
+        about_edge: 未给定 `about_point` 时，所绕的边界框上点的方向。
 
     Examples:
         ```python
@@ -1850,16 +1825,16 @@ class Rotating(Rotate):
 
 
 class MoveAlongPath(Transform):
-    """Move a mobject along a path.
+    """沿一条路径移动一个 mobject。
 
-    Its center travels along `path` from the path's start to its end, at an even speed
-    along its length (as eased by the rate function), and the mobject keeps its shape.
-    It starts at the path's start, wherever it was. Its own updaters act on it directly
-    while it moves (`suspend_mobject_updating` is False).
+    其中心沿 `path` 从路径起点移动到终点，沿其长度以匀速行进
+    （由速率函数缓动），该 mobject 保持其形状。它从路径起点开始，
+    无论其原先位于何处。其自身的更新器在移动期间直接作用于它
+    （`suspend_mobject_updating` 为 False）。
 
     Args:
-        mobject: The mobject to move.
-        path: The curve it travels along.
+        mobject: 要移动的 mobject。
+        path: 它所沿行的曲线。
 
     Examples:
         ```python
@@ -1898,18 +1873,17 @@ class MoveAlongPath(Transform):
 
 
 class Homotopy(Animation):
-    """Deform a mobject by a homotopy: a function of each point and the progress.
+    """以同伦变形一个 mobject：一个关于每个点与进度的函数。
 
-    At progress t, from 0 to 1 (eased by the rate function), the mobject is the image of
-    the mobject as it began: each point (x, y, z) goes to `homotopy(x, y, z, t)`, and a
-    path's curves are mapped as [apply_function][manimgx.Mobject.apply_function] maps
-    them. It runs 3 seconds.
+    在进度 t（从 0 到 1，由速率函数缓动）处，该 mobject 为其初始状态的像：
+    每个点 (x, y, z) 变为 `homotopy(x, y, z, t)`，路径的曲线按
+    [apply_function][manimgx.Mobject.apply_function] 的方式映射。运行 3 秒。
 
     Args:
-        homotopy: A function of x, y, z and t, returning where the point is at t.
-        mobject: The mobject to deform.
-        apply_function_kwargs: Where the coordinates are measured from:
-            `{"about_point": ...}` or `{"about_edge": ...}`; None for the origin.
+        homotopy: 关于 x、y、z 和 t 的函数，返回该点在 t 处的位置。
+        mobject: 要变形的 mobject。
+        apply_function_kwargs: 坐标度量的基准位置：
+            `{"about_point": ...}` 或 `{"about_edge": ...}`；None 表示以原点为基准。
 
     Examples:
         ```python
@@ -1945,13 +1919,13 @@ class Homotopy(Animation):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def function_at_time_t(self, t: float) -> Callable[[Point3D], Point3D]:
-        """Return the homotopy at one progress, as a function of a point.
+        """返回某一进度处的同伦，作为关于一个点的函数。
 
         Args:
-            t: The progress, from 0 to 1.
+            t: 进度，从 0 到 1。
 
         Returns:
-            A function from a point to where it is at `t`.
+            一个从点到其在 `t` 处位置的函数。
         """
         return lambda p: np.array(self.homotopy(p[0], p[1], p[2], t))
 
@@ -1965,17 +1939,16 @@ class Homotopy(Animation):
 
 
 class ComplexHomotopy(Homotopy):
-    """Deform a mobject by a complex homotopy: a function of x + iy and the progress.
+    """以复同伦变形一个 mobject：一个关于 x + iy 与进度的函数。
 
-    At progress t, from 0 to 1 (eased by the rate function), the mobject is the image of
-    the mobject as it began: each point (x, y, z) goes to `complex_homotopy(x + iy, t)`,
-    keeping z, and a path's curves are mapped as
-    [apply_function][manimgx.Mobject.apply_function] maps them. It runs 3 seconds.
+    在进度 t（从 0 到 1，由速率函数缓动）处，该 mobject 为其初始状态的像：
+    每个点 (x, y, z) 变为 `complex_homotopy(x + iy, t)`，保持 z 不变，
+    路径的曲线按 [apply_function][manimgx.Mobject.apply_function] 的方式映射。
+    运行 3 秒。
 
     Args:
-        complex_homotopy: A function of z and t, returning where the point is at t, as a
-            complex number.
-        mobject: The mobject to deform.
+        complex_homotopy: 关于 z 和 t 的函数，返回该点在 t 处的位置，以复数表示。
+        mobject: 要变形的 mobject。
 
     Examples:
         ```python
@@ -2011,18 +1984,18 @@ class ComplexHomotopy(Homotopy):
 
 
 class ApplyWave(Homotopy):
-    """Send a wave through a mobject, from left to right.
+    """让一个波从左到右穿过一个 mobject。
 
-    Its points are displaced along `direction`, by up to `amplitude`, as the wave passes
-    them, and are back in place once it has passed. It runs 2 seconds.
+    当波经过时，其各点沿 `direction` 方向位移，至多为 `amplitude`，
+    波过后各点回到原位。运行 2 秒。
 
     Args:
-        mobject: The mobject to wave.
-        direction: The direction the points are displaced in.
-        amplitude: How far they are displaced at most, in scene units.
-        wave_func: The shape of each ripple's rise: a rate function.
-        time_width: The wave's width, as a fraction of the mobject's width.
-        ripples: How many ripples the wave has.
+        mobject: 要起波的 mobject。
+        direction: 各点位移的方向。
+        amplitude: 各点至多位移的距离，以场景单位表示。
+        wave_func: 每个波纹升起的形状：一个速率函数。
+        time_width: 波的宽度，以该 mobject 宽度的分数表示。
+        ripples: 波所含的波纹数。
 
     Examples:
         ```python
@@ -2081,22 +2054,21 @@ class ApplyWave(Homotopy):
 
 
 class PhaseFlow(Animation):
-    """Carry a mobject's points along a vector field.
+    """将一个 mobject 的各点沿一个向量场携带。
 
-    Each point moves with the velocity `function` gives it where it is, for
-    `virtual_time` units of the field's time over the animation, from where it is when
-    the animation begins. The flow is integrated in steps of the field's time,
-    `config.simulation_rate` a second of the animation, by the classical Runge–Kutta
-    method, so it is the same at every frame rate; a frame between steps shows the flow
-    carried on from the step before it. A path's curves are mapped as
-    [apply_function][manimgx.Mobject.apply_function] maps them. It runs at an even pace
-    (`linear`), and the mobject's own updaters act on it directly
-    (`suspend_mobject_updating` is False).
+    每个点以 `function` 在其所在位置给出的速度移动，在动画期间流过
+    `virtual_time` 个场的时间单位，从动画开始时其所在位置出发。
+    该流以场的时间为步长积分，每秒动画 `config.simulation_rate` 步，
+    采用经典 Runge–Kutta 方法，因此在任何帧率下结果相同；
+    步与步之间的帧显示从前一步继续的流。路径的曲线按
+    [apply_function][manimgx.Mobject.apply_function] 的方式映射。
+    动画以匀速进行（`linear`），且该 mobject 自身的更新器直接作用于它
+    （`suspend_mobject_updating` 为 False）。
 
     Args:
-        function: The vector field: a function from a point to its velocity.
-        mobject: The mobject to carry.
-        virtual_time: How long the points flow, in the field's units of time.
+        function: 向量场：从一个点到其速度的函数。
+        mobject: 要携带的 mobject。
+        virtual_time: 各点流动的时长，以场的时间单位表示。
 
     Examples:
         ```python
@@ -2156,7 +2128,7 @@ class PhaseFlow(Animation):
             self._flow((at - whole) * step)
 
     def _flow(self, dt: float) -> None:
-        """Carry the points on by `dt` of the field's time: a Runge–Kutta step."""
+        """将各点沿场的时间推进 `dt`：一个 Runge–Kutta 步。"""
         field = self.function
 
         def carried(p: Point3D) -> Point3D:
@@ -2169,19 +2141,18 @@ class PhaseFlow(Animation):
 
 
 class Wiggle(Animation):
-    """Wiggle a mobject: rock it back and forth while it swells and shrinks back.
+    """摇摆一个 mobject：在其膨胀又缩回的同时来回摆动。
 
-    It grows to `scale_value` times its size and back, while turning back and forth by
-    up to `rotation_angle`, `n_wiggles` swings in all, about its center or the given
-    points. It runs 2 seconds.
+    它生长至 `scale_value` 倍大小再缩回，同时来回转动至多 `rotation_angle`，
+    共 `n_wiggles` 次摆动，绕其中心或给定的点进行。运行 2 秒。
 
     Args:
-        mobject: The mobject to wiggle.
-        scale_value: How many times its size it grows to, halfway through.
-        rotation_angle: How far it turns each way at most, in radians.
-        n_wiggles: How many swings it makes.
-        scale_about_point: The point it grows about; None for its center.
-        rotate_about_point: The point it turns about; None for its center.
+        mobject: 要摇摆的 mobject。
+        scale_value: 半程时生长至其自身大小的多少倍。
+        rotation_angle: 每个方向至多转过的角度，以弧度为单位。
+        n_wiggles: 摆动的次数。
+        scale_about_point: 生长所绕的点；None 表示其中心。
+        rotate_about_point: 转动所绕的点；None 表示其中心。
 
     Examples:
         ```python
@@ -2250,14 +2221,14 @@ class Wiggle(Animation):
 
 
 class ChangingDecimal[V: (float, complex) = float](Animation["DecimalNumber[V]"]):
-    """Change the value a number shows with the animation's progress.
+    """随动画进度改变一个数字所显示的值。
 
-    At every frame, the number shows `number_update_func` of the progress, from 0 to 1,
-    eased by the rate function.
+    在每一帧，该数字显示 `number_update_func` 在进度（从 0 到 1，
+    由速率函数缓动）处的取值。
 
     Args:
-        decimal_mob: The number to change.
-        number_update_func: A function from the progress to the value to show.
+        decimal_mob: 要改变的数字。
+        number_update_func: 从进度到要显示的值的函数。
 
     Examples:
         ```python
@@ -2290,14 +2261,13 @@ class ChangingDecimal[V: (float, complex) = float](Animation["DecimalNumber[V]"]
 
 
 class ChangeDecimalToValue[V: (float, complex) = float](ChangingDecimal[V]):
-    """Count a number to a value.
+    """将一个数字计数到某个值。
 
-    It goes from the value it has when the animation is made to `target_number`, eased
-    by the rate function.
+    它从动画创建时所持有的值变化到 `target_number`，由速率函数缓动。
 
     Args:
-        decimal_mob: The number to change.
-        target_number: The value it ends at.
+        decimal_mob: 要改变的数字。
+        target_number: 它结束时所达到的值。
 
     Examples:
         ```python
@@ -2325,18 +2295,17 @@ class ChangeDecimalToValue[V: (float, complex) = float](ChangingDecimal[V]):
 
 
 class ShowIncreasingSubsets(Animation):
-    """Show the submobjects of a group one more at a time.
+    """逐个增多地展示一个组的子对象。
 
-    At progress p, eased by the rate function, the first ⌊p·n⌋ of its n submobjects are
-    shown and the rest are hidden: left out of the picture, not changed, so each part
-    shows as it is, whatever else plays on it. The group joins the scene when the
-    animation begins. A part still hidden when the animation ends stays unseen, left
-    transparent; a remover's group leaves the scene as it is. Pass `rate_func=linear` for
-    an even pace.
+    在进度 p（由速率函数缓动）处，其 n 个子对象中的前 ⌊p·n⌋ 个被展示，
+    其余被隐藏：即置于画面之外而非被改变，因此每个部分以其原貌展示，
+    无论其上还播放着什么。该组在动画开始时加入场景。动画结束时仍被隐藏的
+    部分保持不可见，留为透明；移除器的组按原状离开场景。
+    传入 `rate_func=linear` 可获得匀速。
 
     Args:
-        group: The group whose submobjects are shown.
-        int_func: How many are shown: a function of p·n (the default rounds down).
+        group: 其子对象被展示的组。
+        int_func: 展示多少个的函数：关于 p·n 的函数（默认向下取整）。
 
     Examples:
         ```python
@@ -2371,7 +2340,7 @@ class ShowIncreasingSubsets(Animation):
     @property
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def hidden(self) -> Sequence[Mobject]:
-        """The submobjects it has not shown yet, or no longer shows."""
+        """尚未展示或不再展示的子对象。"""
         return self._hidden
 
     def interpolate_mobject(self, alpha: float) -> None:
@@ -2384,12 +2353,12 @@ class ShowIncreasingSubsets(Animation):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def update_submobject_list(self, index: int) -> None:
-        """Show the first `index` submobjects and hide the rest.
+        """展示前 `index` 个子对象并隐藏其余。
 
-        `interpolate_mobject` calls it at every frame.
+        `interpolate_mobject` 在每一帧调用它。
 
         Args:
-            index: How many submobjects are shown.
+            index: 展示的子对象数量。
         """
         self._hidden = self.all_submobs[max(index, 0) :]
 
@@ -2404,15 +2373,15 @@ class ShowIncreasingSubsets(Animation):
 
 
 class ShowSubmobjectsOneByOne(ShowIncreasingSubsets):
-    """Show mobjects one at a time, each in place of the one before.
+    """逐一展示 mobject，每个取代前一个的位置。
 
-    At progress p, eased by the rate function, only the ⌈p·n⌉-th of the n mobjects is
-    shown, as it is, and the others are hidden; when the animation ends, those it hides
-    stay unseen, left transparent. Pass `rate_func=linear` for an even pace.
+    在进度 p（由速率函数缓动）处，仅展示 n 个 mobject 中的第 ⌈p·n⌉ 个，
+    以其原貌展示，其余被隐藏；动画结束时，被隐藏的那些保持不可见，
+    留为透明。传入 `rate_func=linear` 可获得匀速。
 
     Args:
-        group: The mobjects to show in turn.
-        int_func: Which one is shown: a function of p·n (the default rounds up).
+        group: 依次展示的 mobject。
+        int_func: 展示哪一个的函数：关于 p·n 的函数（默认向上取整）。
 
     Examples:
         ```python
@@ -2447,18 +2416,16 @@ class ShowSubmobjectsOneByOne(ShowIncreasingSubsets):
 
 
 class AddTextLetterByLetter(ShowIncreasingSubsets):
-    """Type a text in, one letter at a time.
+    """逐字输入一段文本，一次一个字母。
 
-    The letters appear one after another at an even pace (`linear`), `time_per_char`
-    seconds each unless a `run_time` is given. The text joins the scene when the
-    animation begins.
+    字母以匀速（`linear`）依次出现，每个字母 `time_per_char` 秒，
+    除非给定 `run_time`。该文本在动画开始时加入场景。
 
     Args:
-        text: The text to type, whose submobjects are its letters; a text without any
-            raises a ValueError.
-        int_func: How many letters are shown: a function of the progress times the
-            number of letters (the default rounds up, so the first shows at once).
-        time_per_char: How long each letter takes, in seconds.
+        text: 要输入的文本，其子对象为字母；不含任何字母的文本会引发 ValueError。
+        int_func: 展示多少个字母的函数：关于进度乘以字母数的函数
+            （默认向上取整，因此第一个字母立即出现）。
+        time_per_char: 每个字母耗时，以秒为单位。
 
     Examples:
         ```python
@@ -2493,20 +2460,19 @@ class AddTextLetterByLetter(ShowIncreasingSubsets):
 
 
 class RemoveTextLetterByLetter(AddTextLetterByLetter):
-    """Remove a text one letter at a time, from the last, and take it out of the scene.
+    """从最后一个字母起逐字移除一段文本，并将其移出场景。
 
-    The reverse of [`AddTextLetterByLetter`][manimgx.AddTextLetterByLetter]: the letters
-    disappear from the last to the first, `time_per_char` seconds each unless a
-    `run_time` is given. The text leaves the scene when the animation finishes, as it
-    was before it: adding it again shows it.
+    [`AddTextLetterByLetter`][manimgx.AddTextLetterByLetter] 的逆过程：
+    字母从最后一个到第一个消失，每个 `time_per_char` 秒，
+    除非给定 `run_time`。该文本在动画结束时离开场景，并恢复为动画之前的状态：
+    再次添加即可显示。
 
     Args:
-        text: The text to remove, whose submobjects are its letters; a text without any
-            raises a ValueError.
-        int_func: How many letters are still shown: a function of what is left of the
-            progress times the number of letters (the default rounds up).
-        time_per_char: How long each letter takes, in seconds.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions].
+        text: 要移除的文本，其子对象为字母；不含任何字母的文本会引发 ValueError。
+        int_func: 仍展示多少个字母的函数：关于进度剩余部分乘以字母数的函数
+            （默认向上取整）。
+        time_per_char: 每个字母耗时，以秒为单位。
+        **kwargs: [动画选项][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -2529,22 +2495,20 @@ class RemoveTextLetterByLetter(AddTextLetterByLetter):
 
 
 class TypeWithCursor(AddTextLetterByLetter):
-    """Type a text in letter by letter, with a cursor after the last letter typed.
+    """逐字输入一段文本，光标跟在最后输入的字母之后。
 
-    The letters appear as with [`AddTextLetterByLetter`][manimgx.AddTextLetterByLetter],
-    and the cursor, shown as it is, moves along after them. The cursor becomes part of
-    the text, at its end, and stays there when the animation finishes unless
-    `leave_cursor_on` is False. The text joins the scene when the animation begins.
+    字母如 [`AddTextLetterByLetter`][manimgx.AddTextLetterByLetter] 那样出现，
+    光标以其原貌显示，并随之移动。光标成为该文本的一部分，位于其末尾，
+    在动画结束时留在那里，除非 `leave_cursor_on` 为 False。
+    该文本在动画开始时加入场景。
 
     Args:
-        text: The text to type, whose submobjects are its letters.
-        cursor: The cursor: any mobject, such as a thin rectangle.
-        buff: The gap between the last letter and the cursor, in scene units.
-        keep_cursor_y: Whether the cursor keeps its own height as it moves; if not, it
-            moves at the text's middle height.
-        leave_cursor_on: Whether the cursor stays at the end of the text when the
-            animation finishes.
-        time_per_char: How long each letter takes, in seconds.
+        text: 要输入的文本，其子对象为字母。
+        cursor: 光标：任意 mobject，例如一个细长矩形。
+        buff: 最后一个字母与光标之间的间距，以场景单位表示。
+        keep_cursor_y: 光标移动时是否保持其自身高度；若否，它沿文本的中间高度移动。
+        leave_cursor_on: 动画结束时光标是否留在文本末尾。
+        time_per_char: 每个字母耗时，以秒为单位。
 
     Examples:
         ```python
@@ -2609,23 +2573,20 @@ class TypeWithCursor(AddTextLetterByLetter):
 
 
 class UntypeWithCursor(TypeWithCursor):
-    """Delete a text letter by letter, with a cursor after the last letter left.
+    """逐字删除一段文本，光标跟在最后留下的字母之后。
 
-    The reverse of [`TypeWithCursor`][manimgx.TypeWithCursor]: the letters disappear
-    from the last to the first. The text leaves the scene when the animation finishes,
-    as it was before it (adding it again shows it); the cursor becomes part of the
-    text, and leaves with it.
+    [`TypeWithCursor`][manimgx.TypeWithCursor] 的逆过程：字母从最后一个到第一个
+    消失。该文本在动画结束时离开场景，并恢复为动画之前的状态
+    （再次添加即可显示）；光标成为该文本的一部分，并随其离开。
 
     Args:
-        text: The text to delete, whose submobjects are its letters.
-        cursor: The cursor: any mobject, such as a thin rectangle.
-        buff: The gap between the last letter and the cursor, in scene units.
-        keep_cursor_y: Whether the cursor keeps its own height as it moves; if not, it
-            moves at the text's middle height.
-        leave_cursor_on: Whether the cursor stays part of the text when the animation
-            finishes.
-        time_per_char: How long each letter takes, in seconds.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions].
+        text: 要删除的文本，其子对象为字母。
+        cursor: 光标：任意 mobject，例如一个细长矩形。
+        buff: 最后一个字母与光标之间的间距，以场景单位表示。
+        keep_cursor_y: 光标移动时是否保持其自身高度；若否，它沿文本的中间高度移动。
+        leave_cursor_on: 动画结束时光标是否仍作为该文本的一部分。
+        time_per_char: 每个字母耗时，以秒为单位。
+        **kwargs: [动画选项][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -2650,19 +2611,17 @@ class UntypeWithCursor(TypeWithCursor):
 
 
 class SpiralIn(Animation):
-    """Fly the submobjects of a mobject in from far away, spiralling into place.
+    """让一个 mobject 的子对象从远处飞入，盘旋着就位。
 
-    Each comes home to where it is when the animation begins, from `scale_factor` + 1
-    times as far from the mobject's center: on the way it turns once around that center
-    (and back once about its own, so it keeps its orientation), and it fades in over the
-    first `fade_in_fraction` of the way. The mobject joins the scene when the animation
-    begins; making the animation changes nothing.
+    每个子对象回到动画开始时其所在位置，出发点距该 mobject 中心
+    `scale_factor` + 1 倍远：途中绕该中心转一圈（并绕自身中心反向转一圈，
+    以保持其朝向），并在前 `fade_in_fraction` 的路程中淡入。
+    该 mobject 在动画开始时加入场景；创建该动画不改变任何内容。
 
     Args:
-        shapes: The mobject whose submobjects spiral in.
-        scale_factor: How far out they start: `scale_factor` + 1 times as far from the
-            center as their places.
-        fade_in_fraction: The fraction of the way over which they fade in, from 0 to 1.
+        shapes: 其子对象盘旋入位的 mobject。
+        scale_factor: 出发距离：距中心为其位置的 `scale_factor` + 1 倍远。
+        fade_in_fraction: 淡入所占的路程比例，从 0 到 1。
 
     Examples:
         ```python
@@ -2710,20 +2669,19 @@ class SpiralIn(Animation):
 
 
 class AddTextWordByWord(Succession):
-    """Type words in, letter by letter, pausing briefly after each word.
+    """逐字输入单词，每个单词之后短暂停顿。
 
-    Each submobject of `text_mobject` is a word, and the words come in turn: a word's own
-    submobjects, its letters, appear one after another, `time_per_char` seconds each;
-    then the word holds for 0.005 × (its number of letters)^1.5 seconds. Give it a group
-    of words, such as a [`VGroup`][manimgx.VGroup] of [`Text`][manimgx.Text]s: the
-    submobjects of a single `Text` are its letters, which have no parts of their own to
-    type, so each appears whole in its turn.
+    `text_mobject` 的每个子对象是一个单词，单词依次出现：一个单词自身的
+    子对象即其字母，一个接一个出现，每个 `time_per_char` 秒；
+    然后该单词保持 0.005 × (其字母数)^1.5 秒。应传入一个单词的组，
+    例如由 [`Text`][manimgx.Text] 构成的 [`VGroup`][manimgx.VGroup]：
+    单个 `Text` 的子对象是其字母，它们没有自身的部分可供输入，
+    因此每个在其轮次中整体出现。
 
     Args:
-        text_mobject: The words: a group whose submobjects are words made of letters.
-        time_per_char: How long each letter takes, in seconds.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions] for
-            the whole.
+        text_mobject: 这些单词：一个子对象为由字母构成的单词的组。
+        time_per_char: 每个字母耗时，以秒为单位。
+        **kwargs: 用于整体的[动画选项][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -2759,23 +2717,21 @@ class AddTextWordByWord(Succession):
 
 
 class Flash(AnimationGroup):
-    """Flash lines out from a point, like a burst of light.
+    """从一个点闪出光线，如同光爆。
 
-    `num_lines` lines, `line_length` long and starting `flash_radius` from the point,
-    shoot outward as passing flashes ([`ShowPassingFlash`][manimgx.ShowPassingFlash]),
-    and are gone when the animation finishes. The animation options go to each line's
-    flash.
+    `num_lines` 条线，长度为 `line_length`，从距该点 `flash_radius` 处起始，
+    作为掠过的闪光（[`ShowPassingFlash`][manimgx.ShowPassingFlash]）向外射出，
+    并在动画结束时消失。动画选项传递给每条线的闪光。
 
     Args:
-        point: The point to flash from, or a mobject whose center to flash from.
-        line_length: Each line's length, in scene units.
-        num_lines: How many lines.
-        flash_radius: How far from the point the lines start, in scene units.
-        line_stroke_width: The lines' width, in hundredths of a scene unit.
-        color: The lines' color.
-        time_width: Each line's flash window, as a fraction of its length.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions] for
-            each line's flash.
+        point: 闪光的起始点，或以其中心为起始点的 mobject。
+        line_length: 每条线的长度，以场景单位表示。
+        num_lines: 线的数量。
+        flash_radius: 线起始处距该点的距离，以场景单位表示。
+        line_stroke_width: 线的宽度，以场景单位的百分之一为单位。
+        color: 线的颜色。
+        time_width: 每条线的闪光窗口，以其长度的分数表示。
+        **kwargs: 用于每条线闪光的[动画选项][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -2835,20 +2791,19 @@ class Flash(AnimationGroup):
 
 
 class ShowPassingFlashWithThinningStrokeWidth(AnimationGroup):
-    """Flash a stretch of a mobject's path along it, with a tail that thins behind it.
+    """沿一个 mobject 的路径闪过一段，其后拖着一条变细的尾。
 
-    `n_segments` passing flashes ([`ShowPassingFlash`][manimgx.ShowPassingFlash]) of
-    copies of the mobject play together: their widths rise from none to the mobject's
-    stroke width as their windows shrink from `time_width` to none, so the flash is
-    widest at its head. The copies are gone when the animation finishes, and the mobject
-    itself is left as it is. The animation options go to each flash.
+    `n_segments` 个该 mobject 副本的掠过闪光
+    （[`ShowPassingFlash`][manimgx.ShowPassingFlash]）一同播放：它们的宽度
+    从无上升到该 mobject 的描边宽度，同时其窗口从 `time_width` 缩到无，
+    因此闪光在其头部最宽。副本在动画结束时消失，而该 mobject 本身保持原状。
+    动画选项传递给每个闪光。
 
     Args:
-        vmobject: The mobject whose paths the flash travels along.
-        n_segments: How many flashes make it up.
-        time_width: The tail's length, as a fraction of the path's length.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions] for
-            each flash.
+        vmobject: 闪光沿其路径移动的 mobject。
+        n_segments: 构成闪光的闪光数量。
+        time_width: 尾的长度，以路径长度的分数表示。
+        **kwargs: 用于每个闪光的[动画选项][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -2890,27 +2845,26 @@ class ShowPassingFlashWithThinningStrokeWidth(AnimationGroup):
 
 
 class Circumscribe(Succession):
-    """Draw attention to a mobject with a frame drawn around it.
+    """通过在其周围绘制一个边框来引起对一个 mobject 的注意。
 
-    The frame, a rectangle or a circle `buff` away from the mobject, flashes around it
-    ([`ShowPassingFlash`][manimgx.ShowPassingFlash]); with `fade_in` it fades in and is
-    then undrawn, with `fade_out` it is drawn and then fades out, and with both it fades
-    in and out. It is gone when the animation finishes. `run_time` times the frame (1
-    second by default); the other options apply to the whole.
+    该边框为距该 mobject `buff` 远的矩形或圆形，在其周围闪光
+    （[`ShowPassingFlash`][manimgx.ShowPassingFlash]）；使用 `fade_in` 时它淡入
+    然后被擦除，使用 `fade_out` 时它被绘制然后淡出，两者皆用时它淡入又淡出。
+    它在动画结束时消失。`run_time` 为该边框的时长（默认 1 秒）；
+    其他选项作用于整体。
 
     Args:
-        mobject: The mobject to frame.
-        shape: The frame's kind: [`Rectangle`][manimgx.Rectangle] (None, the default) or
-            [`Circle`][manimgx.Circle]; any other raises a ValueError.
-        fade_in: Whether the frame fades in.
-        fade_out: Whether the frame fades out.
-        time_width: The flashing stretch's length, as a fraction of the frame's, when it
-            neither fades in nor out.
-        buff: The gap between the mobject and the frame, in scene units.
-        color: The frame's color.
-        stroke_width: The frame's width, in hundredths of a scene unit.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions]:
-            `run_time` for the frame, the others for the whole.
+        mobject: 要加边框的 mobject。
+        shape: 边框的种类：[`Rectangle`][manimgx.Rectangle]（None，即默认）或
+            [`Circle`][manimgx.Circle]；其他任何值会引发 ValueError。
+        fade_in: 边框是否淡入。
+        fade_out: 边框是否淡出。
+        time_width: 当既不淡入也不淡出时，闪光段的长度，以边框长度的分数表示。
+        buff: 该 mobject 与边框之间的间距，以场景单位表示。
+        color: 边框的颜色。
+        stroke_width: 边框的宽度，以场景单位的百分之一为单位。
+        **kwargs: [动画选项][manimgx.animation.timeline.AnimationOptions]：
+            `run_time` 用于边框，其余用于整体。
 
     Examples:
         ```python
@@ -2968,20 +2922,19 @@ class Circumscribe(Succession):
 
 
 class Blink(Succession):
-    """Blink a mobject: hide it and show it again, a number of times.
+    """闪烁一个 mobject：将其隐藏再显示，重复若干次。
 
-    It shows for `time_on` seconds and hides for `time_off`, `blinks` times, then shows
-    again for `time_on` (or stays hidden, with `hide_at_end`). It is made fully opaque
-    to show it, and fully transparent to hide it.
+    它显示 `time_on` 秒并隐藏 `time_off` 秒，共 `blinks` 次，然后再显示
+    `time_on` 秒（或使用 `hide_at_end` 保持隐藏）。显示时将其设为完全不透明，
+    隐藏时将其设为完全透明。
 
     Args:
-        mobject: The mobject to blink.
-        time_on: How long it shows each time, in seconds.
-        time_off: How long it hides each time, in seconds.
-        blinks: How many times it blinks.
-        hide_at_end: Whether it stays hidden at the end.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions] for
-            the whole.
+        mobject: 要闪烁的 mobject。
+        time_on: 每次显示的时长，以秒为单位。
+        time_off: 每次隐藏的时长，以秒为单位。
+        blinks: 闪烁的次数。
+        hide_at_end: 结束时是否保持隐藏。
+        **kwargs: 用于整体的[动画选项][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -3019,24 +2972,24 @@ class Blink(Succession):
 
 
 class Broadcast(LaggedStart):
-    """Send copies of a mobject spreading out from a point, one after another.
+    """将一个 mobject 的副本从一个点向外扩散，一个接一个。
 
-    Each of `n_mobs` copies starts at `focal_point`, `initial_width` wide and at
-    `initial_opacity`, and grows like a ripple to the mobject's size, centered on
-    `focal_point`, as its opacity goes to `final_opacity`. They begin one after another
-    (`lag_ratio` 0.2, over 3 seconds), and leave the scene when the animation finishes,
-    unless given `remover=False`. The copies of a filled mobject fade as a whole, those
-    of an outline in their stroke. The mobject itself is not shown.
+    `n_mobs` 个副本中的每一个从 `focal_point` 起始，宽度为 `initial_width`，
+    不透明度为 `initial_opacity`，如涟漪般生长到该 mobject 的大小，
+    以 `focal_point` 为中心，其不透明度变为 `final_opacity`。它们一个接一个
+    开始（`lag_ratio` 为 0.2，历时 3 秒），并在动画结束时离开场景，
+    除非给定 `remover=False`。填充 mobject 的副本整体淡出，
+    轮廓的副本在其描边上淡出。该 mobject 本身不被显示。
 
     Args:
-        mobject: The ripples' shape, at its largest.
-        focal_point: Where the ripples spread from.
-        n_mobs: How many copies.
-        initial_opacity: The copies' opacity at the start.
-        final_opacity: The copies' opacity at the end.
-        initial_width: The copies' width at the start, in scene units.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions]:
-            `remover` for each copy, the others for the whole.
+        mobject: 涟漪的形状，处于其最大状态。
+        focal_point: 涟漪扩散的起始点。
+        n_mobs: 副本的数量。
+        initial_opacity: 副本起始时的不透明度。
+        final_opacity: 副本结束时的不透明度。
+        initial_width: 副本起始时的宽度，以场景单位表示。
+        **kwargs: [动画选项][manimgx.animation.timeline.AnimationOptions]：
+            `remover` 用于每个副本，其余用于整体。
 
     Examples:
         ```python

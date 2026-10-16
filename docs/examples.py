@@ -404,8 +404,9 @@ def fence(
     fenced = cast("SuperFencesBlockPreprocessor", md.preprocessors["fenced_code_block"])
     fold = options.pop("fold", None) is not None
     show = options.pop("show", None)
-    title = options.pop("title", "Code") if fold else None
+    title = options.pop("title", "代码") if fold else None
     film = None if show == "code" else _film(Example(source))
+
     if show == "film":
         return "" if film is None else f'<figure class="mx-example">{film}</figure>'
     code = fenced.highlight(
@@ -423,6 +424,7 @@ def _film(example: Example) -> str | None:
     """A rendered example's film, as HTML: its video, or its still if nothing moves. A
     film taller than wide (9:16) is marked, so that it is not as wide as the page."""
     if example.scene is None or not (still := FILMS / f"{example.stem}.webp").exists():
+
         return None
     from PIL import Image
 

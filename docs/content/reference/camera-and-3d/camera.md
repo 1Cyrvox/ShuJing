@@ -1,11 +1,11 @@
 ---
-title: "Camera"
-description: "The camera's frame, to pan and zoom; the look of the picture; and the mobjects that stay fixed on the screen."
+title: "相机"
+description: "相机的画框，用于平移和缩放；画面的外观；以及在屏幕上保持固定的 mobject。"
 ---
 
-# Camera
+# 相机
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -20,19 +20,18 @@ class CameraHero(m.Scene):
         self.play(frame.animate.scale(4).move_to(m.ORIGIN), run_time=2)
 ```
 
-Every scene has a camera, `self.camera`. Its frame, `self.camera.frame`, is a mobject: move
-it to pan, scale it to zoom, and animate it as any other mobject. A frame half as large
-shows everything twice as large.
+每个场景都有一个相机 `self.camera`。其画框 `self.camera.frame` 是一个 mobject：移动它以
+平移，缩放它以缩放，并像任何其他 mobject 一样为其制作动画。画框缩小一半，一切看起来就放大
+一倍。
 
-The camera also sets the picture's look: its background, and, for 3D, its exposure, its
-tone mapping, its bloom and its shadows.
+相机还设置画面的外观：其背景，以及对于 3D，其曝光、色调映射、泛光和阴影。
 
 ::: manimgx.Camera
     options:
       heading_level: 2
       members: false
 
-## The frame
+## 画框
 
 ::: manimgx.Camera.frame
     options:
@@ -54,7 +53,7 @@ tone mapping, its bloom and its shadows.
     options:
       heading_level: 3
 
-## The look
+## 外观
 
 ::: manimgx.Camera.background_color
     options:
@@ -88,7 +87,7 @@ tone mapping, its bloom and its shadows.
     options:
       heading_level: 3
 
-## Fixed on the screen
+## 屏幕上固定
 
 ::: manimgx.Camera.fixed_in_frame_mobjects
     options:
@@ -98,7 +97,7 @@ tone mapping, its bloom and its shadows.
     options:
       heading_level: 3
 
-## Its angles, in 3D
+## 其角度，在 3D 中
 
 ::: manimgx.Camera.three_d
     options:

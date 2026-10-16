@@ -23,7 +23,7 @@ CONFIG = tomllib.loads(
 )
 HOST = urlsplit(CONFIG["project"]["site_url"]).netloc
 RAW_HOST = "raw.githubusercontent.com"
-RAW_SHOWCASE = "/academa-labs/manimgx/main/docs/content/showcase/"
+RAW_SHOWCASE = "/1Cyrvox/ShuJing/main/docs/content/showcase/"
 # an element's start tag (a quoted value may hold ">"), and one of its URLs, quoted
 TAG = re.compile(r"""<[a-zA-Z](?:"[^"]*"|'[^']*'|[^'">])*>""")
 URL = re.compile(r"""(\s(src|srcset|href|poster)\s*=\s*)(["'])(.*?)\3""", re.DOTALL)

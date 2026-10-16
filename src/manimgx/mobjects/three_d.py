@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Ported from Manim CE 0.21 (MIT)."""
+"""移植自 Manim CE 0.21 (MIT)。"""
 
 from __future__ import annotations
 
@@ -94,12 +94,12 @@ if TYPE_CHECKING:
     "ThreeDVMobject(...) is VMobject(..., shade_in_3d=True): use it", category=None
 )
 class ThreeDVMobject(VMobject):
-    """A path shaded by a three-dimensional scene's light: a
-    [VMobject][manimgx.VMobject] with `shade_in_3d` on.
+    """一条由三维场景的光照着色的路径：一个开启了 `shade_in_3d` 的
+    [VMobject][manimgx.VMobject]。
 
-    It takes a VMobject's arguments. Give it points in three dimensions (with
-    `set_points_as_corners`, `set_points_smoothly`, …) to draw a curve through space
-    that the light shades as it does the other three-dimensional objects.
+    它接受 VMobject 的参数。给它三维空间中的点（通过
+    `set_points_as_corners`、`set_points_smoothly`、……）以绘制一条穿过空间的曲线，
+    光照对其着色的方式与其他三维对象相同。
     """
 
     # u_index … v2: a surface face's place in its (u, v) grid; nothing sets them (a
@@ -114,33 +114,32 @@ class ThreeDVMobject(VMobject):
 
 
 class _SurfaceLook(_Style, total=False):
-    """SurfaceLook's keys, open, for the keywords that add to them."""
+    """SurfaceLook 的键，开放，供向其添加的关键字使用。"""
 
     surface_piece_config: Style | None
-    """Accepted for Manim compatibility; ignored."""
+    """为兼容 Manim 而接受；被忽略。"""
     checkerboard_colors: Iterable[ParsableManimColor] | Literal[False]
-    """The colors the faces are checkered with, in turn along both u and v (default
-    `BLUE_D` and `BLUE_E`, a cone's False; False: the fill color alone)."""
+    """各面按棋盘格着色所用的颜色，沿 u 和 v 依次轮换（默认为
+    `BLUE_D` 和 `BLUE_E`，锥体为 False；False：仅使用填充色）。"""
     should_make_jagged: bool
-    """Accepted for Manim compatibility; ignored."""
+    """为兼容 Manim 而接受；被忽略。"""
     pre_function_handle_to_anchor_scale_factor: float
-    """Accepted for Manim compatibility; ignored."""
+    """为兼容 Manim 而接受；被忽略。"""
 
 
 class SurfaceLook(_SurfaceLook, total=False, closed=True):
-    """A [Surface][manimgx.Surface]'s keywords but its function, ranges and resolution,
-    for the shapes that set those (spheres, cylinders, …): its checkerboard, with the
-    style keywords."""
+    """[Surface][manimgx.Surface] 的关键字，但不包括其函数、范围和分辨率，
+    供设置这些的形状（球体、圆柱体、……）使用：其棋盘格，以及样式关键字。"""
 
 
 class SurfaceOptions(_SurfaceLook, total=False, closed=True):
-    """A [Surface][manimgx.Surface]'s keywords but its function and ranges, for the
-    shapes that pass them on ([Cone][manimgx.Cone]): its resolution and checkerboard,
-    with the style keywords."""
+    """[Surface][manimgx.Surface] 的关键字，但不包括其函数和范围，
+    供将它们传递下去的形状（[Cone][manimgx.Cone]）使用：其分辨率和棋盘格，
+    以及样式关键字。"""
 
     resolution: int | Sequence[int]
-    """How many faces the surface has along u and along v: one positive integer for
-    both, or a pair of positive integers `(u, v)` (default 32)."""
+    """曲面沿 u 和沿 v 方向拥有的面数：一个正整数同时用于两者，
+    或一对正整数 `(u, v)`（默认 32）。"""
 
 
 _COLORMAP_TEXELS = 256  # a colorscale's samples along the value, as a texture
@@ -154,8 +153,8 @@ def _checkerboard(
     v_count: int,
     opacity: float,
 ) -> np.ndarray:
-    """A checkerboard's rows — one color per cell: a value of its palette,
-    grid and opacity."""
+    """棋盘格的各行——每个格一种颜色：取自其调色板的一个值、
+    网格和不透明度。"""
     k = np.arange(u_count * v_count)
     rows = np.array(palette)[(k // v_count + k % v_count) % len(palette)]
     rows[:, 3] = opacity
@@ -164,41 +163,37 @@ def _checkerboard(
 
 
 class Surface(MeshMobject):
-    """A parametric surface: the points `func(u, v)` for u and v over their ranges,
-    drawn as the smooth surface through them; checkered in two blues, with thin light
-    grey edges, and shaded by a three-dimensional scene's light, unless styled.
+    """一个参数曲面：u 和 v 在各自范围上的点 `func(u, v)`，
+    绘制为穿过这些点的光滑曲面；以两种蓝色棋盘格着色，带有细的浅灰色边，
+    并由三维场景的光照着色，除非另行设置样式。
 
-    The ranges are divided into `resolution` steps, along u and along v, and the
-    function is sampled at the corners of the grid's cells, the surface's faces. What is
-    drawn is the smooth surface through those samples, not flat faces: `resolution` sets
-    how closely it follows the function, and the light shades it smoothly, across the
-    seam too where the surface closes on itself (a sphere, a torus, a cylinder). Each
-    face keeps its own colors, so a checkerboard keeps sharp cells, and the stroke draws
-    the faces' edges, curved with the surface. The faces are one mesh (a
-    [MeshMobject][manimgx.MeshMobject]): it morphs into other meshes (drawn as flat
-    faces while it morphs into one of another grid), and [Create][manimgx.Create] draws
-    it in face by face, each face with its edges.
-    [set_fill_by_checkerboard][manimgx.Surface.set_fill_by_checkerboard] and
-    [set_fill_by_value][manimgx.Surface.set_fill_by_value] color it.
+    各范围沿 u 和沿 v 被划分为 `resolution` 步，函数在网格各单元（即曲面的各面）
+    的角点处采样。所绘制的是穿过这些采样点的光滑曲面，而非平面：`resolution` 决定
+    它跟随函数的紧密程度，光照对其平滑着色，在曲面闭合于自身的接缝处（球体、
+    环面、圆柱体）也是如此。每个面保留各自的颜色，因此棋盘格保持清晰的格子，
+    描边绘制各面的边，随曲面弯曲。各面构成一个网格（一个
+    [MeshMobject][manimgx.MeshMobject]）：它可以变形为其他网格（在变形为另一个
+    网格的过程中绘制为平面），而 [Create][manimgx.Create] 逐面绘制它，
+    每个面连同其边。
+    [set_fill_by_checkerboard][manimgx.Surface.set_fill_by_checkerboard] 和
+    [set_fill_by_value][manimgx.Surface.set_fill_by_value] 为其着色。
 
-    The checkerboard palette supplies the initial paint; use
-    [set_fill_by_checkerboard][manimgx.Surface.set_fill_by_checkerboard] to recolor
-    the surface later. The initial palette and ignored compatibility options are
-    not retained as instance attributes.
+    棋盘格调色板提供初始绘制；使用
+    [set_fill_by_checkerboard][manimgx.Surface.set_fill_by_checkerboard] 可在之后
+    重新为曲面着色。初始调色板和被忽略的兼容性选项不会保留为实例属性。
 
     Args:
-        func: The function, from (u, v) to a point in scene coordinates (on axes, their
-            [c2p][manimgx.Axes.coords_to_point] of coordinates).
-        u_range: The range of u, `(u_min, u_max)`.
-        v_range: The range of v, `(v_min, v_max)`.
-        resolution: How many faces the surface has along u and along v: one positive
-            integer for both, or a pair of positive integers `(u, v)`.
-        surface_piece_config: Accepted for Manim compatibility; ignored.
-        checkerboard_colors: The initial checkerboard colors, in turn; False for the
-            fill color alone.
-        should_make_jagged: Accepted for Manim compatibility; ignored.
-        pre_function_handle_to_anchor_scale_factor: Accepted for Manim compatibility;
-            ignored.
+        func: 该函数，从 (u, v) 映射到场景坐标中的一个点（在坐标轴上，即坐标的
+            [c2p][manimgx.Axes.coords_to_point]）。
+        u_range: u 的范围，`(u_min, u_max)`。
+        v_range: v 的范围，`(v_min, v_max)`。
+        resolution: 曲面沿 u 和沿 v 方向拥有的面数：一个正整数同时用于两者，
+            或一对正整数 `(u, v)`。
+        surface_piece_config: 为兼容 Manim 而接受；被忽略。
+        checkerboard_colors: 初始棋盘格颜色，依次轮换；False 表示仅使用填充色。
+        should_make_jagged: 为兼容 Manim 而接受；被忽略。
+        pre_function_handle_to_anchor_scale_factor: 为兼容 Manim 而接受；
+            被忽略。
 
     Examples:
         ```python
@@ -265,15 +260,14 @@ class Surface(MeshMobject):
             self.set_fill_by_checkerboard(*colors)
 
     def func(self, u: float, v: float) -> np.ndarray:
-        """The surface's point at (u, v): its function's value.
+        """曲面在 (u, v) 处的点：其函数的值。
 
         Args:
-            u: The first parameter.
-            v: The second parameter.
+            u: 第一个参数。
+            v: 第二个参数。
 
         Returns:
-            The point, in scene coordinates, as the surface was made (before it was
-            moved).
+            该点，以场景坐标表示，即曲面创建时的位置（在被移动之前）。
         """
         return self._func(u, v)
 
@@ -295,11 +289,10 @@ class Surface(MeshMobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def face_indices(self) -> tuple[np.ndarray, np.ndarray]:
-        """The place of every face in the surface's grid: its index along u and its
-        index along v, in the mesh's order.
+        """每个面在曲面网格中的位置：其沿 u 的索引和沿 v 的索引，按网格的顺序。
 
         Returns:
-            Two arrays, the faces' indices along u and along v.
+            两个数组，分别为各面沿 u 和沿 v 的索引。
         """
         grid = self.grid
         if grid is None:
@@ -309,19 +302,19 @@ class Surface(MeshMobject):
         return k // v, k % v
 
     def _paint_faces(self, colors: np.ndarray, opacity: float | None) -> Self:
-        """One color per cell — (cells, 4) RGBA; opacity as given, else
-        as it was."""
+        """每个格一种颜色——(格数, 4) 的 RGBA；不透明度按给定值，否则
+        保持原样。"""
         rows = colors.copy()
         rows[:, 3] = self._opacity(opacity, len(rows))
         return self._fill_rows(rows)
 
     def _fill_rows(self, rows: np.ndarray) -> Self:
-        """Colors as the surface's fill, in place of a colormap."""
+        """将颜色作为曲面的填充，替代颜色映射。"""
         self.paint = self.paint.but(fill=rows, texture=None, colormap=False)
         return self
 
     def _opacity(self, opacity: float | None, count: int) -> float | np.ndarray:
-        """The opacity faces are painted with: as given, else as it was (per cell, or one)."""
+        """各面绘制时所用的不透明度：按给定值，否则保持原样（逐格，或统一一个）。"""
         current = self.paint.fill
         if opacity is not None:
             return opacity
@@ -330,16 +323,15 @@ class Surface(MeshMobject):
     def set_fill_by_checkerboard(
         self, *colors: ParsableManimColor, opacity: float | None = None
     ) -> Self:
-        """Color the faces like a checkerboard: the colors in turn, along u and along v.
+        """将各面按棋盘格着色：各颜色依次轮换，沿 u 和沿 v 方向。
 
-        The face at place (i, j) of the grid takes the color i + j places along
-        `colors`, cycling: two colors make a checkerboard, more make diagonal stripes.
-        It replaces the colors [set_fill_by_value][manimgx.Surface.set_fill_by_value]
-        gave.
+        网格中位于 (i, j) 处的面取 `colors` 中第 i + j 个位置的颜色，
+        循环使用：两种颜色构成棋盘格，更多颜色则构成对角条纹。
+        它替换 [set_fill_by_value][manimgx.Surface.set_fill_by_value] 所赋予的颜色。
 
         Args:
-            *colors: The colors, in turn.
-            opacity: The faces' opacity, from 0 to 1; None to keep theirs.
+            *colors: 各颜色，依次轮换。
+            opacity: 各面的不透明度，从 0 到 1；None 表示保持各自原有的值。
         """
         palette = tuple(tuple(ManimColor(c).to_rgba()) for c in colors)
         grid = self.grid
@@ -359,26 +351,24 @@ class Surface(MeshMobject):
         axis: int = 2,
         colors: Colorscale | None = None,
     ) -> Self:
-        """Color the surface point by point by a coordinate on axes: its height, z, by
-        default, on a colorscale.
+        """按坐标轴上的某一坐标逐点为曲面着色：默认为其高度 z，映射到颜色标尺。
 
-        Each sample of the surface has its coordinate along `axis`, and the values are
-        blended across the surface before the colorscale maps them: the colors follow
-        the surface smoothly, and a face whose corners straddle a color of the scale
-        shows it. The colors are the fill's, lit as a fill color is, at the fill's
-        opacity: a fill color set later ([set_fill][manimgx.Mobject.set_fill],
-        [set_color][manimgx.Mobject.set_color]) replaces them, as
-        [set_fill_by_checkerboard][manimgx.Surface.set_fill_by_checkerboard] does.
-        Without a colorscale, it warns and leaves the colors as they are.
+        曲面的每个采样点都有其沿 `axis` 的坐标，各值在曲面上混合后再由颜色标尺
+        映射：颜色随曲面平滑变化，一个角跨越颜色标尺某色的面会显示该色。
+        颜色即为填充色，按填充色的方式被光照处理，具有填充的不透明度：之后设置的
+        填充色（[set_fill][manimgx.Mobject.set_fill]、
+        [set_color][manimgx.Mobject.set_color]）会替换它们，
+        [set_fill_by_checkerboard][manimgx.Surface.set_fill_by_checkerboard] 亦然。
+        若未提供颜色标尺，则发出警告并保持颜色不变。
 
         Args:
-            axes: The axes whose coordinates color the surface.
-            colorscale: The colors: spread evenly over the axes' range along `axis`, or
-                `(color, value)` pairs, which span their own values; blended between,
-                and held beyond the ends.
-            axis: The coordinate: 0 for x, 1 for y, 2 for z.
-            colors: The colorscale by its older name, accepted for Manim compatibility:
-                used when `colorscale` is None.
+            axes: 以其坐标为曲面着色的坐标轴。
+            colorscale: 颜色：均匀分布在坐标轴沿 `axis` 的范围上，或
+                `(color, value)` 对，各对跨越各自的值；在之间混合，
+                在两端之外保持不变。
+            axis: 坐标：0 为 x，1 为 y，2 为 z。
+            colors: 颜色标尺的旧称，为兼容 Manim 而接受：
+                当 `colorscale` 为 None 时使用。
 
         Examples:
             ```python
@@ -454,28 +444,26 @@ def _revolve(
     height: float | np.ndarray,
     angle: float | np.ndarray,
 ) -> np.ndarray:
-    """Turn a radial profile about z, at one angle or a grid of angles."""
+    """将一个径向轮廓绕 z 轴旋转，在一个角度或一个角度网格上。"""
     return np.array([radius * np.cos(angle), radius * np.sin(angle), height])
 
 
 class Sphere(Surface):
-    """A sphere: checkered in two blues and shaded by a three-dimensional scene's light,
-    unless styled.
+    """一个球体：以两种蓝色棋盘格着色，并由三维场景的光照着色，
+    除非另行设置样式。
 
-    It is a [Surface][manimgx.Surface] of u, the longitude, and v, the angle from the
-    south pole (the bottom, along z): their ranges may cut out a part of it.
+    它是一个 [Surface][manimgx.Surface]，以 u 为经度、v 为自南极（底部，沿 z 方向）
+    量的角度：它们的范围可以截取球体的一部分。
 
     Args:
-        center: Where its center goes.
-        radius: Its radius, in scene units.
-        resolution: How many faces it has around and from pole to pole: one number for
-            both, or `(u, v)`; None for (24, 12).
-        u_range: The range of the longitude, in radians: (0, τ) goes all the way
-            around.
-        v_range: The range of the angle from the south pole, in radians: (0, π) goes
-            from pole to pole.
-        **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceLook]:
-            `checkerboard_colors`, and the style keywords.
+        center: 其中心所在的位置。
+        radius: 其半径，以场景单位计。
+        resolution: 其环绕方向和从极到极方向拥有的面数：一个数同时用于两者，
+            或 `(u, v)`；None 为 (24, 12)。
+        u_range: 经度的范围，以弧度计：(0, τ) 走完一整圈。
+        v_range: 自南极量的角度范围，以弧度计：(0, π) 从一极到另一极。
+        **kwargs: [Surface 关键字][manimgx.mobjects.three_d.SurfaceLook]：
+            `checkerboard_colors`，以及样式关键字。
 
     Examples:
         ```python
@@ -518,30 +506,28 @@ class Sphere(Surface):
         self.shift(center)
 
     def func(self, u: float, v: float) -> Point3D:
-        """The sphere's point at a longitude and an angle from its south pole, as it is
-        made around the origin.
+        """球体在某经度和自南极量的角度处的点，即其围绕原点创建时的位置。
 
         Args:
-            u: The longitude, in radians, counterclockwise from the x-axis.
-            v: The angle from the south pole, in radians: 0 at the bottom, π at the
-                top.
+            u: 经度，以弧度计，从 x 轴起逆时针方向。
+            v: 自南极量的角度，以弧度计：0 在底部，π 在顶部。
 
         Returns:
-            The point, relative to the sphere's center.
+            该点，相对于球体的中心。
         """
         return self.radius * _revolve(np.sin(v), -np.cos(v), u)
 
 
 class Dot3D(Sphere):
-    """A dot in three dimensions: a small sphere, white unless given a color.
+    """三维空间中的一个点：一个小球体，未指定颜色时为白色。
 
     Args:
-        point: Where its center goes.
-        radius: Its radius, in scene units.
-        resolution: How many faces it has around and from pole to pole: one number for
-            both, or `(u, v)`; None for (24, 12).
-        **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceLook]:
-            `color` paints it all in one color; the style keywords.
+        point: 其中心所在的位置。
+        radius: 其半径，以场景单位计。
+        resolution: 其环绕方向和从极到极方向拥有的面数：一个数同时用于两者，
+            或 `(u, v)`；None 为 (24, 12)。
+        **kwargs: [Surface 关键字][manimgx.mobjects.three_d.SurfaceLook]：
+            `color` 将其整体涂为一种颜色；以及样式关键字。
 
     Examples:
         ```python
@@ -574,13 +560,13 @@ class Dot3D(Sphere):
 
 
 class Cube(VGroup):
-    """A cube: six square faces, centered at the origin with its edges along the axes;
-    blue, three-quarters opaque, without edges and shaded by a three-dimensional
-    scene's light, unless styled.
+    """一个立方体：六个正方形面，中心位于原点，各边沿坐标轴方向；
+    蓝色，四分之三不透明，无边线，并由三维场景的光照着色，
+    除非另行设置样式。
 
     Args:
-        side_length: The length of its edges, in scene units.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] for its faces.
+        side_length: 其边的长度，以场景单位计。
+        **kwargs: 用于其各面的 [样式关键字][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -624,13 +610,13 @@ class Cube(VGroup):
 
 
 class Prism(Cube):
-    """A box: a [Cube][manimgx.Cube] stretched to its width, height and depth; blue,
-    three-quarters opaque, without edges and shaded by a three-dimensional scene's
-    light, unless styled.
+    """一个长方体：一个被拉伸至其宽度、高度和深度的 [Cube][manimgx.Cube]；
+    蓝色，四分之三不透明，无边线，并由三维场景的光照着色，
+    除非另行设置样式。
 
     Args:
-        dimensions: Its size along x, y and z, in scene units; None for (3, 2, 1).
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] for its faces.
+        dimensions: 其沿 x、y 和 z 方向的尺寸，以场景单位计；None 为 (3, 2, 1)。
+        **kwargs: 用于其各面的 [样式关键字][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -669,12 +655,12 @@ class _DirectedSurface(Surface):
     _current_phi: float
 
     def set_direction(self, direction: Vector3DLike) -> Self:
-        """Turn the surface's axis to a direction, undoing its previous direction.
+        """将曲面的轴转向某一方向，同时撤销其之前的方向。
 
-        Both turns are about the origin, preserving other changes to the surface.
+        两次旋转均绕原点进行，保留对曲面的其他更改。
 
         Args:
-            direction: The direction of the axis, from a cone's base to its apex.
+            direction: 轴的方向，从锥体的底面指向其顶点。
         """
         self.direction = np.array(direction, dtype=float)
         x, y, z = self.direction
@@ -698,24 +684,23 @@ class _DirectedSurface(Surface):
 
 
 class Cone(_DirectedSurface):
-    """A cone, its apex at the origin, pointing along `direction` from its base; blue,
-    shaded by a three-dimensional scene's light, and open at the base, unless styled.
+    """一个锥体，其顶点位于原点，沿 `direction` 方向从其底面指出；蓝色，
+    由三维场景的光照着色，底面开口，除非另行设置样式。
 
-    It is a [Surface][manimgx.Surface] of u, the distance from the apex along its side,
-    and v, the angle around its axis: `v_range` may cut out a slice, and `u_min` its
-    tip. It is one color, not checkered, unless given `checkerboard_colors`.
+    它是一个 [Surface][manimgx.Surface]，以 u 为沿其侧面自顶点的距离、
+    v 为绕其轴的角度：`v_range` 可以截取一个切片，`u_min` 截去其尖端。
+    它为单色，非棋盘格，除非给定 `checkerboard_colors`。
 
     Args:
-        base_radius: The radius of its base, in scene units.
-        height: Its height, from its base to its apex, in scene units.
-        direction: The direction it points in, from its base to its apex.
-        show_base: Whether a disc closes its base.
-        v_range: The range of the angle around its axis, in radians: (0, τ) goes all
-            the way around.
-        u_min: Where its side begins, as a distance from the apex along it, in scene
-            units: above 0, the tip is cut off.
-        **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceOptions]:
-            `resolution`, `checkerboard_colors`, and the style keywords.
+        base_radius: 其底面的半径，以场景单位计。
+        height: 其高度，从底面到顶点，以场景单位计。
+        direction: 其指向的方向，从底面到顶点。
+        show_base: 是否用一个圆盘封闭其底面。
+        v_range: 绕其轴的角度范围，以弧度计：(0, τ) 走完一整圈。
+        u_min: 其侧面起始处，作为沿侧面自顶点的距离，以场景单位计：
+            大于 0 时截去尖端。
+        **kwargs: [Surface 关键字][manimgx.mobjects.three_d.SurfaceOptions]：
+            `resolution`、`checkerboard_colors`，以及样式关键字。
 
     Examples:
         ```python
@@ -762,8 +747,7 @@ class Cone(_DirectedSurface):
             fill_opacity=self.fill_opacity,
             stroke_width=0,
         )
-        """The disc of its base, in its fill color: part of the cone with
-        `show_base`."""
+        """其底面的圆盘，以其填充色着色：在 `show_base` 时作为锥体的一部分。"""
         self.base_circle.shift(height * IN)
         self._set_start_and_end_attributes(self.direction)
         if show_base:
@@ -771,15 +755,15 @@ class Cone(_DirectedSurface):
         self.set_direction(direction)
 
     def func(self, u: float, v: float) -> Point3D:
-        """The cone's point, as it is made pointing up (along z) with its apex at the
-        origin, at a distance from the apex along its side and an angle around its axis.
+        """锥体的点，即其向上（沿 z 方向）创建且顶点位于原点时，在沿侧面自顶点的
+        某距离和绕轴的某角度处的点。
 
         Args:
-            u: The distance from the apex, along the side, in scene units.
-            v: The angle around the axis, in radians.
+            u: 自顶点沿侧面的距离，以场景单位计。
+            v: 绕轴的角度，以弧度计。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return _revolve(u * np.sin(self.theta), u * np.cos(self.theta), v)
 
@@ -793,24 +777,22 @@ class Cone(_DirectedSurface):
 
 
 class Cylinder(_DirectedSurface):
-    """A cylinder, centered at the origin, its axis along `direction`: checkered in two
-    blues, closed at both ends by discs, and shaded by a three-dimensional scene's
-    light, unless styled.
+    """一个圆柱体，中心位于原点，其轴沿 `direction` 方向：以两种蓝色棋盘格着色，
+    两端由圆盘封闭，并由三维场景的光照着色，除非另行设置样式。
 
-    It is a [Surface][manimgx.Surface] of u, the height along its axis, and v, the
-    angle around it: `v_range` may cut out a slice.
+    它是一个 [Surface][manimgx.Surface]，以 u 为沿其轴的高度、v 为绕其轴的角度：
+    `v_range` 可以截取一个切片。
 
     Args:
-        radius: Its radius, in scene units.
-        height: Its height, along its axis, in scene units.
-        direction: The direction of its axis.
-        v_range: The range of the angle around its axis, in radians: (0, τ) goes all
-            the way around.
-        show_ends: Whether discs close its ends.
-        resolution: How many faces it has along its axis and around it: one number for
-            both, or `(u, v)`.
-        **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceLook]:
-            `checkerboard_colors`, and the style keywords.
+        radius: 其半径，以场景单位计。
+        height: 其高度，沿其轴方向，以场景单位计。
+        direction: 其轴的方向。
+        v_range: 绕其轴的角度范围，以弧度计：(0, τ) 走完一整圈。
+        show_ends: 是否用圆盘封闭其两端。
+        resolution: 其沿轴方向和环绕方向拥有的面数：一个数同时用于两者，
+            或 `(u, v)`。
+        **kwargs: [Surface 关键字][manimgx.mobjects.three_d.SurfaceLook]：
+            `checkerboard_colors`，以及样式关键字。
 
     Examples:
         ```python
@@ -854,26 +836,25 @@ class Cylinder(_DirectedSurface):
         self.set_direction(direction)
 
     def func(self, u: float, v: float) -> np.ndarray:
-        """The cylinder's point, as it is made along z and centered on the origin, at a
-        height along its axis and an angle around it.
+        """圆柱体的点，即其沿 z 方向创建且中心位于原点时，在沿轴的某高度和绕轴的
+        某角度处的点。
 
         Args:
-            u: The height along the axis, in scene units, from the middle.
-            v: The angle around the axis, in radians.
+            u: 沿轴方向的高度，以场景单位计，自中点起算。
+            v: 绕轴的角度，以弧度计。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return _revolve(self.radius, u, v)
 
     @deprecated("Manim CE's machinery: the constructor calls it", category=None)
     def add_bases(self) -> Self:
-        """Add the discs that close the cylinder's ends: `base_top` and `base_bottom`,
-        in its fill color.
+        """添加封闭圆柱体两端的圆盘：`base_top` 和 `base_bottom`，
+        以其填充色着色。
 
-        They are placed at the ends of a cylinder along z, centered on the origin, as
-        it is made: the constructor adds them (with `show_ends`) before turning the
-        cylinder to its direction.
+        它们放置于沿 z 方向创建且中心位于原点的圆柱体的两端：构造函数
+        （通过 `show_ends`）在将圆柱体转向其方向之前添加它们。
         """
         bases = [
             Circle(
@@ -893,33 +874,33 @@ class Cylinder(_DirectedSurface):
 
 
 class Line3DOptions(_SurfaceLook, total=False, closed=True):
-    """A [Line3D][manimgx.Line3D]'s keywords but its ends, for the methods that pass
-    them on ([parallel_to][manimgx.Line3D.parallel_to],
-    [perpendicular_to][manimgx.Line3D.perpendicular_to]): its thickness and resolution,
-    with the surface keywords."""
+    """[Line3D][manimgx.Line3D] 的关键字，但不包括其两端，供将它们传递下去的
+    方法（[parallel_to][manimgx.Line3D.parallel_to]、
+    [perpendicular_to][manimgx.Line3D.perpendicular_to]）使用：其粗细和分辨率，
+    以及曲面关键字。"""
 
     thickness: float
-    """The line's radius, in scene units (default 0.02)."""
+    """直线的半径，以场景单位计（默认 0.02）。"""
     resolution: int | tuple[int, int]
-    """How many faces the line has around it (2 along it), or `(along, around)`
-    (default 24)."""
+    """直线环绕方向拥有的面数（沿其方向为 2），或 `(along, around)`
+    （默认 24）。"""
 
 
 class Line3D(Cylinder):
-    """A line in three dimensions: a thin cylinder from one point to another; checkered
-    in two blues, and shaded by a three-dimensional scene's light, unless styled.
+    """三维空间中的一条直线：从一个点到另一个点的细圆柱体；以两种蓝色棋盘格着色，
+    并由三维场景的光照着色，除非另行设置样式。
 
-    An end may be a mobject: the line then starts (or ends) at its point farthest
-    toward the other end (see [get_boundary_point][manimgx.Mobject.get_boundary_point]).
+    一端可以是 mobject：直线则从（或到）该 mobject 上朝向另一端最远的点起（止）
+    （参见 [get_boundary_point][manimgx.Mobject.get_boundary_point]）。
 
     Args:
-        start: Where the line starts: a point, or a mobject.
-        end: Where it ends: a point, or a mobject.
-        thickness: Its radius, in scene units.
-        resolution: How many faces it has around it (2 along it), or
-            `(along, around)`.
-        **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceLook]:
-            `color` paints it all in one color; the style keywords.
+        start: 直线的起点：一个点，或一个 mobject。
+        end: 直线的终点：一个点，或一个 mobject。
+        thickness: 其半径，以场景单位计。
+        resolution: 其环绕方向拥有的面数（沿其方向为 2），或
+            `(along, around)`。
+        **kwargs: [Surface 关键字][manimgx.mobjects.three_d.SurfaceLook]：
+            `color` 将其整体涂为一种颜色；以及样式关键字。
 
     Examples:
         ```python
@@ -957,16 +938,15 @@ class Line3D(Cylinder):
         end: Point3DLike | Mobject,
         **kwargs: Unpack[SurfaceLook],
     ) -> Self:
-        """Make the line run from one point (or mobject) to another: the constructor
-        calls it.
+        """使直线从一个点（或 mobject）延伸到另一个：构造函数调用它。
 
-        It makes the line anew, as a cylinder of the line's thickness and resolution
-        from `start` to `end`, styled by the keywords.
+        它重新创建直线，作为一个具有该直线粗细和分辨率、从 `start` 到 `end` 的
+        圆柱体，按关键字设置样式。
 
         Args:
-            start: Where the line starts: a point, or a mobject.
-            end: Where it ends: a point, or a mobject.
-            **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceLook].
+            start: 直线的起点：一个点，或一个 mobject。
+            end: 直线的终点：一个点，或一个 mobject。
+            **kwargs: [Surface 关键字][manimgx.mobjects.three_d.SurfaceLook]。
         """
         rough_start = self.pointify(start)
         rough_end = self.pointify(end)
@@ -989,17 +969,17 @@ class Line3D(Cylinder):
     def pointify(
         self, mob_or_point: Mobject | Point3DLike, direction: Vector3DLike | None = None
     ) -> Point3D:
-        """Turn a point or a mobject into a point: a point as it is; a mobject's center,
-        or its boundary point in a direction.
+        """将一个点或一个 mobject转为一个点：点原样返回；mobject 返回其中心，
+        或其在某方向上的边界点。
 
         Args:
-            mob_or_point: The point, or the mobject.
-            direction: The direction of the mobject's boundary point (see
-                [get_boundary_point][manimgx.Mobject.get_boundary_point]); None for its
-                center.
+            mob_or_point: 该点，或该 mobject。
+            direction: mobject 边界点的方向（参见
+                [get_boundary_point][manimgx.Mobject.get_boundary_point]）；None 为其
+                中心。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         if isinstance(mob_or_point, Mobject):
             return (
@@ -1017,18 +997,17 @@ class Line3D(Cylinder):
         length: float = 5,
         **kwargs: Unpack[Line3DOptions],
     ) -> Line3D:
-        """Make a line parallel to another, through a point: `length` long, centered on
-        the point.
+        """过某点作一条与另一直线平行的直线：长 `length`，以该点为中心。
 
         Args:
-            line: The line to be parallel to.
-            point: The point the new line is centered on.
-            length: The new line's length, in scene units.
-            **kwargs: [Line keywords][manimgx.mobjects.three_d.Line3DOptions]:
-                `thickness`, `color`, ….
+            line: 所要平行的直线。
+            point: 新直线以之为中心的点。
+            length: 新直线的长度，以场景单位计。
+            **kwargs: [直线关键字][manimgx.mobjects.three_d.Line3DOptions]：
+                `thickness`、`color`、……。
 
         Returns:
-            A new line.
+            一条新直线。
 
         Examples:
             ```python
@@ -1057,20 +1036,20 @@ class Line3D(Cylinder):
         length: float = 5,
         **kwargs: Unpack[Line3DOptions],
     ) -> Line3D:
-        """Make a line perpendicular to another, through a point: in the plane of the
-        line and the point, `length` long, centered on the point.
+        """过某点作一条与另一直线垂直的直线：在直线与该点所确定的平面内，
+        长 `length`，以该点为中心。
 
-        A point on the line (which makes no plane with it) raises a ValueError.
+        直线上的一点（与直线不构成平面）会引发 ValueError。
 
         Args:
-            line: The line to be perpendicular to.
-            point: The point the new line is centered on, off the line.
-            length: The new line's length, in scene units.
-            **kwargs: [Line keywords][manimgx.mobjects.three_d.Line3DOptions]:
-                `thickness`, `color`, ….
+            line: 所要垂直的直线。
+            point: 新直线以之为中心的点，不在直线上。
+            length: 新直线的长度，以场景单位计。
+            **kwargs: [直线关键字][manimgx.mobjects.three_d.Line3DOptions]：
+                `thickness`、`color`、……。
 
         Returns:
-            A new line.
+            一条新直线。
 
         Examples:
             ```python
@@ -1097,20 +1076,19 @@ class Line3D(Cylinder):
 
 
 class Arrow3D(Line3D):
-    """An arrow in three dimensions: a thin cylinder from `start`, ending in a cone
-    whose apex is at `end`; white unless given a color, shaded by a three-dimensional
-    scene's light.
+    """三维空间中的一个箭头：从 `start` 起的细圆柱体，末端为一个顶点在 `end` 处的
+    锥体；未指定颜色时为白色，由三维场景的光照着色。
 
     Args:
-        start: Where the arrow starts.
-        end: Where its tip's apex is.
-        thickness: The radius of its shaft, in scene units.
-        height: The length of its tip, a [Cone][manimgx.Cone], in scene units.
-        base_radius: The radius of its tip's base, in scene units.
-        resolution: How many faces its shaft has around it (2 along it), or
-            `(along, around)`.
-        **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceLook]
-            for the shaft and the tip: `color`, and the style keywords.
+        start: 箭头的起点。
+        end: 其箭尖顶点所在的位置。
+        thickness: 其杆的半径，以场景单位计。
+        height: 其箭尖的长度，即一个 [Cone][manimgx.Cone]，以场景单位计。
+        base_radius: 其箭尖底面的半径，以场景单位计。
+        resolution: 其杆环绕方向拥有的面数（沿其方向为 2），或
+            `(along, around)`。
+        **kwargs: 用于杆和箭尖的 [Surface 关键字][manimgx.mobjects.three_d.SurfaceLook]：
+            `color`，以及样式关键字。
 
     Examples:
         ```python
@@ -1156,7 +1134,7 @@ class Arrow3D(Line3D):
         self.cone = Cone(
             direction=self.direction, base_radius=base_radius, height=height, **kwargs
         )
-        """Its tip: a [Cone][manimgx.Cone], its apex at the arrow's end."""
+        """其箭尖：一个 [Cone][manimgx.Cone]，其顶点位于箭头的终点。"""
         self.cone.shift(end)
         self.end_point = VectorizedPoint(end)
         self.add(self.end_point, self.cone)
@@ -1164,24 +1142,22 @@ class Arrow3D(Line3D):
 
 
 class Torus(Surface):
-    """A torus: a tube around a circle in the xy-plane, centered at the origin;
-    checkered in two blues and shaded by a three-dimensional scene's light, unless
-    styled.
+    """一个环面：xy 平面中绕一个圆周的管子，中心位于原点；以两种蓝色棋盘格着色，
+    并由三维场景的光照着色，除非另行设置样式。
 
-    It is a [Surface][manimgx.Surface] of u, the angle around its axis (z), and v, the
-    angle around its tube: their ranges may cut out a part of it.
+    它是一个 [Surface][manimgx.Surface]，以 u 为绕其轴（z 轴）的角度、v 为绕其管子的
+    角度：它们的范围可以截取环面的一部分。
 
     Args:
-        major_radius: The radius of the circle the tube runs around: from the torus's
-            center to the middle of its tube, in scene units.
-        minor_radius: The tube's radius, in scene units.
-        u_range: The range of the angle around its axis, in radians: (0, τ) goes all
-            the way around.
-        v_range: The range of the angle around its tube, in radians.
-        resolution: How many faces it has around its axis and around its tube: one
-            number for both, or `(u, v)`; None for (24, 24).
-        **kwargs: [Surface keywords][manimgx.mobjects.three_d.SurfaceLook]:
-            `checkerboard_colors`, and the style keywords.
+        major_radius: 管子所环绕的圆的半径：从环面中心到管子中线的距离，
+            以场景单位计。
+        minor_radius: 管子的半径，以场景单位计。
+        u_range: 绕其轴的角度范围，以弧度计：(0, τ) 走完一整圈。
+        v_range: 绕其管子的角度范围，以弧度计。
+        resolution: 其绕轴方向和绕管方向拥有的面数：一个数同时用于两者，
+            或 `(u, v)`；None 为 (24, 24)。
+        **kwargs: [Surface 关键字][manimgx.mobjects.three_d.SurfaceLook]：
+            `checkerboard_colors`，以及样式关键字。
 
     Examples:
         ```python
@@ -1223,56 +1199,50 @@ class Torus(Surface):
         )
 
     def func(self, u: float, v: float) -> Point3D:
-        """The torus's point, as it is made around the origin, at an angle around its
-        axis and an angle around its tube.
+        """环面的点，即其围绕原点创建时，在绕轴的某角度和绕管子的某角度处的点。
 
         Args:
-            u: The angle around the axis, in radians, counterclockwise from the x-axis.
-            v: The angle around the tube, in radians: 0 on its inner side.
+            u: 绕轴的角度，以弧度计，从 x 轴起逆时针方向。
+            v: 绕管子的角度，以弧度计：0 在其内侧。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return _revolve(self.R - self.r * np.cos(v), -self.r * np.sin(v), u)
 
 
 class PolyhedronOptions(TypedDict, total=False, closed=True):
-    """How a [Polyhedron][manimgx.Polyhedron]'s faces and its graph of vertices and
-    edges look, for the solids that set their own vertices and faces
-    ([Tetrahedron][manimgx.Tetrahedron], [ConvexHull3D][manimgx.ConvexHull3D], …)."""
+    """[Polyhedron][manimgx.Polyhedron] 的各面及其顶点和边的图的外观，
+    供自行设置顶点和面的多面体（[Tetrahedron][manimgx.Tetrahedron]、
+    [ConvexHull3D][manimgx.ConvexHull3D]、……）使用。"""
 
     faces_config: Style | None
-    """[Style keywords][manimgx.drawing.paint.Style] for the faces, over their defaults:
-    half opaque, shaded by a three-dimensional scene's light (default None: none)."""
+    """用于各面的 [样式关键字][manimgx.drawing.paint.Style]，覆盖其默认值：
+    半不透明，由三维场景的光照着色（默认 None：无）。"""
     graph_config: GraphOptions | None
-    """[Graph keywords][manimgx.Graph] for the vertices and edges,
-    over their defaults: [Dot3D][manimgx.Dot3D] vertices, invisible edges (default None:
-    none)."""
+    """用于顶点和边的 [Graph 关键字][manimgx.Graph]，覆盖其默认值：
+    [Dot3D][manimgx.Dot3D] 顶点，不可见的边（默认 None：无）。"""
 
 
 class Polyhedron(VGroup):
-    """A polyhedron: its faces, polygons through its vertices, and the graph of its
-    vertices and edges; blue half-opaque faces with white dots at the vertices, shaded
-    by a three-dimensional scene's light, unless styled.
+    """一个多面体：其各面为穿过顶点的多边形，以及其顶点和边的图；
+    蓝色半不透明的面，顶点处有白色点，由三维场景的光照着色，
+    除非另行设置样式。
 
-    The faces are its [faces][manimgx.Polyhedron.faces], a group of
-    [Polygon][manimgx.Polygon]s, whose outlines draw the edges; its
-    [graph][manimgx.Polyhedron.graph] is a [Graph][manimgx.Graph] whose vertices are
-    [Dot3D][manimgx.Dot3D]s, `graph[i]` the vertex of index i, and whose own edges are
-    invisible unless configured. The faces follow the vertices: move a vertex, and an
-    updater keeps the faces through it. Initial coordinates and graph options are
-    construction inputs; later positions belong to the graph, and `faces_list`
-    defines the faces.
+    各面为其 [faces][manimgx.Polyhedron.faces]，一组 [Polygon][manimgx.Polygon]，
+    其轮廓绘制各边；其 [graph][manimgx.Polyhedron.graph] 是一个
+    [Graph][manimgx.Graph]，顶点为 [Dot3D][manimgx.Dot3D]，`graph[i]` 为索引 i 的
+    顶点，其自身的边在未配置时不可见。各面跟随顶点：移动一个顶点，一个更新器
+    使穿过它的各面随之更新。初始坐标和图选项是构造输入；之后的位置属于图，
+    `faces_list` 定义各面。
 
     Args:
-        vertex_coords: The vertices' points, in scene coordinates.
-        faces_list: The faces, each a list of the indices of its vertices, in order
-            around it.
-        faces_config: [Style keywords][manimgx.drawing.paint.Style] for the faces, over
-            their defaults (half opaque, shaded in 3D); None for none.
-        graph_config: [Graph keywords][manimgx.Graph] for the
-            vertices and edges, over their defaults ([Dot3D][manimgx.Dot3D] vertices,
-            invisible edges); None for none.
+        vertex_coords: 各顶点的点，以场景坐标表示。
+        faces_list: 各面，每个为其顶点索引的列表，按环绕该面的顺序排列。
+        faces_config: 用于各面的 [样式关键字][manimgx.drawing.paint.Style]，覆盖
+            其默认值（半不透明，三维着色）；None 为无。
+        graph_config: 用于顶点和边的 [Graph 关键字][manimgx.Graph]，覆盖
+            其默认值（[Dot3D][manimgx.Dot3D] 顶点，不可见的边）；None 为无。
 
     Examples:
         ```python
@@ -1309,35 +1279,30 @@ class Polyhedron(VGroup):
             i: np.asarray(p, dtype=float) for i, p in enumerate(vertex_coords)
         }
         self.faces_list = [list(face) for face in faces_list]
-        """The faces, each a list of the indices of its vertices, as they were given."""
+        """各面，每个为其顶点索引的列表，按给定时的顺序。"""
         face_coords = [[layout[j] for j in i] for i in faces_list]
         self.edges = self.get_edges(self.faces_list)
-        """The edges, each a pair of vertex indices."""
+        """各边，每个为一对顶点索引。"""
         self.faces = self.create_faces(face_coords)
-        """The faces: a group of [Polygon][manimgx.Polygon]s, in the order of
-        `faces_list`."""
+        """各面：一组 [Polygon][manimgx.Polygon]，按 `faces_list` 的顺序。"""
         self.graph = Graph(
             vertex_indices,
             self.edges,
             **(graph_config | GraphOptions(layout=layout)),
         )
-        """The vertices and edges: a [Graph][manimgx.Graph], `graph[i]` the vertex of
-        index i."""
+        """顶点和边：一个 [Graph][manimgx.Graph]，`graph[i]` 为索引 i 的顶点。"""
         self.add(self.faces, self.graph)
         self.add_updater(self.update_faces)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_edges(self, faces_list: list[list[int]]) -> list[tuple[int, int]]:
-        """Find the edges of faces: each two vertices next to each other around a face,
-        each edge once.
+        """找出各面的边：每条边为绕一个面相邻的两个顶点，每条边只出现一次。
 
         Args:
-            faces_list: The faces, each a list of the indices of its vertices, in order
-                around it.
+            faces_list: 各面，每个为其顶点索引的列表，按环绕该面的顺序排列。
 
         Returns:
-            The edges, each a pair of vertex indices, in the order the faces first give
-            them.
+            各边，每个为一对顶点索引，按各面首次给出的顺序排列。
         """
         # each edge once (CE listed it once per face, doubling a translucent edge)
         edges: dict[frozenset[int], tuple[int, int]] = {}
@@ -1350,14 +1315,13 @@ class Polyhedron(VGroup):
     def create_faces(
         self, face_coords: Sequence[Sequence[Point3DLike]]
     ) -> VGroup[Polygon]:
-        """Make faces: a polygon through each list of points, styled by the
-        polyhedron's `faces_config`.
+        """创建各面：穿过每个点列表的多边形，按多面体的 `faces_config` 设置样式。
 
         Args:
-            face_coords: The faces' corners, a list of points for each face.
+            face_coords: 各面的角点，每个面一个点列表。
 
         Returns:
-            A new group of the polygons.
+            一个由各多边形组成的新组。
         """
         return VGroup[Polygon](
             *(Polygon(*face, **self.faces_config) for face in face_coords)
@@ -1365,11 +1329,10 @@ class Polyhedron(VGroup):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def update_faces(self, m: Mobject) -> Self:
-        """Put the faces back through the vertices, where they are now: the updater the
-        polyhedron runs every frame.
+        """将各面重新穿过顶点当前所在的位置：多面体每帧运行的更新器。
 
         Args:
-            m: The mobject the updater runs for (the polyhedron); unused.
+            m: 更新器为其运行的 mobject（即该多面体）；未使用。
         """
         for face, coords in zip(self.faces, self.extract_face_coords(), strict=True):
             face.set_points_as_corners([*coords, coords[0]])
@@ -1377,25 +1340,24 @@ class Polyhedron(VGroup):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def extract_face_coords(self) -> list[list[Point3D]]:
-        """The faces' corners where the vertices are now: the centers of the graph's
-        vertices.
+        """各面的角点在顶点当前所在的位置：图的各顶点的中心。
 
         Returns:
-            A list of points for each face, in the order of `faces_list`.
+            每个面一个点列表，按 `faces_list` 的顺序。
         """
         vertices = [vertex.get_center() for vertex in self.graph.vertices.values()]
         return [[vertices[i] for i in face] for face in self.faces_list]
 
 
 class Tetrahedron(Polyhedron):
-    """A regular tetrahedron: four triangular faces, centered at the origin; a
-    [Polyhedron][manimgx.Polyhedron], blue half-opaque faces with white dots at the
-    vertices unless styled.
+    """一个正四面体：四个三角形面，中心位于原点；一个
+    [Polyhedron][manimgx.Polyhedron]，蓝色半不透明的面，顶点处有白色点，
+    除非另行设置样式。
 
     Args:
-        edge_length: The length of its edges, in scene units.
-        **kwargs: [Polyhedron keywords][manimgx.mobjects.three_d.PolyhedronOptions]:
-            `faces_config`, `graph_config`.
+        edge_length: 其边的长度，以场景单位计。
+        **kwargs: [多面体关键字][manimgx.mobjects.three_d.PolyhedronOptions]：
+            `faces_config`、`graph_config`。
 
     Examples:
         ```python
@@ -1424,14 +1386,14 @@ class Tetrahedron(Polyhedron):
 
 
 class Octahedron(Polyhedron):
-    """A regular octahedron: eight triangular faces, its vertices on the axes, centered
-    at the origin; a [Polyhedron][manimgx.Polyhedron], blue half-opaque faces with
-    white dots at the vertices unless styled.
+    """一个正八面体：八个三角形面，其顶点位于坐标轴上，中心位于原点；一个
+    [Polyhedron][manimgx.Polyhedron]，蓝色半不透明的面，顶点处有白色点，
+    除非另行设置样式。
 
     Args:
-        edge_length: The length of its edges, in scene units.
-        **kwargs: [Polyhedron keywords][manimgx.mobjects.three_d.PolyhedronOptions]:
-            `faces_config`, `graph_config`.
+        edge_length: 其边的长度，以场景单位计。
+        **kwargs: [多面体关键字][manimgx.mobjects.three_d.PolyhedronOptions]：
+            `faces_config`、`graph_config`。
 
     Examples:
         ```python
@@ -1474,14 +1436,14 @@ class Octahedron(Polyhedron):
 
 
 class Icosahedron(Polyhedron):
-    """A regular icosahedron: twenty triangular faces, centered at the origin; a
-    [Polyhedron][manimgx.Polyhedron], blue half-opaque faces with white dots at the
-    vertices unless styled.
+    """一个正二十面体：二十个三角形面，中心位于原点；一个
+    [Polyhedron][manimgx.Polyhedron]，蓝色半不透明的面，顶点处有白色点，
+    除非另行设置样式。
 
     Args:
-        edge_length: The length of its edges, in scene units.
-        **kwargs: [Polyhedron keywords][manimgx.mobjects.three_d.PolyhedronOptions]:
-            `faces_config`, `graph_config`.
+        edge_length: 其边的长度，以场景单位计。
+        **kwargs: [多面体关键字][manimgx.mobjects.three_d.PolyhedronOptions]：
+            `faces_config`、`graph_config`。
 
     Examples:
         ```python
@@ -1540,14 +1502,14 @@ class Icosahedron(Polyhedron):
 
 
 class Dodecahedron(Polyhedron):
-    """A regular dodecahedron: twelve pentagonal faces, centered at the origin; a
-    [Polyhedron][manimgx.Polyhedron], blue half-opaque faces with white dots at the
-    vertices unless styled.
+    """一个正十二面体：十二个五边形面，中心位于原点；一个
+    [Polyhedron][manimgx.Polyhedron]，蓝色半不透明的面，顶点处有白色点，
+    除非另行设置样式。
 
     Args:
-        edge_length: The length of its edges, in scene units.
-        **kwargs: [Polyhedron keywords][manimgx.mobjects.three_d.PolyhedronOptions]:
-            `faces_config`, `graph_config`.
+        edge_length: 其边的长度，以场景单位计。
+        **kwargs: [多面体关键字][manimgx.mobjects.three_d.PolyhedronOptions]：
+            `faces_config`、`graph_config`。
 
     Examples:
         ```python
@@ -1609,20 +1571,18 @@ class Dodecahedron(Polyhedron):
 
 
 class ConvexHull3D(Polyhedron):
-    """The convex hull of points in three dimensions: the smallest convex polyhedron
-    around them, its faces triangles; a [Polyhedron][manimgx.Polyhedron], blue
-    half-opaque faces with white dots at the vertices unless styled.
+    """三维空间中若干点的凸包：包围它们的最小凸多面体，其各面为三角形；一个
+    [Polyhedron][manimgx.Polyhedron]，蓝色半不透明的面，顶点处有白色点，
+    除非另行设置样式。
 
-    Its vertices are the points on the hull (those inside are left out), and its faces
-    are wound counterclockwise, seen from outside. Fewer than four points raise a
-    ValueError.
+    其顶点为位于包上的点（内部的点被排除），其各面按从外侧看逆时针方向缠绕。
+    少于四个点会引发 ValueError。
 
     Args:
-        *points: The points, in scene coordinates.
-        tolerance: How far outside a face a point must be to count as beyond it, in
-            scene units.
-        **kwargs: [Polyhedron keywords][manimgx.mobjects.three_d.PolyhedronOptions]:
-            `faces_config`, `graph_config`.
+        *points: 各点，以场景坐标表示。
+        tolerance: 一个点超出某面多远才算作在该面之外，以场景单位计。
+        **kwargs: [多面体关键字][manimgx.mobjects.three_d.PolyhedronOptions]：
+            `faces_config`、`graph_config`。
 
     Examples:
         ```python

@@ -1,6 +1,6 @@
-"""Code: a highlighted listing set by Typst's `raw`. Its grammars find the tokens; a theme
-colors each scope as the pygments style colors the token there. With a monospaced font and
-one glyph per character, column advances are rounded to whole Pango units."""
+"""Code：由 Typst 的 `raw` 设置的高亮列表。其文法查找词法记号；主题为每个作用域着色，
+正如 pygments 样式为那里的记号着色。使用等宽字体且每个字符对应一个字形时，列前进量
+被舍入为整 Pango 单位。"""
 
 import math
 import re
@@ -43,8 +43,8 @@ type CodeStyle = Literal["vim"]
 
 @dataclass(frozen=True, slots=True)
 class _Style:
-    """A pygments style for Typst: its background, text and line-number colors, and a theme
-    coloring each grammar scope as the style colors the token there."""
+    """用于 Typst 的 pygments 样式：其背景色、文本和行号颜色，以及一个为每个文法作用域
+    着色的主题，正如该样式为那里的记号着色。"""
 
     background: str
     foreground: str
@@ -105,25 +105,25 @@ _STYLES: dict[CodeStyle, _Style] = {
 
 
 class CodeText(TypedDict, total=False):
-    """The text of a [Code][manimgx.Code] listing: its `paragraph_config`, the text
-    keywords that apply to a listing."""
+    """[Code][manimgx.Code] 列表的文本：其 `paragraph_config`，即应用于列表的文本
+    关键字。"""
 
     font: str
-    """The font family: "Monospace", the default, is the bundled DejaVu Sans Mono on
-    every platform; any other family is one manimgx ships, or else the system's."""
+    """字体族："Monospace" 为默认值，在所有平台上均为内置的 DejaVu Sans Mono；任何其他
+    字体族要么是 manimgx 附带的，要么是系统提供的。"""
     font_size: float
-    """The size of the text: an em is `font_size / 72` scene units (default 24)."""
+    """文本的大小：一个 em 为 `font_size / 72` 场景单位（默认 24）。"""
     line_spacing: float
-    """How far apart the lines are, beyond the font size: their baselines are
-    `(1 + line_spacing) * font_size / 96` scene units apart (default 0.5; -1 for
-    0.3)."""
+    """各行之间的距离，超出字体大小的部分：它们的基线相距
+    `(1 + line_spacing) * font_size / 96` 场景单位（默认 0.5；-1 对应
+    0.3）。"""
     disable_ligatures: bool
-    """Whether every character is a glyph of its own, with no ligatures (default
-    True)."""
+    """是否每个字符都是独立的字形，不使用连字（默认
+    True）。"""
 
 
 def _theme(style: _Style) -> str:
-    """The style as a TextMate theme (Typst takes only the scopes' colors from it)."""
+    """将该样式表示为 TextMate 主题（Typst 仅从中取各作用域的颜色）。"""
     rules = "".join(
         f"<dict><key>scope</key><string>{scope}</string><key>settings</key><dict>"
         f"<key>foreground</key><string>{color}</string></dict></dict>"
@@ -139,7 +139,7 @@ def _theme(style: _Style) -> str:
 @forgets
 @cache
 def _advance(face: str) -> float:
-    """A character's advance in `face`, in scene units, as Typst sets it: the font's own."""
+    """在 `face` 中一个字符的前进量，以场景单位表示，按 Typst 的设置方式：即字体自身的宽度。"""
     first, second = Typst(f"#set text({face})\n00", font_size=_POINT).submobjects
     return second.get_left()[0] - first.get_left()[0]
 
@@ -153,8 +153,8 @@ def _typeset(
     language: str | None = None,
     suffix: str = "",
 ) -> list[VGroup]:
-    """Each line's glyphs, with fixed baseline spacing and adjusted monospaced columns,
-    highlighted in `style` if given; `suffix` closes the first and last lines.
+    """每行字形的集合，具有固定的基线间距和调整后的等宽列；若给定 `style` 则按其高亮；
+    `suffix` 用于闭合首行和末行。
     """
     size = text.get("font_size", 24)
     spacing = text.get("line_spacing", -1)
@@ -222,37 +222,31 @@ def _typeset(
 
 
 class Code(VMobject):
-    r"""A listing of source code, highlighted: its lines, their numbers, and a rectangle
-    or a window behind them.
+    r"""源代码列表，带高亮：其各行、行号，以及位于其后的矩形或窗口。
 
-    The code is highlighted by Typst's grammars, in the colors of `formatter_style`, with
-    a monospaced font by default. The parts are
-    [background][manimgx.Code.background], [line_numbers][manimgx.Code.line_numbers] (if
-    the lines are numbered) and [code_lines][manimgx.Code.code_lines], whose i-th part is
-    the i-th line, a group of its glyphs, spaces excluded. Tabs are expanded, and empty
-    lines at the start and at the end are dropped.
+    代码由 Typst 的文法按 `formatter_style` 的颜色进行高亮，默认使用等宽字体。其组成部分为
+    [background][manimgx.Code.background]、[line_numbers][manimgx.Code.line_numbers]（若行已编号）
+    以及 [code_lines][manimgx.Code.code_lines]，后者的第 i 个部分是第 i 行，即由该行字形
+    组成的组，不含空格。制表符会被展开，开头和结尾的空行会被丢弃。
 
     Args:
-        code_file: A file to read the code from (UTF-8); its extension names the
-            language unless `language` does.
-        code_string: The code, when there is no `code_file`; one of the two is needed
-            (ValueError otherwise).
-        language: The language to highlight the code as, by name or file extension
-            ("python", "rust", "cpp", "js", …: those Typst's `raw` knows); None, or a
-            language it doesn't know, for plain text.
-        formatter_style: The colors: "vim", the only style, on a black background.
-        tab_width: How many columns apart the tab stops are.
-        add_line_numbers: Whether the lines are numbered, on their left.
-        line_numbers_from: The first line's number.
-        background: "rectangle", or "window": a rectangle with a window's three buttons
-            at its top.
-        background_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            background, over `default_background_config`: a margin of 0.3, round
-            corners, a thin white outline, and the style's background color.
-        paragraph_config: [Code text
-            keywords][manimgx.mobjects.code.CodeText] for the text, over
-            `default_paragraph_config`.
+        code_file: 从中读取代码的文件（UTF-8 编码）；其扩展名指定语言，除非 `language`
+            已指定。
+        code_string: 当没有 `code_file` 时使用的代码；二者必须给出其一（否则抛出
+            ValueError）。
+        language: 按名称或文件扩展名指定用于高亮代码的语言（"python"、"rust"、"cpp"、
+            "js"、……：即 Typst 的 `raw` 所识别的那些）；None 或其不认识的语言表示纯文本。
+        formatter_style: 颜色方案："vim"，唯一可用样式，黑色背景。
+        tab_width: 制表位之间相隔的列数。
+        add_line_numbers: 是否在左侧对各行编号。
+        line_numbers_from: 第一行的编号。
+        background: "rectangle" 或 "window"：一个矩形，或一个顶部带有窗口三个按钮的
+            矩形。
+        background_config: 背景的 [环绕矩形关键字][manimgx.mobjects.annotations.FrameOptions]，
+            叠加于 `default_background_config` 之上：边距为 0.3、圆角、细白色轮廓以及样式的
+            背景色。
+        paragraph_config: 文本的 [代码文本关键字][manimgx.mobjects.code.CodeText]，叠加于
+            `default_paragraph_config` 之上。
 
     Examples:
         ```python
@@ -282,15 +276,15 @@ class Code(VMobject):
         "stroke_width": 1,
         "fill_opacity": 1,
     }  # and the style's background, unless a fill_color is given
-    """The background's keywords unless `background_config` changes them; its fill is
-    the style's background color unless a `fill_color` is given."""
+    """背景的关键字，除非被 `background_config` 更改；其填充色为样式的背景色，除非给定
+    `fill_color`。"""
     default_paragraph_config: ClassVar[CodeText] = {
         "font": "Monospace",
         "font_size": 24,
         "line_spacing": 0.5,
         "disable_ligatures": True,
     }
-    """The text's keywords unless `paragraph_config` changes them."""
+    """文本的关键字，除非被 `paragraph_config` 更改。"""
 
     def __init__(
         self,
@@ -329,15 +323,15 @@ class Code(VMobject):
             lines, text, style.foreground, style=style, language=language, suffix=suffix
         )
         self.code_lines = VGroup(*rows).move_to(ORIGIN)
-        """The lines, a part: its i-th part is the i-th line, a group of its glyphs."""
+        """各行，作为一个部分：其第 i 个部分是第 i 行，即由该行字形组成的组。"""
 
         if add_line_numbers:
             numbers = range(line_numbers_from, line_numbers_from + len(lines))
             self.line_numbers = VGroup(
                 *_typeset([str(n) for n in numbers], text, style.line_numbers)
             ).move_to(ORIGIN)
-            """The line numbers, a part (if the lines are numbered): its i-th part is
-            the i-th line's number, lined up on the right."""
+            """行号，作为一个部分（若行已编号）：其第 i 个部分是第 i 行的编号，右对齐
+            排列。"""
             right = self.line_numbers.get_right()[0]
             for row in self.line_numbers.submobjects:
                 row.shift(RIGHT * (right - row.get_right()[0]))
@@ -376,8 +370,7 @@ class Code(VMobject):
         listing = VGroup(*self.submobjects, extent)
         if background == "rectangle":
             self.background = SurroundingRectangle(listing, **config)
-            """The rectangle behind the listing, its first part; a window's buttons are
-            its submobjects."""
+            """列表背后的矩形，为其第一个部分；窗口的按钮为其子对象。"""
         elif background == "window":
             buttons = VGroup(
                 *(

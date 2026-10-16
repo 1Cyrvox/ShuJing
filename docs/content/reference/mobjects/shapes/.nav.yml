@@ -1,6 +1,6 @@
-title: "Shapes"
+title: "形状"
 nav:
-  - Overview: index.md
+  - 概览: index.md
   - lines-and-arrows.md
   - circles-and-arcs.md
   - polygons.md

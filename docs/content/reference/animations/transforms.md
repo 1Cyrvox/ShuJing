@@ -1,11 +1,11 @@
 ---
-title: "Transforms"
-description: "Turn one mobject into another: its shape and its style, part by part or by matching parts, along a straight path or an arc."
+title: "变换"
+description: "将一个 mobject 变为另一个：其形状和样式，逐部分或通过匹配各部分，沿直线路径或弧线进行。"
 ---
 
-# Transforms
+# 变换
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -21,15 +21,14 @@ class TransformsHero(m.Scene):
         self.wait()
 ```
 
-A transform turns one mobject into another: its points travel to the other's, and its style
-blends into the other's. [ReplacementTransform][manimgx.ReplacementTransform] then puts the
-other mobject in its place, so that you go on with the new one;
-[Transform][manimgx.Transform] keeps the first mobject, now in the other's shape. To turn a
-formula into another, part by part, match their parts:
-[TransformMatchingTex][manimgx.TransformMatchingTex].
+变换将一个 mobject 变为另一个：其点行进到另一个的点，其样式融入另一个的样式。
+[ReplacementTransform][manimgx.ReplacementTransform] 随后将另一个 mobject 放在其
+位置，以便你继续使用新的 mobject；[Transform][manimgx.Transform] 保留第一个 mobject，
+此时它已变为另一个的形状。要将一个公式逐部分变为另一个，匹配它们各部分：
+[TransformMatchingTex][manimgx.TransformMatchingTex]。
 
-Each point travels on a straight line unless you give an arc: `path_arc=m.PI` sends each
-point around half a circle. A path function chooses any other way.
+每个点沿直线行进，除非你给定一条弧线：`path_arc=m.PI` 让每个点绕半圈行进。路径函数可
+选择任何其他方式。
 
 ::: manimgx.Transform
     options:
@@ -59,7 +58,7 @@ point around half a circle. A path function chooses any other way.
     options:
       heading_level: 2
 
-## Match the parts
+## 匹配各部分
 
 ::: manimgx.TransformMatchingTex
     options:
@@ -69,7 +68,7 @@ point around half a circle. A path function chooses any other way.
     options:
       heading_level: 3
 
-## Trade places
+## 交换位置
 
 ::: manimgx.Swap
     options:
@@ -79,16 +78,15 @@ point around half a circle. A path function chooses any other way.
     options:
       heading_level: 3
 
-## The transform keywords
+## 变换关键字
 
 ::: manimgx.animation.transform.TransformOptions
     options:
       heading_level: 3
 
-## Paths
+## 路径
 
-A path function says how each point travels from where it starts to where it ends: give one
-as `path_func`.
+路径函数说明每个点如何从起点行进到终点：将一个作为 `path_func` 传入。
 
 ::: manimgx.straight_path
     options:

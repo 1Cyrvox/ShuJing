@@ -1,11 +1,11 @@
 ---
-title: "Colors"
-description: "The named colors, the colors you mix, and the functions that blend, invert and choose them."
+title: "颜色"
+description: "命名的颜色、你混合的颜色，以及混合、反相和选取颜色的函数。"
 ---
 
-# Colors
+# 颜色
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -40,14 +40,14 @@ class ColorsHero(m.Scene):
         self.wait()
 ```
 
-A color is a name, such as `m.BLUE`; a hex code, such as `"#58C4DD"`; or numbers of red,
-green and blue. Each takes the place of the others wherever a color goes:
-`m.Circle(color="#58C4DD")` is `m.Circle(color=m.BLUE)`.
+颜色是一个名称，如 `m.BLUE`；一个十六进制代码，如 `"#58C4DD"`；或红、绿、蓝的
+数值。在需要颜色的任何地方，三者可相互替代：`m.Circle(color="#58C4DD")` 即
+`m.Circle(color=m.BLUE)`。
 
-Most named colors come in a family of five shades, from A, the lightest, to E, the darkest;
-the family's own name is its C. GRAY and GREY are two spellings of one color.
+大多数命名颜色以五个深浅级别的家族形式出现，从 A（最浅）到 E（最深）；家族自身
+的名称即其 C 级。GRAY 和 GREY 是同一颜色的两种拼写。
 
-## The named colors
+## 命名颜色
 
 ::: manimgx.drawing.paint
     options:
@@ -59,7 +59,7 @@ the family's own name is its C. GRAY and GREY are two spellings of one color.
     options:
       heading_level: 3
 
-## Make a color
+## 创建颜色
 
 ::: manimgx.ManimColor
     options:
@@ -69,7 +69,7 @@ the family's own name is its C. GRAY and GREY are two spellings of one color.
     options:
       heading_level: 3
 
-## Blend colors
+## 混合颜色
 
 ::: manimgx.interpolate_color
     options:
@@ -91,7 +91,7 @@ the family's own name is its C. GRAY and GREY are two spellings of one color.
     options:
       heading_level: 3
 
-## Choose colors at random
+## 随机选取颜色
 
 ::: manimgx.random_color
     options:

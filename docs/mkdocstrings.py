@@ -24,7 +24,12 @@ def resolve() -> None:
     options = config["mdx_configs"].get(MKDOCSTRINGS) or {}
     templates = options.get("custom_templates")
     if templates and not Path(templates).is_absolute():
-        options["custom_templates"] = str(Path(config["root_dir"]) / templates)
+        resolved = str(Path(config["root_dir"]) / templates)
+        options["custom_templates"] = resolved
+        # Also update the plugin config, which is what mkdocstrings actually reads
+        plugin_config = config.get("plugins", {}).get("mkdocstrings", {})
+        if "config" in plugin_config:
+            plugin_config["config"]["custom_templates"] = resolved
 
 
 class Templates(Extension):

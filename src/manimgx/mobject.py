@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"Mutable scene objects: one family graph, shared geometry and paint, and path, point and mesh leaf rules."
+"可变场景对象：一个家族图，共享的几何与绘制，以及路径、点和网格的叶子规则。"
 
 import copy
 import functools
@@ -139,9 +139,7 @@ if TYPE_CHECKING:
     from manimgx.animation.transform import Always, Animate
 
 type Updater[M] = Callable[[M], object] | Callable[[M, float], object]
-"""A function that keeps a mobject updated: called with the mobject once a frame, or, if
-it has a parameter named `dt`, with the mobject and the seconds since it last ran. What
-it returns is ignored; see [add_updater][manimgx.Mobject.add_updater]."""
+"""使 mobject 保持更新的函数：每帧以该 mobject 调用一次，或者，若其有一个名为 `dt` 的参数，则以该 mobject 和自上次运行以来经过的秒数调用。其返回值被忽略；参见 [add_updater][manimgx.Mobject.add_updater]。"""
 
 type _Recorder = tuple[
     "Mobject", Callable[..., object], Sequence[Callable[..., object]]
@@ -149,27 +147,25 @@ type _Recorder = tuple[
 
 
 def axis_factors(factor: float | Vector3DLike) -> np.ndarray:
-    """A scale's factors along x, y and z.
+    """缩放沿 x、y 和 z 的因子。
 
     Args:
-        factor: One factor for every axis, or one per axis.
+        factor: 每个轴一个因子，或每个轴各一个。
 
     Returns:
-        The three factors.
+        三个因子。
     """
     return np.broadcast_to(np.asarray(factor, dtype=float), 3)
 
 
 def length_factor(factor: float | Vector3DLike) -> float:
-    """How a scale changes a length that has no direction, such as a stroke's width or a
-    font's size.
+    """缩放如何改变一个没有方向的长度，例如描边的宽度或字体的大小。
 
     Args:
-        factor: The scale's factor, or its factors along x, y and z.
+        factor: 缩放的因子，或其沿 x、y 和 z 各轴的因子。
 
     Returns:
-        The factor itself; for one factor per axis, the geometric mean of the sizes of
-        x's and y's.
+        因子本身；对于每轴一个因子的情况，为 x 和 y 尺寸的几何平均值。
     """
     x, y, _ = np.abs(axis_factors(factor))
     return float(np.sqrt(x * y))
@@ -192,18 +188,17 @@ _FLOWS: "weakref.WeakSet[Callable[..., object]]" = weakref.WeakSet()
 def _has_updater(
     updaters: Iterable[Callable[..., object]], updater: Callable[..., object]
 ) -> bool:
-    """Whether this exact callable remains in the active updater list."""
+    """此确切的可调用对象是否仍留在活动的更新器列表中。"""
     return any(active is updater for active in updaters)
 
 
 def _function(updater: Callable[..., object]) -> Callable[..., object]:
-    """The function an updater runs: a method's function, else the updater itself."""
+    """更新器所运行的函数：若为方法则取其函数，否则取更新器本身。"""
     return getattr(updater, "__func__", updater)
 
 
 def _per_frame[M](updater: Updater[M]) -> TypeIs[Callable[[M], object]]:
-    """Does the updater take the mobject alone (no `dt`)? CE inspects the signature on every
-    call; the answer is kept per function."""
+    """更新器是否只接受 mobject（无 `dt`）？CE 在每次调用时检查签名；答案按函数保存。"""
     function = _function(updater)
     try:
         known = _TIME_BASED.get(function)
@@ -215,37 +210,35 @@ def _per_frame[M](updater: Updater[M]) -> TypeIs[Callable[[M], object]]:
 
 
 def _flows(updater: Callable[..., object]) -> bool:
-    """Is the updater a [flow][manimgx.mobject.flow] (or a method whose function is)?"""
+    """更新器是否为 [flow][manimgx.mobject.flow]（或其函数为 flow 的方法）？"""
     return _function(updater) in _FLOWS
 
 
 def flow[U: Callable[..., object]](updater: U) -> U:
-    """Declare a time-based updater a flow: one that does the same over some time
-    however that time is split into steps.
+    """将一个基于时间的更新器声明为流：即在一段时间内无论该时间如何划分为步长，
+    其所做之事都相同的更新器。
 
-    A time-based updater is handed `dt`, the seconds since it last ran. Most compose:
-    one that moves the mobject at a rate (`mob.shift(dt * velocity)`), or sets it by a
-    function of the time it has run, does the same in one step of `dt` as in two of
-    `dt / 2`. A flow runs at every instant the scene computes — each frame, and the end
-    of each play and wait — handed exactly the time since, so every frame shows it at
-    that frame's instant.
+    基于时间的更新器会收到 `dt`，即自上次运行以来经过的秒数。大多数更新器是可组合的：
+    以某个速率移动 mobject 的更新器（`mob.shift(dt * velocity)`），或按其已运行时间的
+    函数来设定它的更新器，在一步 `dt` 中所做之事与在两步 `dt / 2` 中所做之事相同。流在
+    场景计算的每个时刻运行——每一帧，以及每次 play 和 wait 的结束——并收到确切的经过
+    时间，因此每一帧都显示其在该帧时刻的状态。
 
-    Any other time-based updater is simulated, since what it does may depend on its
-    steps (an integrator, a ball that bounces): it steps on a clock of its own,
-    `config.simulation_rate` ticks a second (60) and the end of each play and wait, so
-    it takes the same steps at any frame rate, and a frame shows it as its last tick
-    left it. While one is in the scene, the scene computes every tick, between frames
-    too. Declare an updater that composes a flow to make it exact at every frame and to
-    spare those ticks; [always_shift][manimgx.always_shift] and
-    [always_rotate][manimgx.always_rotate] add flows. An updater that only reads the
-    world, as a traced path's does, is a [recorder][manimgx.mobject.record].
+    任何其他基于时间的更新器都是被模拟的，因为其所做之事可能依赖于其步长（积分器、
+    弹跳的球）：它在自己的时钟上步进，`config.simulation_rate` 每秒滴答一次（60），
+    以及每次 play 和 wait 的结束，因此它在任何帧率下都采取相同的步长，而一帧显示的是
+    其最后一次滴答留下的状态。当一个模拟更新器在场景中时，场景会计算每一个滴答，
+    包括帧之间的滴答。将一个可组合的更新器声明为流，可使它在每一帧都精确，并省去
+    那些滴答；[always_shift][manimgx.always_shift] 和 [always_rotate][manimgx.always_rotate]
+    添加的是流。一个只读取世界状态的更新器，如追踪路径的更新器，是一个
+    [recorder][manimgx.mobject.record]。
 
     Args:
-        updater: A time-based updater: a function of the mobject and `dt`.
+        updater: 一个基于时间的更新器：关于 mobject 和 `dt` 的函数。
 
     Returns:
-        The same updater, declared a flow, to add with
-        [add_updater][manimgx.Mobject.add_updater].
+        同一个更新器，被声明为流，可用
+        [add_updater][manimgx.Mobject.add_updater] 添加。
 
     Examples:
         ```python
@@ -274,25 +267,23 @@ _RECORDERS: "weakref.WeakSet[Callable[..., object]]" = weakref.WeakSet()
 
 
 def record[U: Callable[..., object]](updater: U) -> U:
-    """Declare a time-based updater a recorder: one that reads the world and changes
-    only its own mobject, as a [TracedPath][manimgx.TracedPath]'s does.
+    """将一个基于时间的更新器声明为记录器：即读取世界状态且仅改变自身 mobject 的更新器，
+    如 [TracedPath][manimgx.TracedPath] 的更新器。
 
-    The scene runs a recorder at every instant it computes — each tick of the
-    simulation clock, each frame, and the end of each play and wait — once everything
-    else is there: the animations playing, the mobjects' updaters and the scene's. At a
-    frame or at the end of a play or wait, it runs twice: first on the world as time
-    alone brought it there, as a tick sees it, then once the per-frame updaters have
-    run, so it can tell their change apart (a traced path spreads it over the frame
-    that ends there). A recorder is simulated (see [flow][manimgx.mobject.flow]):
-    while one is in the scene, the scene computes the simulation clock's ticks.
+    场景在它计算的每个时刻运行记录器——模拟时钟的每个滴答、每一帧，以及每次 play 和
+    wait 的结束——在所有其他东西就位之后：正在播放的动画、mobject 的更新器和场景的更新器。
+    在一帧或一次 play 或 wait 的结束时，它运行两次：首先在仅由时间带到那里的世界上运行，
+    如一个滴答所看到的那样，然后在每帧更新器运行之后再运行一次，以便它能区分它们的
+    变化（追踪路径将其分散到结束于该处的帧上）。记录器是被模拟的（参见
+    [flow][manimgx.mobject.flow]）：当记录器在场景中时，场景会计算模拟时钟的滴答。
 
     Args:
-        updater: A time-based updater: a function of the mobject and `dt`, or such a
-            method, decorated where its class defines it.
+        updater: 一个基于时间的更新器：关于 mobject 和 `dt` 的函数，或此类方法，
+            在其类定义处装饰。
 
     Returns:
-        The same updater, declared a recorder, to add with
-        [add_updater][manimgx.Mobject.add_updater].
+        同一个更新器，被声明为记录器，可用
+        [add_updater][manimgx.Mobject.add_updater] 添加。
     """
     # the scene computes a frame or an event in two passes (`Scene._instant`) only while
     # a recorder is in it; the second pass is `clock.framing`
@@ -301,24 +292,23 @@ def record[U: Callable[..., object]](updater: U) -> U:
 
 
 def records(updater: Callable[..., object]) -> bool:
-    """Whether an updater is a [recorder][manimgx.mobject.record].
+    """更新器是否为 [recorder][manimgx.mobject.record]。
 
-    The scene asks, to know whether it must compute each frame in two passes.
+    场景会询问此问题，以确定是否必须以两遍方式计算每一帧。
 
     Args:
-        updater: An updater; a method is a recorder if its function is.
+        updater: 一个更新器；若为方法，则当其函数是记录器时它也是记录器。
     """
     return _function(updater) in _RECORDERS
 
 
 def simulated(updater: Updater[Never]) -> bool:
-    """Whether an updater steps on the simulation clock: it is time-based and not a
-    [flow][manimgx.mobject.flow].
+    """更新器是否在模拟时钟上步进：它是基于时间的且不是 [flow][manimgx.mobject.flow]。
 
-    The scene asks, to know whether it must compute the ticks of its simulation clock.
+    场景会询问此问题，以确定是否必须计算其模拟时钟的滴答。
 
     Args:
-        updater: An updater, of a mobject or of a scene.
+        updater: 一个更新器，属于 mobject 或场景。
     """
     return not _per_frame(updater) and not _flows(updater)
 
@@ -344,21 +334,20 @@ _SHARED: frozenset[type] = frozenset(
 
 
 def copied[T](value: T) -> T:
-    """A deep copy of a value that holds mobjects.
+    """对持有 mobject 的值的深拷贝。
 
-    Lists, tuples and dicts are rebuilt, each mobject is copied once (so two references
-    to one mobject refer to one copy), and plain values are shared.
+    列表、元组和字典被重建，每个 mobject 被拷贝一次（因此指向同一 mobject 的两个引用
+    指向同一拷贝），普通值被共享。
 
     Args:
-        value: A mobject, or a container of mobjects and plain values.
+        value: 一个 mobject，或包含 mobject 和普通值的容器。
     """
     # see `_copied`
     return cast("T", _copied(value, {}))
 
 
 def _copied(value: object, memo: dict[int, object]) -> object:
-    """A deep copy that knows the common shapes: values shared, containers rebuilt, mobjects
-    copied through the memo (aliases stay aliases)."""
+    """知道常见形状的深拷贝：值被共享，容器被重建，mobject 通过 memo 拷贝（别名保持为别名）。"""
     kind = type(value)
     if value is None or kind in _SHARED:
         return value
@@ -404,7 +393,7 @@ _PROTOTYPES: Memo[tuple[object, ...], "Mobject"] = Memo(1 << 12)
 
 
 def _copy_state(source: "Mobject", target: "Mobject", memo: dict[int, object]) -> None:
-    """Copy fields in order, with active clock stamps owned by the copied updaters."""
+    """按顺序拷贝字段，活动的时钟戳由拷贝后的更新器所拥有。"""
     shared = type(source).shared
     copied = target.__dict__
     for name, value in source.__dict__.items():
@@ -426,20 +415,17 @@ def _copy_state(source: "Mobject", target: "Mobject", memo: dict[int, object]) -
 def prototype[S: "Mobject", **P](
     init: Callable[Concatenate[S, P], None],
 ) -> Callable[Concatenate[S, P], None]:
-    """Make a mobject class's construction run once per distinct call: a decorator for
-    its `__init__`.
+    """使 mobject 类的构造按不同调用各运行一次：用于其 `__init__` 的装饰器。
 
-    Construction is a value: an `__init__` given the same arguments (and the same
-    configuration) makes the same mobject. So it runs once per distinct call, and every
-    later construction takes a copy of what it made; an expensive mobject (typeset text,
-    an arrow tip) is made once. A call with an argument that is not a plain value (a
-    mobject, a function) constructs as usual.
+    构造是一个值：给定相同参数（和相同配置）的 `__init__` 产生相同的 mobject。因此它
+    按不同调用各运行一次，之后的每次构造都取其所制作之物的一个拷贝；昂贵的 mobject
+    （排版的文本、箭头尖端）只制作一次。以非普通值参数（mobject、函数）的调用照常构造。
 
     Args:
-        init: The class's `__init__`.
+        init: 该类的 `__init__`。
 
     Returns:
-        The `__init__`, remembering what it makes.
+        该 `__init__`，会记住其所制作之物。
     """
 
     # a later construction adopts the made mobject's attributes: whatever named the made
@@ -472,7 +458,7 @@ def prototype[S: "Mobject", **P](
 
 
 def _anchors(points: Point3D_Array) -> Point3D_Array:
-    """A path's anchors: the first and last point of every cubic curve."""
+    """路径的锚点：每条三次曲线的第一个和最后一个点。"""
     if len(points) < 4:
         return points
     return points[np.r_[0 : len(points) : 4, 3 : len(points) : 4]]
@@ -490,121 +476,109 @@ _STRAIGHT = straight_path()  # a default (paths are immutable)
 
 
 class GridArrangement(TypedDict, total=False):
-    """How [arrange_in_grid][manimgx.Mobject.arrange_in_grid] lays mobjects out: its
-    keywords, for the classes that pass them on (tables)."""
+    """[arrange_in_grid][manimgx.Mobject.arrange_in_grid] 如何排列 mobject：其关键字，
+    供传递它们的类（表格）使用。"""
 
     rows: int | None
-    """How many rows (default None: as many as `row_alignments` or `row_heights` lists,
-    else as many as the mobjects need; with neither `rows` nor `cols`, a grid as square
-    as it can be)."""
+    """行数（默认 None：与 `row_alignments` 或 `row_heights` 列出的数量相同，
+    否则与 mobject 所需的数量相同；当 `rows` 和 `cols` 均未指定时，网格尽可能呈正方形）。"""
     cols: int | None
-    """How many columns (default None: as many as `col_alignments` or `col_widths`
-    lists, else as many as the mobjects need; with neither `rows` nor `cols`, a grid as
-    square as it can be)."""
+    """列数（默认 None：与 `col_alignments` 或 `col_widths` 列出的数量相同，
+    否则与 mobject 所需的数量相同；当 `rows` 和 `cols` 均未指定时，网格尽可能呈正方形）。"""
     buff: float | tuple[float, float]
-    """The gap between cells, in scene units: one for both directions, or (horizontal,
-    vertical) (default 0.25)."""
+    """单元格之间的间距，以场景单位表示：两个方向共用一个值，或 (水平, 垂直)（默认 0.25）。"""
     cell_alignment: Vector3DLike
-    """Where each mobject sits in its cell, as a direction: UL for its top left corner
-    (default ORIGIN: centered)."""
+    """每个 mobject 在其单元格中的位置，以方向表示：UL 表示其左上角
+    （默认 ORIGIN：居中）。"""
     row_alignments: str | None
-    """Each row's vertical alignment, top to bottom: a letter per row, "u" (up), "c"
-    (center) or "d" (down) (default None: as `cell_alignment`'s vertical part says)."""
+    """每行的垂直对齐方式，从上到下：每行一个字母，"u"（上）、"c"
+    （居中）或 "d"（下）（默认 None：按 `cell_alignment` 的垂直部分所示）。"""
     col_alignments: str | None
-    """Each column's horizontal alignment, left to right: a letter per column, "l"
-    (left), "c" (center) or "r" (right) (default None: as `cell_alignment`'s horizontal
-    part says)."""
+    """每列的水平对齐方式，从左到右：每列一个字母，"l"
+    （左）、"c"（居中）或 "r"（右）（默认 None：按 `cell_alignment` 的水平部分所示）。"""
     row_heights: Iterable[float | None] | None
-    """Each row's height, top to bottom, in scene units; None for the height of its
-    tallest mobject (default None: all measured)."""
+    """每行的高度，从上到下，以场景单位表示；None 表示其最高 mobject 的高度
+    （默认 None：全部测量）。"""
     col_widths: Iterable[float | None] | None
-    """Each column's width, left to right, in scene units; None for the width of its
-    widest mobject (default None: all measured)."""
+    """每列的宽度，从左到右，以场景单位表示；None 表示其最宽 mobject 的宽度
+    （默认 None：全部测量）。"""
     flow_order: str
-    """The order the cells are filled in: two letters, the direction a line of cells
-    fills and then the direction the lines follow each other — "r" (right), "l" (left),
-    "u" (up) or "d" (down) (default "rd": rows left to right, from the top down; "dr"
-    fills columns top to bottom, from the left)."""
+    """单元格的填充顺序：两个字母，一行单元格的填充方向，随后是各行彼此跟随的方向——
+    "r"（右）、"l"（左）、"u"（上）或 "d"（下）（默认 "rd"：行从左到右，从上到下；
+    "dr" 表示列从上到下，从左到右）。"""
 
 
 class _Beside(TypedDict, total=False):
-    """Beside's keys, open, for the keywords that add to them."""
+    """Beside 的键，开放的，供向其添加的关键字使用。"""
 
     aligned_edge: Vector3DLike
-    """The edge, as a direction, along which the two line up besides the side they meet
-    at: with the direction RIGHT and UP here, their tops line up (default ORIGIN:
-    centered)."""
+    """两个对象在它们相遇侧旁对齐所沿的边，以方向表示：当方向为 RIGHT 和 UP 时，
+    它们的顶部对齐（默认 ORIGIN：居中）。"""
     submobject_to_align: "Mobject | None"
-    """A part of the mobject to put beside the other in its place; the rest moves with
-    it (default None: the whole mobject)."""
+    """要放在另一对象旁边的 mobject 的一部分，代替其位置；其余部分随其移动
+    （默认 None：整个 mobject）。"""
     index_of_submobject_to_align: int | None
-    """The index of the part of each mobject to line up: this one's part goes beside the
-    other's (default None: the whole of each)."""
+    """每个 mobject 中要对齐部分的索引：此对象的部分放在另一对象的部分旁边
+    （默认 None：各自的全部）。"""
     coor_mask: Vector3DLike
-    """Which coordinates may change: 1 for each axis the mobject moves along, 0 for one
-    it keeps (default (1, 1, 1))."""
+    """哪些坐标可以改变：mobject 沿其移动的每个轴为 1，保持不变的轴为 0
+    （默认 (1, 1, 1)）。"""
 
 
 class Beside(_Beside, total=False, closed=True):
-    """How [next_to][manimgx.Mobject.next_to] aligns a mobject beside another: its
-    keywords but the direction and the gap, for the methods that pass them on
-    ([arrange][manimgx.Mobject.arrange])."""
+    """[next_to][manimgx.Mobject.next_to] 如何将一个 mobject 对齐到另一个旁边：其关键字，
+    但不包括方向和间距，供传递它们的类使用
+    （[arrange][manimgx.Mobject.arrange]）。"""
 
 
 class Placement(_Beside, total=False, closed=True):
-    """How [next_to][manimgx.Mobject.next_to] places a mobject beside another: its
-    keywords but the direction, for the methods that pass them on."""
+    """[next_to][manimgx.Mobject.next_to] 如何将一个 mobject 放置在另一个旁边：其关键字，
+    但不包括方向，供传递它们的方法使用。"""
 
     buff: float
-    """The gap between the two, in scene units (default 0.25)."""
+    """两者之间的间距，以场景单位表示（默认 0.25）。"""
 
 
 class BackgroundOptions(_Look, total=False, closed=True):
-    """A background rectangle's keywords but its color and opacity: those of
-    [add_background_rectangle][manimgx.Mobject.add_background_rectangle] and its
-    variants."""
+    """背景矩形的关键字，但不包括其颜色和不透明度：即
+    [add_background_rectangle][manimgx.Mobject.add_background_rectangle] 及其
+    变体的关键字。"""
 
     buff: float | tuple[float, float]
-    """The margin around the mobject, in scene units: one for both directions, or
-    (horizontal, vertical) (default 0)."""
+    """mobject 周围的边距，以场景单位表示：两个方向共用一个值，或 (水平, 垂直)（默认 0）。"""
     corner_radius: float
-    """The radius of the rectangle's corners, in scene units (default 0: square
-    corners)."""
+    """矩形圆角的半径，以场景单位表示（默认 0：直角）。"""
     stroke_width: float
-    """The width of the rectangle's outline, in hundredths of a scene unit (default 0:
-    none)."""
+    """矩形轮廓的宽度，以场景单位的百分之一表示（默认 0：无）。"""
     stroke_opacity: float
-    """The outline's opacity, from 0 to 1 (default 0)."""
+    """轮廓的不透明度，从 0 到 1（默认 0）。"""
     stroke_color: Colors | None
-    """The outline's color (default: the rectangle's color)."""
+    """轮廓的颜色（默认：矩形的颜色）。"""
 
 
 class Pivot(TypedDict, total=False, closed=True):
-    """The point a transformation keeps fixed: given, or a point of the mobject's
-    bounding box.
+    """变换所保持不动的点：给定的点，或 mobject 边界框上的一个点。
 
-    With neither keyword, a scale, a rotation or a stretch keeps the mobject's center
-    fixed, and a function or a matrix is applied about the origin.
+    当两个关键字均未指定时，缩放、旋转或拉伸保持 mobject 的中心不动，
+    而函数或矩阵关于原点应用。
     """
 
     about_point: Point3DLike | None
-    """The point that stays fixed, in scene coordinates; it takes precedence over
-    `about_edge`."""
+    """保持不动的点，以场景坐标表示；它优先于 `about_edge`。"""
     about_edge: Vector3DLike | None
-    """The point of the mobject's bounding box that stays fixed, named by a direction:
-    UP for the middle of its top edge, UR for its top right corner, ORIGIN for its
-    center."""
+    """mobject 边界框上保持不动的点，以方向命名：
+    UP 表示其顶边的中点，UR 表示其右上角，ORIGIN 表示其中心。"""
 
 
 def style_defaults(cls: "type[Mobject]") -> Style:
-    """A mobject class's style defaults: the [defaults][manimgx.Mobject.defaults] of
-    every class in its hierarchy, each class's over its parents'.
+    """mobject 类的样式默认值：其层级中每个类的 [defaults][manimgx.Mobject.defaults]，
+    每个类的默认值覆盖其父类的。
 
     Args:
-        cls: A mobject class.
+        cls: 一个 mobject 类。
 
     Returns:
-        The defaults of its style keywords.
+        其样式关键字的默认值。
     """
     # each class in the hierarchy adds only what it changes; cached per class
     cached = _CASCADES.get(cls)
@@ -619,15 +593,15 @@ def style_defaults(cls: "type[Mobject]") -> Style:
 
 @deprecated("use list(dict.fromkeys(items))", category=None)
 def remove_list_redundancies[T](items: Sequence[T]) -> list[T]:
-    """The items without repeats: each one once, where it last occurs.
+    """不含重复项的列表：每个项出现一次，在其最后出现的位置。
 
-    Items are the same when they are the same object.
+    当项是同一对象时，它们被视为相同。
 
     Args:
-        items: The items, in order.
+        items: 按顺序排列的项。
 
     Returns:
-        A new list.
+        一个新列表。
     """
     # the last occurrence of each is kept (CE semantics)
     seen: set[int] = set()
@@ -641,7 +615,7 @@ def remove_list_redundancies[T](items: Sequence[T]) -> list[T]:
 
 
 def _family(roots: Iterable["Mobject"]) -> list["Mobject"]:
-    """Preorder from these roots, each member once at its last occurrence."""
+    """从这些根的先序遍历，每个成员在其最后出现的位置出现一次。"""
     # Right-to-left postorder is reversed preorder. Keep its first occurrences,
     # skipping already visited subtrees, then reverse to keep preorder's last ones.
     family: list[Mobject] = []
@@ -663,7 +637,7 @@ def _family(roots: Iterable["Mobject"]) -> list["Mobject"]:
 
 
 def _family_box(family: Iterable["Mobject"]) -> np.ndarray | None:
-    """Combine the selected family's own geometry boxes without constructing a group."""
+    """在不构造组的情况下，合并所选家族各自的几何边界框。"""
     # A member's box is what it draws (`_box`); paths use their curves' tight bounds.
     boxes = [b for m in family if m._geometry.n and (b := m._box()) is not None]
     if len(boxes) < 2:
@@ -673,27 +647,24 @@ def _family_box(family: Iterable["Mobject"]) -> np.ndarray | None:
 
 
 class Mobject:
-    """The object everything in a scene is made of: shapes, text, groups, trackers.
+    """场景中一切事物由之构成的对象：形状、文本、组、跟踪器。
 
-    A mobject has points in scene coordinates (x to the right, y up, z out of the
-    screen; the frame is 8 units on its short side, about 14.2 × 8 at 16:9, centered
-    on the origin);
-    submobjects, a tree drawn and moved with it; a style: its fill, its stroke and their
-    colors; updaters, which change it as time passes; and a z-index, its place in the
-    drawing order. You make one through its subclasses — [`Circle`][manimgx.Circle],
-    [`Text`][manimgx.Text], [`VGroup`][manimgx.VGroup] and the rest — and they all share
-    the methods here: to transform it ([`shift`][manimgx.Mobject.shift],
-    [`scale`][manimgx.Mobject.scale], [`rotate`][manimgx.Mobject.rotate]), lay it out
-    ([`next_to`][manimgx.Mobject.next_to], [`arrange`][manimgx.Mobject.arrange]), style
-    it ([`set_color`][manimgx.Mobject.set_color]), keep it updated
-    ([`add_updater`][manimgx.Mobject.add_updater]), and animate any of that
-    ([`animate`][manimgx.Mobject.animate]).
+    mobject 拥有以场景坐标表示的点（x 向右，y 向上，z 向屏幕外；画框短边为 8 个单位，
+    16:9 时约为 14.2 × 8，以原点为中心）；
+    子 mobject，即随其绘制和移动的树；样式：其填充、描边及其颜色；更新器，随时间推移
+    改变它；以及 z 索引，即其在绘制顺序中的位置。你通过其子类创建一个 mobject——
+    [`Circle`][manimgx.Circle]、[`Text`][manimgx.Text]、[`VGroup`][manimgx.VGroup] 等——
+    它们都共享这里的方法：变换它（[`shift`][manimgx.Mobject.shift]、
+    [`scale`][manimgx.Mobject.scale]、[`rotate`][manimgx.Mobject.rotate]），排列它
+    （[`next_to`][manimgx.Mobject.next_to]、[`arrange`][manimgx.Mobject.arrange]），
+    设置样式（[`set_color`][manimgx.Mobject.set_color]），保持更新
+    （[`add_updater`][manimgx.Mobject.add_updater]），以及为以上任何操作制作动画
+    （[`animate`][manimgx.Mobject.animate]）。
 
-    A transformation or a style acts on the mobject's whole family — the mobject, its
-    submobjects, theirs, and so on — and returns the mobject, so calls chain:
-    `Square().scale(2).set_color(BLUE)`. Size and layout go by the mobject's
-    [bounding box][manimgx.Mobject.boundary_box]: the smallest box, aligned with the
-    axes, around what it draws.
+    变换或样式作用于 mobject 的整个家族——该 mobject、其子 mobject、它们的子 mobject，
+    依此类推——并返回该 mobject，因此调用可以链式书写：
+    `Square().scale(2).set_color(BLUE)`。尺寸和布局依据 mobject 的
+    [边界框][manimgx.Mobject.boundary_box]：即围绕其绘制内容、与坐标轴对齐的最小框。
     """
 
     animation_overrides: ClassVar[
@@ -702,51 +673,46 @@ class Mobject:
     # The animations the class plays another in place of: each animation class, with the
     # function that makes the one played instead (see `override_animation`).
     defaults: ClassVar[Style] = {}
-    """The style keywords whose defaults the class changes: a subclass lists only what
-    it changes (`defaults = {"color": BLUE}`), and takes the rest from its parents (see
-    [style_defaults][manimgx.mobject.style_defaults])."""
+    """类所更改其默认值的样式关键字：子类只列出它所更改的部分
+    （`defaults = {"color": BLUE}`），其余部分从其父类继承（参见
+    [style_defaults][manimgx.mobject.style_defaults]）。"""
     shared: ClassVar[frozenset[str]] = frozenset(
         {"style", "__orig_class__", "_film_record"}
     )
-    """The attributes a copy shares with its original instead of copying them: values
-    that are never changed in place."""
+    """拷贝时与原件共享而非拷贝的属性：即永远不会被就地修改的值。"""
 
     # CE's style attributes, kept in the paint: each reads and sets the mobject's own,
     # not its family's
     joint_type = PaintAttribute[LineJointType]("joint")
-    """How the mobject's own stroke is joined where its path turns: round, beveled or
-    mitered (see [LineJointType][manimgx.LineJointType])."""
+    """mobject 自身的描边在路径转折处的连接方式：圆角、斜角或斜接
+    （参见 [LineJointType][manimgx.LineJointType]）。"""
     cap_style = PaintAttribute[CapStyleType]("cap")
-    """How the mobject's own stroke ends, at each end it shows: round, butt or square
-    (see [CapStyleType][manimgx.CapStyleType])."""
+    """mobject 自身的描边在其显示的每个端点处的端帽样式：圆形、平头或方形
+    （参见 [CapStyleType][manimgx.CapStyleType]）。"""
     shade_in_3d = PaintAttribute[bool]("shade_in_3d")
-    """Whether a three-dimensional scene's light shades the mobject's own paint."""
+    """三维场景的光照是否对 mobject 自身的绘制着色。"""
     material = PaintAttribute[Material | None]("material")
-    """How the mobject's own surface reflects the scene's lights (see
-    [Material][manimgx.Material]); None: Manim's shading."""
+    """mobject 自身的表面如何反射场景的光照（参见
+    [Material][manimgx.Material]）；None：Manim 的着色方式。"""
     sheen_factor = PaintAttribute[float]("sheen_factor")
-    """How much the mobject's own colors lighten toward its `sheen_direction`, from -1
-    to 1 (0: none; negative: they darken); see
-    [set_sheen][manimgx.Mobject.set_sheen]."""
+    """mobject 自身的颜色向其 `sheen_direction` 方向变亮的程度，从 -1
+    到 1（0：无；负值：变暗）；参见
+    [set_sheen][manimgx.Mobject.set_sheen]。"""
     sheen_direction = PaintAttribute[Vector3D, Vector3DLike]("sheen_direction")
-    """The direction the mobject's own colors lighten toward, which its color gradients
-    run along too."""
+    """mobject 自身的颜色变亮的方向，其颜色渐变也沿此方向运行。"""
     fill_rgbas = PaintAttribute[RGBA_Array, npt.ArrayLike]("fill")
-    """The mobject's own fill colors, as rows of red, green, blue and opacity, from 0 to
-    1: one row per gradient stop."""
+    """mobject 自身的填充颜色，以红、绿、蓝和不透明度的行表示，从 0 到
+    1：每个渐变停止点一行。"""
     stroke_rgbas = PaintAttribute[RGBA_Array, npt.ArrayLike]("stroke")
-    """The mobject's own stroke colors, as rows of red, green, blue and opacity, from 0
-    to 1."""
+    """mobject 自身的描边颜色，以红、绿、蓝和不透明度的行表示，从 0 到 1。"""
     background_stroke_rgbas = PaintAttribute[RGBA_Array, npt.ArrayLike]("background")
-    """The colors of the mobject's own background stroke (an outline drawn behind its
-    fill), as rows of red, green, blue and opacity, from 0 to 1."""
+    """mobject 自身背景描边（在其填充之后绘制的轮廓）的颜色，以红、绿、蓝和不透明度的行表示，从 0 到 1。"""
     background_stroke_width = PaintAttribute[float]("background_width")
-    """The width of the mobject's own background stroke, in hundredths of a scene
-    unit."""
+    """mobject 自身背景描边的宽度，以场景单位的百分之一表示。"""
     z_index_group: "Mobject | None" = None
-    """The group the mobject is ordered with in a three-dimensional scene, if any: set
-    by `set_shade_in_3d(z_index_as_group=True)`. Kept for Manim compatibility: the
-    renderer draws a three-dimensional scene by depth."""
+    """mobject 在三维场景中与之一起排序的组（如果有）：由
+    `set_shade_in_3d(z_index_as_group=True)` 设置。保留以兼容 Manim：
+    渲染器按深度绘制三维场景。"""
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
@@ -764,34 +730,31 @@ class Mobject:
         ):  # not given: the class's default
             del kwargs["color"]
         self.style = style_defaults(type(self)) | kwargs
-        """Pending constructor style, including the class's defaults. Base color
-        initialization consumes this instance entry; current appearance is kept in
-        [paint][manimgx.Mobject.paint]. Point clouds retain their defaults for later points."""
+        """待定的构造器样式，包括类的默认值。基础颜色初始化会消耗此实例条目；
+        当前外观保存在 [paint][manimgx.Mobject.paint] 中。点云保留其默认值供后续点使用。"""
         name = self.style.get("name")
         self.name = type(self).__name__ if name is None else name
-        """The mobject's name: its class's name, unless it was made with one."""
+        """mobject 的名称：其类的名称，除非创建时指定了名称。"""
         self.dim = 3
-        """How many coordinates each of its points has: 3."""
+        """其每个点拥有的坐标数：3。"""
         self.target: Mobject | None = self.style.get("target")
-        """The state [MoveToTarget][manimgx.MoveToTarget] moves the mobject to: made by
-        [generate_target][manimgx.Mobject.generate_target], or given when the mobject
-        was made; None if neither."""
+        """[MoveToTarget][manimgx.MoveToTarget] 将 mobject 移动到的状态：由
+        [generate_target][manimgx.Mobject.generate_target] 创建，或在创建 mobject 时给定；
+        若两者皆无则为 None。"""
         self.z_index = self.style.get("z_index", 0.0)
-        """The mobject's place in the drawing order: a higher index is drawn over a
-        lower one (default 0); see [set_z_index][manimgx.Mobject.set_z_index]."""
+        """mobject 在绘制顺序中的位置：索引值较高的绘制在索引值较低的之上
+        （默认 0）；参见 [set_z_index][manimgx.Mobject.set_z_index]。"""
         self.submobjects: list[Mobject] = []
-        """The mobject's children, in drawing order: each is drawn over those before it,
-        at an equal z-index."""
+        """mobject 的子对象，按绘制顺序排列：在相同 z 索引下，每个绘制在之前的之上。"""
         self.updaters: list[Updater[Self]] = []
-        """The mobject's own updaters, in the order they run; see
-        [add_updater][manimgx.Mobject.add_updater]."""
+        """mobject 自身的更新器，按运行顺序排列；参见
+        [add_updater][manimgx.Mobject.add_updater]。"""
         self.updating_suspended = False
-        """Whether the mobject's updaters are suspended; see
-        [suspend_updating][manimgx.Mobject.suspend_updating]."""
+        """mobject 的更新器是否被暂停；参见
+        [suspend_updating][manimgx.Mobject.suspend_updating]。"""
         self.paint = _UNPAINTED
-        """The mobject's own style as it is now, as one value: its colors, opacities,
-        stroke widths and sheen. The style methods replace it; it is never changed in
-        place."""
+        """mobject 自身当前的样式，作为一个值：其颜色、不透明度、
+        描边宽度和光泽。样式方法会替换它；它永远不会被就地修改。"""
         self.reset_points()
         self.generate_points()
         self.init_colors()
@@ -799,17 +762,16 @@ class Mobject:
     # ── kind hooks ─────────────────────────────────────────────────────────
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def generate_points(self) -> Self:
-        """Build the mobject's points: its shape.
+        """构建 mobject 的点：即其形状。
 
-        The constructor calls it. A class with a shape of its own overrides it; a plain
-        mobject has no points.
+        构造器会调用它。拥有自身形状的类会重写它；普通 mobject 没有点。
         """
         return self
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def init_points(self) -> Self:
-        """Build the mobject's points: the same as
-        [generate_points][manimgx.Mobject.generate_points], by another name.
+        """构建 mobject 的点：与 [generate_points][manimgx.Mobject.generate_points] 相同，
+        只是另一个名称。
         """
         # CE's other name for `generate_points`
         self.generate_points()
@@ -817,18 +779,17 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def init_colors(self, propagate_colors: bool = True) -> Self:
-        """Paint the mobject with its style.
+        """用其样式为 mobject 着色。
 
-        The constructor calls it once its points are built: the first call paints the
-        style keywords the mobject was made with, then consumes those inputs. A later
-        call paints its present style again — its first fill and stroke colors, their
-        opacities, its stroke widths and its sheen. A subclass can read its instance's
-        pending `style` before delegating; successful initialization removes that entry.
+        构造器在其点构建完成后调用它：第一次调用为创建 mobject 时所用的样式关键字着色，
+        然后消耗这些输入。后续调用会再次为其当前样式着色——即其第一个填充和描边颜色、
+        它们的不透明度、其描边宽度及其光泽。子类可以在委托之前读取其实例待定的
+        `style`；成功的初始化会移除该条目。
 
         Args:
-            propagate_colors: Whether its whole family is painted (so the parts
-                [generate_points][manimgx.Mobject.generate_points] made), or the mobject
-                alone.
+            propagate_colors: 是否为其整个家族着色（即
+                [generate_points][manimgx.Mobject.generate_points] 所创建的部分），
+                还是仅为 mobject 本身着色。
         """
         # CE semantics: the first call paints the constructor style onto the family,
         # later calls re-apply the current style to it
@@ -902,15 +863,15 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_points_defining_boundary(self) -> Point3D_Array:
-        """The points [get_boundary_point][manimgx.Mobject.get_boundary_point] chooses
-        among: every point of the mobject's family — or, for a path, its members'
-        anchors, the ends of its curves (a path's handles need not lie on it).
+        """[get_boundary_point][manimgx.Mobject.get_boundary_point] 从中选择
+        的点：mobject 家族的每个点——或者对于路径，为其各成员的锚点，即其曲线的端点
+        （路径的控制柄不必位于其上）。
 
-        The mobject's bounding box is not made from them: it is
-        [boundary_box][manimgx.Mobject.boundary_box], around what the family draws.
+        mobject 的边界框并非由它们生成：它是
+        [boundary_box][manimgx.Mobject.boundary_box]，围绕家族所绘制的内容。
 
         Returns:
-            The points, as an (n, 3) array.
+            这些点，以 (n, 3) 数组形式。
         """
         if not self._curves:
             return self.get_all_points()
@@ -923,77 +884,69 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def align_points_with_larger(self, larger: "Mobject") -> Self:
-        """Give the mobject as many points as `larger`, its shape unchanged, so the two
-        can be blended point by point.
+        """使 mobject 拥有与 `larger` 同样多的点，其形状不变，以便两者可以逐点混合。
 
-        [align_points][manimgx.Mobject.align_points] calls it on the one of two mobjects
-        with fewer points. Each kind implements it (a path divides its curves); a
-        mobject of no kind cannot.
+        [align_points][manimgx.Mobject.align_points] 在两个 mobject 中点较少的那个上调用它。
+        每种类型都实现它（路径分割其曲线）；无类型的 mobject 无法实现。
 
         Args:
-            larger: The mobject with more points.
+            larger: 拥有更多点的 mobject。
         """
         raise NotImplementedError(f"{type(self).__name__} cannot align points")
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_point_mobject(self, center: Point3DLike | None = None) -> "Mobject":
-        """The mobject shrunk to a point: what it grows from, or shrinks to, when a
-        transform makes it appear or disappear.
+        """将 mobject 缩小为一个点：即当变换使其出现或消失时，它从之生长或向之收缩的点。
 
-        A kind returns a point of its own kind and style; a mobject of no kind, the
-        group of its members' points.
+        一种类型返回其自身类型和样式的点；无类型的 mobject 返回其各成员点的组。
 
         Args:
-            center: Where the point is; None for the mobject's center.
+            center: 点的位置；None 表示 mobject 的中心。
 
         Returns:
-            A new mobject.
+            一个新的 mobject。
         """
         c = self.get_center() if center is None else center
         return Group(*(m.get_point_mobject(c) for m in self.submobjects))
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def pointwise_become_partial(self, mobject: "Mobject", a: float, b: float) -> Self:
-        """Become a part of another mobject: its points from proportion `a` of the way
-        along it to proportion `b`, as a reveal over that stretch shows it: a path's
-        curves, cut where `a` and `b` fall; a cloud's points, a mesh's triangles and a
-        surface's faces whole, every one the stretch reaches into.
+        """成为另一个 mobject 的一部分：其点从沿其路径比例 `a` 处到比例 `b` 处，
+        如同在该段上的揭示动画所展示的那样：路径的曲线在 `a` 和 `b` 落点处被切割；
+        点云的点、网格的三角形和曲面的面保持完整，每一个该段所触及的都是如此。
 
-        [get_pieces][manimgx.Mobject.get_pieces] calls it. Each kind implements it; a
-        mobject of no kind stays as it is.
+        [get_pieces][manimgx.Mobject.get_pieces] 调用它。每种类型都实现它；
+        无类型的 mobject 保持原样。
 
         Args:
-            mobject: The mobject to take a part of (this one, or one of its kind).
-            a: Where the part starts, from 0 to 1.
-            b: Where the part ends, from `a` to 1.
+            mobject: 要取其一部分的 mobject（此 mobject，或其同类型的 mobject）。
+            a: 部分的起始位置，从 0 到 1。
+            b: 部分的结束位置，从 `a` 到 1。
         """
         return self
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def reveal_pace(self) -> tuple[np.ndarray, np.ndarray] | None:
-        """How a reveal ([Create][manimgx.Create], [Write][manimgx.Write], …) moves
-        through the mobject: evenly by its parts, or, for a path, by arc length, so it
-        is drawn at a steady speed.
+        """揭示动画（[Create][manimgx.Create]、[Write][manimgx.Write]、…）如何
+        在 mobject 中推进：按其各部分均匀推进，或者对于路径，按弧长推进，从而以恒定速度绘制。
 
-        The reveal animations read it for each drawn member.
+        揭示动画为每个绘制的成员读取它。
 
         Returns:
-            None for evenly by step (points, triangles, or a surface's faces, in order,
-            each whole with all it draws); for a path, fractions of its length and the
-            curve parameters where they are reached.
+            None 表示按步均匀推进（点、三角形或曲面的面，按顺序，
+            每个连同其绘制的全部内容）；对于路径，为其长度的分数及到达它们时的曲线参数。
         """
         return None
 
     # ── points ────────────────────────────────────────────────────────────
     @property
     def points(self) -> Point3D_Array:
-        """The mobject's own points, in scene coordinates: an (n, 3) array, read-only.
+        """mobject 自身的点，以场景坐标表示：一个 (n, 3) 数组，只读。
 
-        A path's are the control points of its cubic Bézier curves, four per curve.
-        Assign an array to reshape the mobject; its submobjects keep theirs. Assigning the
-        points it has changes nothing (it keeps its geometry, and all that was derived from
-        it), unless they are a blend of shapes, as mid-morph, which become one; assigning
-        them with more after them grows it.
+        路径的点是其三次贝塞尔曲线的控制点，每条曲线四个。
+        赋值一个数组可重塑 mobject；其子 mobject 保持各自的点。赋值它已有的点不会改变
+        任何东西（它保持其几何形状及从其导出的所有内容），除非它们是形状的混合（如变形
+        中间态），此时会合为一体；在其后追加更多点会使它增长。
         """
         # the geometry blend, materialized (cached, hence read-only)
         return self._geometry.points()
@@ -1024,85 +977,85 @@ class Mobject:
         self._geometry = Blend.of(array, self.dim)
 
     def reset_points(self) -> Self:
-        """Remove the mobject's own points; its submobjects keep theirs."""
+        """移除 mobject 自身的点；其子 mobject 保持各自的点。"""
         self._geometry: Blend = EMPTY
         return self
 
     def set_points(self, points: Point3DLike_Array) -> Self:
-        """Give the mobject new points of its own, in place of its present ones.
+        """为 mobject 赋予新的自身点，替换其现有点。
 
         Args:
-            points: The points, in scene coordinates: an (n, 3) array.
+            points: 这些点，以场景坐标表示：一个 (n, 3) 数组。
         """
         self.points = np.array(points, dtype=float)
         return self
 
     @deprecated("get_points() is points: use it", category=None)
     def get_points(self) -> Point3D_Array:
-        """The mobject's own [points][manimgx.Mobject.points].
+        """mobject 自身的 [points][manimgx.Mobject.points]。
 
         Returns:
-            An (n, 3) array, read-only.
+            一个 (n, 3) 数组，只读。
         """
         return self.points
 
     def has_points(self) -> bool:
-        """Whether the mobject has points of its own (a group has none: its members do)."""
+        """mobject 是否拥有自身的点（组没有自身的点：其成员有）。"""
         return self._geometry.n > 0
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def has_no_points(self) -> bool:
-        """Whether the mobject has no points of its own."""
+        """mobject 是否没有自身的点。"""
         return self._geometry.n == 0
 
     @deprecated("use len(mobject.points)", category=None)
     def get_num_points(self) -> int:
-        """How many points of its own the mobject has.
+        """mobject 拥有多少自身的点。
 
         Returns:
-            The number of points.
+            点的数量。
         """
         return self._geometry.n
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_all_points(self) -> Point3D_Array:
-        """Every point of the mobject's family, member after member.
+        """mobject 家族的所有点，逐个成员排列。
 
         Returns:
-            An (n, 3) array.
+            一个 (n, 3) 数组。
         """
         arrays = [m.points for m in self.get_family()]
         return np.concatenate(arrays) if arrays else np.zeros((0, 3))
 
     def get_start(self) -> Point3D:
-        """The mobject's first point: where a path starts.
+        """mobject 的第一个点：路径的起点。
 
-        Raises an exception if the mobject has no points of its own.
+        如果 mobject 没有自身的点，则抛出异常。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         self._require_points()
         return np.array(self.points[0])
 
     def get_end(self) -> Point3D:
-        """The mobject's last point: where a path ends.
+        """mobject 的最后一个点：路径的终点。
 
-        Raises an exception if the mobject has no points of its own.
+        如果 mobject 没有自身的点，则抛出异常。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         self._require_points()
         return np.array(self.points[-1])
 
     @deprecated("use get_start() and get_end()", category=None)
     def get_start_and_end(self) -> tuple[Point3D, Point3D]:
-        """The mobject's first and last points.
+        """mobject 的第一个和最后一个点。
 
         Returns:
-            Its [start][manimgx.Mobject.get_start] and its
-            [end][manimgx.Mobject.get_end], in scene coordinates.
+            其 [start][manimgx.Mobject.get_start] 和
+            [end][manimgx.Mobject.get_end]，以场景坐标表示。
         """
         return self.get_start(), self.get_end()
 
@@ -1114,46 +1067,43 @@ class Mobject:
 
     # ── family ────────────────────────────────────────────────────────────
     def add(self, *mobjects: "Mobject") -> Self:
-        """Add submobjects after the ones the mobject has: they move with it, and are
-        drawn over those before them (at an equal z-index).
+        """在 mobject 已有的子 mobject 之后添加子 mobject：它们随其移动，并绘制在之前的
+        之上（在相同 z 索引下）。
 
-        A mobject that is a submobject already moves to the end. Adding anything but a
-        mobject, or the mobject itself or one that holds it, raises an exception (a
-        mobject cannot hold itself).
+        已经是子 mobject 的会移到末尾。添加非 mobject、mobject 自身或持有它的 mobject
+        会抛出异常（mobject 不能持有自身）。
 
         Args:
-            *mobjects: The mobjects to add, in order.
+            *mobjects: 要添加的 mobject，按顺序排列。
         """
         return self._place(None, mobjects)
 
     def add_to_back(self, *mobjects: "Mobject") -> Self:
-        """Add submobjects before the ones the mobject has: they are drawn under them
-        (at an equal z-index).
+        """在 mobject 已有的子 mobject 之前添加子 mobject：它们绘制在之前的
+        之下（在相同 z 索引下）。
 
-        A mobject that is a submobject already moves to the front; what `add` refuses,
-        this refuses too.
+        已经是子 mobject 的会移到前面；`add` 拒绝的操作，此方法同样拒绝。
 
         Args:
-            *mobjects: The mobjects to add, in order.
+            *mobjects: 要添加的 mobject，按顺序排列。
         """
         return self._place(0, mobjects)
 
     def insert(self, index: int, mobject: "Mobject") -> Self:
-        """Insert a submobject at a place among the mobject's other submobjects.
+        """在 mobject 的其他子 mobject 之间某处插入一个子 mobject。
 
-        A mobject that is a submobject already moves there; what `add` refuses, this
-        refuses too.
+        已经是子 mobject 的会移到该位置；`add` 拒绝的操作，此方法同样拒绝。
 
         Args:
-            index: Its place in the list of the other submobjects, as `list.insert`
-                takes it.
-            mobject: The mobject to insert.
+            index: 其在其他子 mobject 列表中的位置，与 `list.insert`
+                接受的方式相同。
+            mobject: 要插入的 mobject。
         """
         return self._place(index, (mobject,))
 
     def _place(self, index: int | None, mobjects: Sequence["Mobject"]) -> Self:
-        """The one way submobjects join: each a mobject that neither is this one nor holds
-        it, once (where it last occurs), at `index` among the others (None: last)."""
+        """子 mobject 加入的唯一方式：每个都是既非此 mobject 也非持有它的 mobject，
+        出现一次（在其最后出现的位置），在其他子 mobject 中的 `index` 处（None：最后）。"""
         for i, m in enumerate(mobjects):
             if not isinstance(m, Mobject):
                 raise TypeError(
@@ -1175,11 +1125,11 @@ class Mobject:
         return self
 
     def remove(self, *mobjects: "Mobject") -> Self:
-        """Remove submobjects: those given that are among the mobject's own submobjects
-        (not its submobjects' submobjects); the rest are ignored.
+        """移除子 mobject：在 mobject 自身的子 mobject 中（而非其子 mobject 的子 mobject 中）
+        与给定者匹配的那些；其余的被忽略。
 
         Args:
-            *mobjects: The mobjects to remove.
+            *mobjects: 要移除的 mobject。
         """
         for m in mobjects:
             if m in self.submobjects:
@@ -1187,45 +1137,43 @@ class Mobject:
         return self
 
     def get_family(self) -> list["Mobject"]:
-        """The mobject and all its descendants: itself, then each submobject's family in
-        turn, each member once (where it last occurs, if the tree holds it twice).
+        """mobject 及其所有后代：自身，然后依次是每个子 mobject 的家族，
+        每个成员出现一次（若树中持有它两次，则在其最后出现的位置）。
 
         Returns:
-            A new list.
+            一个新列表。
         """
         if not self.submobjects:
             return [self]
         return _family((self,))
 
     def family_members_with_points(self) -> list["Mobject"]:
-        """The members of the mobject's family that have points of their own: the ones
-        that are drawn.
+        """mobject 家族中拥有自身点的成员：即被绘制的那些。
 
         Returns:
-            A new list, in family order.
+            一个新列表，按家族顺序排列。
         """
         return [m for m in self.get_family() if m.has_points()]
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def split(self) -> list["Mobject"]:
-        """The mobject's parts: itself, if it has points of its own, then its
-        submobjects.
+        """mobject 的各部分：自身（如果它有自身的点），然后是其子 mobject。
 
-        Indexing the mobject (`mobject[0]`), slicing it, iterating over it and its `len`
-        go through the same parts.
+        对 mobject 进行索引（`mobject[0]`）、切片、迭代以及其 `len`
+        都遍历相同的各部分。
 
         Returns:
-            A new list.
+            一个新列表。
         """
         return list(self)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_group_class(self) -> type["Group"]:
-        """The class of the groups the mobject's parts are gathered in: slicing it
-        (`mobject[1:3]`) makes one.
+        """mobject 各部分所聚集的组的类：对它进行切片
+        （`mobject[1:3]`）会创建一个。
 
         Returns:
-            [Group][manimgx.Group].
+            [Group][manimgx.Group]。
         """
         return Group
 
@@ -1247,8 +1195,8 @@ class Mobject:
 
     # ── copying ───────────────────────────────────────────────────────────
     def __deepcopy__(self, memo: dict[int, object]) -> Self:
-        """A copy shares what cannot change (geometry and paint are values, and what the class
-        names in `shared`) and deep-copies the rest."""
+        """拷贝共享不可改变的内容（几何和绘制是值，以及类在 `shared` 中命名的属性），
+        其余部分进行深拷贝。"""
         cls = type(self)
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -1256,25 +1204,23 @@ class Mobject:
         return result
 
     def copy(self) -> Self:
-        """A copy of the mobject, with its whole family.
+        """mobject 的拷贝，连同其整个家族。
 
-        Every mobject its attributes refer to is copied once, so an attribute that
-        refers to one of its members refers to the copy's member. The copy runs the same
-        updater functions, on itself, and is not in the scene. Copying is cheap: the
-        copy shares the original's points and style until either one changes them.
+        其属性所引用的每个 mobject 都被拷贝一次，因此引用其某个成员的属性会引用拷贝的
+        对应成员。拷贝运行相同的更新器函数，但作用于自身，且不在场景中。拷贝代价低廉：
+        拷贝共享原件的点和样式，直到其中一方修改它们。
         """
         return copy.deepcopy(self)
 
     def generate_target(self) -> Self:
-        """Make the mobject's [target][manimgx.Mobject.target]: a copy of it, which you
-        change into the state [MoveToTarget][manimgx.MoveToTarget] then animates the
-        mobject to.
+        """创建 mobject 的 [target][manimgx.Mobject.target]：它的一个拷贝，你将其
+        改变为某种状态，然后 [MoveToTarget][manimgx.MoveToTarget] 将 mobject 动画移动到该状态。
 
-        Using [animate][manimgx.Mobject.animate] makes a new target too, in place of
-        this one.
+        使用 [animate][manimgx.Mobject.animate] 也会创建一个新的目标，
+        替代此目标。
 
         Returns:
-            The target.
+            该目标。
 
         Examples:
             ```python
@@ -1296,10 +1242,10 @@ class Mobject:
         return self.target
 
     def save_state(self) -> Self:
-        """Keep a copy of the mobject as it is now, to return to with
-        [restore][manimgx.Mobject.restore] or the [Restore][manimgx.Restore] animation.
+        """保存 mobject 当前状态的副本，以供
+        [restore][manimgx.Mobject.restore] 或 [Restore][manimgx.Restore] 动画恢复。
 
-        The copy is the mobject's `saved_state`; saving again replaces it.
+        该副本即为 mobject 的 `saved_state`；再次保存会替换它。
 
         Examples:
             ```python
@@ -1321,11 +1267,10 @@ class Mobject:
         return self
 
     def restore(self) -> Self:
-        """Make the mobject what it was when [save_state][manimgx.Mobject.save_state]
-        last kept it: its points and its style, member by member (see
-        [become][manimgx.Mobject.become]).
+        """使该 mobject 恢复为 [save_state][manimgx.Mobject.save_state] 上次保存它时的状态：
+        其点位与样式逐成员地恢复（参见 [become][manimgx.Mobject.become]）。
 
-        Raises an exception if its state was never saved.
+        若其状态从未被保存过，则抛出异常。
         """
         saved = getattr(self, "saved_state", None)
         if saved is None:
@@ -1338,14 +1283,13 @@ class Mobject:
     # it was last brought forward — or attached, joined the scene, or resumed — on its clock:
     # scene time, unless the updater carries a `clock` (ChangeSpeed's do).
     def update(self, dt: float = 0, recursive: bool = True) -> Self:
-        """Run each of the mobject's updaters once, now; nothing runs while its updating
-        is suspended.
+        """立即运行该 mobject 的每个更新器一次；当其更新被挂起时，不运行任何内容。
 
-        The scene runs updaters itself, at every frame: this runs them by hand, now.
+        场景本身会在每一帧运行更新器：此方法则是在当下手动运行它们。
 
         Args:
-            dt: The seconds handed to its time-based updaters.
-            recursive: Whether its submobjects' updaters run too, after its own.
+            dt: 传递给其基于时间的更新器的秒数。
+            recursive: 其子 mobject 的更新器是否也随之一并运行。
         """
         # CE's; the scene uses `advance`
         if self.updating_suspended:
@@ -1372,26 +1316,21 @@ class Mobject:
         recursive: bool = True,
         recorders: "list[_Recorder] | None" = None,
     ) -> Self:
-        """Bring the mobject's updaters to scene time `t`.
+        """将 mobject 的更新器推进到场景时间 `t`。
 
-        An engine hook: the scene calls it on each of its mobjects at every instant it
-        computes, and an animation on the copy of its mobject that the updaters run on
-        while it plays. Each time-based updater is handed the time since it last ran —
-        on its own clock, if it has one (as [ChangeSpeed][manimgx.ChangeSpeed]'s
-        updaters do). A simulated one (time-based, not a
-        [flow][manimgx.mobject.flow]) runs only at the ticks of the simulation
-        clock and at the ends of plays and waits; a per-frame one only at frames and
-        those ends. Nothing runs while the mobject's updating is suspended.
+        引擎钩子：场景在它计算的每个时刻对其每个 mobject 调用它，动画在播放时对其
+        mobject 的拷贝（更新器在其上运行）调用它。每个基于时间的更新器收到自上次运行以来
+        的时间——若其有自己的时钟（如 [ChangeSpeed][manimgx.ChangeSpeed] 的更新器），
+        则在该时钟上。被模拟的更新器（基于时间的，非
+        [flow][manimgx.mobject.flow]）仅在模拟时钟的滴答处以及 play 和 wait 的结束时运行；
+        每帧更新器仅在帧和那些结束处运行。当 mobject 的更新被暂停时，什么也不运行。
 
         Args:
-            t: The scene time, in seconds, exact.
-            recursive: Whether its submobjects' updaters are brought there too, after
-                its own.
-            recorders: Where the scene collects the
-                [recorders][manimgx.mobject.record], each with its mobject
-                and the updater list it came from, to run them once everything
-                else is at `t`; None: they run here, as the
-                simulated updaters they are.
+            t: 场景时间，以秒为单位，精确的。
+            recursive: 其子 mobject 的更新器是否也被推进到该处，在其自身的之后。
+            recorders: 场景收集 [recorders][manimgx.mobject.record] 的地方，每个
+                连同其 mobject 和它来源的更新器列表，以便在其他一切到达 `t` 后运行它们；
+                None：它们在此处运行，作为它们本是的被模拟更新器。
         """
         # a simulated updater runs only where it steps (`clock.stepping`: between the
         # simulation clock's ticks it stays where it was); a per-frame one only at a
@@ -1417,8 +1356,7 @@ class Mobject:
         return self
 
     def _bring(self, updater: Callable[..., object], t: Fraction) -> None:
-        """Run a time-based updater with the time its clock ran since it was last brought
-        forward."""
+        """以更新器的时钟自上次被向前推进以来运行的时间，运行一个基于时间的更新器。"""
         since = self._since
         start = since.get(updater, t)
         since[updater] = t
@@ -1428,14 +1366,14 @@ class Mobject:
 
     @property
     def _since(self) -> dict[object, Fraction]:
-        """When each time-based updater was last brought forward (made on first use)."""
+        """每个基于时间的更新器上次被向前推进的时间（首次使用时创建）。"""
         since = self.__dict__.get("_since_")
         if since is None:
             since = self.__dict__["_since_"] = {}
         return since
 
     def _stamp(self, t: Fraction, recursive: bool = True) -> None:
-        """The time-based updaters start (again) from `t`: they joined the scene, or resumed."""
+        """基于时间的更新器从 `t`（重新）开始：它们加入了场景，或恢复了更新。"""
         for updater in self.updaters:
             if not _per_frame(updater):
                 self._since[updater] = t
@@ -1463,37 +1401,34 @@ class Mobject:
         index: int | None = None,
         call_updater: bool = False,
     ) -> Self:
-        """Add an updater: a function that keeps the mobject updated as time passes.
+        """添加更新器：一个随时间推移保持 mobject 更新的函数。
 
-        An updater is a function of the mobject, run once a frame — to keep a relation,
-        such as a label beside a dot — or, if it has a parameter named `dt`, of the
-        mobject and `dt`: the seconds of scene time since it last ran, or since it was
-        added, the mobject joined the scene, or its updating resumed. A time-based
-        updater moves the mobject by the time that passed:
-        `lambda mob, dt: mob.rotate(dt * PI)` turns it half a turn a second, at any
-        frame rate. What an updater returns is ignored.
+        更新器是关于 mobject 的函数，每帧运行一次——以保持某种关系，
+        如标签在点旁边——或者，若其有一个名为 `dt` 的参数，则是关于
+        mobject 和 `dt` 的函数：`dt` 为自上次运行以来、自添加以来、mobject 加入场景以来
+        或其更新恢复以来的场景时间秒数。基于时间的更新器按经过的时间移动 mobject：
+        `lambda mob, dt: mob.rotate(dt * PI)` 以每秒半圈的速度旋转它，与帧率无关。
+        更新器的返回值被忽略。
 
-        The scene runs the updaters of the mobjects in it at every frame, after the
-        animations playing have moved them to the frame's instant, and at the end of
-        each play and wait: mobject by mobject in the order they were added to the
-        scene, a mobject's own before its submobjects', and a
-        [recorder][manimgx.mobject.record] after all the rest. So add a mobject
-        that follows another after it, or it sees where the other's updaters left it at
-        the instant before. Updaters keep running while an animation plays the mobject,
-        beneath the animation (see `suspend_mobject_updating` among the
-        [animation options][manimgx.animation.timeline.AnimationOptions]). A time-based
-        updater steps on the scene's simulation clock, `config.simulation_rate` ticks a
-        second, so it takes the same steps at any frame rate; declare one that does the
-        same however its time is split a [flow][manimgx.mobject.flow], and it runs
-        exactly at every frame instead.
+        场景在每一帧运行其中各 mobject 的更新器，在正在播放的动画将它们移动到该帧时刻之后，
+        以及在每次 play 和 wait 的结束时运行：按 mobject 加入场景的顺序逐个处理，
+        mobject 自身的更新器在其子 mobject 的之前运行，而
+        [recorder][manimgx.mobject.record] 在所有其余的之后运行。因此，要让一个 mobject
+        跟随另一个，应在它之后添加，否则它会看到另一个的更新器在前一时刻将其留在何处。
+        更新器在动画播放 mobject 时继续运行，在动画之下（参见
+        [animation options][manimgx.animation.timeline.AnimationOptions] 中的
+        `suspend_mobject_updating`）。基于时间的更新器在场景的模拟时钟上步进，
+        `config.simulation_rate` 每秒滴答一次，因此它在任何帧率下都采取相同的步长；
+        将一个无论时间如何划分都做相同之事的更新器声明为 [flow][manimgx.mobject.flow]，
+        它便会在每一帧精确运行。
 
         Args:
-            update_function: The updater: a function of the mobject, or of the mobject
-                and `dt`.
-            index: Where it goes among the mobject's updaters, which run in order; None
-                for last.
-            call_updater: Whether to run it once right away; a time-based one is handed
-                a `dt` of 0.
+            update_function: 更新器：关于 mobject 的函数，或关于 mobject
+                和 `dt` 的函数。
+            index: 它在 mobject 的更新器中的位置，更新器按顺序运行；None
+                表示最后。
+            call_updater: 是否立即运行一次；基于时间的更新器收到的
+                `dt` 为 0。
 
         Examples:
             ```python
@@ -1528,13 +1463,13 @@ class Mobject:
         return self
 
     def remove_updater(self, update_function: Updater[Never]) -> Self:
-        """Remove an updater from the mobject, every time it was added.
+        """从 mobject 中移除一个更新器，每次添加的都被移除。
 
-        This also cancels calls that have not yet run in the current update,
-        including a recorder waiting for the other updaters to finish.
+        这还会取消当前更新中尚未运行的调用，
+        包括等待其他更新器完成的记录器。
 
         Args:
-            update_function: The updater to remove.
+            update_function: 要移除的更新器。
         """
         self.updaters = [u for u in self.updaters if u is not update_function]
         since = self.__dict__.get("_since_")
@@ -1543,11 +1478,10 @@ class Mobject:
         return self
 
     def clear_updaters(self, recursive: bool = True) -> Self:
-        """Remove every updater of the mobject, including calls still waiting
-        to run in the current update.
+        """移除 mobject 的所有更新器，包括仍在当前更新中等待运行的调用。
 
         Args:
-            recursive: Whether its whole family's updaters are removed too.
+            recursive: 其整个家族的更新器是否也被移除。
         """
         self.updaters = []
         self.__dict__.pop("_since_", None)
@@ -1557,52 +1491,52 @@ class Mobject:
         return self
 
     def get_updaters(self) -> tuple[Updater[Self], ...]:
-        """The mobject's own updaters, in the order they run.
+        """mobject 自身的更新器，按运行顺序排列。
 
-        Change them with [add_updater][manimgx.Mobject.add_updater],
-        [remove_updater][manimgx.Mobject.remove_updater] and
-        [clear_updaters][manimgx.Mobject.clear_updaters], which keep their clocks with
-        them.
+        通过 [add_updater][manimgx.Mobject.add_updater]、
+        [remove_updater][manimgx.Mobject.remove_updater] 和
+        [clear_updaters][manimgx.Mobject.clear_updaters] 来更改它们，这些方法会保持
+        其时钟。
 
         Returns:
-            A snapshot of them.
+            它们的一个快照。
         """
         return tuple(self.updaters)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_family_updaters(self) -> list[Updater[Never]]:  # each of its own kind
-        """Every updater of the mobject's family: its own, then its descendants', in
-        family order.
+        """mobject 家族的所有更新器：自身的，然后是后代的，按
+        家族顺序排列。
 
         Returns:
-            A new list.
+            一个新列表。
         """
         return [u for m in self.get_family() for u in m.updaters]
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def has_time_based_updater(self) -> bool:
-        """Whether any of the mobject's own updaters is time-based: it takes `dt`."""
+        """mobject 自身的更新器中是否有基于时间的：即接受 `dt` 的。"""
         return not all(_per_frame(u) for u in self.updaters)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_time_based_updaters(self) -> list[Updater[Self]]:
-        """The mobject's own time-based updaters: those that take `dt`.
+        """mobject 自身的基于时间的更新器：即接受 `dt` 的那些。
 
         Returns:
-            A new list, in the order they run.
+            一个新列表，按运行顺序排列。
         """
         return [u for u in self.updaters if not _per_frame(u)]
 
     @property
     def always(self) -> "Always[Self]":
-        """A proxy that turns each method call made on it into an updater: the call is
-        made again every frame.
+        """一个代理，将对其进行的每个方法调用转化为更新器：该调用
+        每帧再次执行。
 
-        `label.always.next_to(dot, UP)` keeps the label above the dot, wherever the dot
-        goes. Each call is also made right away, and adds one per-frame updater (see
-        [add_updater][manimgx.Mobject.add_updater]); the proxy returns itself, so calls
-        chain. The arguments are taken once, as written: pass the mobject to follow
-        (`dot`), not its position (`dot.get_center()`), which stays where it was.
+        `label.always.next_to(dot, UP)` 使标签保持在点上方，无论点移到哪里。
+        每个调用也会立即执行，并添加一个每帧更新器（参见
+        [add_updater][manimgx.Mobject.add_updater]）；代理返回自身，因此调用可以链式书写。
+        参数按所写形式只取一次：传入要跟随的 mobject（`dot`），
+        而非其位置（`dot.get_center()`），后者会停留在原处。
 
         Examples:
             ```python
@@ -1625,14 +1559,14 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def match_updaters(self, mobject: "Mobject") -> Self:
-        """Give the mobject another's updaters in place of its own, and clear its
-        submobjects'.
+        """将另一个 mobject 的更新器赋予此 mobject 以替代其自身的，并清除其
+        子 mobject 的更新器。
 
-        They are the same functions, now run on this mobject too; the time-based ones
-        start from now.
+        它们是相同的函数，现在也在此 mobject 上运行；基于时间的更新器
+        从现在开始。
 
         Args:
-            mobject: The mobject whose updaters to take (its own, not its family's).
+            mobject: 要取其更新器的 mobject（其自身的，而非其家族的）。
         """
         self.clear_updaters()
         self.updaters.extend(
@@ -1642,18 +1576,18 @@ class Mobject:
         return self
 
     def suspend_updating(self, recursive: bool = True) -> Self:
-        """Stop the mobject's updaters from running, and its family's beneath it, until
-        [resume_updating][manimgx.Mobject.resume_updating]: nothing updated through a
-        suspended mobject runs.
+        """停止 mobject 的更新器运行，以及其下方的家族的更新器，直到
+        [resume_updating][manimgx.Mobject.resume_updating]：通过被暂停的 mobject
+        更新的任何东西都不运行。
 
-        An animation suspends the updating of the mobject it plays while it plays, and
-        runs the updaters beneath it instead (see
-        [add_updater][manimgx.Mobject.add_updater]).
+        动画在播放时暂停其所播放 mobject 的更新，并
+        改为运行其下方的更新器（参见
+        [add_updater][manimgx.Mobject.add_updater]）。
 
         Args:
-            recursive: Whether each member of its family is suspended too, so that it stays
-                stopped where it is updated apart from the mobject (a member the scene
-                also holds by itself), and when the mobject alone resumes.
+            recursive: 其家族的每个成员是否也被暂停，以使其在
+                mobject 之外独立更新的地方保持停止（场景也单独持有的成员），
+                以及当 mobject 单独恢复时。
         """
         self.updating_suspended = True
         if recursive:
@@ -1662,17 +1596,16 @@ class Mobject:
         return self
 
     def resume_updating(self, recursive: bool = True) -> Self:
-        """Let the mobject's updaters run again, from now: the time they were suspended
-        is not made up.
+        """让 mobject 的更新器再次运行，从现在开始：被暂停的
+        时间不予补偿。
 
-        They are not run here: the scene runs them where it next brings the world — at
-        the instant it is computing, when an animation resumes them as it finishes,
-        else at the next one, such as the next frame.
+        它们不在此处运行：场景在它下次将世界推进到的地方运行它们——在
+        它正在计算的时刻，当动画在结束时恢复它们时，
+        否则在下一个时刻，如下一帧。
 
         Args:
-            recursive: Whether its whole family's updaters resume too: resumed alone, the
-                mobject runs again, and the members beneath it that are not suspended
-                themselves.
+            recursive: 其整个家族的更新器是否也恢复：单独恢复时，
+                mobject 再次运行，以及其下方未被自身暂停的成员。
         """
         # not run here as well: the instant's own pass runs them, and a per-frame
         # updater would run twice at one instant
@@ -1691,22 +1624,21 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """Apply a function to the points of the mobject's whole family, about a point:
-        each drawn member's points become `func(points - about_point) + about_point`.
+        """对 mobject 整个家族的点关于某点应用一个函数：
+        每个绘制成员的点变为 `func(points - about_point) + about_point`。
 
-        It moves the points alone, and a path's curves follow its control points: they
-        are exactly their image under an affine map (a move, a scale, a rotation, a
-        matrix), but stray from it under a function that bends them.
-        [apply_function][manimgx.Mobject.apply_function] maps a path's curves
-        themselves, cutting them where a function bends them.
+        它只移动点，路径的曲线跟随其控制点：在仿射映射（移动、缩放、旋转、
+        矩阵）下它们恰好是其像，但在弯曲它们的函数下会偏离。
+        [apply_function][manimgx.Mobject.apply_function] 映射路径的曲线
+        本身，在函数弯曲它们处切割。
 
         Args:
-            func: A function of an (n, 3) array of points, relative to the point, that
-                returns their new places.
-            about_point: The point the function is applied about; None: see
-                `about_edge`.
-            about_edge: The point of the mobject's bounding box it is applied about,
-                named by a direction (UL for its top left corner); None for its center.
+            func: 一个关于相对于该点的 (n, 3) 点数组的函数，
+                返回它们的新位置。
+            about_point: 函数应用所关于的点；None：参见
+                `about_edge`。
+            about_edge: mobject 边界框上函数应用所关于的点，
+                以方向命名（UL 表示其左上角）；None 表示其中心。
         """
         if about_point is None:
             about_point = self.get_critical_point(
@@ -1718,11 +1650,11 @@ class Mobject:
         return self
 
     def shift(self, *vectors: Vector3DLike) -> Self:
-        """Move the mobject and its whole family by a vector.
+        """将 mobject 及其整个家族按一个向量移动。
 
         Args:
-            *vectors: The vector, in scene units (`2 * RIGHT` moves it two units right);
-                several are added into one.
+            *vectors: 向量，以场景单位表示（`2 * RIGHT` 将其向右移动两个单位）；
+                多个向量会相加为一个。
 
         Examples:
             ```python
@@ -1750,7 +1682,7 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """x ↦ L(x − about) + about on every member: a matrix composed into the geometry."""
+        """在每个成员上 x ↦ L(x − about) + about：一个复合进几何的矩阵。"""
         if about_point is None:
             about_point = self.get_critical_point(
                 ORIGIN if about_edge is None else about_edge
@@ -1770,20 +1702,20 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """Scale the mobject and its whole family about a point: by one factor, or by
-        one per axis.
+        """关于某点缩放 mobject 及其整个家族：按一个因子，或
+        按每轴一个因子。
 
-        Stroke widths stay as they are, unless `scale_stroke`.
+        描边宽度保持不变，除非指定 `scale_stroke`。
 
         Args:
-            scale_factor: The factor: 2 doubles the mobject's size, 0.5 halves it, and a
-                negative factor also reflects it through the point; or its factors along
-                x, y and z.
-            scale_stroke: Whether stroke widths scale too, by the factor (for factors
-                per axis, the geometric mean of the sizes of x's and y's).
-            about_point: The point that stays fixed; None: see `about_edge`.
-            about_edge: The point of the mobject's bounding box that stays fixed, named
-                by a direction (DL for its bottom left corner); None for its center.
+            scale_factor: 因子：2 将 mobject 的尺寸加倍，0.5 将其减半，
+                负因子还使其关于该点反射；或其沿
+                x、y 和 z 的因子。
+            scale_stroke: 描边宽度是否也按因子缩放（对于每轴因子的情况，
+                为 x 和 y 尺寸的几何平均值）。
+            about_point: 保持不动的点；None：参见 `about_edge`。
+            about_edge: mobject 边界框上保持不动的点，以
+                方向命名（DL 表示其左下角）；None 表示其中心。
 
         Examples:
             ```python
@@ -1834,20 +1766,19 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """Rotate the mobject and its whole family by an angle, about an axis through a
-        point.
+        """将 mobject 及其整个家族旋转一个角度，绕过某点的
+        轴。
 
-        Its sheen direction turns with it. Through [animate][manimgx.Mobject.animate],
-        the mobject turns rigidly through the whole angle.
+        其光泽方向随之转动。通过 [animate][manimgx.Mobject.animate]，
+        mobject 刚性地转过整个角度。
 
         Args:
-            angle: The angle, in radians: counterclockwise as seen from where `axis`
-                points (on the screen, for the default axis).
-            axis: The axis's direction (default OUT, out of the screen: a turn in the
-                plane).
-            about_point: The point the axis goes through; None: see `about_edge`.
-            about_edge: The point of the mobject's bounding box the axis goes through,
-                named by a direction (DL for its bottom left corner); None for its
+            angle: 角度，以弧度表示：从 `axis` 所指方向看去为逆时针
+                （对于默认轴，即在屏幕上）。
+            axis: 轴的方向（默认 OUT，即屏幕外：平面内的旋转）。
+            about_point: 轴所经过的点；None：参见 `about_edge`。
+            about_edge: mobject 边界框上轴所经过的点，
+                以方向命名（DL 表示其左下角）；None 表示其
                 center.
 
         Examples:
@@ -1881,13 +1812,12 @@ class Mobject:
         category=None,
     )
     def rotate_about_origin(self, angle: float, axis: Vector3DLike = OUT) -> Self:
-        """Rotate the mobject and its whole family by an angle, about an axis through
-        the origin: `rotate(angle, axis, about_point=ORIGIN)`.
+        """将 mobject 及其整个家族旋转一个角度，绕过原点的轴：
+        `rotate(angle, axis, about_point=ORIGIN)`。
 
         Args:
-            angle: The angle, in radians: counterclockwise as seen from where `axis`
-                points.
-            axis: The axis's direction (default OUT: a turn in the plane of the screen).
+            angle: 角度，以弧度表示：从 `axis` 所指方向看去为逆时针。
+            axis: 轴的方向（默认 OUT：在屏幕平面内旋转）。
         """
         return self.rotate(angle, axis, about_point=ORIGIN)
 
@@ -1898,17 +1828,17 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """Flip the mobject and its whole family over: turn it half around an axis
-        through a point, which mirrors it across that axis.
+        """翻转 mobject 及其整个家族：绕过某点的轴转半圈，
+        即关于该轴镜像。
 
-        About the default UP axis, it is mirrored left to right; about RIGHT, upside
-        down. Through [animate][manimgx.Mobject.animate], it turns over, through space.
+        关于默认的 UP 轴，左右镜像；关于 RIGHT 轴，上下颠倒。
+        通过 [animate][manimgx.Mobject.animate]，它翻转，穿过空间。
 
         Args:
-            axis: The axis's direction (default UP).
-            about_point: The point the axis goes through; None: see `about_edge`.
-            about_edge: The point of the mobject's bounding box the axis goes through,
-                named by a direction; None for its center.
+            axis: 轴的方向（默认 UP）。
+            about_point: 轴所经过的点；None：参见 `about_edge`。
+            about_edge: mobject 边界框上轴所经过的点，
+                以方向命名；None 表示其中心。
 
         Examples:
             ```python
@@ -1932,13 +1862,13 @@ class Mobject:
         category=None,
     )
     def stretch_about_point(self, factor: float, dim: int, point: Point3DLike) -> Self:
-        """Stretch the mobject and its whole family along one axis, keeping a point
-        fixed (see [stretch][manimgx.Mobject.stretch]).
+        """沿一个轴拉伸 mobject 及其整个家族，保持某点不动
+        （参见 [stretch][manimgx.Mobject.stretch]）。
 
         Args:
-            factor: The factor along the axis.
-            dim: The axis: 0 for x, 1 for y, 2 for z.
-            point: The point that stays fixed.
+            factor: 沿轴的因子。
+            dim: 轴：0 表示 x，1 表示 y，2 表示 z。
+            point: 保持不动的点。
         """
         return self.stretch(factor, dim, about_point=point)
 
@@ -1950,18 +1880,18 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """Stretch the mobject and its whole family along one axis: scale that
-        coordinate of every point, about a point, and keep the others.
+        """沿一个轴拉伸 mobject 及其整个家族：关于某点缩放每个点的
+        该坐标，并保持其他坐标不变。
 
-        Stroke widths stay as they are.
+        描边宽度保持不变。
 
         Args:
-            factor: The factor: 2 makes the mobject twice as long along the axis.
-            dim: The axis: 0 for x (its width), 1 for y (its height), 2 for z.
-            about_point: The point that stays fixed; None: see `about_edge`.
-            about_edge: The point of the mobject's bounding box that stays fixed, named
-                by a direction (DOWN for the middle of its bottom edge); None for its
-                center.
+            factor: 因子：2 使 mobject 沿该轴长度加倍。
+            dim: 轴：0 表示 x（其宽度），1 表示 y（其高度），2 表示 z。
+            about_point: 保持不动的点；None：参见 `about_edge`。
+            about_edge: mobject 边界框上保持不动的点，以
+                方向命名（DOWN 表示其底边中点）；None 表示其
+                中心。
 
         Examples:
             ```python
@@ -1987,16 +1917,16 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """Transform the mobject and its whole family by a matrix: each point, taken
-        relative to a fixed point, is multiplied by it.
+        """通过矩阵变换 mobject 及其整个家族：每个点取相对于
+        固定点的坐标，乘以该矩阵。
 
         Args:
-            matrix: A 3 × 3 matrix, or a smaller one (2 × 2) that acts on the first
-                coordinates and keeps the rest.
-            about_point: The point that stays fixed; with neither this nor `about_edge`,
-                the origin.
-            about_edge: The point of the mobject's bounding box that stays fixed, named
-                by a direction.
+            matrix: 一个 3 × 3 矩阵，或更小的矩阵（2 × 2），作用于前几个
+                坐标并保持其余不变。
+            about_point: 保持不动的点；当此参数和 `about_edge` 均未指定时，
+                为原点。
+            about_edge: mobject 边界框上保持不动的点，以
+                方向命名。
 
         Examples:
             ```python
@@ -2030,24 +1960,23 @@ class Mobject:
         about_point: Point3DLike | None = None,
         about_edge: Vector3DLike | None = None,
     ) -> Self:
-        """Move the mobject's whole family through a function, about a point: each
-        drawn member becomes its image under the function.
+        """通过函数移动 mobject 的整个家族，关于某点：每个
+        绘制成员变为其在该函数下的像。
 
-        A path's curves are mapped to the curves of their image. Each curve is mapped to
-        the curve through the images of its ends, along the images of its directions
-        there; where one strays from the true image halfway along it by more than 0.001
-        scene units (a quarter of a pixel at 4K), every curve of the path is cut into 2,
-        4, 8, … equal pieces (at most 256 each), and the pieces are mapped instead. Any
-        other kind maps its points. Through [animate][manimgx.Mobject.animate], each
-        point of the path, cut the same way, moves straight to its image.
+        路径的曲线被映射为其像的曲线。每条曲线被映射为经过其端点之像、
+        沿其方向之像的曲线；当某条曲线在其中点处偏离真实像超过 0.001
+        场景单位（4K 下四分之一像素）时，路径的每条曲线被切割为 2、
+        4、8、… 等份（每条最多 256 份），然后映射各份。其他类型映射其点。
+        通过 [animate][manimgx.Mobject.animate]，路径的每个点以相同方式切割，
+        直线移动到其像。
 
         Args:
-            function: A function of a point, relative to the fixed point, that returns
-                its new place.
-            about_point: The point the function is applied about; with neither this nor
-                `about_edge`, the origin, so the function sees scene coordinates.
-            about_edge: The point of the mobject's bounding box it is applied about,
-                named by a direction.
+            function: 一个关于点的函数，相对于固定点，返回
+                其新位置。
+            about_point: 函数应用所关于的点；当此参数和
+                `about_edge` 均未指定时，为原点，因此函数看到的是场景坐标。
+            about_edge: mobject 边界框上函数应用所关于的点，
+                以方向命名。
 
         Examples:
             ```python
@@ -2082,22 +2011,22 @@ class Mobject:
     def _map_points(
         self, function: Callable[[Point3D], Point3D], about: np.ndarray
     ) -> None:
-        """This leaf's image under `function`, about `about`: each point mapped."""
+        """此叶子在 `function` 下关于 `about` 的像：每个点被映射。"""
         self.points = np.apply_along_axis(function, 1, self.points - about) + about
 
     def apply_complex_function(
         self, function: Callable[[complex], complex], **kwargs: Unpack[Pivot]
     ) -> Self:
-        """Move the mobject's whole family through a function of a complex number: the
-        point (x, y, z) is x + iy, and goes where `function` sends it, keeping its z.
+        """通过复数函数移动 mobject 的整个家族：点
+        (x, y, z) 视为 x + iy，送往 `function` 所映射的位置，保持其 z。
 
-        A path's curves are mapped as [apply_function][manimgx.Mobject.apply_function]
-        maps them.
+        路径的曲线按 [apply_function][manimgx.Mobject.apply_function]
+        的方式映射。
 
         Args:
-            function: A function of a complex number, returning one.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point the
-                function is applied about (default: the origin).
+            function: 一个复数函数，返回一个复数。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：函数应用
+                所关于的点（默认：原点）。
 
         Examples:
             ```python
@@ -2126,12 +2055,12 @@ class Mobject:
     def apply_function_to_position(
         self, function: Callable[[Point3D], Point3D]
     ) -> Self:
-        """Move the mobject so its center goes where a function sends it; its shape
-        stays.
+        """移动 mobject 使其中心到达函数所映射的位置；其形状
+        保持不变。
 
         Args:
-            function: A function of a point, in scene coordinates, that returns its new
-                place.
+            function: 一个关于点的函数，以场景坐标表示，返回其新
+                位置。
         """
         return self.move_to(function(self.get_center()))
 
@@ -2139,12 +2068,12 @@ class Mobject:
     def apply_function_to_submobject_positions(
         self, function: Callable[[Point3D], Point3D]
     ) -> Self:
-        """Move each submobject so its center goes where a function sends it; their
-        shapes stay.
+        """移动每个子 mobject 使其中心到达函数所映射的位置；它们的
+        形状保持不变。
 
         Args:
-            function: A function of a point, in scene coordinates, that returns its new
-                place.
+            function: 一个关于点的函数，以场景坐标表示，返回其新
+                位置。
         """
         for sub in self.submobjects:
             sub.apply_function_to_position(function)
@@ -2152,8 +2081,8 @@ class Mobject:
 
     @deprecated("use reverse_direction", category=None)
     def reverse_points(self) -> Self:
-        """Reverse the order of the points of each drawn member of the family: a path
-        then runs the other way, from its end to its start.
+        """反转家族中每个绘制成员的点的顺序：路径
+        随后以相反方向运行，从终点到起点。
         """
         for mob in self.family_members_with_points():
             mob.points = mob.points[::-1].copy()
@@ -2162,16 +2091,16 @@ class Mobject:
     # ── bounds: one box, what the family draws ───────────────────────────────
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def length_over_dim(self, dim: int) -> float:
-        """The mobject's extent along one axis, in scene units: its
-        [bounding box][manimgx.Mobject.boundary_box]'s, from its lowest coordinate to
-        its highest.
+        """mobject 沿一个轴的范围，以场景单位表示：即其
+        [边界框][manimgx.Mobject.boundary_box] 的范围，从其最低坐标到
+        最高坐标。
 
         Args:
-            dim: The axis: 0 for x (its width), 1 for y (its height), 2 for z (its
-                depth).
+            dim: 轴：0 表示 x（其宽度），1 表示 y（其高度），2 表示 z（其
+                深度）。
 
         Returns:
-            The extent; 0 if it has no points.
+            范围；若无点则为 0。
         """
         box = self.boundary_box()
         return 0 if box is None else float(box[1, dim] - box[0, dim])
@@ -2180,17 +2109,17 @@ class Mobject:
     def get_extremum_along_dim(
         self, points: Point3D_Array | None = None, dim: int = 0, key: float = 0
     ) -> float:
-        """The lowest, the middle or the highest coordinate along one axis, of some
-        points or of the mobject's [bounding box][manimgx.Mobject.boundary_box].
+        """沿一个轴的最低、中间或最高坐标，取自某些
+        点或 mobject 的 [边界框][manimgx.Mobject.boundary_box]。
 
         Args:
-            points: The points, as an (n, 3) array; None for the mobject's bounding box.
-            dim: The axis: 0 for x, 1 for y, 2 for z.
-            key: Which: negative for the lowest, 0 for the middle of the range, positive
-                for the highest.
+            points: 点，以 (n, 3) 数组表示；None 表示 mobject 的边界框。
+            dim: 轴：0 表示 x，1 表示 y，2 表示 z。
+            key: 选择哪个：负数取最低，0 取范围中点，正数
+                取最高。
 
         Returns:
-            The coordinate; 0 for the box of a mobject with no points.
+            坐标；对于无点 mobject 的边界框为 0。
         """
         if points is None:
             box = self.boundary_box()
@@ -2200,44 +2129,42 @@ class Mobject:
         return float(lo if key < 0 else hi if key > 0 else (lo + hi) / 2)
 
     def _box(self) -> np.ndarray | None:
-        """The (2, 3) box of what this member draws, alone: its geometry's (a path's,
-        its curves' tight box); None when it draws nothing."""
+        """此成员单独绘制内容的 (2, 3) 边界框：其几何的（路径的，
+        即其曲线的紧边界框）；当不绘制任何内容时为 None。"""
         return self._geometry.box(self._curves)
 
     def boundary_box(self) -> np.ndarray | None:
-        """The mobject's bounding box: the smallest box, aligned with the axes, around
-        what its family draws.
+        """mobject 的边界框：围绕其家族绘制内容的最小、与坐标轴对齐的框。
 
-        A path is measured by its curves themselves, not by their control points (a
-        curve bulges past its anchors where it turns, and its handles reach past the
-        curve); any other kind by its points. A stroke's width is not counted. It is
-        the one box every measure reads: [width][manimgx.Mobject.width] and
-        [height][manimgx.Mobject.height], the corners, edges and center
-        ([get_critical_point][manimgx.Mobject.get_critical_point]), `get_x` and `get_y`,
-        alignment and layout, and the extent of a color gradient. It joins the boxes of
-        the family's members, so a member spans the same in whatever group holds it.
+        路径由其曲线本身测量，而非其控制点（曲线在转折处超出其锚点，
+        其控制柄超出曲线）；其他类型由其点测量。描边宽度不计入。它是
+        所有度量所读取的唯一边界框：[width][manimgx.Mobject.width] 和
+        [height][manimgx.Mobject.height]，角点、边和中心
+        （[get_critical_point][manimgx.Mobject.get_critical_point]），`get_x` 和 `get_y`，
+        对齐和布局，以及颜色渐变的范围。它合并家族各成员的边界框，
+        因此一个成员在任何持有它的组中跨度相同。
 
         Returns:
-            A 2 × 3 array, the lowest (x, y, z) then the highest; None if the family has
-            no points.
+            一个 2 × 3 数组，最低 (x, y, z) 然后最高；若家族无点则为
+            None。
         """
         return _family_box(self.get_family())
 
     def get_critical_point(self, direction: Vector3DLike) -> Point3D:
-        """A point of the mobject's bounding box, named by a direction: its center, the
-        middle of an edge, or a corner.
+        """mobject 边界框上的一个点，以方向命名：其中心、
+        一条边的中点或一个角点。
 
-        Each coordinate is the box's lowest where the direction's is negative, its
-        highest where it is positive, and its middle where it is 0: UR names the top
-        right corner, UP the middle of the top edge, ORIGIN the center. The box is
-        [boundary_box][manimgx.Mobject.boundary_box], around what the mobject draws: a
-        path's curves themselves, not their control points.
+        每个坐标在方向分量为负时取边界框的最低值，为正时取
+        最高值，为 0 时取中值：UR 命名右上角，UP 命名顶边中点，
+        ORIGIN 命名中心。该边界框为
+        [boundary_box][manimgx.Mobject.boundary_box]，围绕 mobject 绘制的内容：
+        路径的曲线本身，而非其控制点。
 
         Args:
-            direction: The direction, such as UP, UR or ORIGIN.
+            direction: 方向，如 UP、UR 或 ORIGIN。
 
         Returns:
-            The point, in scene coordinates; the origin if the mobject has no points.
+            该点，以场景坐标表示；若 mobject 无点则为原点。
         """
         box = self.boundary_box()
         if box is None:
@@ -2256,168 +2183,167 @@ class Mobject:
         category=None,
     )
     def get_edge_center(self, direction: Vector3DLike) -> Point3D:
-        """The middle of an edge of the mobject's bounding box, named by a direction:
-        [get_critical_point][manimgx.Mobject.get_critical_point], by another name."""
+        """mobject 边界框某边的中点，以方向命名：
+        [get_critical_point][manimgx.Mobject.get_critical_point] 的另一个名称。"""
         return self.get_critical_point(direction)
 
     get_corner = get_critical_point
-    """A corner of the mobject's bounding box, named by a direction (`get_corner(UR)`):
-    another name for [get_critical_point][manimgx.Mobject.get_critical_point]."""
+    """mobject 边界框的角点，以方向命名（`get_corner(UR)`）：
+    [get_critical_point][manimgx.Mobject.get_critical_point] 的另一个名称。"""
 
     def get_center(self) -> Point3D:
-        """The center of the mobject's bounding box.
+        """mobject 边界框的中心。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.get_critical_point(np.zeros(self.dim))
 
     @deprecated("use get_center", category=None)
     def get_center_of_mass(self) -> Point3D:
-        """The mean of all the points of the mobject's family: every control point of a
-        path, its handles too.
+        """mobject 家族所有点的均值：路径的每个控制点，
+        包括控制柄。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return np.mean(self.get_all_points(), axis=0)
 
     def get_boundary_point(self, direction: Vector3DLike) -> Point3D:
-        """The point of the mobject farthest in a direction: of the points it is drawn
-        through, the one farthest along `direction`.
+        """mobject 在某方向上最远的点：在其绘制经过的点中，
+        沿 `direction` 方向最远的那个。
 
-        Unlike [get_critical_point][manimgx.Mobject.get_critical_point], it is one of
-        those points (for a path, an end of one of its curves), not a point of the
-        mobject's bounding box.
+        与 [get_critical_point][manimgx.Mobject.get_critical_point] 不同，它是
+        这些点之一（对于路径，为其某条曲线的端点），而非 mobject
+        边界框上的点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         points = self.get_points_defining_boundary()
         return points[np.argmax(points @ np.asarray(direction))]
 
     def get_top(self) -> Point3D:
-        """The middle of the top edge of the mobject's bounding box.
+        """mobject 边界框顶边的中点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.get_critical_point(UP)
 
     def get_bottom(self) -> Point3D:
-        """The middle of the bottom edge of the mobject's bounding box.
+        """mobject 边界框底边的中点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.get_critical_point(DOWN)
 
     def get_right(self) -> Point3D:
-        """The middle of the right edge of the mobject's bounding box.
+        """mobject 边界框右边的中点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.get_critical_point(RIGHT)
 
     def get_left(self) -> Point3D:
-        """The middle of the left edge of the mobject's bounding box.
+        """mobject 边界框左边的中点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.get_critical_point(LEFT)
 
     @deprecated("use get_critical_point(OUT), or get_critical_point(IN)", category=None)
     def get_zenith(self) -> Point3D:
-        """The middle of the face of the mobject's bounding box farthest out of the
-        screen (toward OUT: its highest z).
+        """mobject 边界框最远离屏幕的面（朝向 OUT：其最高 z）的
+        中点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.get_critical_point(OUT)
 
     @deprecated("use get_critical_point(OUT), or get_critical_point(IN)", category=None)
     def get_nadir(self) -> Point3D:
-        """The middle of the face of the mobject's bounding box farthest into the screen
-        (toward IN: its lowest z).
+        """mobject 边界框最深入屏幕的面（朝向 IN：其最低 z）的
+        中点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.get_critical_point(IN)
 
     @deprecated("use get_x, get_y or get_z", category=None)
     def get_coord(self, dim: int, direction: Vector3DLike = ORIGIN) -> float:
-        """One coordinate of a point of the mobject's bounding box: along axis `dim`,
-        its lowest, middle or highest, as `direction`'s coordinate there is negative, 0
-        or positive.
+        """mobject 边界框上某点的一个坐标：沿轴 `dim`，
+        取最低、中间或最高值，取决于 `direction` 在该处的坐标为负、0
+        或正。
 
         Args:
-            dim: The axis: 0 for x, 1 for y, 2 for z.
-            direction: A direction such as LEFT, ORIGIN or RIGHT (default ORIGIN: the
-                middle).
+            dim: 轴：0 表示 x，1 表示 y，2 表示 z。
+            direction: 方向，如 LEFT、ORIGIN 或 RIGHT（默认 ORIGIN：
+                中间）。
         """
         return self.get_extremum_along_dim(dim=dim, key=np.asarray(direction)[dim])
 
     def get_x(self, direction: Vector3DLike = ORIGIN) -> float:
-        """The x coordinate of the mobject's center, or of an edge of its bounding box.
+        """mobject 中心的 x 坐标，或其边界框某边的 x 坐标。
 
         Args:
-            direction: LEFT for its left edge, RIGHT for its right edge; ORIGIN
-                (default) for its center.
+            direction: LEFT 表示其左边，RIGHT 表示其右边；ORIGIN
+                （默认）表示其中心。
         """
         return self.get_coord(0, direction)
 
     def get_y(self, direction: Vector3DLike = ORIGIN) -> float:
-        """The y coordinate of the mobject's center, or of an edge of its bounding box.
+        """mobject 中心的 y 坐标，或其边界框某边的 y 坐标。
 
         Args:
-            direction: DOWN for its bottom edge, UP for its top edge; ORIGIN (default)
-                for its center.
+            direction: DOWN 表示其底边，UP 表示其顶边；ORIGIN（默认）
+                表示其中心。
         """
         return self.get_coord(1, direction)
 
     def get_z(self, direction: Vector3DLike = ORIGIN) -> float:
-        """The z coordinate of the mobject's center, or of a face of its bounding box.
+        """mobject 中心的 z 坐标，或其边界框某面的 z 坐标。
 
         Args:
-            direction: IN for its lowest z, OUT for its highest; ORIGIN (default) for
-                its center.
+            direction: IN 表示其最低 z，OUT 表示其最高 z；ORIGIN（默认）表示
+                其中心。
         """
         return self.get_coord(2, direction)
 
     def get_midpoint(self) -> Point3D:
-        """The point halfway along the mobject: for a path, half its length from its
-        start.
+        """mobject 上中点处的点：对于路径，为从起点出发其长度一半处。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         return self.point_from_proportion(0.5)
 
     def point_from_proportion(self, alpha: float) -> Point3D:
-        """The point a proportion of the way along the mobject, from its start (0) to
-        its end (1): for a path, by its length.
+        """mobject 上某比例处的点，从起点 (0) 到
+        终点 (1)：对于路径，按其长度。
 
-        Each kind implements it; a mobject of no kind has no way along it, and raises an
-        exception.
+        每种类型都实现它；无类型的 mobject 没有沿其的路径，会抛出
+        异常。
 
         Args:
-            alpha: The proportion, from 0 to 1.
+            alpha: 比例，从 0 到 1。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         raise NotImplementedError(f"{type(self).__name__} has no parametrization")
 
     @property
     def width(self) -> float:
-        """The mobject's width, in scene units: its
-        [bounding box][manimgx.Mobject.boundary_box]'s extent along x, from the leftmost
-        of what it draws to the rightmost. Set it to scale the mobject to that width, in
-        proportion, about its center."""
+        """mobject 的宽度，以场景单位表示：即其
+        [边界框][manimgx.Mobject.boundary_box] 沿 x 的范围，从其绘制内容的最左
+        到最右。设置它可按比例将 mobject 缩放至该宽度，
+        关于其中心。"""
         return self.length_over_dim(0)
 
     @width.setter
@@ -2426,10 +2352,10 @@ class Mobject:
 
     @property
     def height(self) -> float:
-        """The mobject's height, in scene units: its
-        [bounding box][manimgx.Mobject.boundary_box]'s extent along y, from the lowest
-        of what it draws to the highest. Set it to scale the mobject to that height, in
-        proportion, about its center."""
+        """mobject 的高度，以场景单位表示：即其
+        [边界框][manimgx.Mobject.boundary_box] 沿 y 的范围，从其绘制内容的最低
+        到最高。设置它可按比例将 mobject 缩放至该高度，
+        关于其中心。"""
         return self.length_over_dim(1)
 
     @height.setter
@@ -2438,16 +2364,16 @@ class Mobject:
 
     @deprecated("get_width() is width: use it", category=None)
     def get_width(self) -> float:
-        """The mobject's [width][manimgx.Mobject.width].
+        """mobject 的 [width][manimgx.Mobject.width]。
 
         Returns:
-            The width, in scene units.
+            宽度，以场景单位表示。
         """
         return self.width
 
     # ── layout ────────────────────────────────────────────────────────────
     def center(self) -> Self:
-        """Move the mobject so the center of its bounding box is at the origin."""
+        """移动 mobject 使其边界框的中心位于原点。"""
         return self.shift(-self.get_center())
 
     def move_to(
@@ -2456,17 +2382,17 @@ class Mobject:
         aligned_edge: Vector3DLike = ORIGIN,
         coor_mask: Vector3DLike = (1, 1, 1),
     ) -> Self:
-        """Move the mobject to a point, or onto another mobject: its center, or the
-        point of its bounding box `aligned_edge` names, goes there.
+        """将 mobject 移动到一个点，或到另一个 mobject 上：其中心，或
+        其边界框上 `aligned_edge` 所命名的点，到达该处。
 
         Args:
-            point_or_mobject: A point, in scene coordinates, or a mobject: then the
-                point of its bounding box `aligned_edge` names (its center, by default).
-            aligned_edge: The point of the mobject that goes there, named by a
-                direction: ORIGIN (default) for its center, DL for its bottom left
-                corner.
-            coor_mask: Which coordinates change: 1 for each axis the mobject moves
-                along, 0 for one it keeps (`(1, 0, 0)` moves it horizontally only).
+            point_or_mobject: 一个点，以场景坐标表示，或一个 mobject：此时为
+                其边界框上 `aligned_edge` 所命名的点（默认为其中心）。
+            aligned_edge: 到达该处的 mobject 上的点，以
+                方向命名：ORIGIN（默认）表示其中心，DL 表示其左下
+                角。
+            coor_mask: 哪些坐标改变：mobject 沿其移动的每个轴为 1，
+                保持不变的轴为 0（`(1, 0, 0)` 仅水平移动）。
 
         Examples:
             ```python
@@ -2501,28 +2427,26 @@ class Mobject:
         index_of_submobject_to_align: int | None = None,
         coor_mask: Vector3DLike = (1, 1, 1),
     ) -> Self:
-        """Put the mobject beside another, or beside a point, `buff` away in a
-        direction.
+        """将 mobject 放在另一个旁边，或一个点旁边，沿某方向
+        间隔 `buff`。
 
-        The side of the mobject facing back along `direction` goes to the other's side
-        facing along it, `buff` farther on: with RIGHT, the middle of its left edge goes
-        `buff` to the right of the middle of the other's right edge. A diagonal
-        direction (UR) puts corner to corner.
+        mobject 沿 `direction` 反方向面向的边到达另一个沿该方向面向的边，
+        再远 `buff`：使用 RIGHT 时，其左边中点到达另一个右边中点
+        右侧 `buff` 处。对角方向（UR）使角对角。
 
         Args:
-            mobject_or_point: The mobject (its bounding box) or the point to put it
-                beside.
-            direction: The side: RIGHT (default), UP, DL, …
-            buff: The gap, in scene units, along `direction` (default 0.25).
-            aligned_edge: The edge along which the two line up besides the side they
-                meet at, named by a direction: with the direction RIGHT and UP here,
-                their tops line up (default ORIGIN: centered).
-            submobject_to_align: A part of the mobject to put beside the other in its
-                place; the rest moves with it.
-            index_of_submobject_to_align: The index of the part of each mobject to line
-                up: this one's part goes beside the other's.
-            coor_mask: Which coordinates change: 1 for each axis the mobject moves
-                along, 0 for one it keeps.
+            mobject_or_point: 要放在其旁边的 mobject（其边界框）或点。
+            direction: 方向：RIGHT（默认）、UP、DL、…
+            buff: 沿 `direction` 的间距，以场景单位表示（默认 0.25）。
+            aligned_edge: 两个对象在它们相遇侧旁对齐所沿的边，
+                以方向命名：当方向为 RIGHT 和 UP 时，
+                它们的顶部对齐（默认 ORIGIN：居中）。
+            submobject_to_align: 要放在另一对象旁边的 mobject 的一部分，代替
+                其位置；其余部分随其移动。
+            index_of_submobject_to_align: 每个 mobject 中要对齐部分的索引：
+                此对象的部分放在另一对象的部分旁边。
+            coor_mask: 哪些坐标改变：mobject 沿其移动的每个轴为 1，
+                保持不变的轴为 0。
 
         Examples:
             ```python
@@ -2568,16 +2492,15 @@ class Mobject:
     def align_on_border(
         self, direction: Vector3DLike, buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFFER
     ) -> Self:
-        """Move the mobject to an edge or a corner of the frame, `buff` in from it.
+        """将 mobject 移动到画框的某边或某角，距其 `buff` 向内。
 
-        Only the coordinates along which `direction` points change: sent to the top
-        edge, the mobject moves up or down only. The frame is the configured one,
-        centered on the origin, wherever the camera looks.
+        仅 `direction` 所指向的坐标改变：移到顶边时，mobject 仅上下移动。
+        画框为已配置的画框，以原点为中心，无论相机看向何处。
 
         Args:
-            direction: The edge (UP, LEFT, …) or the corner (UR, DL, …) of the frame.
-            buff: The margin between the mobject and the frame's edge, in scene units
-                (default 0.5).
+            direction: 画框的边（UP、LEFT、…）或角（UR、DL、…）。
+            buff: mobject 与画框边之间的边距，以场景单位表示
+                （默认 0.5）。
         """
         d = np.asarray(direction, dtype=float)
         target = np.sign(d) * (config.frame_x_radius, config.frame_y_radius, 0)
@@ -2587,15 +2510,14 @@ class Mobject:
     def to_corner(
         self, corner: Vector3DLike = DL, buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFFER
     ) -> Self:
-        """Move the mobject into a corner of the frame, `buff` in from both its edges.
+        """将 mobject 移入画框的某角，距两条边各 `buff` 向内。
 
-        The frame is the configured one, centered on the origin, wherever the camera
-        looks.
+        画框为已配置的画框，以原点为中心，无论相机看向何处。
 
         Args:
-            corner: The corner: UL, UR, DL (default) or DR.
-            buff: The margin between the mobject and each edge of the frame, in scene
-                units (default 0.5).
+            corner: 角：UL、UR、DL（默认）或 DR。
+            buff: mobject 与画框每条边之间的边距，以场景
+                单位表示（默认 0.5）。
 
         Examples:
             ```python
@@ -2615,16 +2537,15 @@ class Mobject:
     def to_edge(
         self, edge: Vector3DLike = LEFT, buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFFER
     ) -> Self:
-        """Move the mobject to an edge of the frame, `buff` in from it; along the edge,
-        it stays where it is.
+        """将 mobject 移到画框的某边，距其 `buff` 向内；沿该边方向
+        保持原位。
 
-        The frame is the configured one, centered on the origin, wherever the camera
-        looks.
+        画框为已配置的画框，以原点为中心，无论相机看向何处。
 
         Args:
-            edge: The edge: UP, DOWN, LEFT (default) or RIGHT.
-            buff: The margin between the mobject and the edge, in scene units (default
-                0.5).
+            edge: 边：UP、DOWN、LEFT（默认）或 RIGHT。
+            buff: mobject 与边之间的边距，以场景单位表示（默认
+                0.5）。
 
         Examples:
             ```python
@@ -2643,11 +2564,10 @@ class Mobject:
         return self.align_on_border(edge, buff)
 
     def is_off_screen(self) -> bool:
-        """Whether the mobject is wholly outside the frame: the configured one, centered
-        on the origin.
+        """mobject 是否完全在画框之外：已配置的画框，以原点为中心。
 
         Returns:
-            True if its bounding box lies wholly past an edge of the frame.
+            若其边界框完全越过画框某边则为 True。
         """
         x, y = config.frame_x_radius, config.frame_y_radius
         return bool(
@@ -2658,13 +2578,13 @@ class Mobject:
         )
 
     def shift_onto_screen(self, buff: float = DEFAULT_MOBJECT_TO_EDGE_BUFFER) -> Self:
-        """Move the mobject back into the frame where it reaches past an edge, or nearer
-        to it than `buff`: to that edge, `buff` in (see
-        [to_edge][manimgx.Mobject.to_edge]).
+        """将 mobject 移回画框内，当它越过某边或距某边
+        不足 `buff` 时：移到该边，向内 `buff`（参见
+        [to_edge][manimgx.Mobject.to_edge]）。
 
         Args:
-            buff: The margin to keep from the frame's edges, in scene units (default
-                0.5).
+            buff: 与画框边保持的边距，以场景单位表示（默认
+                0.5）。
         """
         radii = (config.frame_x_radius, config.frame_y_radius)
         for vect in (UP, DOWN, LEFT, RIGHT):
@@ -2674,9 +2594,9 @@ class Mobject:
         return self
 
     background_rectangle: "Mobject | None" = None
-    """The rectangle last put behind the mobject (see
-    [add_background_rectangle][manimgx.Mobject.add_background_rectangle]); None if
-    none."""
+    """最后放在 mobject 后面的矩形（参见
+    [add_background_rectangle][manimgx.Mobject.add_background_rectangle]）；若无则为
+    None。"""
 
     def add_background_rectangle(
         self,
@@ -2684,18 +2604,18 @@ class Mobject:
         opacity: float = 0.75,
         **kwargs: Unpack[BackgroundOptions],
     ) -> Self:
-        """Put a rectangle behind the mobject, to set it off from whatever is behind it:
-        a [BackgroundRectangle][manimgx.BackgroundRectangle] around it, added as its
-        first submobject.
+        """在 mobject 后面放一个矩形，使其与后面的内容区分开来：
+        一个围绕它的 [BackgroundRectangle][manimgx.BackgroundRectangle]，作为其
+        第一个子 mobject 添加。
 
-        The rectangle moves with the mobject; it is the mobject's
-        [background_rectangle][manimgx.Mobject.background_rectangle].
+        该矩形随 mobject 移动；它是 mobject 的
+        [background_rectangle][manimgx.Mobject.background_rectangle]。
 
         Args:
-            color: The rectangle's color; None for the scene's background color.
-            opacity: The rectangle's opacity, from 0 to 1 (default 0.75).
-            **kwargs: [Background keywords][manimgx.mobject.BackgroundOptions]: its
-                margin, corners and outline.
+            color: 矩形的颜色；None 表示场景的背景色。
+            opacity: 矩形的不透明度，从 0 到 1（默认 0.75）。
+            **kwargs: [背景关键字][manimgx.mobject.BackgroundOptions]：其
+                边距、圆角和轮廓。
 
         Examples:
             ```python
@@ -2721,18 +2641,17 @@ class Mobject:
         mobject_or_point: "Mobject | Point3DLike",
         direction: Vector3DLike = ORIGIN,
     ) -> Self:
-        """Move the mobject so a side of it lines up with another's: along each axis on
-        which `direction` is not 0, the side of its bounding box in that direction goes
-        where the other's is.
+        """移动 mobject 使其某侧与另一个对齐：在 `direction` 不为 0 的每个轴上，
+        其边界框在该方向上的侧到达另一个对应侧的位置。
 
-        `align_to(other, UP)` puts its top at the height of the other's top, moving it
-        up or down only; `align_to(other, UL)` lines up both tops and both left sides.
-        With the default ORIGIN, nothing moves.
+        `align_to(other, UP)` 将其顶部放到另一个顶部的高度，仅上下移动；
+        `align_to(other, UL)` 同时对齐顶部和左侧。
+        使用默认 ORIGIN 时，什么也不移动。
 
         Args:
-            mobject_or_point: The mobject to line up with (the side of its bounding box
-                `direction` names), or a point.
-            direction: The side, named by a direction: UP, DL, …
+            mobject_or_point: 要与之对齐的 mobject（其边界框上 `direction`
+                命名的侧），或一个点。
+            direction: 侧，以方向命名：UP、DL、…
 
         Examples:
             ```python
@@ -2766,50 +2685,50 @@ class Mobject:
     def set_coord(
         self, value: float, dim: int, direction: Vector3DLike = ORIGIN
     ) -> Self:
-        """Move the mobject along one axis so a coordinate of its bounding box is
-        `value`: its lowest, middle or highest, as `direction`'s coordinate there is
-        negative, 0 or positive.
+        """沿一个轴移动 mobject 使其边界框的某坐标为
+        `value`：取最低、中间或最高值，取决于 `direction` 在该处的坐标为
+        负、0 或正。
 
         Args:
-            value: The coordinate, in scene units.
-            dim: The axis: 0 for x, 1 for y, 2 for z.
-            direction: A direction such as LEFT, ORIGIN or RIGHT (default ORIGIN: the
-                center).
+            value: 坐标，以场景单位表示。
+            dim: 轴：0 表示 x，1 表示 y，2 表示 z。
+            direction: 方向，如 LEFT、ORIGIN 或 RIGHT（默认 ORIGIN：
+                中心）。
         """
         shift = np.zeros(self.dim)
         shift[dim] = value - self.get_coord(dim, direction)
         return self.shift(shift)
 
     def set_x(self, x: float, direction: Vector3DLike = ORIGIN) -> Self:
-        """Move the mobject left or right so its center, or an edge of its bounding box,
-        is at `x`.
+        """左右移动 mobject 使其中心或边界框的某边
+        位于 `x`。
 
         Args:
-            x: The x coordinate, in scene units.
-            direction: LEFT to place its left edge, RIGHT its right edge; ORIGIN
-                (default) its center.
+            x: x 坐标，以场景单位表示。
+            direction: LEFT 放置其左边，RIGHT 放置其右边；ORIGIN
+                （默认）放置其中心。
         """
         return self.set_coord(x, 0, direction)
 
     def set_y(self, y: float, direction: Vector3DLike = ORIGIN) -> Self:
-        """Move the mobject up or down so its center, or an edge of its bounding box, is
-        at `y`.
+        """上下移动 mobject 使其中心或边界框的某边位于
+        `y`。
 
         Args:
-            y: The y coordinate, in scene units.
-            direction: DOWN to place its bottom edge, UP its top edge; ORIGIN (default)
-                its center.
+            y: y 坐标，以场景单位表示。
+            direction: DOWN 放置其底边，UP 放置其顶边；ORIGIN（默认）
+                放置其中心。
         """
         return self.set_coord(y, 1, direction)
 
     def set_z(self, z: float, direction: Vector3DLike = ORIGIN) -> Self:
-        """Move the mobject in or out so its center, or a face of its bounding box, is
-        at `z`.
+        """内外移动 mobject 使其中心或边界框的某面位于
+        `z`。
 
         Args:
-            z: The z coordinate, in scene units.
-            direction: IN to place its lowest z, OUT its highest; ORIGIN (default) its
-                center.
+            z: z 坐标，以场景单位表示。
+            direction: IN 放置其最低 z，OUT 放置其最高 z；ORIGIN（默认）放置其
+                中心。
         """
         return self.set_coord(z, 2, direction)
 
@@ -2817,19 +2736,19 @@ class Mobject:
     def rescale_to_fit(
         self, length: float, dim: int, stretch: bool = False, **kwargs: Unpack[Pivot]
     ) -> Self:
-        """Scale the mobject so its extent along one axis is `length`: in proportion, or
-        along that axis only.
+        """缩放 mobject 使其沿一个轴的范围为 `length`：按比例，或
+        仅沿该轴。
 
-        A mobject with no extent along the axis stays as it is.
+        沿该轴无范围的 mobject 保持不变。
 
         Args:
-            length: The extent, in scene units.
-            dim: The axis: 0 for x (its width), 1 for y (its height), 2 for z (its
-                depth).
-            stretch: Whether to stretch it along that axis only, instead of scaling it
-                in proportion.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            length: 范围，以场景单位表示。
+            dim: 轴：0 表示 x（其宽度），1 表示 y（其高度），2 表示 z（其
+                深度）。
+            stretch: 是否仅沿该轴拉伸，而非按比例
+                缩放。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         old = self.length_over_dim(dim)
         if old == 0:
@@ -2841,42 +2760,42 @@ class Mobject:
         )
 
     def scale_to_fit_width(self, width: float, **kwargs: Unpack[Pivot]) -> Self:
-        """Scale the mobject in proportion to a width.
+        """按比例缩放 mobject 至某宽度。
 
         Args:
-            width: The width, in scene units.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            width: 宽度，以场景单位表示。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         return self.rescale_to_fit(width, 0, stretch=False, **kwargs)
 
     def stretch_to_fit_width(self, width: float, **kwargs: Unpack[Pivot]) -> Self:
-        """Stretch the mobject horizontally to a width; its height stays.
+        """水平拉伸 mobject 至某宽度；其高度不变。
 
         Args:
-            width: The width, in scene units.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            width: 宽度，以场景单位表示。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         return self.rescale_to_fit(width, 0, stretch=True, **kwargs)
 
     def scale_to_fit_height(self, height: float, **kwargs: Unpack[Pivot]) -> Self:
-        """Scale the mobject in proportion to a height.
+        """按比例缩放 mobject 至某高度。
 
         Args:
-            height: The height, in scene units.
+            height: 高度，以场景单位表示。
             **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
                 fixed (default: its center).
         """
         return self.rescale_to_fit(height, 1, stretch=False, **kwargs)
 
     def stretch_to_fit_height(self, height: float, **kwargs: Unpack[Pivot]) -> Self:
-        """Stretch the mobject vertically to a height; its width stays.
+        """垂直拉伸 mobject 至某高度；其宽度不变。
 
         Args:
-            height: The height, in scene units.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            height: 高度，以场景单位表示。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         return self.rescale_to_fit(height, 1, stretch=True, **kwargs)
 
@@ -2884,44 +2803,44 @@ class Mobject:
     def match_dim_size(
         self, mobject: "Mobject", dim: int, **kwargs: Unpack[Pivot]
     ) -> Self:
-        """Scale the mobject in proportion so its extent along one axis is another's.
+        """按比例缩放 mobject 使其沿一个轴的范围与另一个相同。
 
         Args:
-            mobject: The mobject to match.
-            dim: The axis: 0 for x (width), 1 for y (height), 2 for z (depth).
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            mobject: 要匹配的 mobject。
+            dim: 轴：0 表示 x（宽度），1 表示 y（高度），2 表示 z（深度）。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         return self.rescale_to_fit(mobject.length_over_dim(dim), dim, **kwargs)
 
     def match_width(self, mobject: "Mobject", **kwargs: Unpack[Pivot]) -> Self:
-        """Scale the mobject in proportion to another's width.
+        """按比例缩放 mobject 至另一个的宽度。
 
         Args:
-            mobject: The mobject to match.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            mobject: 要匹配的 mobject。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         return self.match_dim_size(mobject, 0, **kwargs)
 
     def match_height(self, mobject: "Mobject", **kwargs: Unpack[Pivot]) -> Self:
-        """Scale the mobject in proportion to another's height.
+        """按比例缩放 mobject 至另一个的高度。
 
         Args:
-            mobject: The mobject to match.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            mobject: 要匹配的 mobject。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         return self.match_dim_size(mobject, 1, **kwargs)
 
     @deprecated("use scale", category=None)
     def match_depth(self, mobject: "Mobject", **kwargs: Unpack[Pivot]) -> Self:
-        """Scale the mobject in proportion to another's depth, its extent along z.
+        """按比例缩放 mobject 至另一个的深度，即其沿 z 的范围。
 
         Args:
-            mobject: The mobject to match.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            mobject: 要匹配的 mobject。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不动的
+                点（默认：其中心）。
         """
         return self.match_dim_size(mobject, 2, **kwargs)
 
@@ -2929,63 +2848,63 @@ class Mobject:
     def match_coord(
         self, mobject: "Mobject", dim: int, direction: Vector3DLike = ORIGIN
     ) -> Self:
-        """Move the mobject along one axis to another's coordinate there: the same point
-        of each one's bounding box, as `direction` names it, gets the same coordinate.
+        """沿一个轴移动 mobject 至另一个在该轴上的坐标：两者边界框上
+        由 `direction` 命名的同一点获得相同坐标。
 
         Args:
-            mobject: The mobject to match.
-            dim: The axis: 0 for x, 1 for y, 2 for z.
-            direction: Which point along the axis: the lowest, the middle (ORIGIN,
-                default) or the highest, as its coordinate there is negative, 0 or
-                positive.
+            mobject: 要匹配的 mobject。
+            dim: 轴：0 表示 x，1 表示 y，2 表示 z。
+            direction: 沿轴的哪个点：最低、中间（ORIGIN，
+                默认）或最高，取决于其在该处的坐标为负、0 或
+                正。
         """
         return self.set_coord(mobject.get_coord(dim, direction), dim, direction)
 
     def match_x(self, mobject: "Mobject", direction: Vector3DLike = ORIGIN) -> Self:
-        """Move the mobject left or right to another's x: centers, or left or right
-        edges, lined up.
+        """左右移动 mobject 至另一个的 x：中心，或左右
+        边对齐。
 
         Args:
-            mobject: The mobject to match.
-            direction: LEFT to line up the left edges, RIGHT the right ones; ORIGIN
-                (default) the centers.
+            mobject: 要匹配的 mobject。
+            direction: LEFT 对齐左边，RIGHT 对齐右边；ORIGIN
+                （默认）对齐中心。
         """
         return self.match_coord(mobject, 0, direction)
 
     def match_y(self, mobject: "Mobject", direction: Vector3DLike = ORIGIN) -> Self:
-        """Move the mobject up or down to another's y: centers, or top or bottom edges,
-        lined up.
+        """上下移动 mobject 至另一个的 y：中心，或顶边或底边
+        对齐。
 
         Args:
-            mobject: The mobject to match.
-            direction: DOWN to line up the bottom edges, UP the top ones; ORIGIN
-                (default) the centers.
+            mobject: 要匹配的 mobject。
+            direction: DOWN 对齐底边，UP 对齐顶边；ORIGIN
+                （默认）对齐中心。
         """
         return self.match_coord(mobject, 1, direction)
 
     def match_z(self, mobject: "Mobject", direction: Vector3DLike = ORIGIN) -> Self:
-        """Move the mobject in or out to another's z: centers, or faces, lined up.
+        """内外移动 mobject 至另一个的 z：中心，或面对齐。
 
         Args:
-            mobject: The mobject to match.
-            direction: IN to line up the lowest z, OUT the highest; ORIGIN (default) the
-                centers.
+            mobject: 要匹配的 mobject。
+            direction: IN 对齐最低 z，OUT 对齐最高 z；ORIGIN（默认）对齐
+                中心。
         """
         return self.match_coord(mobject, 2, direction)
 
     def replace(
         self, mobject: "Mobject", dim_to_match: int = 0, stretch: bool = False
     ) -> Self:
-        """Put the mobject in another's place: scaled to its extent along one axis (or
-        stretched to its width and height), and centered on it.
+        """将 mobject 放到另一个的位置：缩放至其沿一个轴的范围（或
+        拉伸至其宽度和高度），并以其为中心。
 
-        The other mobject stays where it is.
+        另一个 mobject 保持原位。
 
         Args:
-            mobject: The mobject whose place it takes.
-            dim_to_match: The axis whose extent it takes, in proportion: 0 for x (the
-                width), 1 for y (the height), 2 for z.
-            stretch: Whether to stretch it to the other's width and height instead.
+            mobject: 要占据其位置的 mobject。
+            dim_to_match: 按比例取其范围的轴：0 表示 x（
+                宽度），1 表示 y（高度），2 表示 z。
+            stretch: 是否改为拉伸至另一个的宽度和高度。
         """
         if stretch:
             self.stretch_to_fit_width(mobject.width)
@@ -2995,14 +2914,14 @@ class Mobject:
         return self.shift(mobject.get_center() - self.get_center())
 
     def put_start_and_end_on(self, start: Point3DLike, end: Point3DLike) -> Self:
-        """Move, turn and scale the mobject so its first point is at `start` and its
-        last at `end`; its shape stays, scaled in proportion.
+        """移动、旋转并缩放 mobject 使其第一个点位于 `start`，
+        最后一个点位于 `end`；其形状保持不变，按比例缩放。
 
-        A mobject whose first and last points coincide is only moved.
+        第一个和最后一个点重合的 mobject 仅被移动。
 
         Args:
-            start: Where its first point goes.
-            end: Where its last point goes.
+            start: 其第一个点要去的位置。
+            end: 其最后一个点要去的位置。
         """
         cur_start, cur_end = self.get_start_and_end()
         cur_vec = cur_end - cur_start
@@ -3023,17 +2942,17 @@ class Mobject:
         center: bool = True,
         **kwargs: Unpack[Beside],
     ) -> Self:
-        """Lay the submobjects out in a row: each one beside the one before it (see
-        [next_to][manimgx.Mobject.next_to]), `buff` apart; then center the whole at the
-        origin.
+        """将子 mobject 排成一行：每个在前一个旁边（参见
+        [next_to][manimgx.Mobject.next_to]），间距 `buff`；然后将整体居中于
+        原点。
 
         Args:
-            direction: The way the row goes: RIGHT (default), DOWN for a column, …
-            buff: The gap between neighbours, in scene units (default 0.25).
-            center: Whether to center the mobject at the origin afterwards; if not, the
-                first submobject stays where it was.
-            **kwargs: [Beside keywords][manimgx.mobject.Beside]: how neighbours
-                line up (`aligned_edge=DOWN` puts their bottoms on one line).
+            direction: 行的方向：RIGHT（默认），DOWN 表示列，…
+            buff: 相邻者之间的间距，以场景单位表示（默认 0.25）。
+            center: 之后是否将 mobject 居中于原点；若否，
+                第一个子 mobject 保持原位。
+            **kwargs: [Beside 关键字][manimgx.mobject.Beside]：相邻者如何
+                对齐（`aligned_edge=DOWN` 使它们的底部在一条线上）。
 
         Examples:
             ```python
@@ -3062,7 +2981,7 @@ class Mobject:
         center: bool = True,
         **kwargs: Unpack[Beside],
     ) -> Self:
-        """[arrange][manimgx.Mobject.arrange], by another name."""
+        """[arrange][manimgx.Mobject.arrange] 的另一个名称。"""
         return self.arrange(direction, buff, center, **kwargs)
 
     def arrange_in_grid(
@@ -3077,40 +2996,39 @@ class Mobject:
         col_widths: Iterable[float | None] | None = None,
         flow_order: str = "rd",
     ) -> Self:
-        """Lay the submobjects out in a grid of rows and columns, centered where the
-        mobject was.
+        """将子 mobject 排成行列网格，居中于 mobject 原来的位置。
 
-        Each row is as tall as its tallest mobject and each column as wide as its
-        widest, unless given. Each mobject sits in its cell as `cell_alignment` says,
-        but vertically as `row_alignments` says for its row and horizontally as
-        `col_alignments` says for its column, where they are given. Too few rows and
-        columns for the submobjects raise an exception.
+        每行与其最高的 mobject 等高，每列与其最宽的 mobject 等宽，除非另行指定。
+        每个 mobject 按 `cell_alignment` 所示位于其单元格中，
+        但垂直方向按 `row_alignments` 为其行所示，水平方向按
+        `col_alignments` 为其列所示，在已指定的地方。行和列太少
+        无法容纳所有子 mobject 时抛出异常。
 
         Args:
-            rows: How many rows; None for as many as `row_alignments` or `row_heights`
-                lists, else as many as the submobjects need. With neither `rows` nor
-                `cols`, the grid is as square as it can be.
-            cols: How many columns; None for as many as `col_alignments` or `col_widths`
-                lists, else as many as the submobjects need.
-            buff: The gap between cells, in scene units: one for both directions, or
-                (horizontal, vertical) (default 0.25).
-            cell_alignment: Where each mobject sits in its cell, named by a direction:
-                UL for its top left corner (default ORIGIN: centered).
-            row_alignments: Each row's vertical alignment, top to bottom: a letter per
-                row, "u" (up), "c" (center) or "d" (down); None: as the vertical part of
-                `cell_alignment` says (UL: up).
-            col_alignments: Each column's horizontal alignment, left to right: a letter
-                per column, "l" (left), "c" (center) or "r" (right); None: as the
-                horizontal part of `cell_alignment` says (UL: left).
-            row_heights: Each row's height, top to bottom, in scene units; None (for the
-                grid or a row) for the height of the row's tallest mobject.
-            col_widths: Each column's width, left to right, in scene units; None (for
-                the grid or a column) for the width of the column's widest mobject.
-            flow_order: The order the cells are filled in: two letters, the direction a
-                line of cells fills and then the direction the lines follow each other,
-                "r" (right), "l" (left), "u" (up) or "d" (down). The default "rd" fills
-                rows left to right, from the top down; "dr" fills columns top to bottom,
-                from the left.
+            rows: 行数；None 表示与 `row_alignments` 或 `row_heights`
+                列出的数量相同，否则与子 mobject 所需的数量相同。当 `rows` 和
+                `cols` 均未指定时，网格尽可能呈正方形。
+            cols: 列数；None 表示与 `col_alignments` 或 `col_widths`
+                列出的数量相同，否则与子 mobject 所需的数量相同。
+            buff: 单元格之间的间距，以场景单位表示：两个方向共用一个值，或
+                (水平, 垂直)（默认 0.25）。
+            cell_alignment: 每个 mobject 在其单元格中的位置，以方向命名：
+                UL 表示其左上角（默认 ORIGIN：居中）。
+            row_alignments: 每行的垂直对齐方式，从上到下：每行一个
+                字母，"u"（上）、"c"（居中）或 "d"（下）；None：按
+                `cell_alignment` 的垂直部分所示（UL：上）。
+            col_alignments: 每列的水平对齐方式，从左到右：每列一个
+                字母，"l"（左）、"c"（居中）或 "r"（右）；None：按
+                `cell_alignment` 的水平部分所示（UL：左）。
+            row_heights: 每行的高度，从上到下，以场景单位表示；None（对于
+                网格或某行）表示该行最高 mobject 的高度。
+            col_widths: 每列的宽度，从左到右，以场景单位表示；None（对于
+                网格或某列）表示该列最宽 mobject 的宽度。
+            flow_order: 单元格的填充顺序：两个字母，一行单元格的填充方向，
+                随后是各行彼此跟随的方向，
+                "r"（右）、"l"（左）、"u"（上）或 "d"（下）。默认 "rd" 表示
+                行从左到右，从上到下；"dr" 表示列从上到下，
+                从左到右。
 
         Examples:
             ```python
@@ -3216,28 +3134,28 @@ class Mobject:
         point_to_num_func: Callable[[Point3D], float] = lambda p: p[0],
         submob_func: Callable[["Mobject"], float] | None = None,
     ) -> Self:
-        """Sort the submobjects by a number: one computed from each one's center (by
-        default its x coordinate, so left to right), or from each one itself.
+        """按数字排序子 mobject：从每个子 mobject 的中心计算（默认
+        为其 x 坐标，即从左到右），或从每个子 mobject 本身计算。
 
-        Their order is the order they are drawn in (at an equal z-index), and the order
-        a `lag_ratio` staggers their animation in.
+        它们的顺序即绘制顺序（在相同 z 索引下），也是
+        `lag_ratio` 错开其动画的顺序。
 
         Args:
-            point_to_num_func: A function of a submobject's center, giving the number to
-                sort it by.
-            submob_func: A function of a submobject, giving the number to sort it by, in
-                place of `point_to_num_func`.
+            point_to_num_func: 关于子 mobject 中心的函数，给出排序
+                所依据的数字。
+            submob_func: 关于子 mobject 的函数，给出排序所依据的数字，
+                替代 `point_to_num_func`。
         """
         key = submob_func or (lambda m: point_to_num_func(m.get_center()))
         self.submobjects.sort(key=key)
         return self
 
     def shuffle(self, recursive: bool = False) -> Self:
-        """Put the submobjects in a random order, drawn from Python's `random`.
+        """将子 mobject 置于随机顺序，从 Python 的 `random` 中抽取。
 
         Args:
-            recursive: Whether each submobject's submobjects are shuffled too, and
-                theirs.
+            recursive: 每个子 mobject 的子 mobject 是否也被打乱，
+                以及它们的。
         """
         if recursive:
             for sub in self.submobjects:
@@ -3246,11 +3164,11 @@ class Mobject:
         return self
 
     def invert(self, recursive: bool = False) -> Self:
-        """Reverse the order of the submobjects.
+        """反转子 mobject 的顺序。
 
         Args:
-            recursive: Whether each submobject's submobjects are reversed too, and
-                theirs.
+            recursive: 每个子 mobject 的子 mobject 是否也被反转，
+                以及它们的。
         """
         if recursive:
             for sub in self.submobjects:
@@ -3262,13 +3180,13 @@ class Mobject:
     def space_out_submobjects(
         self, factor: float = 1.5, **kwargs: Unpack[Pivot]
     ) -> Self:
-        """Spread the submobjects apart, each keeping its size: the mobject is scaled by
-        `factor`, then each submobject back by 1 / `factor`, about its own center.
+        """将子 mobject 散开，各自保持其尺寸：mobject 缩放
+        `factor` 倍，然后每个子 mobject 关于自身中心缩回 1 / `factor` 倍。
 
         Args:
-            factor: How much farther apart their centers go (1.5: half as far again).
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point they
-                spread out from (default: the mobject's center).
+            factor: 它们的中心散开多远（1.5：再远一半）。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：它们散开
+                的中心点（默认：mobject 的中心）。
         """
         self.scale(factor, **kwargs)
         for sub in self.submobjects:
@@ -3276,17 +3194,17 @@ class Mobject:
         return self
 
     def set_z_index(self, z_index_value: float, family: bool = True) -> Self:
-        """Set the mobject's place in the drawing order: a higher z-index is drawn over
-        a lower one, anywhere in the scene.
+        """设置 mobject 在绘制顺序中的位置：z 索引较高的绘制在较低的之上，
+        在场景中的任何位置。
 
-        Mobjects of an equal z-index are drawn in the scene's order: the ones added
-        later over the ones added earlier, and a mobject's submobjects each over those
-        before it. Every mobject's z-index is 0 unless set.
+        z 索引相同的 mobject 按场景的顺序绘制：后添加的绘制在先添加的之上，
+        mobject 的子 mobject 各自绘制在之前的之上。每个 mobject 的 z 索引
+        除非设置否则为 0。
 
         Args:
-            z_index_value: The z-index.
-            family: Whether its whole family gets it, or the mobject alone (which orders
-                only its own points).
+            z_index_value: z 索引。
+            family: 其整个家族是否都获得它，还是仅 mobject 本身（仅
+                排序其自身的点）。
 
         Examples:
             ```python
@@ -3319,15 +3237,15 @@ class Mobject:
         opacity: float | Iterable[float] | None = None,
         family: bool = True,
     ) -> Self:
-        """Set the mobject's fill: its color, its opacity, or both.
+        """设置 mobject 的填充：其颜色、不透明度，或两者。
 
         Args:
-            color: The color; several make a gradient across the mobject, from the first
-                to the last toward its sheen direction (UL unless set). None keeps the
-                present one.
-            opacity: The opacity, from 0 (no fill) to 1 (opaque); several make a
-                gradient of opacities. None keeps the present one.
-            family: Whether its whole family is filled, or the mobject alone.
+            color: 颜色；多个颜色在 mobject 上形成渐变，从第一个
+                到最后一个沿其光泽方向（除非设置否则为 UL）。None 保持
+                当前值。
+            opacity: 不透明度，从 0（无填充）到 1（不透明）；多个值形成
+                不透明度渐变。None 保持当前值。
+            family: 其整个家族是否被填充，还是仅 mobject 本身。
 
         Examples:
             ```python
@@ -3356,20 +3274,20 @@ class Mobject:
         background: bool = False,
         family: bool = True,
     ) -> Self:
-        """Set the mobject's stroke, its outline: its color, width and opacity, any of
-        them.
+        """设置 mobject 的描边，即其轮廓：其颜色、宽度和不透明度，任意
+        组合。
 
         Args:
-            color: The color; several make a gradient, from the first to the last toward
-                the mobject's sheen direction (UL unless set). None keeps the present
-                one.
-            width: The width, in hundredths of a scene unit (4 unless styled; 0: no
-                stroke); None keeps the present one.
-            opacity: The opacity, from 0 to 1; several make a gradient of opacities.
-                None keeps the present one.
-            background: Whether to set the background stroke instead: an outline drawn
-                behind the fill.
-            family: Whether its whole family is stroked, or the mobject alone.
+            color: 颜色；多个颜色形成渐变，从第一个到最后一个沿
+                mobject 的光泽方向（除非设置否则为 UL）。None 保持
+                当前值。
+            width: 宽度，以场景单位的百分之一表示（除非已设置否则为 4；0：无
+                描边）；None 保持当前值。
+            opacity: 不透明度，从 0 到 1；多个值形成不透明度渐变。
+                None 保持当前值。
+            background: 是否改为设置背景描边：即在
+                填充之后绘制的轮廓。
+            family: 其整个家族是否被描边，还是仅 mobject 本身。
 
         Examples:
             ```python
@@ -3415,27 +3333,27 @@ class Mobject:
         sheen_direction: Vector3DLike | None = None,
         family: bool = True,
     ) -> Self:
-        """Set any of the mobject's style at once: what is None stays as it is.
+        """一次性设置 mobject 的任意样式：为 None 的保持不变。
 
-        See [set_fill][manimgx.Mobject.set_fill],
-        [set_stroke][manimgx.Mobject.set_stroke] and
-        [set_sheen][manimgx.Mobject.set_sheen]; the sheen changes only with a nonzero
-        `sheen_factor`.
+        参见 [set_fill][manimgx.Mobject.set_fill]、
+        [set_stroke][manimgx.Mobject.set_stroke] 和
+        [set_sheen][manimgx.Mobject.set_sheen]；光泽仅在 `sheen_factor`
+        非零时改变。
 
         Args:
-            fill_color: The fill's color; several make a gradient.
-            fill_opacity: The fill's opacity, from 0 to 1.
-            stroke_color: The stroke's color; several make a gradient.
-            stroke_width: The stroke's width, in hundredths of a scene unit.
-            stroke_opacity: The stroke's opacity, from 0 to 1.
-            background_stroke_color: The color of the outline drawn behind the fill.
-            background_stroke_width: That outline's width, in hundredths of a scene
-                unit.
-            background_stroke_opacity: That outline's opacity, from 0 to 1.
-            sheen_factor: How much the colors lighten toward `sheen_direction`, from -1
-                to 1; None or 0 leaves the sheen as it is.
-            sheen_direction: The direction they lighten toward, set with `sheen_factor`.
-            family: Whether its whole family is styled, or the mobject alone.
+            fill_color: 填充的颜色；多个颜色形成渐变。
+            fill_opacity: 填充的不透明度，从 0 到 1。
+            stroke_color: 描边的颜色；多个颜色形成渐变。
+            stroke_width: 描边的宽度，以场景单位的百分之一表示。
+            stroke_opacity: 描边的不透明度，从 0 到 1。
+            background_stroke_color: 在填充之后绘制的轮廓的颜色。
+            background_stroke_width: 该轮廓的宽度，以场景单位的
+                百分之一表示。
+            background_stroke_opacity: 该轮廓的不透明度，从 0 到 1。
+            sheen_factor: 颜色向 `sheen_direction` 变亮的程度，从 -1
+                到 1；None 或 0 使光泽保持不变。
+            sheen_direction: 它们变亮的方向，与 `sheen_factor` 一起设置。
+            family: 其整个家族是否被设置样式，还是仅 mobject 本身。
         """
         self.set_fill(fill_color, fill_opacity, family)
         self.set_stroke(stroke_color, stroke_width, stroke_opacity, family=family)
@@ -3451,16 +3369,16 @@ class Mobject:
         return self
 
     def set_material(self, material: Material | None, family: bool = True) -> Self:
-        """Give the mobject a surface the scene's lights reflect from, in a three-dimensional
-        scene: its fill color is the surface's base color.
+        """为 mobject 赋予一个场景光照可从其反射的表面，在三维
+        场景中：其填充颜色为该表面的基础颜色。
 
         Args:
-            material: How the surface reflects light (see [Material][manimgx.Material]); None
-                for Manim's shading.
-            family: Whether its whole family takes the material, or the mobject alone.
+            material: 表面如何反射光照（参见 [Material][manimgx.Material]）；None
+                表示 Manim 的着色方式。
+            family: 其整个家族是否采用该材质，还是仅 mobject 本身。
 
         Returns:
-            This mobject, for chaining.
+            此 mobject，用于链式调用。
 
         Examples:
             ```python
@@ -3494,13 +3412,13 @@ class Mobject:
         color: ParsableManimColor | Iterable[ParsableManimColor],
         family: bool = True,
     ) -> Self:
-        """Color the mobject: its fill and its stroke, which keep their opacities (an
-        unfilled shape stays unfilled).
+        """为 mobject 着色：其填充和描边，保持各自的不透明度（未填充的
+        形状保持未填充）。
 
         Args:
-            color: The color; several make a gradient across the mobject, from the first
-                to the last toward its sheen direction (UL unless set).
-            family: Whether its whole family is colored, or the mobject alone.
+            color: 颜色；多个颜色在 mobject 上形成渐变，从第一个
+                到最后一个沿其光泽方向（除非设置否则为 UL）。
+            family: 其整个家族是否被着色，还是仅 mobject 本身。
 
         Examples:
             ```python
@@ -3521,12 +3439,12 @@ class Mobject:
         return self.set_stroke(color, family=family)
 
     def set_opacity(self, opacity: float, family: bool = True) -> Self:
-        """Set the opacity of the mobject's fill, stroke and background stroke alike —
-        so an unfilled shape gets a fill of that opacity.
+        """统一设置 mobject 填充、描边和背景描边的不透明度——
+        因此未填充的形状获得该不透明度的填充。
 
         Args:
-            opacity: The opacity, from 0 (invisible) to 1 (opaque).
-            family: Whether its whole family gets it, or the mobject alone.
+            opacity: 不透明度，从 0（不可见）到 1（不透明）。
+            family: 其整个家族是否都获得它，还是仅 mobject 本身。
 
         Examples:
             ```python
@@ -3548,12 +3466,12 @@ class Mobject:
         return self.set_stroke(opacity=opacity, background=True, family=family)
 
     def fade(self, darkness: float = 0.5, family: bool = True) -> Self:
-        """Make the mobject fainter: its fill's, stroke's and background stroke's
-        opacities each times 1 − `darkness`.
+        """使 mobject 更淡：其填充、描边和背景描边的
+        不透明度各乘以 1 − `darkness`。
 
         Args:
-            darkness: How much fainter, from 0 (as it is) to 1 (invisible).
-            family: Whether its whole family fades, or the mobject alone.
+            darkness: 变淡程度，从 0（原样）到 1（不可见）。
+            family: 其整个家族是否变淡，还是仅 mobject 本身。
         """
         factor = 1.0 - darkness
         if factor == 1.0:
@@ -3570,18 +3488,18 @@ class Mobject:
     def set_sheen(
         self, factor: float, direction: Vector3DLike | None = None, family: bool = True
     ) -> Self:
-        """Give the mobject a sheen: its colors lighten across it, toward a direction.
+        """赋予 mobject 光泽：其颜色在其上变亮，朝某方向。
 
-        With a nonzero factor, its fill and its stroke each become a gradient from their
-        color to that color lightened by the factor.
+        当因子非零时，其填充和描边各自成为从其颜色到该颜色按因子变亮
+        的渐变。
 
         Args:
-            factor: How much the colors lighten, from -1 to 1: 0 for no sheen, a
-                negative factor darkens.
-            direction: The direction they lighten toward, copied as a value; None
-                keeps the present one (UL unless styled). The caller's array is
-                unchanged.
-            family: Whether its whole family gets it, or the mobject alone.
+            factor: 颜色变亮的程度，从 -1 到 1：0 表示无光泽，
+                负因子使颜色变暗。
+            direction: 它们变亮的方向，作为值拷贝；None
+                保持当前值（除非已设置否则为 UL）。调用者的数组
+                不变。
+            family: 其整个家族是否都获得它，还是仅 mobject 本身。
         """
         if direction is not None:
             direction = frozen(np.array(direction, dtype=float, copy=True))
@@ -3597,13 +3515,12 @@ class Mobject:
         return self
 
     def set_sheen_direction(self, direction: Vector3DLike, family: bool = True) -> Self:
-        """Set the direction the mobject's colors lighten toward, which its gradients
-        run along too.
+        """设置 mobject 颜色变亮的方向，其渐变也沿此方向运行。
 
         Args:
-            direction: The direction, copied as a value without changing the
-                caller's array.
-            family: Whether its whole family gets it, or the mobject alone.
+            direction: 方向，作为值拷贝，不改变
+                调用者的数组。
+            family: 其整个家族是否都获得它，还是仅 mobject 本身。
         """
         direction = frozen(np.array(direction, dtype=float, copy=True))
         for mob in self._each(family):
@@ -3612,48 +3529,48 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_stroke_rgbas(self, background: bool = False) -> np.ndarray:
-        """The mobject's own stroke colors, one row per gradient stop.
+        """mobject 自身的描边颜色，每个渐变停止点一行。
 
         Args:
-            background: Whether to read the background stroke's instead.
+            background: 是否改为读取背景描边的颜色。
 
         Returns:
-            An (n, 4) array of red, green, blue and opacity, from 0 to 1.
+            一个 (n, 4) 的红、绿、蓝和不透明度数组，从 0 到 1。
         """
         return self.paint.background if background else self.paint.stroke
 
     @deprecated("get_fill_color() is fill_color: use it", category=None)
     def get_fill_color(self) -> ManimColor:
-        """The mobject's own fill color (for a gradient, its first)."""
+        """mobject 自身的填充颜色（对于渐变，为第一个）。"""
         return ManimColor(self.paint.fill[0, :3])
 
     @deprecated("get_fill_opacity() is fill_opacity: use it", category=None)
     def get_fill_opacity(self) -> float:
-        """The opacity of the mobject's own fill (for a gradient, its first color's).
+        """mobject 自身填充的不透明度（对于渐变，为第一个颜色的）。
 
         Returns:
-            The opacity, from 0 to 1.
+            不透明度，从 0 到 1。
         """
         return float(self.paint.fill[0, 3])
 
     @deprecated("get_stroke_color() is stroke_color: use it", category=None)
     def get_stroke_color(self, background: bool = False) -> ManimColor:
-        """The mobject's own stroke color (for a gradient, its first).
+        """mobject 自身的描边颜色（对于渐变，为第一个）。
 
         Args:
-            background: Whether to read the background stroke's instead.
+            background: 是否改为读取背景描边的颜色。
         """
         return ManimColor(self.get_stroke_rgbas(background)[0, :3])
 
     @deprecated("get_stroke_width() is stroke_width: use it", category=None)
     def get_stroke_width(self, background: bool = False) -> float:
-        """The width of the mobject's own stroke.
+        """mobject 自身描边的宽度。
 
         Args:
-            background: Whether to read the background stroke's instead.
+            background: 是否改为读取背景描边的宽度。
 
         Returns:
-            The width, in hundredths of a scene unit.
+            宽度，以场景单位的百分之一表示。
         """
         return max(
             0.0, self.paint.background_width if background else self.paint.stroke_width
@@ -3661,20 +3578,20 @@ class Mobject:
 
     @deprecated("get_stroke_opacity() is stroke_opacity: use it", category=None)
     def get_stroke_opacity(self, background: bool = False) -> float:
-        """The opacity of the mobject's own stroke (for a gradient, its first color's).
+        """mobject 自身描边的不透明度（对于渐变，为第一个颜色的）。
 
         Args:
-            background: Whether to read the background stroke's instead.
+            background: 是否改为读取背景描边的不透明度。
 
         Returns:
-            The opacity, from 0 to 1.
+            不透明度，从 0 到 1。
         """
         return float(self.get_stroke_rgbas(background)[0, 3])
 
     @deprecated("get_color() is color: use it", category=None)
     def get_color(self) -> ManimColor:
-        """The mobject's own color: its fill's, or its stroke's if it has no fill (its
-        fill wholly transparent).
+        """mobject 自身的颜色：其填充的颜色，若无填充（其
+        填充完全透明）则为描边的颜色。
         """
         if np.all(self.paint.fill[:, 3] == 0):
             return self.get_stroke_color()
@@ -3682,8 +3599,8 @@ class Mobject:
 
     @property
     def color(self) -> ManimColor:
-        """The mobject's own color: its fill's, or its stroke's if it has no fill. Set
-        it to color the whole family (see [set_color][manimgx.Mobject.set_color])."""
+        """mobject 自身的颜色：其填充的颜色，若无填充则为描边的颜色。设置
+        它可为整个家族着色（参见 [set_color][manimgx.Mobject.set_color]）。"""
         return self.get_color()
 
     @color.setter
@@ -3691,32 +3608,32 @@ class Mobject:
         self.set_color(value)
 
     fill_color = property(get_fill_color, lambda self, c: self.set_fill(c))
-    """The mobject's own fill color (for a gradient, its first). Set it to fill the
-    whole family with a color (see [set_fill][manimgx.Mobject.set_fill])."""
+    """mobject 自身的填充颜色（对于渐变，为第一个）。设置它可用
+    一种颜色填充整个家族（参见 [set_fill][manimgx.Mobject.set_fill]）。"""
     stroke_color = property(get_stroke_color, lambda self, c: self.set_stroke(c))
-    """The mobject's own stroke color (for a gradient, its first). Set it to stroke the
-    whole family with a color (see [set_stroke][manimgx.Mobject.set_stroke])."""
+    """mobject 自身的描边颜色（对于渐变，为第一个）。设置它可用
+    一种颜色描边整个家族（参见 [set_stroke][manimgx.Mobject.set_stroke]）。"""
     fill_opacity = property(get_fill_opacity, lambda self, o: self.set_fill(opacity=o))
-    """The opacity of the mobject's own fill, from 0 to 1. Set it to set the whole
-    family's."""
+    """mobject 自身填充的不透明度，从 0 到 1。设置它可设置整个
+    家族的。"""
     stroke_opacity = property(
         get_stroke_opacity, lambda self, o: self.set_stroke(opacity=o)
     )
-    """The opacity of the mobject's own stroke, from 0 to 1. Set it to set the whole
-    family's."""
+    """mobject 自身描边的不透明度，从 0 到 1。设置它可设置整个
+    家族的。"""
     stroke_width = property(get_stroke_width, lambda self, w: self.set_stroke(width=w))
-    """The width of the mobject's own stroke, in hundredths of a scene unit. Set it to
-    set the whole family's."""
+    """mobject 自身描边的宽度，以场景单位的百分之一表示。设置它可
+    设置整个家族的。"""
 
     def match_style(self, mobject: "Mobject", family: bool = True) -> Self:
-        """Give the mobject another's style: its colors, opacities, stroke widths, sheen
-        and the rest of its look, all but how much of it a reveal shows.
+        """将另一个的样式赋予 mobject：其颜色、不透明度、描边宽度、光泽
+        及其余外观，但不包括揭示动画显示多少。
 
         Args:
-            mobject: The mobject whose style to take.
-            family: Whether the submobjects take the style of the other's too, in order:
-                paired evenly when their numbers differ, and each taking the other
-                mobject's own if it has none.
+            mobject: 要取其样式的 mobject。
+            family: 子 mobject 是否也按顺序取另一个的样式：
+                当数量不同时均匀配对，各自取另一个
+                mobject 自身的样式（若无子 mobject）。
         """
         self.paint = mobject.paint.but(trim=self.paint.trim)
         if family:
@@ -3729,22 +3646,22 @@ class Mobject:
         return self
 
     def match_color(self, mobject: "Mobject") -> Self:
-        """Color the mobject and its whole family with another's
-        [color][manimgx.Mobject.color].
+        """用另一个的 [color][manimgx.Mobject.color] 为 mobject 及其整个家族
+        着色。
 
         Args:
-            mobject: The mobject whose color to take.
+            mobject: 要取其颜色的 mobject。
         """
         return self.set_color(mobject.get_color())
 
     def set_color_by_gradient(self, *colors: ParsableManimColor) -> Self:
-        """Color the drawn members of the family along a gradient: in family order, each
-        one solid, from the first color to the last.
+        """沿渐变为家族中绘制的成员着色：按家族顺序，每个
+        为纯色，从第一个颜色到最后一个。
 
-        One color colors them all; none raises an exception.
+        一个颜色为它们全部着色；无颜色抛出异常。
 
         Args:
-            *colors: The colors the gradient runs through, evenly.
+            *colors: 渐变所经过的颜色，均匀分布。
 
         Examples:
             ```python
@@ -3770,15 +3687,15 @@ class Mobject:
         inner_color: ParsableManimColor = WHITE,
         outer_color: ParsableManimColor = "#000000",
     ) -> Self:
-        """Color the drawn members of the family by how far their centers are from a
-        point: `inner_color` there, blending to `outer_color` at `radius` and beyond;
-        each member one solid color.
+        """按家族中绘制成员的中心距某点的远近为它们着色：
+        该处为 `inner_color`，在 `radius` 及以外混合到 `outer_color`；
+        每个成员为一种纯色。
 
         Args:
-            center: The point; None for the mobject's center.
-            radius: The distance at which the color is `outer_color`, in scene units.
-            inner_color: The color at the point.
-            outer_color: The color at `radius` and beyond.
+            center: 该点；None 表示 mobject 的中心。
+            radius: 颜色为 `outer_color` 时的距离，以场景单位表示。
+            inner_color: 该点处的颜色。
+            outer_color: `radius` 及以外的颜色。
         """
         c = self.get_center() if center is None else np.asarray(center)
         for mob in self.family_members_with_points():
@@ -3795,27 +3712,27 @@ class Mobject:
         point_to_num_func: Callable[[Point3D], float] = lambda p: p[0],
         submob_func: "Callable[[Mobject], float] | None" = None,
     ) -> Self:
-        """Sort the submobjects by a number: the same as [sort][manimgx.Mobject.sort].
+        """按数字排序子 mobject：与 [sort][manimgx.Mobject.sort] 相同。
 
         Args:
-            point_to_num_func: A function of a submobject's center, giving the number to
-                sort it by (default: its x coordinate).
-            submob_func: A function of a submobject, giving the number to sort it by, in
-                place of `point_to_num_func`.
+            point_to_num_func: 关于子 mobject 中心的函数，给出排序
+                所依据的数字（默认：其 x 坐标）。
+            submob_func: 关于子 mobject 的函数，给出排序所依据的数字，
+                替代 `point_to_num_func`。
         """
         return self.sort(point_to_num_func, submob_func)
 
     @deprecated("use set_color(mobject.color)", category=None)
     def to_original_color(self) -> Self:
-        """Color the whole family with the mobject's own [color][manimgx.Mobject.color]."""
+        """用 mobject 自身的 [color][manimgx.Mobject.color] 为整个家族着色。"""
         return self.set_color(self.color)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def apply_to_family(self, func: Callable[["Mobject"], object]) -> None:
-        """Call a function on each drawn member of the family, in family order.
+        """按家族顺序对家族中每个绘制的成员调用一个函数。
 
         Args:
-            func: A function of a mobject; what it returns is ignored.
+            func: 关于 mobject 的函数；其返回值被忽略。
         """
         for mob in self.family_members_with_points():
             func(mob)
@@ -3825,11 +3742,11 @@ class Mobject:
         category=None,
     )
     def set_submobject_colors_by_gradient(self, *colors: ParsableManimColor) -> Self:
-        """Color the drawn members of the family along a gradient: the same as
-        [set_color_by_gradient][manimgx.Mobject.set_color_by_gradient].
+        """沿渐变为家族中绘制的成员着色：与
+        [set_color_by_gradient][manimgx.Mobject.set_color_by_gradient] 相同。
 
         Args:
-            *colors: The colors the gradient runs through, evenly.
+            *colors: 渐变所经过的颜色，均匀分布。
         """
         if len(colors) == 0:
             raise ValueError("Need at least one color")
@@ -3847,16 +3764,16 @@ class Mobject:
         inner_color: ParsableManimColor = WHITE,
         outer_color: ParsableManimColor = "#000000",
     ) -> Self:
-        """Color the mobject by distance from a point: `inner_color` there, blending to
-        `outer_color` at `radius` and beyond.
+        """按距某点的远近为 mobject 着色：该处为 `inner_color`，在
+        `radius` 及以外混合到 `outer_color`。
 
-        Each drawn member of the family is one solid color, by its center's distance.
+        家族中每个绘制的成员为一种纯色，按其中心的距离。
 
         Args:
-            center: The point; None for the mobject's center.
-            radius: The distance at which the color is `outer_color`, in scene units.
-            inner_color: The color at the point.
-            outer_color: The color at `radius` and beyond.
+            center: 该点；None 表示 mobject 的中心。
+            radius: 颜色为 `outer_color` 时的距离，以场景单位表示。
+            inner_color: 该点处的颜色。
+            outer_color: `radius` 及以外的颜色。
         """
         c = self.get_center() if center is None else np.asarray(center)
         for mob in self.family_members_with_points():
@@ -3870,13 +3787,13 @@ class Mobject:
     def fade_to(
         self, color: ParsableManimColor, alpha: float, family: bool = True
     ) -> Self:
-        """Blend the mobject's color toward another: each drawn member's own color,
-        mixed `alpha` of the way to `color`.
+        """将 mobject 的颜色向另一种混合：每个绘制成员自身的颜色，
+        混合到 `color` 的 `alpha` 处。
 
         Args:
-            color: The color to blend toward.
-            alpha: How far, from 0 (as it is) to 1 (`color`).
-            family: Whether its whole family blends, or the mobject alone.
+            color: 要混合到的目标颜色。
+            alpha: 混合程度，从 0（原样）到 1（`color`）。
+            family: 其整个家族是否混合，还是仅 mobject 本身。
         """
         if self.has_points():
             self.set_color(
@@ -3893,18 +3810,17 @@ class Mobject:
     def align_data(
         self, mobject: "Mobject", skip_point_alignment: bool = False
     ) -> Self:
-        """Give this mobject's family and another's the same structure, so the two can
-        be blended member by member: the same number of members, level by level, and,
-        unless skipped, the same number of points in each pair.
+        """使此 mobject 的家族和另一个的家族具有相同的结构，以便两者可以
+        逐成员混合：逐层成员数相同，且
+        除非跳过，每对成员的点数相同。
 
-        A transform calls it on its keyframes; both mobjects change, but neither's look
-        does.
+        变换在其关键帧上调用它；两个 mobject 都会改变，但外观
+        不变。
 
         Args:
-            mobject: The other mobject.
-            skip_point_alignment: Whether to leave the numbers of points as they are
-                ([become][manimgx.Mobject.become] does: it takes the other's points as
-                they are).
+            mobject: 另一个 mobject。
+            skip_point_alignment: 是否保持点数不变
+                （[become][manimgx.Mobject.become] 如此：它按原样取另一个的点）。
         """
         self.null_point_align(mobject)
         self.align_submobjects(mobject)
@@ -3916,12 +3832,12 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def align_points(self, mobject: "Mobject") -> Self:
-        """Give this mobject and another the same number of points of their own, and of
-        color rows: the one with fewer is refined, its shape and look unchanged (see
-        [align_points_with_larger][manimgx.Mobject.align_points_with_larger]).
+        """使此 mobject 和另一个拥有相同数量的自身点和
+        颜色行：较少的那个被细化，其形状和外观不变（参见
+        [align_points_with_larger][manimgx.Mobject.align_points_with_larger]）。
 
         Args:
-            mobject: The other mobject.
+            mobject: 另一个 mobject。
         """
         self.paint, mobject.paint = Paint.aligned(self.paint, mobject.paint)
         n1, n2 = self.get_num_points(), mobject.get_num_points()
@@ -3933,15 +3849,15 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def align_submobjects(self, mobject: "Mobject") -> Self:
-        """Give this mobject and another the same number of submobjects.
+        """使此 mobject 和另一个拥有相同数量的子 mobject。
 
-        The one with fewer repeats its own (see
-        [add_n_more_submobjects][manimgx.Mobject.add_n_more_submobjects]); one with none
-        grows, at its center, the point of each of the other's — of that one's kind and
-        style, so what appears from nothing appears as itself.
+        较少的那个重复自身的（参见
+        [add_n_more_submobjects][manimgx.Mobject.add_n_more_submobjects]）；没有子 mobject 的
+        在其中心生长出另一个每个成员的点——具有该成员的类型和
+        样式，因此从无中出现的东西以其自身形式出现。
 
         Args:
-            mobject: The other mobject.
+            mobject: 另一个 mobject。
         """
         # (CE's VGroup lent a grown point the group's own, never-drawn style)
         for a, b in ((self, mobject), (mobject, self)):
@@ -3956,13 +3872,13 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def null_point_align(self, mobject: "Mobject") -> Self:
-        """If one of this mobject and another has no points of its own and the other
-        has, move the other's points into a submobject of its own, so the two families
-        line up (see
-        [push_self_into_submobjects][manimgx.Mobject.push_self_into_submobjects]).
+        """若此 mobject 和另一个中一个没有自身点而另一个有，
+        将另一个的点移入其自身的子 mobject，使两个家族
+        对齐（参见
+        [push_self_into_submobjects][manimgx.Mobject.push_self_into_submobjects]）。
 
         Args:
-            mobject: The other mobject.
+            mobject: 另一个 mobject。
         """
         for m1, m2 in ((self, mobject), (mobject, self)):
             if m1.has_no_points() and m2.has_points():
@@ -3971,9 +3887,9 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def push_self_into_submobjects(self) -> Self:
-        """Move the mobject's own points into a new submobject, added last: a copy of it
-        without submobjects. The mobject keeps its submobjects, and has no points of its
-        own.
+        """将 mobject 自身的点移入一个新的子 mobject，添加在最后：它的一个
+        不含子 mobject 的拷贝。mobject 保留其子 mobject，且不再有自身
+        的点。
         """
         clone = self.copy()
         clone.submobjects = []
@@ -3982,14 +3898,14 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def add_n_more_submobjects(self, n: int) -> Self:
-        """Add `n` submobjects, for a transform that splits parts: a mobject with none
-        gets `n` points of itself, at its center (see
-        [get_point_mobject][manimgx.Mobject.get_point_mobject]); otherwise each
-        submobject is followed by invisible copies of itself, spread as evenly as can
-        be.
+        """添加 `n` 个子 mobject，用于分割部分的变换：没有子 mobject 的
+        mobject 在其中心获得 `n` 个自身的点（参见
+        [get_point_mobject][manimgx.Mobject.get_point_mobject]）；否则每个
+        子 mobject 后面跟着其不可见的拷贝，尽可能均匀
+        分布。
 
         Args:
-            n: How many to add.
+            n: 要添加的数量。
         """
         if n == 0:
             return self
@@ -4018,19 +3934,19 @@ class Mobject:
         alpha: float,
         path_func: PathFunc = _STRAIGHT,
     ) -> Self:
-        """Make the mobject a blend of two others: `mobject1` at 0, `mobject2` at 1.
+        """使 mobject 成为两个其他 mobject 的混合：`mobject1` 在 0 处，`mobject2` 在 1 处。
 
-        Its own points go from the first's to the second's along `path_func`, and its
-        style blends from the first's to the second's; its submobjects are left as they
-        are. A transform calls it on each drawn member, with its aligned keyframes (see
-        [align_data][manimgx.Mobject.align_data]), which have as many points as each
-        other.
+        其自身的点沿 `path_func` 从第一个的点到第二个的点，其
+        样式从第一个的混合到第二个的；其子 mobject 保持
+        原样。变换在每个绘制成员上调用它，使用其对齐的关键帧（参见
+        [align_data][manimgx.Mobject.align_data]），这些关键帧具有相同
+        数量的点。
 
         Args:
-            mobject1: The mobject it is at 0.
-            mobject2: The mobject it is at 1.
-            alpha: How far from the first to the second, from 0 to 1.
-            path_func: The path each point takes (default: straight).
+            mobject1: 在 0 处的 mobject。
+            mobject2: 在 1 处的 mobject。
+            alpha: 从第一个到第二个的距离，从 0 到 1。
+            path_func: 每个点所走的路径（默认：直线路径）。
         """
         g1, g2 = mobject1._geometry, mobject2._geometry
         if (
@@ -4046,13 +3962,13 @@ class Mobject:
     def interpolate_color(
         self, mobject1: "Mobject", mobject2: "Mobject", alpha: float
     ) -> Self:
-        """Make the mobject's own style a blend of two others': `mobject1`'s at 0,
-        `mobject2`'s at 1; its points stay.
+        """使该 mobject 自身的样式成为另外两个的混合：在 0 处取 `mobject1` 的样式，
+        在 1 处取 `mobject2` 的样式；其点保持不变。
 
         Args:
-            mobject1: The mobject whose style it has at 0.
-            mobject2: The mobject whose style it has at 1.
-            alpha: How far from the first to the second, from 0 to 1.
+            mobject1: 在 0 处取其样式的 mobject。
+            mobject2: 在 1 处取其样式的 mobject。
+            alpha: 从第一个到第二个的距离，范围从 0 到 1。
         """
         self.paint = self.paint.mixed(mobject1.paint, mobject2.paint, alpha)
         return self
@@ -4066,24 +3982,24 @@ class Mobject:
         match_center: bool = False,
         stretch: bool = False,
     ) -> Self:
-        """Make the mobject look like another, at once, while staying itself: the same
-        object in the scene, with its updaters.
+        """使 mobject 立即看起来像另一个，同时保持自身：场景中
+        同一个对象，保留其更新器。
 
-        The two families are first given the same structure; then each member takes its
-        counterpart's points and its colors, opacities, stroke widths, sheen and
-        texture (its joint and cap styles and 3D shading stay its own, unless they are
-        the same). With a `match_*` flag or `stretch`, a copy of `mobject` is first
-        fitted to this mobject.
+        两个家族首先被赋予相同的结构；然后每个成员取其
+        对应成员的点和颜色、不透明度、描边宽度、光泽和
+        纹理（其连接和端帽样式及 3D 着色保持自身，除非它们
+        相同）。使用 `match_*` 标志或 `stretch` 时，`mobject` 的拷贝首先被
+        拟合到此 mobject。
 
         Args:
-            mobject: The mobject to look like.
-            match_height: Whether the copy is first scaled, in proportion, to this
-                mobject's height.
-            match_width: Whether it is first scaled to this mobject's width.
-            match_depth: Whether it is first scaled to this mobject's depth.
-            match_center: Whether it is first moved to this mobject's center.
-            stretch: Whether it is first stretched to this mobject's width, height and
-                depth, in place of the `match_*` scalings.
+            mobject: 要看起来像的 mobject。
+            match_height: 拷贝是否先按比例缩放到此
+                mobject 的高度。
+            match_width: 是否先缩放到此 mobject 的宽度。
+            match_depth: 是否先缩放到此 mobject 的深度。
+            match_center: 是否先移到此 mobject 的中心。
+            stretch: 是否先拉伸到此 mobject 的宽度、高度和
+                深度，替代 `match_*` 缩放。
 
         Examples:
             ```python
@@ -4125,13 +4041,13 @@ class Mobject:
         return self
 
     def match_points(self, mobject: "Mobject") -> Self:
-        """Take another mobject's shape: its points, member by member in family order;
-        this mobject's style stays its own.
+        """取另一个 mobject 的形状：其点，按家族顺序逐成员取；
+        此 mobject 的样式保持自身。
 
-        Members past the end of the shorter family stay as they are.
+        较短家族末尾之后的成员保持原样。
 
         Args:
-            mobject: The mobject whose shape to take.
+            mobject: 要取其形状的 mobject。
         """
         for sm1, sm2 in zip(self.get_family(), mobject.get_family(), strict=False):
             sm1._geometry = sm2._geometry
@@ -4139,8 +4055,8 @@ class Mobject:
         return self
 
     def _take_shape(self, mobject: "Mobject") -> None:
-        """What goes with another mobject's points when this one takes them (a kind whose
-        shape is more than points — a mesh's triangles — takes that too)."""
+        """当此 mobject 取另一个 mobject 的点时随之而来的内容（形状
+        超过点的类型——网格的三角形——也取那些）。"""
 
     @classmethod
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
@@ -4149,17 +4065,17 @@ class Mobject:
         animation_class: type["Animation"],
         override_func: Callable[..., "Animation"],
     ) -> None:
-        """Make the class play another animation in place of one: playing
-        `animation_class(mobject, …)` on a mobject of the class plays what
-        `override_func` returns instead.
+        """使该类用另一个动画替代某个动画：在该类的 mobject 上播放
+        `animation_class(mobject, …)` 时改为播放
+        `override_func` 返回的动画。
 
-        [override_animation][manimgx.override_animation] does this for a method of the
-        class. Overriding one animation twice raises an exception.
+        [override_animation][manimgx.override_animation] 为该类的
+        方法执行此操作。覆盖同一动画两次抛出异常。
 
         Args:
-            animation_class: The animation to play another in place of.
-            override_func: A function of the mobject, then the animation's other
-                arguments and keywords, that returns the animation to play.
+            animation_class: 要被替代的动画。
+            override_func: 关于 mobject 的函数，然后是动画的其余
+                参数和关键字，返回要播放的动画。
         """
         if animation_class in cls.animation_overrides:
             raise Exception(
@@ -4172,24 +4088,24 @@ class Mobject:
 
     @classmethod
     def set_default(cls, **kwargs: object) -> None:
-        """Change the defaults of the class's constructor keywords, for every mobject of
-        the class made from then on; with none given, restore them.
+        """更改该类构造器关键字的默认值，对之后创建的该类每个
+        mobject 生效；不给出参数时恢复默认值。
 
-        After `Text.set_default(font_size=100)`, a `Text` is 100 points unless it is
-        made with another size. The keywords are checked when a mobject is made.
+        在 `Text.set_default(font_size=100)` 之后，`Text` 为 100 磅，除非
+        创建时指定了其他尺寸。关键字在创建 mobject 时检查。
 
-        Changing or restoring defaults discards remembered constructions. Existing
-        mobjects keep their state; later construction reads the current defaults.
+        更改或恢复默认值会丢弃已记忆的构造。现有的
+        mobject 保持其状态；后续构造读取当前默认值。
 
-        Repeated calls replace this class's keyword defaults. Reset restores its
-        original constructor, or normal inheritance if it had no constructor of its own.
-        The defaults are applied when a mobject is made, to the constructor then in
-        force: the class's own, or the next one in the made mobject's class's order (so a
-        parent's later defaults reach a configured child, and a configured mixin calls the
-        class after it in a subclass's order).
+        重复调用替换此类的关键字默认值。重置恢复其
+        原始构造器，或若无自身构造器则恢复正常继承。
+        默认值在创建 mobject 时应用，使用当时生效的构造器：
+        类自身的，或所创建 mobject 类顺序中的下一个（因此
+        父类的后续默认值能到达已配置的子类，已配置的混入调用
+        子类顺序中其后的类）。
 
         Args:
-            **kwargs: Keywords of the class's constructor, with their new defaults.
+            **kwargs: 该类构造器的关键字，及其新默认值。
         """
         if kwargs:
             original = cls.__dict__.get(
@@ -4219,16 +4135,16 @@ class Mobject:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_pieces(self, n_pieces: int) -> "Group":
-        """Split the mobject into pieces: copies of it, each an equal part of it in
-        turn, from its start to its end (a path's, by its curves).
+        """将 mobject 分割成片段：它的拷贝，每个依次为其
+        等分的一部分，从起点到终点（路径按其曲线）。
 
-        Only the mobject's own points are split; its submobjects are left out.
+        仅分割 mobject 自身的点；其子 mobject 不包括在内。
 
         Args:
-            n_pieces: How many pieces.
+            n_pieces: 片段数量。
 
         Returns:
-            A new group of the pieces, in order.
+            片段的新组，按顺序排列。
         """
         template = self.copy()
         template.submobjects = []
@@ -4243,29 +4159,29 @@ class Mobject:
     # ── animation hooks ───────────────────────────────────────────────────
     @property
     def animate(self) -> "Animate[Self]":
-        """An animation of the mobject, built from the method calls made on it.
+        """mobject 的动画，由在其上执行的方法调用构建。
 
-        `square.animate.shift(RIGHT).scale(2)` is an animation that moves the square
-        right and doubles its size: pass it to [Scene.play][manimgx.Scene.play]. Each
-        call is recorded — and tried at once on a copy, so a wrong call fails where it
-        is written — and returns the animation, so calls chain. The calls are carried
-        out on the mobject as it is when the animation begins, and the animation tweens
-        it from that state to the result: in
-        `Succession(square.animate.shift(RIGHT), square.animate.rotate(PI / 2))`, the
-        square turns about its center where the shift left it. When the animation
-        finishes, the calls are carried out on the mobject itself.
+        `square.animate.shift(RIGHT).scale(2)` 是一个将方形向右移动
+        并加倍其尺寸的动画：将其传给 [Scene.play][manimgx.Scene.play]。每个
+        调用被记录——并在拷贝上立即尝试，因此错误的调用在书写处
+        失败——并返回该动画，因此调用可链式书写。调用在动画开始时
+        对 mobject 当时的状态执行，动画将其从该状态
+        补间到结果：在
+        `Succession(square.animate.shift(RIGHT), square.animate.rotate(PI / 2))` 中，
+        方形在 shift 留下它的位置绕其中心旋转。当动画
+        完成时，调用对 mobject 本身执行。
 
-        The motion follows the calls: a turn among them (`rotate`, `flip`) turns the
-        mobject rigidly about its pivot, through its whole angle (`rotate(TAU)` is a full turn); every other call moves its center
-        straight; and the rest of the change (a size, a color, a new shape) blends along
-        the way. Call `animate` with options before any method —
-        `square.animate(run_time=2, rate_func=linear).shift(UP)` — to set the
-        animation's [Transform options][manimgx.animation.transform.TransformOptions]; a
-        `path_arc` or a `path_func` among them replaces the motion. Call it with a
-        function — `square.animate(lambda s: s.shift(UP))` — to record that function as
-        a call. Call a method of your own class so: through `animate`, a type checker
-        knows only ManimGX's methods, but it checks a function against the mobject's
-        class.
+        运动遵循调用：其中的旋转（`$rotate`、`flip`）使
+        mobject 绕其枢轴刚性地旋转整个角度（`rotate(TAU)` 为整圈）；其他每个调用使其中心
+        直线移动；其余变化（尺寸、颜色、新形状）沿路径
+        混合。在任何方法之前用选项调用 `animate`——
+        `square.animate(run_time=2, rate_func=linear).shift(UP)`——以设置
+        动画的 [Transform options][manimgx.animation.transform.TransformOptions]；其中的
+        `path_arc` 或 `path_func` 替代运动。用函数调用它——
+        `square.animate(lambda s: s.shift(UP))`——以记录该函数为
+        一个调用。如此调用你自己的方法：通过 `animate`，类型检查器
+        只知道 ManimGX 的方法，但它会根据 mobject 的
+        类检查函数。
 
         Examples:
             ```python
@@ -4290,25 +4206,25 @@ class Mobject:
     def animation_override_for(
         cls, animation_class: type["Animation"]
     ) -> Callable[..., "Animation"] | None:
-        """The function that makes the animation the class plays in place of
-        `animation_class` (see [override_animation][manimgx.override_animation]).
+        """制作该类用以替代 `animation_class` 的动画的函数
+        （参见 [override_animation][manimgx.override_animation]）。
 
-        An animation asks, when it is played.
+        动画在播放时询问此函数。
 
         Returns:
-            The function; None if the class plays `animation_class` itself.
+            该函数；若该类自身播放 `animation_class` 则为 None。
         """
         return cls.animation_overrides.get(animation_class)
 
     def set(self, **kwargs: object) -> Self:
-        """Set attributes of the mobject by name: its properties, such as `width`,
-        `height` or `color` (or a text's `font_size`), or any other attribute.
+        """按名称设置 mobject 的属性：其属性，如 `width`、
+        `height` 或 `color`（或文本的 `font_size`），或任何其他属性。
 
-        Through [animate][manimgx.Mobject.animate] it animates the change:
-        `mobject.animate.set(width=4)`.
+        通过 [animate][manimgx.Mobject.animate] 可为变化制作动画：
+        `mobject.animate.set(width=4)`。
 
         Args:
-            **kwargs: The attributes' names, with their values.
+            **kwargs: 属性的名称及其值。
         """
         # CE's
         for attr, value in kwargs.items():
@@ -4320,7 +4236,7 @@ class Mobject:
 
 
 def _members(items: Iterable[Mobject | Iterable[Mobject]]) -> list[Mobject]:
-    """Mobjects and iterables of mobjects, flattened one level."""
+    """mobject 和 mobject 的可迭代对象，展平一层。"""
     flat: list[Mobject] = []
     for i, m in enumerate(items):
         if isinstance(m, Mobject):
@@ -4335,23 +4251,23 @@ def _members(items: Iterable[Mobject | Iterable[Mobject]]) -> list[Mobject]:
 
 
 class Group[T: Mobject = Mobject](Mobject):
-    """Mobjects together, of any kinds: paths, text, images, point clouds, other groups.
+    """将各种类型的 mobject 组合在一起：路径、文本、图像、点云、其他组。
 
-    A group has no points of its own: its members are its submobjects, and whatever is
-    done to the group — moving, scaling, styling, animating — is done to them all.
-    [VGroup][manimgx.VGroup] is another name for it. A group can be indexed (`group[0]`), sliced (`group[1:3]` is a new group of those
-    members) and iterated over, and `group + mobject`, `group - mobject`, `+=` and `-=`
-    add and remove members.
+    组没有自身的点：其成员即其子 mobject，对组执行的任何操作——
+    移动、缩放、设置样式、动画——都作用于其所有成员。
+    [VGroup][manimgx.VGroup] 是其另一个名称。组可以被索引（`group[0]`）、切片（`group[1:3]` 是这些
+    成员的新组）和迭代，`group + mobject`、`group - mobject`、`+=` 和 `-=`
+    添加和移除成员。
 
-    Its member type is inferred from what it is made with; a group meant to hold several
-    kinds says so once, as `Group[Mobject](…)`, and `Group[Integer](…)` holds integers
-    only, so `group[0]` is an [Integer][manimgx.Integer] to a type checker.
+    其成员类型从创建时所用的内容推断；旨在容纳多种
+    类型的组声明一次，如 `Group[Mobject](…)`，而 `Group[Integer](…)` 仅容纳整数，
+    因此 `group[0]` 对类型检查器是 [Integer][manimgx.Integer]。
 
     Args:
-        *mobjects: The members, in drawing order: mobjects, or iterables of mobjects
-            (each of their mobjects a member).
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the group itself: as it
-            has no points, they do not restyle its members (the style methods do).
+        *mobjects: 成员，按绘制顺序：mobject 或 mobject 的可迭代对象
+            （其中每个 mobject 为一个成员）。
+        **kwargs: 组自身的 [Style keywords][manimgx.drawing.paint.Style]：由于
+            它没有点，不会重新设置其成员的样式（样式方法会）。
 
     Examples:
         ```python
@@ -4374,7 +4290,7 @@ class Group[T: Mobject = Mobject](Mobject):
 
     # a Group[T] only ever adds T
     submobjects: list[T]  # pyright: ignore[reportIncompatibleVariableOverride]
-    """The group's members, in drawing order."""
+    """组的成员，按绘制顺序排列。"""
 
     @overload  # `Group(a, b)`: members of any kinds
     def __init__(
@@ -4393,14 +4309,14 @@ class Group[T: Mobject = Mobject](Mobject):
     def add(  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]  # a Group[T] adds T
         self, *mobjects: T | Iterable[T]
     ) -> Self:
-        """Add members after the ones the group has: mobjects, or iterables of mobjects
-        (each of their mobjects a member).
+        """在组已有成员之后添加成员：mobject 或 mobject 的可迭代对象
+        （其中每个 mobject 为一个成员）。
 
-        A member already in the group moves to the end. Adding anything but mobjects, or
-        the group to itself, raises an exception.
+        已在组中的成员移至末尾。添加非 mobject 的对象，或
+        将组添加到自身，抛出异常。
 
         Args:
-            *mobjects: The members to add, in order.
+            *mobjects: 要添加的成员，按顺序排列。
         """
         return super().add(*_members(mobjects))
 
@@ -4431,7 +4347,7 @@ class Group[T: Mobject = Mobject](Mobject):
         return self.remove(mobject)
 
     def _group(self, members: Iterable[T]) -> "Group[T]":
-        """A plain group of members of this group's type (`Group(…)` alone would say Mobject)."""
+        """由该组类型的成员构成的普通组（单独用 `Group(…)` 会得到 Mobject）。"""
         return cast("Group[T]", Group(*members))
 
 
@@ -4442,19 +4358,19 @@ class Group[T: Mobject = Mobject](Mobject):
 def override_animate[F: Callable[..., "Animation"]](
     method: Callable[..., object],
 ) -> Callable[[F], F]:
-    """Decorate a mobject class's method that makes the animation to play when another
-    method is called through [animate][manimgx.Mobject.animate].
+    """装饰 mobject 类的方法，该方法制作当另一个方法通过
+    [animate][manimgx.Mobject.animate] 调用时要播放的动画。
 
-    Then `mobject.animate.method(*args, **kwargs)` is the animation the decorated method
-    returns, called with the mobject, the same arguments, and `anim_args`: the options
-    given to `animate(...)` (an empty dict if none). It is made when the call is
-    written, and cannot be chained with other calls.
+    此时 `mobject.animate.method(*args, **kwargs)` 是被装饰方法
+    返回的动画，以 mobject、相同参数和 `anim_args` 调用：
+    即传给 `animate(...)` 的选项（若无则为空字典）。动画在调用
+    书写时制作，不能与其他调用链式组合。
 
     Args:
-        method: The method whose `animate` call plays the decorated method's animation.
+        method: 其 `animate` 调用播放被装饰方法动画的方法。
 
     Returns:
-        The decorator, which returns the decorated method as it is.
+        装饰器，原样返回被装饰的方法。
 
     Examples:
         ```python
@@ -4497,18 +4413,18 @@ def override_animate[F: Callable[..., "Animation"]](
 def override_animation[F: Callable[..., "Animation"]](
     animation_class: type["Animation"],
 ) -> Callable[[F], F]:
-    """Decorate a mobject class's method that makes the animation to play in place of
-    `animation_class`.
+    """装饰 mobject 类的方法，该方法制作用以替代
+    `animation_class` 的动画。
 
-    Then playing `animation_class(mobject, *args, **kwargs)` on a mobject of the class,
-    or of a subclass, plays what the decorated method returns, called with the mobject
-    and the same arguments. An animation made with `use_override=False` plays itself.
+    之后在该类或其子类的 mobject 上播放 `animation_class(mobject, *args, **kwargs)`
+    时，改为播放被装饰方法返回的内容，以 mobject 和相同参数调用。
+    以 `use_override=False` 制作的动画播放自身。
 
     Args:
-        animation_class: The animation to play another in place of.
+        animation_class: 要被替代的动画。
 
     Returns:
-        The decorator, which returns the decorated method as it is.
+        装饰器，原样返回被装饰的方法。
 
     Examples:
         ```python
@@ -4540,20 +4456,20 @@ def override_animation[F: Callable[..., "Animation"]](
 
 
 class ValueTracker[V: (float, complex) = float](Mobject):
-    """A number that animations can change and updaters can read.
+    """一个可被动画改变、可被更新器读取的数。
 
-    The number is kept as the x coordinate of the tracker's one point, so whatever moves
-    a mobject changes it: `tracker.animate.set_value(5)` takes it to 5 at the pace of
-    the animation's rate function, and the updaters of other mobjects read it with
-    [`get_value`][manimgx.ValueTracker.get_value]. A tracker is never drawn; add it to
-    the scene only if it has updaters of its own. `tracker += 1` and `tracker -= 1`
-    change the number at once.
+    该数保存在追踪器唯一点的 x 坐标中，因此任何移动
+    mobject 的操作都会改变它：`tracker.animate.set_value(5)` 以动画
+    速率函数的节奏将其变为 5，其他 mobject 的更新器通过
+    [`get_value`][manimgx.ValueTracker.get_value] 读取它。追踪器从不被绘制；仅当
+    其自身有更新器时才将其添加到场景。`tracker += 1` 和 `tracker -= 1`
+    立即改变该数。
 
     Args:
-        value: The real number it starts with; use
-            [ComplexValueTracker][manimgx.ComplexValueTracker] for complex numbers.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style], as any mobject takes (a
-            tracker is not drawn).
+        value: 起始实数；复数请使用
+            [ComplexValueTracker][manimgx.ComplexValueTracker]。
+        **kwargs: [Style keywords][manimgx.drawing.paint.Style]，任何 mobject 都接受（
+            追踪器不被绘制）。
 
     Examples:
         ```python
@@ -4590,15 +4506,15 @@ class ValueTracker[V: (float, complex) = float](Mobject):
         self.set_value(value)
 
     def get_value(self) -> V:
-        """The number the tracker holds."""
+        """追踪器持有的数。"""
         return float(self.points[0, 0])  # pyright: ignore[reportReturnType]  # V is float here
 
     def set_value(self, value: V) -> Self:
-        """Set the number the tracker holds; through
-        [`animate`][manimgx.Mobject.animate], animate it there.
+        """设置追踪器持有的数；通过
+        [`animate`][manimgx.Mobject.animate] 可为其变化制作动画。
 
         Args:
-            value: The new number.
+            value: 新的数。
         """
         points = np.array(self.points)
         points[0, 0] = value
@@ -4606,11 +4522,11 @@ class ValueTracker[V: (float, complex) = float](Mobject):
         return self
 
     def increment_value(self, d_value: V) -> Self:
-        """Add to the number the tracker holds; through
-        [`animate`][manimgx.Mobject.animate], animate the change.
+        """增加追踪器持有的数；通过
+        [`animate`][manimgx.Mobject.animate] 可为该变化制作动画。
 
         Args:
-            d_value: The amount to add; a negative one subtracts.
+            d_value: 要增加的量；负数则减少。
         """
         return self.set_value(self.get_value() + d_value)
 
@@ -4622,17 +4538,17 @@ class ValueTracker[V: (float, complex) = float](Mobject):
 
 
 class ComplexValueTracker(ValueTracker[complex]):
-    """A complex number that animations can change and updaters can read.
+    """一个可被动画改变、可被更新器读取的复数。
 
-    The number is kept as the tracker's one point, its real part as x and its imaginary
-    part as y, so an animation takes it along a straight line of the complex plane:
-    `tracker.animate.set_value(3 + 2j)`. `+=` and `-=` change it at once, in complex
-    arithmetic.
+    该数保存在追踪器的唯一点中，实部为 x，虚部为 y，因此
+    动画沿复平面的一条直线移动它：
+    `tracker.animate.set_value(3 + 2j)`。`+=` 和 `-=` 立即以
+    复数运算改变它。
 
     Args:
-        value: The number it starts with.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style], as any mobject takes (a
-            tracker is not drawn).
+        value: 起始数。
+        **kwargs: [Style keywords][manimgx.drawing.paint.Style]，任何 mobject 都接受（
+            追踪器不被绘制）。
 
     Examples:
         ```python
@@ -4653,15 +4569,15 @@ class ComplexValueTracker(ValueTracker[complex]):
     """
 
     def get_value(self) -> complex:
-        """The complex number the tracker holds."""
+        """追踪器持有的复数。"""
         return complex(*self.points[0, :2])
 
     def set_value(self, value: complex) -> Self:
-        """Set the complex number the tracker holds; through
-        [`animate`][manimgx.Mobject.animate], animate it there, in a straight line.
+        """设置追踪器持有的复数；通过
+        [`animate`][manimgx.Mobject.animate] 可沿直线为其变化制作动画。
 
         Args:
-            value: The new number; a real one is taken as complex.
+            value: 新的数；实数被视为复数。
         """
         z = complex(value)
         points = np.array(self.points)
@@ -4672,10 +4588,10 @@ class ComplexValueTracker(ValueTracker[complex]):
 
 _T_VALUES = np.linspace(0, 1, _NPPCC)
 _IMAGE_TOLERANCE = 1e-3
-"""How far a curve's image may stray from the true image of the curve at a third and two
-thirds of each piece (scene units): a quarter of a pixel at 4K."""
+"""曲线的像在每个片段的三分之一和三分之二处偏离曲线真实像的
+允许范围（场景单位）：4K 下四分之一像素。"""
 _IMAGE_MAX_DEPTH = 8
-"""At most 2**8 pieces per curve for an image (a map that blows up somewhere stops there)."""
+"""每条曲线的像至多 2**8 个片段（在某处发散的映射在该处停止）。"""
 _CHECKS = np.array([1 / 3, 2 / 3])[:, None]
 # where an image is checked, in each piece: the middle alone passes an image that strays both
 # ways about it (a wave, a curve of no handles); with its ends, two points inside pin a cubic
@@ -4690,27 +4606,27 @@ _AT_CHECKS = np.hstack(
 
 
 def _checked(curves: np.ndarray) -> np.ndarray:
-    """Each cubic's points at a third and two thirds of its parameter: (curves, 2, dim)."""
+    """每条三次曲线在其参数三分之一和三分之二处的点：(curves, 2, dim)。"""
     return np.einsum("tk,ckd->ctd", _AT_CHECKS, curves)
 
 
 class VMobject(Mobject):
-    """A path: cubic Bézier curves, stroked in white and unfilled unless styled.
+    """一条路径：三次贝塞尔曲线，默认白色描边、无填充，除非设置样式。
 
-    Each curve has four control points: it starts at an anchor, bends toward two handles
-    and ends at the next anchor. The path's [points][manimgx.Mobject.points] are its
-    curves' control points, four by four, and a new subpath starts wherever a curve does
-    not begin where the one before it ends. The stroke follows the curves; the fill
-    closes each subpath with a straight line back to its start, and where subpaths
-    overlap, a point is filled unless their windings around it cancel: a subpath inside
-    another that runs the other way cuts a hole.
+    每条曲线有四个控制点：从锚点出发，弯向两个手柄，
+    到达下一个锚点。路径的 [points][manimgx.Mobject.points] 是其
+    曲线的控制点，每四个一组，当某条曲线的起点不与前一条曲线的终点重合时
+    开始新的子路径。描边沿曲线行进；填充
+    用直线将每个子路径闭合回其起点，当子路径
+    重叠时，某点是否填充取决于它们绕该点的环绕数是否抵消：在另一个
+    子路径内部反向运行的子路径切出一个洞。
 
-    Circles, polygons, text and graphs are all paths. A plain `VMobject` has no points
-    until it is given a shape: set its points as corners, or start it at a point and add
-    lines and curves.
+    圆、多边形、文本和图都是路径。普通的 `VMobject` 在被赋予形状之前没有点：
+    将其点设为角点，或从某点开始并添加
+    直线和曲线。
 
     Args:
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+        **kwargs: [Style keywords][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -4730,33 +4646,32 @@ class VMobject(Mobject):
     _curves = True  # a path: its box is its curves' tight box
     # CE's per-instance options, which no scene sets: constants a subclass may override.
     pre_function_handle_to_anchor_scale_factor: float = 0.01
-    """Where along each handle [apply_function][manimgx.Mobject.apply_function] samples
-    the function, as a fraction of the handle's length (default 0.01): the handle then
-    follows how the function stretches the path at its anchor, so the curves stay
-    smooth."""
+    """[apply_function][manimgx.Mobject.apply_function] 在每个手柄上
+    采样的位置，为手柄长度的分数（默认 0.01）：手柄随后
+    跟随函数在锚点处对路径的拉伸方式，使曲线保持
+    平滑。"""
     make_smooth_after_applying_functions: bool = False
-    """Whether [apply_function][manimgx.Mobject.apply_function] makes the path smooth
-    after mapping its curves (default False; see
-    [make_smooth][manimgx.VMobject.make_smooth])."""
+    """[apply_function][manimgx.Mobject.apply_function] 在映射其曲线后
+    是否使路径平滑（默认 False；参见
+    [make_smooth][manimgx.VMobject.make_smooth]）。"""
     tolerance_for_point_equality: float = 1e-6
-    """How far apart, in scene units, two points of the path may be and still count as
-    one, where a subpath ends and whether the path is closed (default 1e-6, plus 1e-5 of
-    their coordinates)."""
+    """路径的两个点在场景单位中相距多远仍视为同一点，
+    以及子路径在何处结束、路径是否闭合（默认 1e-6，加上其坐标的 1e-5）。"""
 
     @property
     def n_points_per_curve(self) -> int:
-        """The number of control points of each of the path's curves: 4."""
+        """路径每条曲线的控制点数：4。"""
         return _NPPCC
 
     def set_cap_style(self, cap_style: CapStyleType) -> Self:
-        """Set how the strokes of the path and its family end, at each end they show:
-        an open path's ends, a reveal's moving end, each dash's ends.
+        """设置路径及其家族的描边在它们显示的每个端点处如何结束：
+        开放路径的端点、揭示动画的移动端、每个虚线的端点。
 
-        A two-dimensional scene draws the caps; a three-dimensional scene ends every
-        stroke flat (see [CapStyleType][manimgx.CapStyleType]).
+        二维场景绘制端帽；三维场景将每条
+        描边平头结束（参见 [CapStyleType][manimgx.CapStyleType]）。
 
         Args:
-            cap_style: The cap: round, butt or square.
+            cap_style: 端帽样式：圆头、平头或方头。
         """
         for mob in self.get_family():
             mob.paint = mob.paint.but(cap=cap_style)
@@ -4765,14 +4680,13 @@ class VMobject(Mobject):
     def set_shade_in_3d(
         self, value: bool = True, z_index_as_group: bool = False
     ) -> Self:
-        """Set whether a three-dimensional scene's light shades the path and its family.
+        """设置三维场景的光照是否对路径及其家族着色。
 
         Args:
-            value: Whether the light shades them.
-            z_index_as_group: Whether each member of the family also takes the path as
-                its z-index group, which is kept for
-                Manim compatibility (the renderer draws a three-dimensional scene by
-                depth).
+            value: 光照是否对它们着色。
+            z_index_as_group: 家族的每个成员是否也将该路径作为
+                其 z-index 组，保留此选项用于
+                Manim 兼容性（渲染器按深度绘制三维场景）。
         """
         for mob in self.get_family():
             mob.paint = mob.paint.but(shade_in_3d=value)
@@ -4782,32 +4696,31 @@ class VMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_sheen_direction(self) -> np.ndarray:
-        """The direction the path's own colors lighten toward, which its gradients run
-        along too (see [set_sheen][manimgx.Mobject.set_sheen]).
+        """路径自身颜色变亮的方向，其渐变也沿该方向
+        运行（参见 [set_sheen][manimgx.Mobject.set_sheen]）。
 
         Returns:
-            A copy of the direction.
+            方向的副本。
         """
         return np.array(self.paint.sheen_direction)
 
     gradient_frame: Mobject | None = None
-    """The mobject whose bounding box the path's color gradients span; None for the
-    path's own. Parts that share one show a single gradient across them all."""
+    """路径颜色渐变所跨越其包围盒的 mobject；None 表示
+    路径自身。共享同一个的部分在所有部分上显示单一渐变。"""
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_gradient_start_and_end_points(self) -> tuple[Point3D, Point3D]:
-        """Where the path's color gradients start and end: a gradient spans its
-        [bounding box][manimgx.Mobject.boundary_box], along its sheen direction.
+        """路径颜色渐变的起点和终点：渐变跨越其
+        [包围盒][manimgx.Mobject.boundary_box]，沿其光泽方向。
 
-        They are the box's center, less and plus the sheen direction scaled by half the
-        box's size along each axis: with the default direction, [UL][manimgx.UL], the
-        box's lower right and upper left corners. The box is the
-        [gradient_frame][manimgx.VMobject.gradient_frame]'s, if the path has one. The
-        renderer reads them for a path whose fill or stroke has several colors.
+        它们是包围盒的中心减去和加上光泽方向乘以
+        包围盒沿每个轴尺寸的一半：在默认方向 [UL][manimgx.UL] 下，为
+        包围盒的右下角和左上角。若路径有
+        [gradient_frame][manimgx.VMobject.gradient_frame]，则包围盒取自它。
+        渲染器为填充或描边有多种颜色的路径读取它们。
 
         Returns:
-            The start and the end, in scene coordinates; the origin twice if the box has
-            no points.
+            起点和终点，场景坐标；若包围盒无点则为两次原点。
         """
         box = (self.gradient_frame or self).boundary_box()
         if box is None:
@@ -4825,17 +4738,16 @@ class VMobject(Mobject):
         handles2: Point3D_Array,
         anchors2: Point3D_Array,
     ) -> Self:
-        """Give the path new curves, in place of its points, from their control points
-        listed kind by kind.
+        """从控制点按类型分列给出路径新曲线，替换其点。
 
-        Curve `i` runs from `anchors1[i]` to `anchors2[i]`, bending toward `handles1[i]`
-        and then `handles2[i]`: the four arrays have one row per curve.
+        曲线 `i` 从 `anchors1[i]` 到 `anchors2[i]`，弯向 `handles1[i]`
+        再弯向 `handles2[i]`：四个数组每条曲线一行。
 
         Args:
-            anchors1: Where each curve starts, in scene coordinates.
-            handles1: Each curve's first handle.
-            handles2: Each curve's second handle.
-            anchors2: Where each curve ends.
+            anchors1: 每条曲线的起点，场景坐标。
+            handles1: 每条曲线的第一个手柄。
+            handles2: 每条曲线的第二个手柄。
+            anchors2: 每条曲线的终点。
         """
         n = _NPPCC * len(anchors1)
         points = np.empty((n, self.dim))
@@ -4846,17 +4758,17 @@ class VMobject(Mobject):
 
     @deprecated("clear_points is reset_points: use it", category=None)
     def clear_points(self) -> Self:
-        """Remove the path's own points: the same as
-        [reset_points][manimgx.Mobject.reset_points].
+        """移除路径自身的点：等同于
+        [reset_points][manimgx.Mobject.reset_points]。
         """
         return self.reset_points()
 
     def append_points(self, new_points: Point3DLike_Array) -> Self:
-        """Add control points after the path's own: taken four by four, the path's
-        points are its curves.
+        """在路径自身的点之后添加控制点：每四个一组，路径的
+        点即其曲线。
 
         Args:
-            new_points: The points, in scene coordinates: an (n, 3) array.
+            new_points: 点，场景坐标：(n, 3) 数组。
         """
         # the path grows in place (its shape is a prefix of an append-only log), so a
         # traced path grows by what it gains, not by a copy of all it has
@@ -4872,15 +4784,15 @@ class VMobject(Mobject):
         return self
 
     def start_new_path(self, point: Point3DLike) -> Self:
-        """Start a new subpath at a point: the next curve added begins there, not where
-        the path ends.
+        """在某点开始新的子路径：下一条添加的曲线从该点开始，而非
+        路径终点。
 
-        A curve left unfinished (a subpath started and given no curve yet) is completed
-        with copies of its first point, as a curve of no length. Started where the path
-        ends, the subpath just goes on.
+        未完成的曲线（已开始但尚未添加曲线的子路径）以
+        其第一个点的副本补全，作为零长度曲线。若在路径终点处开始，
+        子路径直接延续。
 
         Args:
-            point: Where the new subpath starts, in scene coordinates.
+            point: 新子路径的起点，场景坐标。
         """
         n = self._geometry.n
         if n % _NPPCC != 0:
@@ -4897,33 +4809,33 @@ class VMobject(Mobject):
         handle2: Point3DLike,
         anchor2: Point3DLike,
     ) -> Self:
-        """Add a curve from `anchor1` to `anchor2`, bending toward two handles: a new
-        subpath, unless `anchor1` is where the path ends.
+        """添加从 `anchor1` 到 `anchor2` 的曲线，弯向两个手柄：新的
+        子路径，除非 `anchor1` 是路径终点。
 
-        Its four points are appended as they are, so the path's curves must all be
-        whole: after [start_new_path][manimgx.VMobject.start_new_path], use
-        [add_cubic_bezier_curve_to][manimgx.VMobject.add_cubic_bezier_curve_to].
+        其四个点按原样追加，因此路径的曲线必须全部
+        完整：在 [start_new_path][manimgx.VMobject.start_new_path] 之后，使用
+        [add_cubic_bezier_curve_to][manimgx.VMobject.add_cubic_bezier_curve_to]。
 
         Args:
-            anchor1: Where the curve starts, in scene coordinates.
-            handle1: The handle it leaves `anchor1` heading toward.
-            handle2: The handle it arrives at `anchor2` heading away from.
-            anchor2: Where it ends.
+            anchor1: 曲线起点，场景坐标。
+            handle1: 离开 `anchor1` 时所朝向的手柄。
+            handle2: 到达 `anchor2` 时所背离的手柄。
+            anchor2: 曲线终点。
         """
         return self.append_points([anchor1, handle1, handle2, anchor2])
 
     def add_cubic_bezier_curve_to(
         self, handle1: Point3DLike, handle2: Point3DLike, anchor: Point3DLike
     ) -> Self:
-        """Add a curve from where the path ends to `anchor`, bending toward two handles.
+        """从路径终点到 `anchor` 添加曲线，弯向两个手柄。
 
-        The curve leaves the path's last point heading toward `handle1`, and arrives at
-        `anchor` heading away from `handle2`. The path must have a point to start from.
+        曲线从路径最后一个点朝向 `handle1` 离开，到达
+        `anchor` 时背离 `handle2`。路径必须有一个点作为起点。
 
         Args:
-            handle1: The first handle, in scene coordinates.
-            handle2: The second handle.
-            anchor: Where the curve ends.
+            handle1: 第一个手柄，场景坐标。
+            handle2: 第二个手柄。
+            anchor: 曲线终点。
 
         Examples:
             ```python
@@ -4948,28 +4860,27 @@ class VMobject(Mobject):
         )
 
     def add_cubic_bezier_curves(self, curves: Point3DLike_Array) -> Self:
-        """Add curves after the path's own, given by their control points, four per
-        curve: anchor, handle, handle, anchor.
+        """在路径自身的曲线之后添加曲线，由控制点给出，每条曲线四个：
+        锚点、手柄、手柄、锚点。
 
         Args:
-            curves: The curves' control points, in scene coordinates: an (n, 4, 3)
-                array, or the points one after another.
+            curves: 曲线的控制点，场景坐标：(n, 4, 3)
+                数组，或依次排列的点。
         """
         return self.append_points(np.asarray(curves).reshape(-1, 3))
 
     def add_quadratic_bezier_curve_to(
         self, handle: Point3DLike, anchor: Point3DLike
     ) -> Self:
-        """Add a quadratic Bézier curve from where the path ends to `anchor`, bending
-        toward one handle.
+        """从路径终点到 `anchor` 添加二次贝塞尔曲线，弯向
+        一个手柄。
 
-        It is added as the cubic curve of the same shape. The path must have a point to
-        start from.
+        它作为同形状的三次曲线添加。路径必须有一个点作为起点。
 
         Args:
-            handle: The handle, in scene coordinates: the curve leaves the path's last
-                point heading toward it, and arrives at `anchor` heading away from it.
-            anchor: Where the curve ends.
+            handle: 手柄，场景坐标：曲线从路径最后
+                一个点朝向它离开，到达 `anchor` 时背离它。
+            anchor: 曲线终点。
 
         Examples:
             ```python
@@ -4994,12 +4905,12 @@ class VMobject(Mobject):
         )
 
     def add_line_to(self, point: Point3DLike) -> Self:
-        """Add a straight line from where the path ends to a point.
+        """从路径终点到某点添加直线。
 
-        The path must have a point to start from.
+        路径必须有一个点作为起点。
 
         Args:
-            point: Where the line ends, in scene coordinates.
+            point: 直线终点，场景坐标。
 
         Examples:
             ```python
@@ -5023,19 +4934,19 @@ class VMobject(Mobject):
         )
 
     def add_smooth_curve_to(self, *points: Point3DLike) -> Self:
-        """Add a curve that continues the path smoothly: it leaves where the path ends
-        in the direction the path arrives there.
+        """添加平滑延续路径的曲线：它从路径终点沿
+        路径到达该处的方向离开。
 
-        Its first handle is the path's last handle mirrored through the path's end.
-        Given only the anchor, the curve arrives there as the mirror image of how it
-        leaves (mirrored across the perpendicular bisector of the line between its
-        ends); given a second handle first, it arrives heading away from that. With no
-        curve to continue, after [start_new_path][manimgx.VMobject.start_new_path], it
-        is a straight line to the anchor.
+        其第一个手柄是路径最后一个手柄关于路径终点的镜像。
+        仅给出锚点时，曲线以其离开方式的镜像到达该处
+        （关于其两端连线的垂直平分线镜像）；先给出第二个手柄时，
+        曲线背离该手柄到达。若无曲线可延续，在
+        [start_new_path][manimgx.VMobject.start_new_path] 之后，
+        为到锚点的直线。
 
         Args:
-            *points: The anchor where the curve ends, or the second handle and then the
-                anchor, in scene coordinates.
+            *points: 曲线终点的锚点，或先第二个手柄再
+                锚点，场景坐标。
 
         Examples:
             ```python
@@ -5070,37 +4981,37 @@ class VMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def has_new_path_started(self) -> bool:
-        """Whether the path ends in a subpath just started: a point that begins no curve
-        yet, where the next curve added starts.
+        """路径是否以刚开始的子路径结束：一个尚未开始任何曲线
+        的点，下一条添加的曲线从此处开始。
 
         Returns:
-            True after [start_new_path][manimgx.VMobject.start_new_path], until a curve
-            is added.
+            在 [start_new_path][manimgx.VMobject.start_new_path] 之后为 True，
+            直到添加曲线。
         """
         return self._geometry.n % _NPPCC == 1
 
     @deprecated("use get_end", category=None)
     def get_last_point(self) -> Point3D:
-        """The path's last point: where it ends, and where the next curve added begins.
+        """路径的最后一个点：路径终点，也是下一条添加曲线的起点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，场景坐标。
         """
         return self._geometry.point(-1)
 
     def is_closed(self) -> bool:
-        """Whether the path ends where it starts: its first and last points coincide,
-        within a millionth of a unit."""
+        """路径是否在起点处结束：其第一个和最后一个点在
+        百万分之一单位内重合。"""
         return self.consider_points_equals(
             self._geometry.point(0), self._geometry.point(-1)
         )
 
     def close_path(self) -> Self:
-        """Close the path: add a straight line from where it ends back to where its last
-        subpath starts, unless it ends where it starts.
+        """闭合路径：从路径终点到其最后一个子路径起点添加直线，
+        除非路径已在起点处结束。
 
-        The fill closes every subpath anyway; closing one makes its stroke go all the
-        way around.
+        填充无论如何都会闭合每个子路径；闭合子路径使其描边
+        完整绕行一圈。
 
         Examples:
             ```python
@@ -5123,36 +5034,36 @@ class VMobject(Mobject):
         return self
 
     def add_subpath(self, points: Point3DLike_Array) -> Self:
-        """Add curves after the path's own, by their control points, four per curve: a
-        new subpath, unless they start where the path ends.
+        """在路径自身的曲线之后添加曲线，由控制点给出，每条曲线四个：
+        新的子路径，除非它们从路径终点开始。
 
         Args:
-            points: The curves' control points, in scene coordinates.
+            points: 曲线的控制点，场景坐标。
         """
         return self.append_points(points)
 
     def append_vectorized_mobject(self, vmobject: "VMobject") -> Self:
-        """Add another path's curves after this path's own: its points, not its
-        submobjects.
+        """在此路径自身的曲线之后添加另一路径的曲线：其点，而非其
+        子 mobject。
 
-        A subpath just started and given no curve yet (see
-        [start_new_path][manimgx.VMobject.start_new_path]) is dropped for them.
+        刚开始但尚未添加曲线的子路径（参见
+        [start_new_path][manimgx.VMobject.start_new_path]）被丢弃。
 
         Args:
-            vmobject: The path whose points to add.
+            vmobject: 要添加其点的路径。
         """
         if self.has_new_path_started():  # its start begins the path that was begun
             self.points = self.points[:-1]
         return self.append_points(vmobject.points)
 
     def add_points_as_corners(self, points: Point3DLike_Array) -> Self:
-        """Add straight lines from where the path ends through each point in turn.
+        """从路径终点依次经过每个点添加直线。
 
-        The path must have a point to start from.
+        路径必须有一个点作为起点。
 
         Args:
-            points: The corners, in scene coordinates, in order: the path then ends at
-                the last.
+            points: 角点，场景坐标，按顺序：路径随后在
+                最后一个点处结束。
         """
         self._require_points()
         pts = np.asarray(points, dtype=float).reshape(-1, self.dim)
@@ -5167,13 +5078,13 @@ class VMobject(Mobject):
         return self.append_points(new)
 
     def set_points_as_corners(self, points: Point3DLike_Array) -> Self:
-        """Give the path new points, in place of its own: straight lines through the
-        given points in turn.
+        """给路径新点，替换其自身的点：依次经过
+        给定点的直线。
 
-        The path is open: to close it, end with its first point again.
+        路径是开放的：要闭合它，以第一个点再次结束。
 
         Args:
-            points: The corners, in scene coordinates, in order.
+            points: 角点，场景坐标，按顺序。
 
         Examples:
             ```python
@@ -5202,14 +5113,14 @@ class VMobject(Mobject):
         )
 
     def set_points_smoothly(self, points: Point3DLike_Array) -> Self:
-        """Give the path new points, in place of its own: a smooth curve through the
-        given points in turn.
+        """给路径新点，替换其自身的点：依次经过
+        给定点的平滑曲线。
 
-        The curve passes through each point, bending smoothly there, with no change of
-        curvature (a cubic spline); if the last point is the first, it closes smoothly.
+        曲线经过每个点，在该处平滑弯曲，曲率无
+        突变（三次样条）；若最后一个点为第一个点，则平滑闭合。
 
         Args:
-            points: The points it passes through, in scene coordinates, in order.
+            points: 曲线经过的点，场景坐标，按顺序。
 
         Examples:
             ```python
@@ -5232,13 +5143,13 @@ class VMobject(Mobject):
 
     @deprecated("use make_smooth or make_jagged", category=None)
     def change_anchor_mode(self, mode: Literal["jagged", "smooth"]) -> Self:
-        """Set anew the handles of every subpath in the family, for a smooth curve
-        through its anchors or straight lines between them; the anchors stay.
+        """重新设置家族中每个子路径的手柄，使其为经过
+        锚点的平滑曲线或锚点间的直线；锚点保持不变。
 
         Args:
-            mode: "smooth" for a smooth curve (see
-                [make_smooth][manimgx.VMobject.make_smooth]); "jagged" for straight
-                lines ([make_jagged][manimgx.VMobject.make_jagged]).
+            mode: "smooth" 为平滑曲线（参见
+                [make_smooth][manimgx.VMobject.make_smooth]）；"jagged" 为直线
+                （[make_jagged][manimgx.VMobject.make_jagged]）。
         """
         for sub in self.family_members_with_points():
             assert isinstance(sub, VMobject)
@@ -5259,11 +5170,11 @@ class VMobject(Mobject):
         return self
 
     def make_smooth(self) -> Self:
-        """Make every subpath in the family a smooth curve through its anchors, with no
-        change of curvature at any (a cubic spline); a closed subpath closes smoothly.
+        """使家族中每个子路径成为经过其锚点的平滑曲线，在任何锚点处
+        曲率无突变（三次样条）；闭合的子路径平滑闭合。
 
-        The anchors stay and the handles move: a polygon becomes a rounded loop through
-        its corners.
+        锚点保持不变，手柄移动：多边形变为经过其
+        角点的圆滑环线。
 
         Examples:
             ```python
@@ -5280,22 +5191,22 @@ class VMobject(Mobject):
         return self.change_anchor_mode("smooth")
 
     def make_jagged(self) -> Self:
-        """Make every subpath in the family straight lines between its anchors: a curve
-        through points becomes the polygon through them.
+        """使家族中每个子路径成为其锚点间的直线：经过点的曲线
+        变为经过它们的多边形。
         """
         return self.change_anchor_mode("jagged")
 
     def _map_points(
         self, function: Callable[[Point3D], Point3D], about: np.ndarray
     ) -> None:
-        """This leaf's image under `function` (about `about`): each curve its image, to within
-        `_IMAGE_TOLERANCE`. A cubic's image is the cubic through the images of its ends along
-        the images of its tangents (its handles shrunk by
-        `pre_function_handle_to_anchor_scale_factor`, mapped, and grown back); where that is
-        not within the tolerance of the true image a third and two thirds of the way along
-        it, every cubic of the leaf is cut into 2, 4, … equal pieces first: the same number
-        for all, so a tween from the leaf as it was (cut to match by `align_points`) moves
-        each point straight to its image."""
+        """该叶子在 `function` 下的像（关于 `about`）：每条曲线取其像，精度在
+        `_IMAGE_TOLERANCE` 内。三次曲线的像是经过其端点之像、沿
+        其切线之像的三次曲线（手柄先按
+        `pre_function_handle_to_anchor_scale_factor` 缩小、映射、再放大回去）；
+        当该像在曲线三分之一和三分之二处不在真实像的容差范围内时，
+        叶子的每条三次曲线先被切成 2、4、… 等分：所有曲线
+        切分相同数量，因此从叶子原状（由 `align_points` 匹配切分）出发的
+        补间将每个点直移到其像。"""
 
         def image(points: np.ndarray) -> np.ndarray:
             return np.apply_along_axis(function, 1, points - about) + about
@@ -5353,15 +5264,15 @@ class VMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def scale_handle_to_anchor_distances(self, factor: float) -> Self:
-        """Move the handles of every path in the family toward their anchors, or away
-        from them, scaling their distances by a factor.
+        """将家族中每条路径的手柄朝其锚点移动或远离，
+        按因子缩放其距离。
 
-        The curves flatten toward straight lines (below 1) or bulge (above 1); the
-        anchors stay.
+        曲线趋向直线变平（低于 1）或鼓起（高于 1）；
+        锚点保持不变。
 
         Args:
-            factor: The factor: 0 makes each curve a straight line between its anchors,
-                1 leaves it as it is.
+            factor: 因子：0 使每条曲线成为其锚点间的直线，
+                1 保持不变。
         """
         for sub in self.family_members_with_points():
             if len(sub.points) < _NPPCC or not isinstance(sub, VMobject):
@@ -5375,25 +5286,25 @@ class VMobject(Mobject):
     # ── curves and subpaths ───────────────────────────────────────────────
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def consider_points_equals(self, p0: Point3DLike, p1: Point3DLike) -> bool:
-        """Whether two points count as one: equal within
-        [tolerance_for_point_equality][manimgx.VMobject.tolerance_for_point_equality].
+        """两个点是否视为同一点：在
+        [tolerance_for_point_equality][manimgx.VMobject.tolerance_for_point_equality] 内相等。
 
         Args:
-            p0: A point.
-            p1: Another point.
+            p0: 一个点。
+            p1: 另一个点。
         """
         return bool(np.allclose(p0, p1, atol=self.tolerance_for_point_equality))
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_cubic_bezier_tuples_from_points(self, points: Point3D_Array) -> np.ndarray:
-        """Split control points into curves, four points each; an unfinished last curve
-        is left out.
+        """将控制点拆分为曲线，每条四个点；未完成的最后一条曲线
+        被忽略。
 
         Args:
-            points: The control points: an (n, 3) array.
+            points: 控制点：(n, 3) 数组。
 
         Returns:
-            The curves, as an array of shape (curves, 4, 3).
+            曲线，形状为 (curves, 4, 3) 的数组。
         """
         n = len(points) - len(points) % _NPPCC
         return np.asarray(points[:n]).reshape(
@@ -5402,24 +5313,24 @@ class VMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_cubic_bezier_tuples(self) -> np.ndarray:
-        """The path's curves, by their control points.
+        """路径的曲线，由其控制点表示。
 
         Returns:
-            An array of shape (curves, 4, 3), each curve's anchor, two handles and
-            anchor.
+            形状为 (curves, 4, 3) 的数组，每条曲线的锚点、两个手柄和
+            锚点。
         """
         return self.get_cubic_bezier_tuples_from_points(self.points)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_subpaths_from_points(self, points: Point3D_Array) -> list[Point3D_Array]:
-        """Split control points into subpaths: a subpath starts wherever a curve does
-        not begin where the one before it ends.
+        """将控制点拆分为子路径：当某条曲线的起点不与前一条曲线的终点
+        重合时开始新的子路径。
 
         Args:
-            points: The control points, four per curve: an (n, 3) array.
+            points: 控制点，每条曲线四个：(n, 3) 数组。
 
         Returns:
-            The subpaths, each an array of its control points.
+            子路径，每个为其控制点数组。
         """
         return [
             points[a:b]
@@ -5428,13 +5339,13 @@ class VMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def consider_points_equals_2d(self, p0: Point3DLike, p1: Point3DLike) -> bool:
-        """Whether two points count as one seen along the z axis: their x and y
-        coordinates equal within
-        [tolerance_for_point_equality][manimgx.VMobject.tolerance_for_point_equality].
+        """沿 z 轴观察时两个点是否视为同一点：它们的 x 和 y
+        坐标在
+        [tolerance_for_point_equality][manimgx.VMobject.tolerance_for_point_equality] 内相等。
 
         Args:
-            p0: A point.
-            p1: Another point.
+            p0: 一个点。
+            p1: 另一个点。
         """
         return bool(
             np.allclose(
@@ -5448,14 +5359,14 @@ class VMobject(Mobject):
     def gen_cubic_bezier_tuples_from_points(
         self, points: Point3D_Array
     ) -> tuple[Point3D_Array, ...]:
-        """Split control points into curves, four points each; an unfinished last curve
-        is left out.
+        """将控制点拆分为曲线，每条四个点；未完成的最后一条曲线
+        被忽略。
 
         Args:
-            points: The control points: an (n, 3) array.
+            points: 控制点：(n, 3) 数组。
 
         Returns:
-            The curves, each a (4, 3) array.
+            曲线，每条为 (4, 3) 数组。
         """
         n = len(points) - len(points) % _NPPCC
         return tuple(points[i : i + _NPPCC] for i in range(0, n, _NPPCC))
@@ -5464,14 +5375,14 @@ class VMobject(Mobject):
     def gen_subpaths_from_points_2d(
         self, points: Point3D_Array
     ) -> Iterator[Point3D_Array]:
-        """Split control points into subpaths, comparing points by their x and y only: a
-        subpath starts wherever a curve does not begin where the one before it ends.
+        """将控制点拆分为子路径，仅按 x 和 y 比较点：
+        当某条曲线的起点不与前一条曲线的终点重合时开始新的子路径。
 
         Args:
-            points: The control points, four per curve: an (n, 3) array.
+            points: 控制点，每条曲线四个：(n, 3) 数组。
 
         Returns:
-            The subpaths, one after another, each an array of its control points.
+            子路径，依次排列，每个为其控制点数组。
         """
         return (
             points[a:b]
@@ -5481,35 +5392,35 @@ class VMobject(Mobject):
         )
 
     def get_subpaths(self) -> list[Point3D_Array]:
-        """The path's subpaths: a subpath starts wherever a curve does not begin where
-        the one before it ends.
+        """路径的子路径：当某条曲线的起点不与前一条曲线的终点
+        重合时开始新的子路径。
 
         Returns:
-            The subpaths, each an array of its control points, four per curve.
+            子路径，每个为其控制点数组，每条曲线四个。
         """
         return self.get_subpaths_from_points(self.points)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_nth_curve_points(self, n: int) -> Point3D_Array:
-        """The control points of one of the path's curves.
+        """路径某条曲线的控制点。
 
         Args:
-            n: Which curve, counting from 0.
+            n: 哪条曲线，从 0 开始计数。
 
         Returns:
-            Its anchor, two handles and anchor, as a (4, 3) array.
+            其锚点、两个手柄和锚点，(4, 3) 数组。
         """
         return self.points[_NPPCC * n : _NPPCC * (n + 1)]
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_nth_curve_function(self, n: int) -> Callable[[float], Point3D]:
-        """One of the path's curves, as a function from 0, its start, to 1, its end.
+        """路径的某条曲线，作为从 0（起点）到 1（终点）的函数。
 
         Args:
-            n: Which curve, counting from 0.
+            n: 哪条曲线，从 0 开始计数。
 
         Returns:
-            A function of the curve's parameter, from 0 to 1, giving its point there.
+            曲线参数的函数，从 0 到 1，返回该处的点。
         """
         return bezier(self.get_nth_curve_points(n))
 
@@ -5517,16 +5428,15 @@ class VMobject(Mobject):
     def get_nth_curve_length_pieces(
         self, n: int, sample_points: int | None = None
     ) -> np.ndarray:
-        """The lengths of the straight pieces between points along one of the path's
-        curves, taken at evenly spaced values of its parameter.
+        """路径某条曲线上等间距参数值处点间直线段的长度。
 
         Args:
-            n: Which curve, counting from 0.
-            sample_points: How many points to take, its ends included; None for 10,
-                the path's own measure (the one its reveals and proportions go by).
+            n: 哪条曲线，从 0 开始计数。
+            sample_points: 取多少个点，包含端点；None 为 10，
+                即路径自身的度量（揭示动画和比例所依据的度量）。
 
         Returns:
-            The pieces' lengths, in scene units, one fewer than the points.
+            各段长度，场景单位，比点数少一。
         """
         if sample_points in (None, 10):  # the path's own, measured once
             return self._geometry.piece_lengths()[n].copy()
@@ -5536,24 +5446,23 @@ class VMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_nth_curve_length(self, n: int, sample_points: int | None = None) -> float:
-        """The length of one of the path's curves, measured along straight pieces
-        between points on it.
+        """路径某条曲线的长度，沿其上点间直线段测量。
 
         Args:
-            n: Which curve, counting from 0.
-            sample_points: How many points to measure through, its ends included (evenly
-                spaced in its parameter); None for 10.
+            n: 哪条曲线，从 0 开始计数。
+            sample_points: 测量经过多少个点，包含端点（参数
+                等间距）；None 为 10。
 
         Returns:
-            The length, in scene units.
+            长度，场景单位。
         """
         return float(np.sum(self.get_nth_curve_length_pieces(n, sample_points)))
 
     def get_num_curves(self) -> int:
-        """How many curves the path has: its points, four per curve.
+        """路径有多少条曲线：其点，每条曲线四个。
 
         Returns:
-            The number of curves.
+            曲线数量。
         """
         return self._geometry.n // _NPPCC
 
@@ -5561,16 +5470,16 @@ class VMobject(Mobject):
     def get_curve_functions_with_lengths(
         self, sample_points: int | None = None
     ) -> Iterator[tuple[Callable[[float], Point3D], float]]:
-        """Each of the path's curves, as a function, with its length.
+        """路径的每条曲线，作为函数，附带其长度。
 
         Args:
-            sample_points: How many points each curve's length is measured through (see
-                [get_nth_curve_length][manimgx.VMobject.get_nth_curve_length]); None for
-                10.
+            sample_points: 每条曲线的长度经过多少个点测量（参见
+                [get_nth_curve_length][manimgx.VMobject.get_nth_curve_length]）；None
+                为 10。
 
         Yields:
-            Each curve's function of its parameter, from 0 to 1, and its length in scene
-                units.
+            每条曲线的参数函数，从 0 到 1，及其长度（场景
+                单位）。
         """
         for n in range(self.get_num_curves()):
             yield (
@@ -5579,20 +5488,19 @@ class VMobject(Mobject):
             )
 
     def point_from_proportion(self, alpha: float) -> Point3D:
-        """The point a proportion of the way along the path, by length: 0 is its start,
-        1 its end.
+        """沿路径按长度比例处的点：0 为起点，
+        1 为终点。
 
-        The length is the path's own measure, the one a reveal draws by (nine straight
-        pieces per curve), so it is where a [Create][manimgx.Create] at that proportion
-        has drawn to, and a [MoveAlongPath][manimgx.MoveAlongPath] moves at a steady
-        speed. Raises an exception if `alpha` is outside [0, 1] or the path has no
-        points.
+        长度是路径自身的度量，即揭示动画所依据的度量（每条曲线九个直线
+        段），因此它是 [Create][manimgx.Create] 在该比例处
+        已绘制到的位置，[MoveAlongPath][manimgx.MoveAlongPath] 以匀速
+        移动。若 `alpha` 在 [0, 1] 之外或路径无点则抛出异常。
 
         Args:
-            alpha: The proportion, from 0 to 1.
+            alpha: 比例，从 0 到 1。
 
         Returns:
-            The point, in scene coordinates.
+            该点，场景坐标。
 
         Examples:
             ```python
@@ -5623,15 +5531,15 @@ class VMobject(Mobject):
         return self.get_nth_curve_function(n)(at - n)
 
     def get_arc_length(self, sample_points_per_curve: int | None = None) -> float:
-        """The path's length: the sum of its curves' lengths, each measured along
-        straight pieces between points on it.
+        """路径的长度：各曲线长度之和，每条沿其上点间
+        直线段测量。
 
         Args:
-            sample_points_per_curve: How many points each curve is measured through, its
-                ends included; None for 10, the path's own measure.
+            sample_points_per_curve: 每条曲线经过多少个点测量，包含
+                端点；None 为 10，即路径自身的度量。
 
         Returns:
-            The length, in scene units.
+            长度，场景单位。
         """
         if sample_points_per_curve in (None, 10):
             return float(self._geometry.curve_lengths().sum())
@@ -5644,41 +5552,41 @@ class VMobject(Mobject):
 
     @deprecated("use add_cubic_bezier_curve, and get_anchors", category=None)
     def get_anchors_and_handles(self) -> list[Point3D_Array]:
-        """The path's control points, kind by kind: its curves' first anchors, first
-        handles, second handles and second anchors.
+        """路径的控制点，按类型分列：其曲线的第一个锚点、第一个
+        手柄、第二个手柄和第二个锚点。
 
         Returns:
-            Four arrays, one row per curve, in the order
-            [set_anchors_and_handles][manimgx.VMobject.set_anchors_and_handles] takes
-            them.
+            四个数组，每条曲线一行，顺序与
+            [set_anchors_and_handles][manimgx.VMobject.set_anchors_and_handles] 接受的
+            相同。
         """
         return [self.points[i::_NPPCC] for i in range(_NPPCC)]
 
     @deprecated("use add_cubic_bezier_curve, and get_anchors", category=None)
     def get_start_anchors(self) -> Point3D_Array:
-        """Where each of the path's curves starts.
+        """路径每条曲线的起点。
 
         Returns:
-            An array of one point per curve, in scene coordinates.
+            每条曲线一个点的数组，场景坐标。
         """
         return self.points[::_NPPCC]
 
     @deprecated("use add_cubic_bezier_curve, and get_anchors", category=None)
     def get_end_anchors(self) -> Point3D_Array:
-        """Where each of the path's curves ends.
+        """路径每条曲线的终点。
 
         Returns:
-            An array of one point per curve, in scene coordinates.
+            每条曲线一个点的数组，场景坐标。
         """
         return self.points[_NPPCC - 1 :: _NPPCC]
 
     def get_anchors(self) -> Point3D_Array:
-        """The path's anchors, curve by curve: each curve's start, then its end, so an
-        anchor two curves share is listed twice.
+        """路径的锚点，逐条曲线：每条曲线的起点，然后终点，因此
+        两条曲线共享的锚点列出两次。
 
         Returns:
-            An array of points, in scene coordinates; for a path of one point, that
-            point.
+            点数组，场景坐标；对于只有一个点的路径，为该
+            点。
         """
         if self.points.shape[0] == 1:
             return self.points
@@ -5705,8 +5613,8 @@ class VMobject(Mobject):
         new1, new2 = [], []
 
         def nth(paths: list[Point3D_Array], n: int) -> Point3D_Array:
-            """Subpath n without its trailing null curves (a curve all at the point before it)
-            — but its first — or its last point, held, when it has no subpath n."""
+            """第 n 个子路径，去掉尾部零曲线（全部位于前一点的曲线）
+            ——但保留第一条——或当无第 n 个子路径时为其最后一个点保持不变。"""
             if n >= len(paths):
                 return np.tile(paths[-1][-1] if paths else np.zeros(3), (_NPPCC, 1))
             path = paths[n]
@@ -5743,15 +5651,14 @@ class VMobject(Mobject):
         return self.align_points(larger)
 
     def insert_n_curves(self, n: int) -> Self:
-        """Divide the path's curves into more curves, its shape unchanged.
+        """将路径的曲线分成更多曲线，形状不变。
 
-        Each curve is split into equal stretches of its parameter, the new curves
-        spread among the curves as evenly as can be (curve i of m gets the new curves j
-        of n with j·m // n = i): the way a transform gives two paths as many curves as
-        each other.
+        每条曲线按参数等分，新曲线尽可能均匀地分布在各曲线之间
+        （m 条中的第 i 条获得 n 条中的第 j 条新曲线，满足 j·m // n = i）：
+        这是变换使两条路径拥有相同曲线数的方式。
 
         Args:
-            n: How many curves to add.
+            n: 要添加多少条曲线。
         """
         new_path_point = self.get_last_point() if self.has_new_path_started() else None
         self.set_points(self.insert_n_curves_to_point_list(n, self.points))
@@ -5763,16 +5670,16 @@ class VMobject(Mobject):
     def insert_n_curves_to_point_list(
         self, n: int, points: Point3D_Array
     ) -> Point3D_Array:
-        """Divide the curves of a list of control points into more curves, their shape
-        unchanged (see [insert_n_curves][manimgx.VMobject.insert_n_curves]).
+        """将控制点列表的曲线分成更多曲线，形状
+        不变（参见 [insert_n_curves][manimgx.VMobject.insert_n_curves]）。
 
         Args:
-            n: How many curves to add.
-            points: The control points, four per curve; a single point gives `n` curves
-                of no length at it.
+            n: 要添加多少条曲线。
+            points: 控制点，每条曲线四个；单个点给出 `n` 条
+                零长度曲线。
 
         Returns:
-            The new control points.
+            新的控制点。
         """
         if len(points) == 1:
             return np.repeat(points, _NPPCC * n, 0)
@@ -5811,20 +5718,19 @@ class VMobject(Mobject):
         return self
 
     def get_subcurve(self, a: float, b: float) -> Self:
-        """A copy of the path cut down to its part from proportion `a` of the way along
-        it to proportion `b`.
+        """路径的副本，截取从比例 `a` 到比例 `b` 的部分。
 
-        The proportions go by the path's curves, each an equal share whatever its
-        length, and along each curve by its parameter
-        ([point_from_proportion][manimgx.VMobject.point_from_proportion] goes by
-        length). The copy's submobjects are copied whole.
+        比例按路径的曲线计算，每条曲线等份额不论其
+        长度，沿每条曲线按其参数
+        （[point_from_proportion][manimgx.VMobject.point_from_proportion] 按长度
+        计算）。副本的子 mobject 整体复制。
 
         Args:
-            a: Where the part starts, from 0 to 1.
-            b: Where it ends, from `a` to 1.
+            a: 部分起点，从 0 到 1。
+            b: 部分终点，从 `a` 到 1。
 
         Returns:
-            A new path.
+            新路径。
 
         Examples:
             ```python
@@ -5842,21 +5748,21 @@ class VMobject(Mobject):
         return self.copy().pointwise_become_partial(self, a, b)
 
     def get_direction(self) -> str:
-        """Which way the path turns: "CW" (clockwise) or "CCW" (counterclockwise), by
-        the sign of the area its curves' start anchors enclose.
+        """路径的转向："CW"（顺时针）或 "CCW"（逆时针），由
+        其曲线起始锚点所围面积的符号决定。
 
         Returns:
-            "CW" or "CCW".
+            "CW" 或 "CCW"。
         """
         return shoelace_direction(self.get_start_anchors())
 
     def reverse_direction(self) -> Self:
-        """Reverse the order of the path's own points, so it runs the other way: from
-        its end to its start.
+        """反转路径自身点的顺序，使其反向运行：从
+        终点到起点。
 
-        Its submobjects stay as they are. A drawing animation then draws it the other
-        way, and a subpath inside another cuts
-        a hole in the fill only if the two run opposite ways.
+        其子 mobject 保持不变。绘制动画随后以另一方向绘制它，
+        在另一个子路径内部的子路径仅当两者反向运行时才在填充中
+        切出一个洞。
 
         Examples:
             ```python
@@ -5879,11 +5785,11 @@ class VMobject(Mobject):
         return self
 
     def force_direction(self, target_direction: Literal["CW", "CCW"]) -> Self:
-        """Make the path run clockwise or counterclockwise: reverse it if it runs the
-        other way (see [get_direction][manimgx.VMobject.get_direction]).
+        """使路径顺时针或逆时针运行：若方向相反则反转
+        （参见 [get_direction][manimgx.VMobject.get_direction]）。
 
         Args:
-            target_direction: "CW" for clockwise, "CCW" for counterclockwise.
+            target_direction: "CW" 为顺时针，"CCW" 为逆时针。
         """
         if self.get_direction() != target_direction:
             self.reverse_direction()
@@ -5895,16 +5801,16 @@ class VMobject(Mobject):
     def get_style(self, simple: Literal[False] = False) -> StyleSnapshot: ...
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_style(self, simple: bool = False) -> SimpleStyle | StyleSnapshot:
-        """The path's own style, as keywords: `set_style(**style)` gives it back.
+        """路径自身的样式，以关键字形式：`set_style(**style)` 可还原。
 
         Args:
-            simple: Whether to give only the first color and opacity of the fill and
-                the stroke, and the stroke's width, in place of every color (each stop
-                of a gradient) of the fill, stroke and background stroke, their widths
-                and the sheen.
+            simple: 是否仅给出填充和描边的第一个颜色和不透明度
+                以及描边宽度，替代填充、描边和背景描边的所有颜色（渐变的
+                每个停止点）、它们的宽度
+                和光泽。
 
         Returns:
-            A dictionary of [set_style][manimgx.Mobject.set_style]'s keywords.
+            [set_style][manimgx.Mobject.set_style] 关键字的字典。
         """
         if simple:
             return SimpleStyle(
@@ -5931,29 +5837,28 @@ class VMobject(Mobject):
     @staticmethod
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_mobject_type_class() -> type[Mobject]:
-        """The class of the paths' kind: `VMobject`, whatever a path's own class.
+        """路径种类的类：`VMobject`，不论路径自身的类是什么。
 
         Returns:
-            [VMobject][manimgx.VMobject].
+            [VMobject][manimgx.VMobject]。
         """
         return VMobject
 
     def proportion_from_point(
         self, point: Point3DLike, tolerance: float = 1e-6
     ) -> float:
-        """How far along the path a point on it lies, by length: the inverse of
-        [point_from_proportion][manimgx.VMobject.point_from_proportion].
+        """路径上某点沿路径的位置，按长度计算：
+        [point_from_proportion][manimgx.VMobject.point_from_proportion] 的逆。
 
-        The first curve the point lies on counts. Raises an exception if the point is
-        not on the path.
+        以点所在的第一条曲线为准。若点不在路径上则抛出异常。
 
         Args:
-            point: The point, in scene coordinates.
-            tolerance: How near the path the point must be: within 100 times this, in
-                scene units, along each axis.
+            point: 该点，场景坐标。
+            tolerance: 点离路径多近才算在上面：沿每个轴在
+                此值的 100 倍以内，场景单位。
 
         Returns:
-            The proportion, from 0 (the path's start) to 1 (its end).
+            比例，从 0（路径起点）到 1（路径终点）。
         """
         p = np.asarray(point, dtype=float)
         for n in range(self.get_num_curves()):
@@ -5993,19 +5898,19 @@ class VMobject(Mobject):
 
 
 VGroup = Group  # a group is a group: kinds belong to leaves
-"""Another name for [Group][manimgx.Group], which holds mobjects of any kind."""
+"""[Group][manimgx.Group] 的另一个名称，可容纳任何类型的 mobject。"""
 
 
 class VectorizedPoint(VMobject):
-    """A path of one point: unseen, a place to put things by, or to grow them from.
+    """一个点的路径：不可见，用作放置物体的位置或生长的起点。
 
-    It is black, with no stroke and no fill. Its width and height are numbers of its
-    own, not measured from its point.
+    它是黑色的，无描边无填充。其宽度和高度是自身的数值，
+    不是从其点测量的。
 
     Args:
-        location: Where the point is, in scene coordinates.
-        artificial_width: The width it reports, in scene units.
-        artificial_height: The height it reports, in scene units.
+        location: 点的位置，场景坐标。
+        artificial_width: 它报告的宽度，场景单位。
+        artificial_height: 它报告的高度，场景单位。
 
     Examples:
         ```python
@@ -6036,8 +5941,8 @@ class VectorizedPoint(VMobject):
 
     @property
     def width(self) -> float:
-        """The point's width, in scene units: its `artificial_width`, not measured.
-        Setting it changes that number and nothing else."""
+        """点的宽度，场景单位：其 `artificial_width`，非测量值。
+        设置它仅改变该数值。"""
         return self.artificial_width
 
     @width.setter
@@ -6046,8 +5951,8 @@ class VectorizedPoint(VMobject):
 
     @property
     def height(self) -> float:
-        """The point's height, in scene units: its `artificial_height`, not measured.
-        Setting it changes that number and nothing else."""
+        """点的高度，场景单位：其 `artificial_height`，非测量值。
+        设置它仅改变该数值。"""
         return self.artificial_height
 
     @height.setter
@@ -6056,38 +5961,38 @@ class VectorizedPoint(VMobject):
 
     @deprecated("use get_center", category=None)
     def get_location(self) -> Point3D:
-        """Where the point is.
+        """点的位置。
 
         Returns:
-            A copy of the point, in scene coordinates.
+            点的副本，场景坐标。
         """
         return np.array(self.points[0])
 
     @deprecated("use move_to", category=None)
     def set_location(self, new_loc: Point3DLike) -> Self:
-        """Move the point.
+        """移动点。
 
         Args:
-            new_loc: Where it goes, in scene coordinates.
+            new_loc: 点的新位置，场景坐标。
         """
         return self.set_points(np.array([new_loc], dtype=float))
 
 
 class VDict[T: Mobject = Mobject](Mobject):
-    """A group whose members have keys, as a dictionary has: `vdict[key]` is a member.
+    """成员带键的组，如同字典：`vdict[key]` 是一个成员。
 
-    Members of any kind are added, replaced (`vdict[key] = mobject`) and removed by key;
-    like any group, it draws, moves and styles them together, in the order they were
-    added. With `show_keys`, each member is labeled with its key.
+    任何类型的成员都可按键添加、替换（`vdict[key] = mobject`）和移除；
+    如同任何组，它按添加顺序一起绘制、移动和设置样式。使用 `show_keys` 时，
+    每个成员以键标注。
 
     Args:
-        mapping_or_iterable: The first members: a dictionary of keys and mobjects, or
-            (key, mobject) pairs.
-        show_keys: Whether each member, added now or later, is labeled with its key: a
-            [Tex][manimgx.Tex] of `str(key)` at its left, added to the member itself,
-            so the label moves, animates and leaves with it, and counts in its size.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the group itself: as it
-            has no points, they do not restyle its members (the style methods do).
+        mapping_or_iterable: 初始成员：键和 mobject 的字典，或
+            (key, mobject) 对。
+        show_keys: 每个成员（现在或以后添加的）是否以键标注：
+            在其左侧添加 `str(key)` 的 [Tex][manimgx.Tex]，加入成员自身，
+            因此标注随其移动、动画和离开，并计入其尺寸。
+        **kwargs: 组自身的 [Style keywords][manimgx.drawing.paint.Style]：由于
+            它没有点，不会重新设置其成员的样式（样式方法会）。
 
     Examples:
         ```python
@@ -6136,7 +6041,7 @@ class VDict[T: Mobject = Mobject](Mobject):
         super().__init__(**kwargs)
         self.show_keys = show_keys
         self.submob_dict: dict[Hashable, T] = {}
-        """The members, by key."""
+        """成员，按键索引。"""
         self.add(
             mapping_or_iterable  # ty: ignore[invalid-argument-type]  # a VDict[T] is given T
         )
@@ -6144,15 +6049,15 @@ class VDict[T: Mobject = Mobject](Mobject):
     def add[Key: Hashable](  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]  # CE's: by key
         self, mapping_or_iterable: Mapping[Key, T] | Iterable[tuple[Key, T]]
     ) -> Self:
-        """Add members by key, after the group's.
+        """按键在组的成员之后添加成员。
 
-        Each is labeled with its key if the group shows its keys. A key the group has already
-        is given the new mobject, but the old one stays in the group: to replace a
-        member, set it (`vdict[key] = mobject`).
+        若组显示键，每个成员以键标注。组中已有的键被赋予
+        新的 mobject，但旧的仍留在组中：要替换
+        成员，请设置它（`vdict[key] = mobject`）。
 
         Args:
-            mapping_or_iterable: A dictionary of keys and mobjects, or (key, mobject)
-                pairs.
+            mapping_or_iterable: 键和 mobject 的字典，或 (key, mobject)
+                对。
         """
         for key, value in dict(mapping_or_iterable).items():
             self.add_key_value_pair(key, value)
@@ -6161,12 +6066,12 @@ class VDict[T: Mobject = Mobject](Mobject):
     def remove(  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]  # CE's: by key
         self, key: Hashable
     ) -> Self:
-        """Remove the member with a key from the group.
+        """按键从组中移除成员。
 
-        Raises an exception if the group has no such key.
+        若组中无此键则抛出异常。
 
         Args:
-            key: The member's key.
+            key: 成员的键。
         """
         super().remove(self.submob_dict.pop(key))
         return self
@@ -6181,16 +6086,16 @@ class VDict[T: Mobject = Mobject](Mobject):
 
     @deprecated("use add({key: value})", category=None)
     def add_key_value_pair(self, key: Hashable, value: T) -> Self:
-        """Add a member with a key, after the group's.
+        """按键在组的成员之后添加成员。
 
-        The constructor, [add][manimgx.VDict.add] and `vdict[key] = mobject` all add
-        members this way. If the group shows its keys (`show_keys`), the member is
-        labeled first: a [Tex][manimgx.Tex] of `str(key)`, at its left, is added to the
-        member itself, so the label moves, animates and leaves with it.
+        构造器、[add][manimgx.VDict.add] 和 `vdict[key] = mobject` 都以
+        此方式添加成员。若组显示键（`show_keys`），成员先被
+        标注：在其左侧添加 `str(key)` 的 [Tex][manimgx.Tex]，加入成员自身，
+        因此标注随其移动、动画和离开。
 
         Args:
-            key: Its key.
-            value: The mobject.
+            key: 键。
+            value: mobject。
         """
         if self.show_keys:
             from manimgx.mobjects.text import Tex
@@ -6202,26 +6107,26 @@ class VDict[T: Mobject = Mobject](Mobject):
 
     @deprecated("use the group's submobjects", category=None)
     def get_all_submobjects(self) -> list[T]:
-        """The members, in the order of their keys.
+        """成员，按键的顺序排列。
 
         Returns:
-            A list of the mobjects.
+            mobject 列表。
         """
         return list(self.submob_dict.values())
 
 
 class PMobject(Mobject):
-    """A point cloud: a mobject drawn as points, each a dot of its own color.
+    """点云：以点形式绘制的 mobject，每个点为自身颜色的圆点。
 
-    Points are added with [add_points][manimgx.PMobject.add_points], each with a color;
-    the style methods color them all. Each point is a disk as wide as a stroke of its
-    `stroke_width`, a hundredth of a scene unit for each unit of width: at the default
-    width, 4, about 4 pixels of a 720p frame.
+    点通过 [add_points][manimgx.PMobject.add_points] 添加，每个带颜色；
+    样式方法为所有点着色。每个点是宽度为其 `stroke_width` 描边宽度的圆盘，
+    每单位宽度为百分之一场景单位：在默认
+    宽度 4 下，约 720p 帧的 4 像素。
 
     Args:
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style]: `color` colors the points
-            added without a color (white unless given), and `stroke_width` sizes them;
-            the other paint keywords are not used.
+        **kwargs: [Style keywords][manimgx.drawing.paint.Style]：`color` 为
+            添加时未指定颜色的点着色（默认白色），`stroke_width` 设置其大小；
+            其他 paint 关键字不使用。
 
     Examples:
         ```python
@@ -6266,15 +6171,15 @@ class PMobject(Mobject):
         color: ParsableManimColor | None = None,
         alpha: float = 1.0,
     ) -> Self:
-        """Add points to the cloud, after its own, with their colors.
+        """在点云自身的点之后添加点，附带其颜色。
 
         Args:
-            points: The points, in scene coordinates: an (n, 3) array.
-            rgbas: Their colors, one row of red, green, blue and opacity (from 0 to 1)
-                per point; None to give them all `color`.
-            color: Their color, when `rgbas` is None; None for the cloud's (its `color`
-                style keyword, white unless given).
-            alpha: Their opacity, from 0 to 1, when `rgbas` is None.
+            points: 点，场景坐标：(n, 3) 数组。
+            rgbas: 颜色，每个点一行红、绿、蓝和不透明度（从 0 到 1）；
+                None 则全部使用 `color`。
+            color: 当 `rgbas` 为 None 时的颜色；None 为点云的颜色（其 `color`
+                样式关键字，默认白色）。
+            alpha: 当 `rgbas` 为 None 时的不透明度，从 0 到 1。
         """
         points = np.asarray(points, dtype=float).reshape(-1, 3)
         if rgbas is None:
@@ -6288,10 +6193,10 @@ class PMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_all_rgbas(self) -> RGBA_Array:
-        """The colors of every point of the cloud's family, member after member.
+        """点云家族每个点的颜色，逐成员排列。
 
         Returns:
-            An (n, 4) array of red, green, blue and opacity, from 0 to 1.
+            (n, 4) 数组，红、绿、蓝和不透明度，从 0 到 1。
         """
         return np.concatenate(
             [m.paint.fill for m in self.family_members_with_points()]
@@ -6300,23 +6205,23 @@ class PMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def match_colors(self, mobject: Mobject) -> Self:
-        """Give the cloud another cloud's colors, point for point.
+        """将另一个点云的颜色逐点赋予该点云。
 
-        The two are first aligned as a transform aligns them: the one with fewer points
-        is given more, repeating its points, so `mobject` may change too.
+        两者先按变换方式对齐：点较少的一方被
+        增加点（重复其点），因此 `mobject` 也可能改变。
 
         Args:
-            mobject: The cloud whose colors to take.
+            mobject: 要取其颜色的点云。
         """
         Mobject.align_data(self, mobject)
         self.paint = self.paint.but(fill=mobject.paint.fill)
         return self
 
     def thin_out(self, factor: int = 5) -> Self:
-        """Keep one point in every `factor` of each cloud in the family, from its first.
+        """保留家族中每个点云每 `factor` 个点中的一个，从第一个开始。
 
         Args:
-            factor: One point is kept in this many; must be positive.
+            factor: 每这么多个点保留一个；必须为正。
         """
         if factor < 1:
             raise ValueError("factor must be positive")
@@ -6350,14 +6255,14 @@ class PMobject(Mobject):
 
 @deprecated("Manim CE's base of point clouds along lines: use PMobject", category=None)
 class Mobject1D(PMobject):
-    """A point cloud of lines: points evenly spaced along each, `density` to a unit.
+    """线段点云：每条线上均匀分布的点，`density` 个点每单位。
 
-    Lines are added with [add_line][manimgx.Mobject1D.add_line].
+    线通过 [add_line][manimgx.Mobject1D.add_line] 添加。
 
     Args:
-        density: How many points a line gets per scene unit of its length.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style]: `color` colors the points
-            added without a color (white unless given), and `stroke_width` sizes them.
+        density: 每场景单位长度线段获得多少个点。
+        **kwargs: [Style keywords][manimgx.drawing.paint.Style]：`color` 为
+            添加时未指定颜色的点着色（默认白色），`stroke_width` 设置其大小。
 
     Examples:
         ```python
@@ -6387,16 +6292,15 @@ class Mobject1D(PMobject):
         end: Point3DLike,
         color: ParsableManimColor | None = None,
     ) -> Self:
-        """Add a line of points from `start` toward `end`, 1/`density` scene units
-        apart.
+        """添加从 `start` 朝向 `end` 的点线，间距 1/`density` 场景单位。
 
-        The line stops short of `end`, where another may start; a line of no length is
-        one point.
+        线在 `end` 之前停止，另一条线可从该处开始；零长度的线
+        为一个点。
 
         Args:
-            start: Where the line starts, in scene coordinates.
-            end: Where it ends.
-            color: The points' color; None for the cloud's.
+            start: 线起点，场景坐标。
+            end: 线终点。
+            color: 点的颜色；None 为点云的颜色。
         """
         s, e = np.asarray(start, dtype=float), np.asarray(end, dtype=float)
         length = np.linalg.norm(e - s)
@@ -6412,8 +6316,8 @@ if TYPE_CHECKING:
 
     @deprecated("PGroup is Group: use Group, or VGroup", category=None)
     class PGroup[T: Mobject = Mobject](Group[T]):
-        """Manim CE's group of point clouds: [Group][manimgx.Group], which holds
-        mobjects of any kind."""
+        """Manim CE 的点云组：[Group][manimgx.Group]，可容纳
+        任何类型的 mobject。"""
 
 else:
     PGroup = Group  # a group is a group: kinds belong to leaves
@@ -6421,15 +6325,15 @@ else:
 
 @deprecated("Manim CE's one-point cloud: use VectorizedPoint, or Dot", category=None)
 class Point(PMobject):
-    """A point cloud of one point, black unless colored: unseen on the default black
-    background.
+    """一个点的点云，默认黑色除非着色：在默认黑色
+    背景上不可见。
 
     Args:
-        location: Where the point is, in scene coordinates.
-        color: Its color, which may be given by position (`Point(ORIGIN, RED)`); None
-            for black.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style]: `stroke_width` sizes the
-            point.
+        location: 点的位置，场景坐标。
+        color: 颜色，可按位置给出（`Point(ORIGIN, RED)`）；None
+            为黑色。
+        **kwargs: [Style keywords][manimgx.drawing.paint.Style]：`stroke_width` 设置
+            点的大小。
 
     Examples:
         ```python
@@ -6469,7 +6373,7 @@ _MESH_STRAIGHT = straight_path()  # a default (paths are immutable)
 
 
 def _value(array: np.ndarray, held: np.ndarray | None = None) -> np.ndarray:
-    """An owned read-only snapshot; an equal value keeps the array already held."""
+    """拥有的只读快照；相等值保留已持有的数组。"""
     if held is not None and unchanged(array, held):
         return held
     array = array.copy()
@@ -6478,25 +6382,25 @@ def _value(array: np.ndarray, held: np.ndarray | None = None) -> np.ndarray:
 
 
 class MeshMobject(Mobject):
-    """A mesh: triangles between vertices, filled with one color, a color per vertex, or
-    a picture; white and opaque unless styled.
+    """网格：顶点间的三角形，以单色、每顶点一色或
+    图片填充；默认白色不透明除非设置样式。
 
-    Any two meshes can morph into each other, whatever their triangles: the one with
-    fewer gains some, collapsed to points. Drawn in ([Create][manimgx.Create]), a mesh
-    appears triangle by triangle, in their order. A three-dimensional scene's light
-    shades it only with `shade_in_3d=True`.
+    任意两个网格可相互变形，不论其三角形如何：三角形较少的一方
+    增加一些坍缩为点的三角形。在 ([Create][manimgx.Create]) 中绘制时，网格
+    按三角形顺序逐个出现。三维场景的光照
+    仅在 `shade_in_3d=True` 时对其着色。
 
     Args:
-        vertices: The vertices, in scene coordinates: an (n, 3) array; None for an empty
-            mesh.
-        triangles: The triangles: an (m, 3) array of indices into `vertices`.
-        vertex_colors: A color for each vertex, blended across each triangle: an (n, 4)
-            array of red, green, blue and opacity, from 0 to 1; None for the style's
-            color.
-        uvs: Where each vertex is in the picture: an (n, 2) array of coordinates from 0
-            to 1, (0, 0) the picture's top left.
-        texture: The picture: an (h, w, 4) array of RGBA values from 0 to 255, or a
-            [Camera][manimgx.Camera], whose view is drawn anew every frame.
+        vertices: 顶点，场景坐标：(n, 3) 数组；None 为空
+            网格。
+        triangles: 三角形：(m, 3) 数组，为 `vertices` 的索引。
+        vertex_colors: 每个顶点的颜色，跨每个三角形混合：(n, 4)
+            数组，红、绿、蓝和不透明度，从 0 到 1；None 为样式的
+            颜色。
+        uvs: 每个顶点在图片中的位置：(n, 2) 数组，坐标从 0
+            到 1，(0, 0) 为图片左上角。
+        texture: 图片：(h, w, 4) 数组，RGBA 值从 0 到 255，或
+            [Camera][manimgx.Camera]，其视图每帧重新绘制。
 
     Examples:
         ```python
@@ -6544,11 +6448,11 @@ class MeshMobject(Mobject):
 
     @property
     def triangles(self) -> np.ndarray:
-        """The mesh's readonly (m, 3) triangle indices; for a lattice these are the
-        coarse triangles of the faces it draws, two each.
+        """网格的只读 (m, 3) 三角形索引；对于格子，这些是
+        其绘制面的粗三角形，每个两个。
 
-        Equal assignment is a no-op. Ordinary meshes snapshot replacement indices;
-        a sampled lattice requires constructing an explicit MeshMobject instead.
+        相等赋值为空操作。普通网格快照替换索引；
+        采样格子需要构造显式 MeshMobject。
         """
         topology = self._topology
         return topology.triangles() if isinstance(topology, Lattice) else topology
@@ -6569,9 +6473,9 @@ class MeshMobject(Mobject):
 
     @property
     def uvs(self) -> np.ndarray | None:
-        """Where each vertex is in the mesh's picture: an (n, 2) array of coordinates
-        from 0 to 1, read-only; None for a mesh without them. Assignments snapshot
-        the supplied coordinates; equal values keep the current array."""
+        """每个顶点在网格图片中的位置：(n, 2) 坐标数组，
+        从 0 到 1，只读；无则为 None。赋值快照
+        提供的坐标；相等值保留当前数组。"""
         return self._uvs
 
     @uvs.setter
@@ -6584,12 +6488,12 @@ class MeshMobject(Mobject):
 
     @property
     def grid(self) -> tuple[int, int] | None:
-        """The numbers of lattice cells along u and v, or None for explicit triangles.
+        """沿 u 和 v 的格子单元数，或显式三角形时为 None。
 
-        A (u, v) lattice has (u + 1) * (v + 1) samples. Its fill rows belong to cells
-        and UVs to samples; ordinary mesh fill rows belong to vertices. match_points
-        adopts this domain while retaining its recipient's style. A part of a surface
-        has its whole lattice, and draws some of its faces.
+        (u, v) 格子有 (u + 1) * (v + 1) 个采样点。其填充行属于单元
+        而 UV 属于采样点；普通网格填充行属于顶点。match_points
+        采用此域同时保留接收者的样式。曲面的一部分
+        保留其整个格子，并绘制其部分面。
         """
         topology = self._topology
         return (topology.u, topology.v) if isinstance(topology, Lattice) else None
@@ -6619,7 +6523,7 @@ class MeshMobject(Mobject):
 
     # ── the Mesh kind's alignment and partial rules ────────────────────────
     def _as_soup(self) -> None:
-        """Convert to explicit triangles, giving each corner its own point and paint row."""
+        """转换为显式三角形，给每个角点自己的点和 paint 行。"""
         index = self.triangles.ravel()
         if len(self.points) == len(index) and np.array_equal(
             index, np.arange(len(index))
@@ -6686,12 +6590,12 @@ class MeshMobject(Mobject):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def pointwise_become_partial(self, mobject: Mobject, a: float, b: float) -> Self:
-        """Take a source's geometry and paint, then keep the steps a reveal over the
-        stretch shows, whole: a surface's faces, or a mesh's triangles.
+        """取源的几何和 paint，然后保留揭示动画在拉伸上
+        显示的步骤，整体：曲面的面或网格的三角形。
 
-        A surface's part is a surface: its whole lattice, drawing those faces, as smooth
-        and with the edges they have in it. A mesh's part is its triangles alone, each
-        corner with its paint and UV. Repeated calls restart from source.
+        曲面的一部分是曲面：其整个格子，绘制那些面，保持平滑
+        及其在其中的边。网格的一部分仅为其三角形，每个
+        角点附带其 paint 和 UV。重复调用从源重新开始。
         """
         if isinstance(mobject, MeshMobject):
             self._geometry = mobject._geometry
@@ -6745,7 +6649,7 @@ if TYPE_CHECKING:
 
 
 def _append_path(target: "VMobject", path: "SkiaPath") -> "None":
-    """Append a planar path through the existing cubic builder, preserving its arithmetic."""
+    """通过现有的三次构造器追加平面路径，保持其运算。"""
     start = np.zeros(3)
     verb = _pathops().PathVerb
     for kind, points in path:

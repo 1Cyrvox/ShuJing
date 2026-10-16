@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"Geometric figures: cubic paths, planar region operations, arrow tips and sampled point disks."
+"几何图形：三次路径、平面区域运算、箭头尖端和采样点圆盘。"
 
 from __future__ import annotations
 
@@ -158,92 +158,84 @@ if TYPE_CHECKING:
     )
 
     type AngleQuadrant = tuple[Literal[-1, 1], Literal[-1, 1]]
-    "Which way along each of two crossing lines a side of an angle goes from the\n    crossing: a sign for each line, the first line's first; 1 along the line's\n    direction (from its start toward its end), -1 back toward its start."
+    "角的两条交叉线各侧从交叉点出发的方向：每条线一个符号，第一条线在前；1\n    沿该线方向（从其起点指向终点），-1 则反向指向起点。"
 
 
 class _TippedBase(_StyleBase, total=False):
-    """TippedBase's keys, open, for the keywords that add to them."""
+    """TippedBase 的键，开放的，用于向其添加的关键字。"""
 
     tip_length: float
-    """The length of the tips [add_tip][manimgx.TipableVMobject.add_tip] makes, in
-    scene units (default 0.35; an [Arrow][manimgx.Arrow]'s may be shorter)."""
+    """[add_tip][manimgx.TipableVMobject.add_tip] 所生成尖端的长度，以场景单位计
+    （默认 0.35；[Arrow][manimgx.Arrow] 的可能更短）。"""
     normal_vector: Vector3DLike
-    """The normal of the plane the path lies in (default OUT). Accepted for Manim
-    compatibility; ignored and not retained."""
+    """路径所在平面的法向量（默认 OUT）。为兼容 Manim 而接受；被忽略且不保留。"""
     tip_style: Style | None
-    """Style keywords for the tips the path makes (default None: none). A tip's
-    `fill_color` and `stroke_color` are the path's color unless given here."""
+    """路径所生成尖端的样式关键字（默认 None：无）。除非在此给出，否则尖端的
+    `fill_color` 和 `stroke_color` 取路径的颜色。"""
 
 
 class TippedBase(_TippedBase, total=False, closed=True):
-    """Every style keyword but `color`, and those of a path that can end in arrow tips
-    (see [TipableVMobject][manimgx.TipableVMobject]).
+    """除 `color` 外的所有样式关键字，以及可终止于箭头尖端的路径的关键字
+    （见 [TipableVMobject][manimgx.TipableVMobject]）。
 
-    A class that takes `color` by position declares it itself, and the rest with this.
+    按位置接收 `color` 的类会自行声明它，其余由本类声明。
     """
 
 
 class _Tipped(_TippedBase, total=False):
-    """Tipped's keys, open, for the keywords that add to them."""
+    """Tipped 的键，开放的，用于向其添加的关键字。"""
 
     color: Colors | None
-    """The color of both fill and stroke (default white; a [Circle][manimgx.Circle]'s is
-    red); None for the class's default."""
+    """填充和描边共用的颜色（默认白色；[Circle][manimgx.Circle] 的为
+    红色）；None 表示类的默认值。"""
 
 
 class Tipped(_Tipped, total=False, closed=True):
-    """The style keywords, and those of a path that can end in arrow tips (see
-    [TipableVMobject][manimgx.TipableVMobject])."""
+    """样式关键字，以及可终止于箭头尖端的路径的关键字
+    （见 [TipableVMobject][manimgx.TipableVMobject]）。"""
 
 
 class _ArcOptions(_Tipped, total=False):
-    """ArcOptions's keys, open, for the keywords that add to them."""
+    """ArcOptions 的键，开放的，用于向其添加的关键字。"""
 
     num_components: int
-    """How many anchor points the arc is drawn through: it is one fewer cubic Bézier
-    curves (default 9)."""
+    """弧线所经过的锚点数：它比三次贝塞尔曲线数少一（默认 9）。"""
     arc_center: Point3DLike
-    """Where the center of the arc's circle goes, in scene coordinates (default
-    ORIGIN)."""
+    """弧线圆心所在位置，以场景坐标表示（默认 ORIGIN）。"""
 
 
 class ArcOptions(_ArcOptions, total=False, closed=True):
-    """An arc's keywords, for the classes that build one and pass them on: how finely
-    and where it is built, with the style and tip keywords."""
+    """弧线的关键字，供构造弧线并传递它们的类使用：其绘制精度与位置，
+    以及样式和尖端关键字。"""
 
 
 class SectorOptions(_ArcOptions, total=False, closed=True):
-    """A [Sector][manimgx.Sector]'s keywords but its radius: its angles, with the arc
-    keywords."""
+    """[Sector][manimgx.Sector] 除半径外的关键字：其角度，以及弧线关键字。"""
 
     angle: float
-    """The angle the sector spans, in radians: counterclockwise from `start_angle`, or
-    clockwise if negative (default TAU / 4: a quarter turn)."""
+    """扇形所跨的角度，以弧度计：从 `start_angle` 起逆时针，或为负时顺时针
+    （默认 TAU / 4：四分之一圈）。"""
     start_angle: float
-    """The angle of its first edge, in radians, counterclockwise from the positive
-    x-axis (default 0)."""
+    """其首条边的角度，以弧度计，从正 x 轴起逆时针（默认 0）。"""
 
 
 class ArcBetweenOptions(_Tipped, total=False, closed=True):
-    """An [ArcBetweenPoints][manimgx.ArcBetweenPoints]'s keywords but its ends: its
-    angle or its radius, with the style and tip keywords (for the classes that pass
-    them on)."""
+    """[ArcBetweenPoints][manimgx.ArcBetweenPoints] 除两端外的关键字：其角度
+    或半径，以及样式和尖端关键字（供传递它们的类使用）。"""
 
     angle: float
-    """The angle the arc turns through on its way, in radians: counterclockwise if
-    positive, bending it to the right of the straight way; clockwise if negative; a
-    straight segment if 0 (default TAU / 4)."""
+    """弧线在行进中所转过的角度，以弧度计：为正时逆时针，向直线路径右侧弯曲；
+    为负时顺时针；为 0 时为直线段（默认 TAU / 4）。"""
     radius: float | None
-    """The radius of the arc's circle, in scene units, in place of `angle`: the shorter
-    arc of that radius, bending right, or left if negative; at least half the distance
-    between the ends (default None: set by `angle`)."""
+    """弧线圆的半径，以场景单位计，代替 `angle`：该半径的较短弧，向右弯曲，
+    或为负时向左；至少为两端距离的一半（默认 None：由 `angle` 设定）。"""
 
 
 def _similarity(
     a: Point3D, b: Point3D, c: Point3D, d: Point3D
 ) -> tuple[MatrixMN, MatrixMN]:
-    """(the 3×4 map, its rotation) taking segment a→b onto c→d, as CE's `put_start_and_end_on`:
-    scale and turn about a, then move."""
+    """(将线段 a→b 映射到 c→d 的 3×4 变换，及其旋转)，即 CE 的 `put_start_and_end_on`：
+    关于 a 缩放并旋转，再平移。"""
     ab, cd = b - a, d - c
     turn = rotation_matrix(*turn_between(ab, cd))
     linear = turn * (np.linalg.norm(cd) / np.linalg.norm(ab))
@@ -251,30 +243,27 @@ def _similarity(
 
 
 class TipableVMobject(VMobject):
-    """A path that can end in arrow tips: what lines, arcs and arrows have in common.
+    """可终止于箭头尖端的路径：直线、弧线和箭头的共同之处。
 
-    A tip is a small shape (an [ArrowTip][manimgx.ArrowTip]) added to the path as a
-    submobject, at its end or its start, pointing along it. The tip's point goes where
-    the path ended, and the path is fitted to stop at the tip's base. With tips, the
-    path's [start][manimgx.TipableVMobject.get_start] and
-    [end][manimgx.TipableVMobject.get_end] are the tips' points.
+    尖端是一个小形状（一个 [ArrowTip][manimgx.ArrowTip]），作为子对象添加到路径
+    的终点或起点，沿路径指向。尖端的点位于路径结束处，而路径被调整到在尖端底部停止。
+    带有尖端时，路径的 [start][manimgx.TipableVMobject.get_start] 和
+    [end][manimgx.TipableVMobject.get_end] 即为尖端的点。
 
     Args:
-        tip_length: The length of the tips [add_tip][manimgx.TipableVMobject.add_tip]
-            makes, in scene units (default 0.35).
-        normal_vector: The normal of the plane the path lies in. Accepted for Manim
-            compatibility; ignored.
-        tip_style: Style keywords for the tips the path makes; a tip's `fill_color` and
-            `stroke_color` are the path's color unless given here.
+        tip_length: [add_tip][manimgx.TipableVMobject.add_tip] 所生成尖端的长度，
+            以场景单位计（默认 0.35）。
+        normal_vector: 路径所在平面的法向量。为兼容 Manim 而接受；被忽略。
+        tip_style: 路径所生成尖端的样式关键字；除非在此给出，否则尖端的 `fill_color`
+            和 `stroke_color` 取路径的颜色。
     """
 
     _tip_positioned = False
 
     tip: ArrowTip
-    """The tip at the path's end, once [add_tip][manimgx.TipableVMobject.add_tip] has
-    made one."""
+    """路径终点的尖端，一旦 [add_tip][manimgx.TipableVMobject.add_tip] 已生成其一。"""
     start_tip: ArrowTip
-    """The tip at the path's start, once `add_tip(at_start=True)` has made one."""
+    """路径起点的尖端，一旦 `add_tip(at_start=True)` 已生成其一。"""
 
     def __init__(
         self,
@@ -295,25 +284,20 @@ class TipableVMobject(VMobject):
         tip_width: float | None = None,
         at_start: bool = False,
     ) -> Self:
-        """Add an arrow tip at the path's end, or its start, pointing along the path
-        there.
+        """在路径终点（或起点）添加一个箭头尖端，沿该处路径指向。
 
-        The tip's point goes where the path ended, and the path is scaled and turned
-        about its other end to stop at the tip's base. The tip is a submobject, named
-        [tip][manimgx.TipableVMobject.tip] (or `start_tip`), in the path's color unless
-        `tip_style` gives it another.
+        尖端的点位于路径结束处，而路径关于其另一端缩放并旋转，以在尖端底部停止。
+        尖端是一个子对象，名为 [tip][manimgx.TipableVMobject.tip]（或 `start_tip`），
+        颜色取路径的颜色，除非 `tip_style` 另行指定。
 
         Args:
-            tip: A tip made beforehand, to turn and move into place; None to make one.
-            tip_shape: The class of the tip to make, an [ArrowTip][manimgx.ArrowTip]
-                subclass; None for
-                [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
-            tip_length: The length of the tip to make, in scene units; None for the
-                path's `tip_length`.
-            tip_width: The width of the tip to make, if it is the default filled
-                triangle, in scene units; None for the default length. Other shapes take
-                no width: they are made at `tip_length` alone.
-            at_start: Whether the tip goes at the path's start, pointing back along it.
+            tip: 预先制作的尖端，将被旋转并移动到位；None 表示新建一个。
+            tip_shape: 要制作的尖端类，一个 [ArrowTip][manimgx.ArrowTip] 子类；
+                None 表示 [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
+            tip_length: 要制作的尖端长度，以场景单位计；None 表示路径的 `tip_length`。
+            tip_width: 要制作的尖端宽度（当其为默认的填充三角形时），以场景单位计；
+                None 表示默认长度。其他形状不接受宽度：它们仅以 `tip_length` 制作。
+            at_start: 尖端是否位于路径起点，沿路径反向指向。
 
         Examples:
             ```python
@@ -348,20 +332,20 @@ class TipableVMobject(VMobject):
         tip_width: float | None = None,
         at_start: bool = False,
     ) -> ArrowTip:
-        """Make a tip for the path's end, or its start, pointing along the path there;
-        the tip is not added (see [add_tip][manimgx.TipableVMobject.add_tip]).
+        """为路径终点（或起点）制作一个尖端，沿该处路径指向；该尖端不被添加
+        （见 [add_tip][manimgx.TipableVMobject.add_tip]）。
 
         Args:
-            tip_shape: The class of the tip, an [ArrowTip][manimgx.ArrowTip] subclass;
-                None for [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
-            tip_length: Its length, in scene units; None for the path's
-                [default][manimgx.TipableVMobject.get_default_tip_length].
-            tip_width: Its width, if it is the default filled triangle, in scene units;
-                None for the default length.
-            at_start: Whether it is for the path's start, pointing back along it.
+            tip_shape: 尖端的类，一个 [ArrowTip][manimgx.ArrowTip] 子类；
+                None 表示 [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
+            tip_length: 其长度，以场景单位计；None 表示路径的
+                [默认值][manimgx.TipableVMobject.get_default_tip_length]。
+            tip_width: 其宽度（当其为默认的填充三角形时），以场景单位计；
+                None 表示默认长度。
+            at_start: 是否为路径起点制作，沿路径反向指向。
 
         Returns:
-            A new tip, in place.
+            一个新尖端，已就位。
         """
         tip = self.get_unpositioned_tip(tip_shape, tip_length, tip_width)
         self.position_tip(tip, at_start)
@@ -374,24 +358,22 @@ class TipableVMobject(VMobject):
         tip_length: float | None = None,
         tip_width: float | None = None,
     ) -> ArrowTip:
-        """Make a tip in the path's style, not yet in place: what
-        [add_tip][manimgx.TipableVMobject.add_tip] makes before it turns and moves it to
-        an end.
+        """以路径的样式制作一个尚未就位的尖端：即 [add_tip][manimgx.TipableVMobject.add_tip]
+        在将其旋转并移动到端点之前所制作的内容。
 
-        The tip's `fill_color` and `stroke_color` are the path's color, with the path's
-        `tip_style` over them. The default filled triangle is made `tip_length` long and
-        `tip_width` wide; another shape is made at `tip_length`, as its class makes it.
+        尖端的 `fill_color` 和 `stroke_color` 取路径的颜色，路径的 `tip_style` 优先于它们。
+        默认的填充三角形以 `tip_length` 长、`tip_width` 宽制作；其他形状以 `tip_length`
+        制作，由其类自行决定。
 
         Args:
-            tip_shape: The class of the tip; None for
-                [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
-            tip_length: Its length, in scene units; None for the path's
-                [default][manimgx.TipableVMobject.get_default_tip_length].
-            tip_width: The width of the default filled triangle, in scene units; None
-                for the default length.
+            tip_shape: 尖端的类；None 表示
+                [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
+            tip_length: 其长度，以场景单位计；None 表示路径的
+                [默认值][manimgx.TipableVMobject.get_default_tip_length]。
+            tip_width: 默认填充三角形的宽度，以场景单位计；None 表示默认长度。
 
         Returns:
-            A new tip.
+            一个新尖端。
         """
         # The default tip is given its width too (the default length unless given, as
         # in CE), and a triangle scales with its two sides: it is the unit triangle of
@@ -414,19 +396,17 @@ class TipableVMobject(VMobject):
 
     @deprecated("Manim CE's machinery: add_tip calls it", category=None)
     def position_tip(self, tip: ArrowTip, at_start: bool = False) -> ArrowTip:
-        """Turn and move a tip onto the path's end, or its start: pointing along the
-        path there, its point on the end.
+        """将尖端旋转并移动到路径终点（或起点）：沿该处路径指向，其点位于端点上。
 
-        [add_tip][manimgx.TipableVMobject.add_tip] and
-        [create_tip][manimgx.TipableVMobject.create_tip] call it; the path does not
-        change.
+        [add_tip][manimgx.TipableVMobject.add_tip] 和
+        [create_tip][manimgx.TipableVMobject.create_tip] 调用此方法；路径不改变。
 
         Args:
-            tip: The tip to place.
-            at_start: Whether to place it at the path's start, pointing back along it.
+            tip: 要放置的尖端。
+            at_start: 是否放置在路径起点，沿路径反向指向。
 
         Returns:
-            The tip, in place.
+            该尖端，已就位。
         """
         anchor = self.get_start() if at_start else self.get_end()
         angles = cartesian_to_spherical(self._toward(at_start) - anchor)
@@ -447,15 +427,14 @@ class TipableVMobject(VMobject):
 
     @deprecated("Manim CE's machinery: add_tip calls it", category=None)
     def reset_endpoints_based_on_tip(self, tip: ArrowTip, at_start: bool) -> Self:
-        """Fit the path to stop at a tip's base: scale and turn it about its other end,
-        which stays.
+        """调整路径使其在尖端底部停止：关于其另一端缩放并旋转，另一端保持不变。
 
-        [add_tip][manimgx.TipableVMobject.add_tip] calls it once the tip is in place. A
-        path of no length stays as it is.
+        [add_tip][manimgx.TipableVMobject.add_tip] 在尖端就位后调用此方法。
+        长度为零的路径保持原样。
 
         Args:
-            tip: The tip, in place at the path's end (or its start).
-            at_start: Whether the tip is at the path's start.
+            tip: 已就位于路径终点（或起点）的尖端。
+            at_start: 尖端是否位于路径起点。
         """
         # `put_start_and_end_on`, one map — on the curve alone while no tip is on it yet
         # (a class's own `scale` is not called: it is the curve that is fitted, not the
@@ -474,13 +453,13 @@ class TipableVMobject(VMobject):
 
     @deprecated("Manim CE's machinery: add_tip calls it", category=None)
     def assign_tip_attr(self, tip: ArrowTip, at_start: bool) -> Self:
-        """Name a tip as the path's [tip][manimgx.TipableVMobject.tip], or its
-        [start_tip][manimgx.TipableVMobject.start_tip]; the tip is not added.
+        """将尖端命名为路径的 [tip][manimgx.TipableVMobject.tip] 或
+        [start_tip][manimgx.TipableVMobject.start_tip]；该尖端不被添加。
 
-        [add_tip][manimgx.TipableVMobject.add_tip] calls it.
+        [add_tip][manimgx.TipableVMobject.add_tip] 调用此方法。
 
         Args:
-            at_start: Whether it is the tip at the path's start.
+            at_start: 是否为路径起点的尖端。
         """
         if at_start:
             self.start_tip = tip
@@ -489,26 +468,23 @@ class TipableVMobject(VMobject):
         return self
 
     def has_tip(self) -> bool:
-        """Whether the path has a tip at its end: its
-        [tip][manimgx.TipableVMobject.tip], among its submobjects.
+        """路径是否在终点有尖端：其 [tip][manimgx.TipableVMobject.tip] 在其子对象中。
         """
         tip = self.__dict__.get("tip")
         return tip is not None and any(m is tip for m in self.submobjects)
 
     def has_start_tip(self) -> bool:
-        """Whether the path has a tip at its start: its
-        [start_tip][manimgx.TipableVMobject.start_tip], among its submobjects.
+        """路径是否在起点有尖端：其 [start_tip][manimgx.TipableVMobject.start_tip]
+        在其子对象中。
         """
         tip = self.__dict__.get("start_tip")
         return tip is not None and any(m is tip for m in self.submobjects)
 
     def pop_tips(self) -> VGroup[ArrowTip]:
-        """Remove the path's tips, and fit the path back between its start and its end
-        as they were: the tips' points.
+        """移除路径的尖端，并将路径恢复到其起点和终点之间原本的位置：即尖端的点。
 
         Returns:
-            The tips removed, the end tip first, in a new group (empty if there were
-            none).
+            被移除的尖端，终点尖端在前，置于一个新组中（若无则为空组）。
         """
 
         start, end = self.get_start_and_end()
@@ -524,15 +500,14 @@ class TipableVMobject(VMobject):
         return result
 
     def get_tips(self) -> VGroup[ArrowTip]:
-        """The tips the path has been given: its [tip][manimgx.TipableVMobject.tip] and
-        its [start_tip][manimgx.TipableVMobject.start_tip], those it has had.
+        """路径已具有的尖端：其 [tip][manimgx.TipableVMobject.tip] 和
+        [start_tip][manimgx.TipableVMobject.start_tip]，即其所拥有过的。
 
-        A tip [pop_tips][manimgx.TipableVMobject.pop_tips] removed is still named, and
-        listed here; [has_tip][manimgx.TipableVMobject.has_tip] tells whether it is on
-        the path.
+        被 [pop_tips][manimgx.TipableVMobject.pop_tips] 移除的尖端仍被命名，
+        并列于此处；[has_tip][manimgx.TipableVMobject.has_tip] 指示其是否仍在路径上。
 
         Returns:
-            The tips, the end tip first, in a new group.
+            尖端，终点尖端在前，置于一个新组中。
         """
 
         result = VGroup[ArrowTip]()
@@ -543,11 +518,10 @@ class TipableVMobject(VMobject):
         return result
 
     def get_tip(self) -> ArrowTip:
-        """The path's tip: the one at its end, or the one at its start if it has none
-        there.
+        """路径的尖端：终点处的那个，或若终点处无则起点处的那个。
 
-        It is the first of [get_tips][manimgx.TipableVMobject.get_tips]; a path never
-        given a tip raises an exception.
+        它是 [get_tips][manimgx.TipableVMobject.get_tips] 的第一个；
+        从未被赋予尖端的路径会引发异常。
         """
         tips = self.get_tips()
         if not tips.submobjects:
@@ -556,29 +530,27 @@ class TipableVMobject(VMobject):
 
     @deprecated("Manim CE's machinery: add_tip calls it", category=None)
     def get_default_tip_length(self) -> float:
-        """The length of the tips the path makes unless given one: its `tip_length`.
+        """路径所生成尖端的默认长度（未另行指定时）：其 `tip_length`。
 
         Returns:
-            The length, in scene units.
+            长度，以场景单位计。
         """
         return self.tip_length
 
     @deprecated("Manim CE's machinery: add_tip calls it", category=None)
     def get_first_handle(self) -> Point3D:
-        """The path's first handle: the control point after its first point, toward
-        which it leaves its start.
+        """路径的第一个控制柄：其第一个点之后的控制点，路径朝其离开起点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         first_handle: Point3D = self.points[1]
         return first_handle
 
     def _toward(self, at_start: bool) -> Point3D:
-        """The point the path leaves its start toward, or comes into its end from: the
-        nearest of the end curve's control points apart from its end, so a tip points
-        along the path where a handle has no length (a curve arrives along P3 − P1 when
-        P2 = P3)."""
+        """路径离开起点所朝向的点，或进入终点所来自的点：端点曲线的控制点中
+        除端点外最接近端点的那个，因此当控制柄长度为零时尖端沿路径指向
+        （当 P2 = P3 时曲线沿 P3 − P1 方向到达）。"""
         curve = self.points[:4] if at_start else self.points[-4:][::-1]
         end = curve[0]
         for point in curve[1:]:
@@ -588,21 +560,19 @@ class TipableVMobject(VMobject):
 
     @deprecated("Manim CE's machinery: add_tip calls it", category=None)
     def get_last_handle(self) -> Point3D:
-        """The path's last handle: the control point before its last point, from which
-        it comes into its end.
+        """路径的最后一个控制柄：其最后一个点之前的控制点，路径从其进入终点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         last_handle: Point3D = self.points[-2]
         return last_handle
 
     def get_end(self) -> Point3D:
-        """Where the path ends: its end tip's point, if it has an end tip, and otherwise
-        its last point.
+        """路径结束处：若有终点尖端则为该尖端的点，否则为其最后一个点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         if self.has_tip():
             return np.array(self.tip.tip_point)
@@ -610,11 +580,10 @@ class TipableVMobject(VMobject):
             return super().get_end()
 
     def get_start(self) -> Point3D:
-        """Where the path starts: its start tip's point, if it has a start tip, and
-        otherwise its first point.
+        """路径起始处：若有起点尖端则为该尖端的点，否则为其第一个点。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         if self.has_start_tip():
             return np.array(self.start_tip.tip_point)
@@ -622,18 +591,17 @@ class TipableVMobject(VMobject):
             return super().get_start()
 
     def get_length(self) -> float:
-        """The distance from the path's start to its end, tips included: straight
-        across, so an arc's chord, not the length along it.
+        """路径起点到终点的距离，包含尖端：直线跨越，因此为弧的弦长，而非沿弧的长度。
 
         Returns:
-            The distance, in scene units.
+            距离，以场景单位计。
         """
         start, end = self.get_start_and_end()
         return float(np.linalg.norm(start - end))
 
 
 def _unit_arc(start: float, angle: float, n: int) -> np.ndarray:
-    """CE's arc on the unit circle: n anchors, handles along the tangents."""
+    """CE 的单位圆上的弧：n 个锚点，控制柄沿切线方向。"""
     a = np.linspace(start, start + angle, n)
     anchors = np.stack([np.cos(a), np.sin(a), np.zeros(n)], axis=1)
     tangents = np.stack([-anchors[:, 1], anchors[:, 0], np.zeros(n)], axis=1)
@@ -646,21 +614,18 @@ def _unit_arc(start: float, angle: float, n: int) -> np.ndarray:
 
 
 class Arc(TipableVMobject):
-    r"""An arc of a circle: from the angle `start_angle` through `angle`,
-    counterclockwise if `angle` is positive; white unless styled.
+    r"""圆的一段弧：从角度 `start_angle` 起转过 `angle`，`angle` 为正时逆时针；
+    未加样式时为白色。
 
-    Angles are in radians, about the arc's center, counterclockwise from the positive
-    x-axis. The arc is drawn through `num_components` points spaced evenly along it,
-    joined by cubic Bézier curves.
+    角度以弧度计，绕弧的圆心，从正 x 轴起逆时针。弧线经过 `num_components` 个
+    沿其均匀分布的点，由三次贝塞尔曲线连接。
 
     Args:
-        radius: The radius, in scene units; None for 1.
-        start_angle: The angle of the arc's first point.
-        angle: How far the arc goes: counterclockwise if positive, clockwise if
-            negative; TAU for a whole circle.
-        num_components: How many anchor points it is drawn through: the arc is one
-            fewer cubic Bézier curves.
-        arc_center: Where the center of its circle goes.
+        radius: 半径，以场景单位计；None 表示 1。
+        start_angle: 弧线第一个点的角度。
+        angle: 弧线行进多远：为正时逆时针，为负时顺时针；TAU 表示整圆。
+        num_components: 经多少个锚点绘制：弧线为比其少一的三次贝塞尔曲线。
+        arc_center: 其圆心所在位置。
 
     Examples:
         ```python
@@ -712,16 +677,16 @@ class Arc(TipableVMobject):
         return self
 
     def get_arc_center(self, warning: bool = True) -> Point3D:
-        """The center of the arc's circle, where it is now, in whatever plane it lies:
-        the center of the circle through its first curve's ends and middle.
+        """弧的圆心，即其当前位置，位于其所在的任一平面内：经过其第一条曲线
+        两端和中点的圆的圆心。
 
-        If there is none (a straight path), it is the origin, with a warning.
+        若不存在（直线路径），则为原点，并发出警告。
 
         Args:
-            warning: Whether to warn when the center cannot be found.
+            warning: 当圆心无法找到时是否发出警告。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         a1, h1, h2, a2 = self.points[:4]
         if np.all(a1 == a2):
@@ -741,42 +706,38 @@ class Arc(TipableVMobject):
         )
 
     def move_arc_center_to(self, point: Point3DLike) -> Self:
-        """Move the arc so the center of its circle is at a point.
+        """移动弧线使其圆心位于某点。
 
         Args:
-            point: Where the center goes, in scene coordinates.
+            point: 圆心目标位置，以场景坐标表示。
         """
         self.shift(point - self.get_arc_center())
         return self
 
     def stop_angle(self) -> float:
-        """The angle at which the arc ends: the angle of its last point about its
-        [center][manimgx.Arc.get_arc_center].
+        """弧线结束的角度：其最后一个点关于其 [圆心][manimgx.Arc.get_arc_center]
+        的角度。
 
         Returns:
-            The angle, in radians, counterclockwise from the positive x-axis, from 0 up
-            to TAU.
+            角度，以弧度计，从正 x 轴起逆时针，范围从 0 到 TAU。
         """
         return angle_of_vector(self.points[-1] - self.get_arc_center()) % TAU
 
 
 class ArcBetweenPoints(Arc):
-    """An arc from one point to another, through an angle or of a radius; white unless
-    styled.
+    """从一点到另一点的弧，经过某角度或具有某半径；未加样式时为白色。
 
-    Going from `start` to `end`, a positive angle turns counterclockwise, bending the
-    arc to the right of the straight way; a negative angle bends it to the left, and 0
-    makes it a straight segment.
+    从 `start` 到 `end`，正角度逆时针旋转，使弧向直线路径右侧弯曲；
+    负角度向左弯曲，0 使其为直线段。
 
     Args:
-        start: Where the arc starts.
-        end: Where it ends.
-        angle: The angle it turns through on its way, in radians.
-        radius: The radius of its circle, in scene units, in place of `angle`: the
-            shorter arc of that radius, bending right, or left if negative. It must be
-            at least half the distance between the ends. None to use `angle`.
-        **kwargs: [Arc keywords][manimgx.mobjects.shapes.ArcOptions]; `arc_center`
-            has no effect, as the ends place the arc.
+        start: 弧的起点。
+        end: 弧的终点。
+        angle: 弧在行进中所转过的角度，以弧度计。
+        radius: 其圆的半径，以场景单位计，代替 `angle`：该半径的较短弧，
+            向右弯曲，或为负时向左。必须至少为两端距离的一半。None 表示使用 `angle`。
+        **kwargs: [弧线关键字][manimgx.mobjects.shapes.ArcOptions]；`arc_center`
+            无效，因为两端已确定弧的位置。
 
     Examples:
         ```python
@@ -834,17 +795,17 @@ class ArcBetweenPoints(Arc):
 
 
 class CurvedArrow(ArcBetweenPoints):
-    """An arrow along an arc: an [ArcBetweenPoints][manimgx.ArcBetweenPoints] with a tip
-    at its end, bending right on its way by default; white unless styled.
+    """沿弧线的箭头：一个 [ArcBetweenPoints][manimgx.ArcBetweenPoints]，
+    终点带尖端，默认行进时向右弯曲；未加样式时为白色。
 
     Args:
-        start_point: Where the arrow starts.
-        end_point: Where it points to: its tip's point.
-        tip_shape: The class of its tip; None for
-            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
+        start_point: 箭头起点。
+        end_point: 箭头指向处：其尖端的点。
+        tip_shape: 其尖端的类；None 表示
+            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
         **kwargs:
-            [ArcBetweenPoints keywords][manimgx.ArcBetweenPoints]:
-            its angle (a quarter turn unless given) or its radius, style and tips.
+            [ArcBetweenPoints 关键字][manimgx.ArcBetweenPoints]：
+            其角度（未指定时为四分之一圈）或半径，样式和尖端。
 
     Examples:
         ```python
@@ -879,20 +840,19 @@ class CurvedArrow(ArcBetweenPoints):
 
 
 class CurvedDoubleArrow(CurvedArrow):
-    """An arrow along an arc with a tip at each end: an
-    [ArcBetweenPoints][manimgx.ArcBetweenPoints] with two tips, bending right on its way
-    by default; white unless styled.
+    """沿弧线且两端各带一个尖端的箭头：一个 [ArcBetweenPoints][manimgx.ArcBetweenPoints]，
+    带两个尖端，默认行进时向右弯曲；未加样式时为白色。
 
     Args:
-        start_point: Where the arrow starts: its start tip's point.
-        end_point: Where it ends: its end tip's point.
-        tip_shape_start: The class of the tip at its start; None for
-            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
-        tip_shape_end: The class of the tip at its end; None for
-            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
+        start_point: 箭头起点：其起点尖端的点。
+        end_point: 箭头终点：其终点尖端的点。
+        tip_shape_start: 起点尖端的类；None 表示
+            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
+        tip_shape_end: 终点尖端的类；None 表示
+            [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
         **kwargs:
-            [ArcBetweenPoints keywords][manimgx.ArcBetweenPoints]:
-            its angle (a quarter turn unless given) or its radius, style and tips.
+            [ArcBetweenPoints 关键字][manimgx.ArcBetweenPoints]：
+            其角度（未指定时为四分之一圈）或半径，样式和尖端。
 
     Examples:
         ```python
@@ -934,16 +894,14 @@ class CurvedDoubleArrow(CurvedArrow):
 
 
 class Circle(Arc):
-    """A circle: drawn counterclockwise from its rightmost point, red unless styled.
+    """圆：从其最右点起逆时针绘制，未加样式时为红色。
 
     Args:
-        radius: The radius, in scene units; None for 1.
-        color: The color, which may be given by position (`Circle(1, BLUE)`); None for
-            red.
-        num_components: How many anchor points it is drawn through: the circle is one
-            fewer cubic Bézier arcs.
-        arc_center: Where its center goes.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+        radius: 半径，以场景单位计；None 表示 1。
+        color: 颜色，可按位置给出（`Circle(1, BLUE)`）；None 表示红色。
+        num_components: 经多少个锚点绘制：圆为比其少一的三次贝塞尔弧。
+        arc_center: 圆心所在位置。
+        **kwargs: [样式关键字][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -991,17 +949,16 @@ class Circle(Arc):
         *,
         buffer_factor: float = 1.2,
     ) -> Self:
-        """Fit the circle around a mobject: through the corners of its bounding box, enlarged
-        by `buffer_factor`, then `buff` farther out.
+        """将圆适配到某 mobject 周围：经过其包围盒的角，再放大 `buffer_factor`，
+        然后向外移 `buff`。
 
         Args:
-            mobject: The mobject to surround.
-            dim_to_match: The dimension (0, 1 or 2) of `mobject` the circle is first fitted
-                to, before it grows to the corners.
-            stretch: Whether that first fit stretches the circle into an ellipse matching the
-                bounding box.
-            buff: How much farther out the circle goes, in scene units.
-            buffer_factor: How much larger than through the corners the circle is.
+            mobject: 要包围的 mobject。
+            dim_to_match: `mobject` 的维度（0、1 或 2），圆首先适配到该维度，
+                然后再增长到各角。
+            stretch: 第一次适配是否将圆拉伸为匹配包围盒的椭圆。
+            buff: 圆向外再移多少，以场景单位计。
+            buffer_factor: 圆比经过各角大多少。
 
         Examples:
             ```python
@@ -1022,13 +979,13 @@ class Circle(Arc):
         return self.scale((self.width / 2 + buff) / (self.width / 2)) if buff else self
 
     def point_at_angle(self, angle: float) -> Point3D:
-        """The point of the circle at an angle from its start, its rightmost point.
+        """圆上从其起点（最右点）起某角度处的点。
 
         Args:
-            angle: The angle, in radians, counterclockwise; any angle wraps around.
+            angle: 角度，以弧度计，逆时针；任意角度会回绕。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         proportion = angle / TAU
         proportion -= np.floor(proportion)
@@ -1038,16 +995,16 @@ class Circle(Arc):
     def from_three_points(
         p1: Point3DLike, p2: Point3DLike, p3: Point3DLike, **kwargs: Unpack[Tipped]
     ) -> Circle:
-        """The circle through three points.
+        """经过三点的圆。
 
         Args:
-            p1: A point on the circle.
-            p2: A second point on it.
-            p3: A third point on it, not on the line through the other two.
-            **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+            p1: 圆上一点。
+            p2: 圆上第二点。
+            p3: 圆上第三点，不在过另两点的直线上。
+            **kwargs: [样式关键字][manimgx.drawing.paint.Style]。
 
         Returns:
-            A new circle.
+            一个新圆。
         """
         center = line_intersection(
             perpendicular_bisector([np.asarray(p1), np.asarray(p2)]),
@@ -1058,11 +1015,11 @@ class Circle(Arc):
 
 
 class Dot(Circle):
-    """A dot: a small filled disc, white and without an outline unless styled.
+    """点：一个小填充圆盘，未加样式时为白色且无轮廓。
 
     Args:
-        point: Where its center goes.
-        radius: Its radius, in scene units (default 0.08).
+        point: 其圆心所在位置。
+        radius: 其半径，以场景单位计（默认 0.08）。
 
     Examples:
         ```python
@@ -1092,15 +1049,14 @@ class Dot(Circle):
 
 
 class AnnotationDot(Dot):
-    """A dot to mark a point with: a little larger than a [Dot][manimgx.Dot], blue with
-    a thick white outline unless styled.
+    """用于标记点的点：比 [Dot][manimgx.Dot] 略大，未加样式时为蓝色
+    且带粗白色轮廓。
 
-    Its colors are its `fill_color` and its `stroke_color`, which `color` does not
-    change.
+    其颜色为 `fill_color` 和 `stroke_color`，`color` 不会改变它们。
 
     Args:
-        radius: Its radius, in scene units (default 0.104, 1.3 times a dot's).
-        point: Where its center goes.
+        radius: 其半径，以场景单位计（默认 0.104，为点的 1.3 倍）。
+        point: 其圆心所在位置。
 
     Examples:
         ```python
@@ -1136,13 +1092,13 @@ class AnnotationDot(Dot):
 
 
 class Ellipse(Circle):
-    """An ellipse: a circle stretched to a width and a height, red unless styled.
+    """椭圆：拉伸到某宽度和高度的圆，未加样式时为红色。
 
-    Like a circle, it is drawn counterclockwise from its rightmost point.
+    与圆一样，从其最右点起逆时针绘制。
 
     Args:
-        width: Its width, in scene units: its extent along x.
-        height: Its height, in scene units: its extent along y.
+        width: 其宽度，以场景单位计：沿 x 方向的跨度。
+        height: 其高度，以场景单位计：沿 y 方向的跨度。
 
     Examples:
         ```python
@@ -1169,18 +1125,16 @@ class Ellipse(Circle):
 
 
 class AnnularSector(Arc):
-    """A sector of a ring: the region between two arcs of one center, over one angle;
-    white and filled, without an outline, unless styled.
+    """环形扇区：两个同心弧之间、跨一个角度的区域；未加样式时为白色、
+    填充且无轮廓。
 
     Args:
-        inner_radius: The inner arc's radius, in scene units.
-        outer_radius: The outer arc's radius, in scene units.
-        angle: The angle it spans, in radians: counterclockwise from `start_angle`, or
-            clockwise if negative.
-        start_angle: The angle of its first edge, in radians, counterclockwise from the
-            positive x-axis.
-        **kwargs: [Arc keywords][manimgx.mobjects.shapes.ArcOptions];
-            `num_components` has no effect.
+        inner_radius: 内弧的半径，以场景单位计。
+        outer_radius: 外弧的半径，以场景单位计。
+        angle: 所跨的角度，以弧度计：从 `start_angle` 起逆时针，或为负时顺时针。
+        start_angle: 其首条边的角度，以弧度计，从正 x 轴起逆时针。
+        **kwargs: [弧线关键字][manimgx.mobjects.shapes.ArcOptions]；
+            `num_components` 无效。
 
     Examples:
         ```python
@@ -1226,14 +1180,13 @@ class AnnularSector(Arc):
 
 
 class Sector(AnnularSector):
-    """A sector of a disc, a slice of pie: the region between two radii and the arc
-    joining them; white and filled, without an outline, unless styled.
+    """圆盘的扇形，即饼形切片：两条半径及其间弧线之间的区域；未加样式时为白色、
+    填充且无轮廓。
 
     Args:
-        radius: Its radius, in scene units.
-        **kwargs: [Sector keywords][manimgx.mobjects.shapes.SectorOptions]: its
-            angles (a quarter turn from the positive x-axis unless given), style and
-            center; `num_components` has no effect.
+        radius: 其半径，以场景单位计。
+        **kwargs: [扇形关键字][manimgx.mobjects.shapes.SectorOptions]：其角度
+            （未指定时为从正 x 轴起的四分之一圈）、样式和圆心；`num_components` 无效。
 
     Examples:
         ```python
@@ -1256,18 +1209,16 @@ class Sector(AnnularSector):
 
 
 class Annulus(Circle):
-    """A ring: the region between two circles of one center; white and filled, without
-    an outline, unless styled.
+    """环：两个同心圆之间的区域；未加样式时为白色、填充且无轮廓。
 
-    The inner circle runs clockwise, the other way around from the outer one, so it is
-    a hole in the fill.
+    内圆顺时针运行，与外圆方向相反，因此是填充中的洞。
 
     Args:
-        inner_radius: The inner circle's radius, in scene units.
-        outer_radius: The outer circle's radius, in scene units.
-        mark_paths_closed: Accepted for Manim compatibility; ignored.
-        **kwargs: [Arc keywords][manimgx.mobjects.shapes.ArcOptions];
-            `num_components` has no effect.
+        inner_radius: 内圆的半径，以场景单位计。
+        outer_radius: 外圆的半径，以场景单位计。
+        mark_paths_closed: 为兼容 Manim 而接受；被忽略。
+        **kwargs: [弧线关键字][manimgx.mobjects.shapes.ArcOptions]；
+            `num_components` 无效。
 
     Examples:
         ```python
@@ -1309,18 +1260,17 @@ class Annulus(Circle):
 
 
 class CubicBezier(VMobject):
-    """A cubic Bézier curve: from one anchor to another, pulled toward two handles;
-    white unless styled.
+    """三次贝塞尔曲线：从一个锚点到另一个，被两个控制柄拉向；
+    未加样式时为白色。
 
-    The curve leaves its start heading toward `start_handle` and comes into its end
-    from the direction of `end_handle`; the farther a handle, the longer the curve
-    keeps to its direction. It passes through neither handle.
+    曲线离开起点时朝向 `start_handle`，进入终点时来自 `end_handle` 方向；
+    控制柄越远，曲线沿其方向走得越长。曲线不经过任一控制柄。
 
     Args:
-        start_anchor: Where the curve starts.
-        start_handle: The handle of its start.
-        end_handle: The handle of its end.
-        end_anchor: Where the curve ends.
+        start_anchor: 曲线起点。
+        start_handle: 起点的控制柄。
+        end_handle: 终点的控制柄。
+        end_anchor: 曲线终点。
 
     Examples:
         ```python
@@ -1354,27 +1304,23 @@ class CubicBezier(VMobject):
 
 
 class ArcPolygon(VMobject):
-    """A polygon whose sides are arcs: an [ArcBetweenPoints][manimgx.ArcBetweenPoints]
-    from each vertex to the next, and from the last back to the first; white unless
-    styled.
+    """边为弧线的多边形：从每个顶点到下一个的 [ArcBetweenPoints][manimgx.ArcBetweenPoints]，
+    以及从最后一个回到第一个；未加样式时为白色。
 
-    Going around the vertices counterclockwise, arcs of a positive angle bulge out, and
-    arcs of a negative one bend in. Its outline runs along the arcs, and is filled and
-    stroked in its style. The arcs are also its submobjects, its
-    [arcs][manimgx.ArcPolygon.arcs], drawn over its outline in their own style (white
-    unless `arc_config` styles them): to color the whole, style them too, as a family
-    method such as [set_color][manimgx.Mobject.set_color] does.
+    绕顶点逆时针行进，正角度的弧向外凸，负角度的弧向内弯。其轮廓沿弧线，
+    以其样式填充和描边。弧线也是其子对象，即其
+    [arcs][manimgx.ArcPolygon.arcs]，以各自样式绘制于轮廓之上（未加样式时为白色，
+    除非 `arc_config` 另行指定）：要为整体上色，也需为它们上色，如同
+    [set_color][manimgx.Mobject.set_color] 等族方法所做。
 
     Args:
-        *vertices: The vertices, in order around it.
-        angle: The angle every arc turns through, in radians, unless `radius` or
-            `arc_config` is given.
-        radius: The radius of every arc, in scene units, in place of `angle`, unless
-            `arc_config` is given; None (or 0) to use `angle`.
-        arc_config: The arcs' [ArcBetweenPoints
-            keywords][manimgx.ArcBetweenPoints], in place of
-            `angle` and `radius`: one set for every arc, or a list of one per side, the
-            first vertex's side first.
+        *vertices: 顶点，按绕其顺序。
+        angle: 每条弧所转过的角度，以弧度计，除非给出 `radius` 或 `arc_config`。
+        radius: 每条弧的半径，以场景单位计，代替 `angle`，除非给出 `arc_config`；
+            None（或 0）表示使用 `angle`。
+        arc_config: 弧线的 [ArcBetweenPoints
+            关键字][manimgx.ArcBetweenPoints]，代替 `angle` 和 `radius`：
+            每条弧一组，或每边一组的列表，第一个顶点的边在前。
 
     Examples:
         ```python
@@ -1425,22 +1371,21 @@ class ArcPolygon(VMobject):
         for arc in arcs:
             self.append_points(arc.points)
         self.arcs = arcs
-        """The arcs, one per side, the first vertex's side first; they are also its
-        submobjects."""
+        """弧线，每边一条，第一个顶点的边在前；它们也是其子对象。"""
 
 
 class ArcPolygonFromArcs(VMobject):
-    """A closed shape made of arcs: each arc in turn, joined to the next by a straight
-    line where they do not meet, and the last to the first; white unless styled.
+    """由弧线构成的闭合形状：依次每条弧，在不相接处用直线连接到下一条，
+    最后一条连回第一条；未加样式时为白色。
 
-    Its outline is filled and stroked in its style. The arcs are also its submobjects,
-    its [arcs][manimgx.ArcPolygonFromArcs.arcs], drawn over its outline in their own
-    style: to color the whole, style them too, as a family method such as
-    [set_color][manimgx.Mobject.set_color] does.
+    其轮廓以其样式填充和描边。弧线也是其子对象，即其
+    [arcs][manimgx.ArcPolygonFromArcs.arcs]，以各自样式绘制于轮廓之上：
+    要为整体上色，也需为它们上色，如同 [set_color][manimgx.Mobject.set_color]
+    等族方法所做。
 
     Args:
-        *arcs: The arcs, in order around it: [Arc][manimgx.Arc]s, or
-            [ArcBetweenPoints][manimgx.ArcBetweenPoints].
+        *arcs: 弧线，按绕其顺序：[Arc][manimgx.Arc] 或
+            [ArcBetweenPoints][manimgx.ArcBetweenPoints]。
 
     Examples:
         ```python
@@ -1470,7 +1415,7 @@ class ArcPolygonFromArcs(VMobject):
         super().__init__(**kwargs)
         self.add(*arcs)
         self.arcs = [*arcs]
-        """The arcs, in order; they are also its submobjects."""
+        """弧线，按顺序；它们也是其子对象。"""
 
         for arc1, arc2 in adjacent_pairs(arcs):
             self.append_points(arc1.points)
@@ -1485,18 +1430,16 @@ class ArcPolygonFromArcs(VMobject):
 
 
 class Polygram(VMobject):
-    """A shape of straight sides through groups of vertices: each group a closed path,
-    from vertex to vertex and back to its first; blue unless styled.
+    """由穿过顶点组的直边构成的形状：每组为一个闭合路径，从顶点到顶点再回到第一个；
+    未加样式时为蓝色。
 
-    The groups make one mobject, filled and stroked together. Where they overlap, the
-    fill counts how many times its paths wind around each point: a group inside another
-    that runs the other way around is a hole.
+    各组构成一个 mobject，一起填充和描边。重叠处，填充按其路径绕各点的次数计数：
+    一个反向运行的内部组是一个洞。
 
-    The vertices are taken as they are given: changing their arrays afterwards changes
-    no shape.
+    顶点按所给方式使用：之后更改其数组不会改变任何形状。
 
     Args:
-        *vertex_groups: The groups of vertices, each in order around its path.
+        *vertex_groups: 顶点组，每组按绕其路径的顺序。
 
     Examples:
         ```python
@@ -1535,19 +1478,18 @@ class Polygram(VMobject):
             self.add_points_as_corners(np.array([*vertices, first_vertex]))
 
     def get_vertices(self) -> Point3D_Array:
-        """The polygram's vertices, group after group: where each of its curves starts
-        (the arcs and sides too, once its corners are rounded).
+        """多边星的顶点，一组接一组：每条曲线的起点（圆角后也包括弧和边）。
 
         Returns:
-            An (n, 3) array of points, in scene coordinates.
+            一个 (n, 3) 的点数组，以场景坐标表示。
         """
         return self.get_start_anchors()
 
     def get_vertex_groups(self) -> list[Point3D_Array]:
-        """The polygram's vertices, grouped by the closed paths they are on.
+        """多边星的顶点，按其所在闭合路径分组。
 
         Returns:
-            A list of (n, 3) arrays of points, one per closed path.
+            一个 (n, 3) 点数组的列表，每条闭合路径一个。
         """
         vertex_groups = []
         group = []
@@ -1566,22 +1508,18 @@ class Polygram(VMobject):
         evenly_distribute_anchors: bool = False,
         components_per_rounded_corner: int = 2,
     ) -> Self:
-        """Round the polygram's corners: replace each with an arc of `radius` tangent to
-        its two sides.
+        """圆整多边星的角：用与两边相切的 `radius` 弧替换每个角。
 
-        An arc touches each side at most halfway along it: a radius too large for a
-        corner is made smaller. A negative radius rounds a corner the other way,
-        cutting a concave arc into it.
+        弧至多在每边一半处相切：对某角过大的半径会被缩小。负半径向另一方向圆整，
+        切入一个凹弧。
 
         Args:
-            radius: The arcs' radius, in scene units; or a list of radii, one per
-                corner of each group, from its second vertex's on (its first vertex's
-                last), repeated over the corners: its length must divide their number.
-            evenly_distribute_anchors: Whether to divide the straight sides into curves
-                about as long as the arcs' curves, so the outline's points are spread
-                evenly along it (a transform then moves them more evenly).
-            components_per_rounded_corner: How many anchor points each arc is drawn
-                through: 2 for one cubic Bézier curve.
+            radius: 弧的半径，以场景单位计；或每组的每个角一个半径的列表，
+                从其第二个顶点的角起（其第一个顶点的角最后），在各角上重复：
+                其长度必须整除角数。
+            evenly_distribute_anchors: 是否将直边分成与弧的曲线大致等长的曲线，
+                使轮廓的点沿其均匀分布（变换随后更均匀地移动它们）。
+            components_per_rounded_corner: 每条弧经多少个锚点绘制：2 为一条三次贝塞尔曲线。
 
         Examples:
             ```python
@@ -1653,11 +1591,11 @@ class Polygram(VMobject):
 
 
 class Polygon(Polygram):
-    """A polygon: straight sides from each vertex to the next, and from the last back to
-    the first; blue unless styled.
+    """多边形：从每个顶点到下一个的直边，以及从最后一个回到第一个；
+    未加样式时为蓝色。
 
     Args:
-        *vertices: The vertices, in order around it.
+        *vertices: 顶点，按绕其顺序。
 
     Examples:
         ```python
@@ -1684,33 +1622,30 @@ class Polygon(Polygram):
 
 
 class RegularPolygonOptions(_Style, total=False, closed=True):
-    """A [RegularPolygon][manimgx.RegularPolygon]'s keywords but its number of vertices,
-    for the classes that pass them on: its size and turn, with the style keywords."""
+    """[RegularPolygon][manimgx.RegularPolygon] 除顶点数外的关键字，
+    供传递它们的类使用：其大小和转向，以及样式关键字。"""
 
     radius: float
-    """The radius of the circle its vertices are on, in scene units (default 1)."""
+    """其顶点所在圆的半径，以场景单位计（默认 1）。"""
     start_angle: float | None
-    """The angle of its first vertex, in radians, counterclockwise from the positive
-    x-axis (default None: a vertex straight up if their number is odd, to the right if
-    it is even)."""
+    """其第一个顶点的角度，以弧度计，从正 x 轴起逆时针（默认 None：顶点数为奇数时
+    正上方有一个顶点，为偶数时在右侧）。"""
 
 
 class RegularPolygram(Polygram):
-    """A regular star polygon: points evenly spaced on a circle, each joined to the one
-    `density` steps on; blue unless styled.
+    """正则星形多边形：圆上均匀分布的点，每个连接到其后第 `density` 步的点；
+    未加样式时为蓝色。
 
-    With a density of 1 it is a regular polygon; five points at density 2 make a
-    pentagram. When the number of points and the density share a factor, the points
-    make that many polygrams, each turned from the last: six points at density 2 make
-    two triangles, a hexagram.
+    密度为 1 时为正多边形；5 个点密度为 2 构成五角星。当点数和密度有公因子时，
+    各点构成那么多正则多边星，每个从前一个转过：6 个点密度为 2 构成两个三角形，
+    即六角星。
 
     Args:
-        num_vertices: How many points there are on the circle.
-        density: How many steps on each point is joined to: 1 for a polygon.
-        radius: The radius of the circle, in scene units.
-        start_angle: The angle of the first point, in radians, counterclockwise from
-            the positive x-axis; None for a point straight up if each polygram has an
-            odd number of points, to the right if even.
+        num_vertices: 圆上有多少个点。
+        density: 每个点连接到其后多少步的点：1 为多边形。
+        radius: 圆的半径，以场景单位计。
+        start_angle: 第一个点的角度，以弧度计，从正 x 轴起逆时针；None 表示
+            每个正则多边星有奇数个点时正上方有一个点，偶数时在右侧。
 
     Examples:
         ```python
@@ -1756,14 +1691,13 @@ class RegularPolygram(Polygram):
 
 
 class RegularPolygon(RegularPolygram):
-    """A regular polygon: `n` vertices evenly spaced on a circle, joined in turn; blue
-    unless styled.
+    """正多边形：`n` 个顶点均匀分布于圆上，依次相连；未加样式时为蓝色。
 
     Args:
-        n: How many vertices, and sides, it has.
-        **kwargs: [Regular polygon
-            keywords][manimgx.mobjects.shapes.RegularPolygonOptions]: its
-            radius (1 unless given), its turn and its style.
+        n: 其顶点和边的数量。
+        **kwargs: [正多边形
+            关键字][manimgx.mobjects.shapes.RegularPolygonOptions]：其半径
+            （未指定时为 1）、转向和样式。
 
     Examples:
         ```python
@@ -1787,24 +1721,19 @@ class RegularPolygon(RegularPolygram):
 
 
 class Star(Polygon):
-    """A star: `n` points on a circle, and between each two a vertex on a smaller
-    circle; blue unless styled.
+    """星形：圆上 `n` 个点，每两点之间在更小圆上有一个顶点；未加样式时为蓝色。
 
-    Unless given, the inner radius is the one that makes the star the outline of the
-    [RegularPolygram][manimgx.RegularPolygram] of its `n` points at `density`: its
-    edges lie along the polygram's lines.
+    除非给出，内半径取使星形成为其 `n` 个点在 `density` 下的
+    [RegularPolygram][manimgx.RegularPolygram] 轮廓的那个：其边沿正则多边星的线。
 
     Args:
-        n: How many points it has.
-        outer_radius: The radius of the circle its points are on, in scene units.
-        inner_radius: The radius of the circle its inner vertices are on, in scene
-            units; None to set it by `density`.
-        density: Without `inner_radius`, the density of the polygram whose outline it
-            is: the higher, the thinner its points. It must be above 0 and below
-            `n / 2`.
-        start_angle: The angle of its first point, in radians, counterclockwise from
-            the positive x-axis (default a quarter turn: straight up); None for a
-            point straight up if `n` is odd, to the right if even.
+        n: 其点数。
+        outer_radius: 其点所在圆的半径，以场景单位计。
+        inner_radius: 其内顶点所在圆的半径，以场景单位计；None 表示由 `density` 设定。
+        density: 无 `inner_radius` 时，其轮廓所属正则多边星的密度：越高其点越细。
+            必须大于 0 且小于 `n / 2`。
+        start_angle: 其第一个点的角度，以弧度计，从正 x 轴起逆时针（默认四分之一圈：
+            正上方）；None 表示 `n` 为奇数时正上方有一个点，偶数时在右侧。
 
     Examples:
         ```python
@@ -1859,13 +1788,12 @@ class Star(Polygon):
 
 
 class Triangle(RegularPolygon):
-    """An equilateral triangle, pointing up, its vertices on a circle of radius 1 unless
-    given another; blue unless styled.
+    """等边三角形，朝上，其顶点在半径为 1 的圆上，除非另给；未加样式时为蓝色。
 
     Args:
-        **kwargs: [Regular polygon
-            keywords][manimgx.mobjects.shapes.RegularPolygonOptions]: its
-            radius, its turn and its style.
+        **kwargs: [正多边形
+            关键字][manimgx.mobjects.shapes.RegularPolygonOptions]：其半径、
+            转向和样式。
 
     Examples:
         ```python
@@ -1888,52 +1816,44 @@ class Triangle(RegularPolygon):
 
 
 class _GridOptions(_Style, total=False):
-    """GridOptions's keys, open, for the keywords that add to them."""
+    """GridOptions 的键，开放的，用于向其添加的关键字。"""
 
     grid_xstep: float | None
-    """The distance between the vertical lines of its grid, from its left edge, in
-    scene units (default None: no vertical lines)."""
+    """其网格竖线之间的距离，从其左边起，以场景单位计（默认 None：无竖线）。"""
     grid_ystep: float | None
-    """The distance between the horizontal lines of its grid, from its top edge, in
-    scene units (default None: no horizontal lines)."""
+    """其网格横线之间的距离，从其顶边起，以场景单位计（默认 None：无横线）。"""
     mark_paths_closed: bool
-    """Accepted for Manim compatibility; ignored."""
+    """为兼容 Manim 而接受；被忽略。"""
 
 
 class GridOptions(_GridOptions, total=False, closed=True):
-    """A [Rectangle][manimgx.Rectangle]'s grid, with the style keywords (for the classes
-    that pass them on)."""
+    """[Rectangle][manimgx.Rectangle] 的网格，带样式关键字（供传递它们的类使用）。"""
 
 
 class RectangleOptions(_GridOptions, total=False, closed=True):
-    """A [Rectangle][manimgx.Rectangle]'s keywords, for the classes that pass them on:
-    its size and its grid, with the style keywords."""
+    """[Rectangle][manimgx.Rectangle] 的关键字，供传递它们的类使用：其大小和网格，
+    以及样式关键字。"""
 
     height: float
-    """Its height, in scene units (default 2)."""
+    """其高度，以场景单位计（默认 2）。"""
     width: float
-    """Its width, in scene units (default 4)."""
+    """其宽度，以场景单位计（默认 4）。"""
 
 
 class Rectangle(Polygon):
-    """A rectangle, 4 wide and 2 tall unless sized, centered at the origin; white unless
-    styled.
+    """矩形，未指定大小时宽 4 高 2，圆心在原点；未加样式时为白色。
 
-    Its vertices run counterclockwise from its top right corner. With `grid_xstep` or
-    `grid_ystep` it is ruled into a grid: lines across it, its
-    [grid_lines][manimgx.Rectangle.grid_lines], in its `color`.
+    其顶点从右上角起逆时针排列。带 `grid_xstep` 或 `grid_ystep` 时划分为网格：
+    跨越的线，即其 [grid_lines][manimgx.Rectangle.grid_lines]，以其 `color` 绘制。
 
     Args:
-        color: Its color, which may be given by position (`Rectangle(BLUE)`); None for
-            white.
-        height: Its height, in scene units.
-        width: Its width, in scene units.
-        grid_xstep: The distance between the vertical lines of its grid, from its left
-            edge, in scene units; None for none.
-        grid_ystep: The distance between the horizontal lines of its grid, from its top
-            edge, in scene units; None for none.
-        mark_paths_closed: Accepted for Manim compatibility; ignored.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+        color: 其颜色，可按位置给出（`Rectangle(BLUE)`）；None 表示白色。
+        height: 其高度，以场景单位计。
+        width: 其宽度，以场景单位计。
+        grid_xstep: 其网格竖线之间的距离，从其左边起，以场景单位计；None 表示无。
+        grid_ystep: 其网格横线之间的距离，从其顶边起，以场景单位计；None 表示无。
+        mark_paths_closed: 为兼容 Manim 而接受；被忽略。
+        **kwargs: [样式关键字][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -1975,9 +1895,8 @@ class Rectangle(Polygon):
         v = self.get_vertices()
         line_color = color or WHITE
         self.grid_lines = VGroup()
-        """The lines of its grid: a group of the vertical lines, then one of the
-        horizontal lines, those it has; a submobject, unless it is empty (without a
-        grid)."""
+        """其网格的线：竖线组再接横线组，即其拥有的；一个子对象，
+        除非为空（无网格时）。"""
         if grid_xstep:
             grid_xstep = abs(grid_xstep)
             count = int(width / grid_xstep)
@@ -2011,22 +1930,21 @@ class Rectangle(Polygon):
 
 
 class ScreenOptions(_Style, total=False, closed=True):
-    """A [ScreenRectangle][manimgx.ScreenRectangle]'s keywords, for the rectangles that
-    pass them on: its proportions and its height, with the style keywords."""
+    """[ScreenRectangle][manimgx.ScreenRectangle] 的关键字，供传递它们的矩形使用：
+    其比例和高度，以及样式关键字。"""
 
     aspect_ratio: float
-    """Its width over its height (default 16 / 9)."""
+    """其宽除以高（默认 16 / 9）。"""
     height: float
-    """Its height, in scene units (default 4)."""
+    """其高度，以场景单位计（默认 4）。"""
 
 
 class ScreenRectangle(Rectangle):
-    """A rectangle with a screen's proportions, 16:9 and 4 tall unless given others,
-    centered at the origin; white unless styled.
+    """具有屏幕比例的矩形，未另给时为 16:9 且高 4，圆心在原点；未加样式时为白色。
 
     Args:
-        aspect_ratio: Its width over its height.
-        height: Its height, in scene units.
+        aspect_ratio: 其宽除以高。
+        height: 其高度，以场景单位计。
 
     Examples:
         ```python
@@ -2053,8 +1971,7 @@ class ScreenRectangle(Rectangle):
 
     @property
     def aspect_ratio(self) -> float:
-        """The rectangle's width over its height. Set it to stretch the rectangle's
-        width to that proportion, about its center; its height stays."""
+        """矩形的宽除以高。设置它可将矩形宽拉伸到该比例，关于其圆心；其高不变。"""
         return self.width / self.height
 
     @aspect_ratio.setter
@@ -2063,16 +1980,14 @@ class ScreenRectangle(Rectangle):
 
 
 class FullScreenRectangle(ScreenRectangle):
-    """A screen rectangle as tall as the frame, centered at the origin: with the 16:9
-    proportions it has unless given others, the frame's own outline; white unless
-    styled.
+    """与画框等高的屏幕矩形，圆心在原点：未另给时为 16:9 比例，即画框自身的轮廓；
+    未加样式时为白色。
 
-    Its height is the frame's (8 units unless configured otherwise), whatever `height`
-    is given.
+    其高为画框的高（未另行配置时为 8 单位），无论给定何种 `height`。
 
     Args:
-        **kwargs: [Screen rectangle keywords][manimgx.mobjects.shapes.ScreenOptions];
-            `height` has no effect.
+        **kwargs: [屏幕矩形关键字][manimgx.mobjects.shapes.ScreenOptions]；
+            `height` 无效。
 
     Examples:
         ```python
@@ -2094,10 +2009,10 @@ class FullScreenRectangle(ScreenRectangle):
 
 
 class Square(Rectangle):
-    """A square, 2 on a side unless sized, centered at the origin; white unless styled.
+    """正方形，未指定大小时边长 2，圆心在原点；未加样式时为白色。
 
     Args:
-        side_length: The length of its sides, in scene units.
+        side_length: 其边长，以场景单位计。
 
     Examples:
         ```python
@@ -2120,9 +2035,8 @@ class Square(Rectangle):
 
     @property
     def side_length(self) -> float:
-        """The length of the square's sides, in scene units: the distance between its
-        first two vertices. Set it to scale the square to that side, about its
-        center."""
+        """正方形边长，以场景单位计：其前两个顶点之间的距离。设置它可将正方形
+        缩放到该边长，关于其圆心。"""
         return float(np.linalg.norm(self.get_vertices()[0] - self.get_vertices()[1]))
 
     @side_length.setter
@@ -2131,17 +2045,15 @@ class Square(Rectangle):
 
 
 class RoundedRectangle(Rectangle):
-    """A rectangle with rounded corners, 4 wide and 2 tall unless sized; white unless
-    styled.
+    """圆角矩形，未指定大小时宽 4 高 2；未加样式时为白色。
 
     Args:
-        corner_radius: The radius of its corners, in scene units; or a list of radii
-            for its top left, bottom left, bottom right and top right corners, in that
-            order, repeated if there are one or two (see
-            [round_corners][manimgx.Polygram.round_corners]).
-        **kwargs: [Rectangle
-            keywords][manimgx.mobjects.shapes.RectangleOptions]: its size,
-            its grid and its style.
+        corner_radius: 其角的半径，以场景单位计；或其左上、左下、右下、右上角
+            半径的列表，按此顺序，一或两个时重复（见
+            [round_corners][manimgx.Polygram.round_corners]）。
+        **kwargs: [矩形
+            关键字][manimgx.mobjects.shapes.RectangleOptions]：其大小、
+            网格和样式。
 
     Examples:
         ```python
@@ -2171,17 +2083,14 @@ class RoundedRectangle(Rectangle):
 
 
 class Cutout(VMobject):
-    """A shape with holes cut out of it: the main shape's outline, with the other
-    shapes' outlines as holes; white unless styled.
+    """带洞的形状：主形状的轮廓，以其他形状的轮廓为洞；未加样式时为白色。
 
-    Each hole's path runs the other way around from the main shape's, so the fill
-    leaves it out: the shapes given as holes are turned to run that way, in place. Only
-    the shapes' own paths are used, not their submobjects', and the cutout has a style
-    of its own.
+    每个洞的路径与主形状反向运行，因此填充将其排除：作为洞给出的形状被原地翻转
+    为反向运行。仅使用形状自身的路径，而非其子对象的，且切出形状有自己的样式。
 
     Args:
-        main_shape: The shape to cut the holes out of.
-        *mobjects: The shapes of the holes, inside it.
+        main_shape: 要从中切出洞的形状。
+        *mobjects: 洞的形状，位于其中。
 
     Examples:
         ```python
@@ -2215,15 +2124,13 @@ class Cutout(VMobject):
 
 
 class ConvexHull(Polygram):
-    """The convex hull of points: the smallest convex polygon around them all, its
-    vertices among them; blue unless styled.
+    """点的凸包：包围所有点的最小凸多边形，其顶点取自其中；未加样式时为蓝色。
 
-    It is found in the plane of the screen: the points' z coordinates are ignored.
+    在屏幕平面内求解：点的 z 坐标被忽略。
 
     Args:
-        *points: The points: at least three, not all on one line.
-        tolerance: How far outside the hull a point may be and still not be made a
-            vertex of it, in scene units.
+        *points: 点：至少三个，不全部共线。
+        tolerance: 点在包外多远仍可不成为其顶点，以场景单位计。
 
     Examples:
         ```python
@@ -2260,20 +2167,19 @@ class ConvexHull(Polygram):
 
 
 class ArrowTip(VMobject):
-    """The base of arrow tips: a small shape with two points of its own, its
-    [tip_point][manimgx.ArrowTip.tip_point], where the path it ends points to, and its
-    [base][manimgx.ArrowTip.base], where the path stops.
+    """箭头尖端的基类：一个具有两个自身点的小形状，其
+    [tip_point][manimgx.ArrowTip.tip_point]（其所终止路径指向之处）和其
+    [base][manimgx.ArrowTip.base]（路径停止之处）。
 
-    A path makes its tip as `tip_shape(length=…, **style)` (see
-    [add_tip][manimgx.TipableVMobject.add_tip]), then turns and moves it into place: the
-    tip is what its class makes at that length. It is not made itself: its subclasses
-    are the tips. To make a tip of your own, subclass it and a shape, made at the length
-    given: the shape's first point is the tip point, and the point halfway around its
-    outline is the base. Both are read from its points, so they move with it; a
-    subclass that names other points of its shape does so as properties, never stored.
+    路径以 `tip_shape(length=…, **style)` 制作其尖端（见
+    [add_tip][manimgx.TipableVMobject.add_tip]），再旋转并移动到位：尖端即其类
+    在该长度下所制作。其本身不被制作：其子类才是尖端。要自行制作尖端，请子类化
+    它和一个以给定长度制作的形状：形状的第一个点为尖端点，其轮廓中点为底。
+    两者均从其点读取，因此随其移动；命名其形状其他点的子类以属性方式这样做，
+    从不存储。
 
     Args:
-        length: The tip's length, in scene units.
+        length: 尖端的长度，以场景单位计。
     """
 
     @prototype
@@ -2284,47 +2190,42 @@ class ArrowTip(VMobject):
 
     @property
     def base(self) -> Point3D:
-        """The point where the path meets the tip, and stops: halfway around the tip's
-        outline from its tip point."""
+        """路径与尖端相接并停止之处：从尖端点沿其轮廓走一半所到的点。"""
         return self.point_from_proportion(0.5)
 
     @property
     def tip_point(self) -> Point3D:
-        """The tip's point, where the path points to: the first point of its
-        outline."""
+        """尖端的点，即路径指向之处：其轮廓的第一个点。"""
         tip_point: Point3D = self.points[0]
         return tip_point
 
     @property
     def vector(self) -> Vector3D:
-        """The vector from the tip's base to its tip point: the way it points."""
+        """从尖端底到尖端点的向量：其所指方向。"""
         return self.tip_point - self.base
 
     @property
     def tip_angle(self) -> float:
-        """The direction the tip points in: the angle of its
-        [vector][manimgx.ArrowTip.vector], in radians, counterclockwise from the
-        positive x-axis."""
+        """尖端所指方向：其 [vector][manimgx.ArrowTip.vector] 的角度，
+        以弧度计，从正 x 轴起逆时针。"""
         return angle_of_vector(self.vector)
 
     @property
     def length(self) -> float:
-        """The tip's length, in scene units: the distance from its base to its tip
-        point."""
+        """尖端的长度，以场景单位计：从其底到其尖端点的距离。"""
         return float(np.linalg.norm(self.vector))
 
 
 class StealthTip(ArrowTip):
-    """A dart-shaped tip: a sharp point with two barbs swept back from it and a notch
-    between them, where the path stops; filled, with a stroke 3 wide.
+    """镖形尖端：一个尖点，其后掠出两个倒刺，其间有缺口，路径在此停止；
+    填充，描边宽 3。
 
-    Its length runs from its barbs to its point; the notch is 5/8 of the way back from
-    the point. It is half as long as the other tips unless given a length.
+    其长度从倒刺到尖点；缺口在从尖点往回 5/8 处。除非给定长度，否则其长度为其他
+    尖端的一半。
 
     Args:
-        length: Its length, from its barbs to its point, in scene units (default
-            0.175).
-        start_angle: Accepted for Manim compatibility; ignored.
+        length: 其长度，从倒刺到尖点，以场景单位计（默认 0.175）。
+        start_angle: 为兼容 Manim 而接受；被忽略。
 
     Examples:
         ```python
@@ -2363,20 +2264,19 @@ class StealthTip(ArrowTip):
 
     @property
     def length(self) -> float:
-        """The tip's whole length, in scene units: from its barbs to its point, 1.6
-        times the distance from its notch to its point."""
+        """尖端的整体长度，以场景单位计：从倒刺到尖点，为从缺口到尖点距离的 1.6 倍。"""
         return float(np.linalg.norm(self.vector) * 1.6)
 
 
 class ArrowTriangleTip(ArrowTip, Triangle):
-    """A triangular tip, outlined: an isosceles triangle `length` long and `width` wide,
-    its outline 3 wide and not filled.
+    """三角形尖端，带轮廓：一个长 `length`、宽 `width` 的等腰三角形，
+    其轮廓宽 3 且不填充。
 
     Args:
-        length: Its length, from its base to its point, in scene units.
-        width: Its width, across its base, in scene units.
-        start_angle: The direction its point faces as made, in radians (default PI:
-            left); a path turns the tip to point along itself.
+        length: 其长度，从底到尖点，以场景单位计。
+        width: 其宽度，跨底，以场景单位计。
+        start_angle: 制作时尖点所指方向，以弧度计（默认 PI：向左）；
+            路径会旋转尖端以沿自身指向。
 
     Examples:
         ```python
@@ -2414,15 +2314,14 @@ class ArrowTriangleTip(ArrowTip, Triangle):
 
 
 class ArrowTriangleFilledTip(ArrowTriangleTip):
-    """A triangular tip, filled and without an outline: the default tip of lines, arcs
-    and arrows.
+    """三角形尖端，填充且无轮廓：直线、弧线和箭头的默认尖端。
 
     Args:
-        length: Its length, from its base to its point, in scene units.
-        width: Its width, across its base, in scene units.
-        start_angle: The direction its point faces as made, in radians (default PI:
-            left); a path turns the tip to point along itself.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+        length: 其长度，从底到尖点，以场景单位计。
+        width: 其宽度，跨底，以场景单位计。
+        start_angle: 制作时尖点所指方向，以弧度计（默认 PI：向左）；
+            路径会旋转尖端以沿自身指向。
+        **kwargs: [样式关键字][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -2447,12 +2346,12 @@ class ArrowTriangleFilledTip(ArrowTriangleTip):
 
 
 class ArrowCircleTip(ArrowTip, Circle):
-    """A round tip, outlined: a circle `length` across, from where the path stops to
-    where it ended; its outline 3 wide and not filled.
+    """圆形尖端，带轮廓：一个跨 `length` 的圆，从路径停止处到其结束处；
+    其轮廓宽 3 且不填充。
 
     Args:
-        length: Its diameter, in scene units.
-        start_angle: Accepted for Manim compatibility; ignored.
+        length: 其直径，以场景单位计。
+        start_angle: 为兼容 Manim 而接受；被忽略。
 
     Examples:
         ```python
@@ -2489,13 +2388,12 @@ class ArrowCircleTip(ArrowTip, Circle):
 
 
 class ArrowCircleFilledTip(ArrowCircleTip):
-    """A round tip, filled and without an outline: a disc `length` across, from where
-    the path stops to where it ended.
+    """圆形尖端，填充且无轮廓：一个跨 `length` 的圆盘，从路径停止处到其结束处。
 
     Args:
-        length: Its diameter, in scene units.
-        start_angle: Accepted for Manim compatibility; ignored.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+        length: 其直径，以场景单位计。
+        start_angle: 为兼容 Manim 而接受；被忽略。
+        **kwargs: [样式关键字][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -2520,15 +2418,14 @@ class ArrowCircleFilledTip(ArrowCircleTip):
 
 
 class ArrowSquareTip(ArrowTip, Square):
-    """A square tip, outlined: a square `length` on a side, set on a corner, its
-    diagonal along the path from where the path stops to where it ended; its outline 3
-    wide and not filled.
+    """方形尖端，带轮廓：一个边长 `length` 的正方形，置于一个角上，
+    其对角线沿路径从路径停止处到其结束处；其轮廓宽 3 且不填充。
 
-    Its [length][manimgx.ArrowTip.length] is that diagonal's.
+    其 [length][manimgx.ArrowTip.length] 即该对角线的长度。
 
     Args:
-        length: The length of its sides, in scene units.
-        start_angle: Accepted for Manim compatibility; ignored.
+        length: 其边长，以场景单位计。
+        start_angle: 为兼容 Manim 而接受；被忽略。
 
     Examples:
         ```python
@@ -2565,15 +2462,15 @@ class ArrowSquareTip(ArrowTip, Square):
 
 
 class ArrowSquareFilledTip(ArrowSquareTip):
-    """A square tip, filled and without an outline: a square `length` on a side, set on
-    a corner, its diagonal along the path from where the path stops to where it ended.
+    """方形尖端，填充且无轮廓：一个边长 `length` 的正方形，置于一个角上，
+    其对角线沿路径从路径停止处到其结束处。
 
-    Its [length][manimgx.ArrowTip.length] is that diagonal's.
+    其 [length][manimgx.ArrowTip.length] 即该对角线的长度。
 
     Args:
-        length: The length of its sides, in scene units.
-        start_angle: Accepted for Manim compatibility; ignored.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+        length: 其边长，以场景单位计。
+        start_angle: 为兼容 Manim 而接受；被忽略。
+        **kwargs: [样式关键字][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -2598,105 +2495,91 @@ class ArrowSquareFilledTip(ArrowSquareTip):
 
 
 class ArcedBase(_TippedBase, total=False):
-    """A line's bend, with the tip keywords and every style keyword but `color`."""
+    """直线的弯曲，带尖端关键字和除 `color` 外的所有样式关键字。"""
 
     path_arc: float
-    """The angle the line bends through, in radians: 0 for straight; otherwise it is an
-    arc from its start to its end, turning counterclockwise if positive (bending right
-    on its way), clockwise if negative (default 0)."""
+    """直线所弯曲的角度，以弧度计：0 为直；否则为从起点到终点的弧，
+    为正时逆时针（行进时向右弯），为负时顺时针（默认 0）。"""
 
 
 class _Arced(ArcedBase, _Tipped, total=False):
-    """Arced's keys, open, for the keywords that add to them."""
+    """Arced 的键，开放的，用于向其添加的关键字。"""
 
     pass
 
 
 class Arced(_Arced, total=False, closed=True):
-    """A line's bend, with the style and tip keywords (for the lines that set the buffer
-    themselves)."""
+    """直线的弯曲，带样式和尖端关键字（供自行设置缓冲的直线使用）。"""
 
 
 class _LineOptions(_Arced, total=False):
-    """LineOptions's keys, open, for the keywords that add to them."""
+    """LineOptions 的键，开放的，用于向其添加的关键字。"""
 
     buff: float
-    """How far the line stops short of each end, in scene units; a line shorter than
-    twice it keeps its ends (default 0)."""
+    """直线距每端缩短多少，以场景单位计；短于两倍它的直线保留其端点（默认 0）。"""
 
 
 class LineOptions(_LineOptions, total=False, closed=True):
-    """A [Line][manimgx.Line]'s keywords but its ends, for the classes that pass them
-    on: its buffer and its bend, with the style and tip keywords."""
+    """[Line][manimgx.Line] 除两端外的关键字，供传递它们的类使用：其缓冲和弯曲，
+    以及样式和尖端关键字。"""
 
 
 class DashedLineOptions(_LineOptions, total=False):
-    """A [DashedLine][manimgx.DashedLine]'s keywords but its ends: its dashes, with the
-    line keywords."""
+    """[DashedLine][manimgx.DashedLine] 除两端外的关键字：其虚线，以及直线关键字。"""
 
     dash_length: float
-    """The length of each dash, in scene units: about it, as a whole number of dashes
-    spans the line (default 0.05)."""
+    """每段虚线的长度，以场景单位计：约为此值，以整数段虚线跨整条直线（默认 0.05）。"""
     dashed_ratio: float
-    """The fraction of the line the dashes cover, from 0 to 1; the rest is gaps
-    (default 0.5: dashes and gaps as long)."""
+    """虚线覆盖直线的比例，从 0 到 1；其余为间隙（默认 0.5：虚线和间隙等长）。"""
 
 
 class _ArrowTipsBase(ArcedBase, total=False):
-    """ArrowTipsBase's keys, open, for the keywords that add to them."""
+    """ArrowTipsBase 的键，开放的，用于向其添加的关键字。"""
 
     max_tip_length_to_length_ratio: float
-    """The longest its tip may be, as a fraction of its length: a short arrow's tip is
-    shorter (default 0.25)."""
+    """尖端最长可为多长，为其长度的比例：短箭头的尖端更短（默认 0.25）。"""
     max_stroke_width_to_length_ratio: float
-    """The widest its stroke may be, in hundredths of a scene unit, per scene unit of
-    its length: a short arrow is thinner (default 5)."""
+    """描边最宽可为多宽，以每场景单位长度的百分之一场景单位计：短箭头更细（默认 5）。"""
     tip_shape: type[ArrowTip]
-    """The class of its tip (default
-    [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip])."""
+    """其尖端的类（默认
+    [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]）。"""
 
 
 class ArrowTipsBase(_ArrowTipsBase, total=False, closed=True):
-    """An [Arrow][manimgx.Arrow]'s keywords but its ends, its buffer and its color (for
-    the methods that set those): its tip, how it shrinks when short, and its bend."""
+    """[Arrow][manimgx.Arrow] 除两端、缓冲和颜色外的关键字（供设置它们的方法使用）：
+    其尖端、短时如何缩小，以及其弯曲。"""
 
 
 class _ArrowTips(_ArrowTipsBase, _Tipped, total=False):
-    """ArrowTips's keys, open, for the keywords that add to them."""
+    """ArrowTips 的键，开放的，用于向其添加的关键字。"""
 
     pass
 
 
 class ArrowTips(_ArrowTips, total=False, closed=True):
-    """An [Arrow][manimgx.Arrow]'s keywords but its ends and its buffer (for the arrows
-    that set it: vectors)."""
+    """[Arrow][manimgx.Arrow] 除两端和缓冲外的关键字（供设置它的箭头使用：向量）。"""
 
 
 class ArrowOptions(_ArrowTips, total=False, closed=True):
-    """An [Arrow][manimgx.Arrow]'s keywords but its ends, for the classes that pass them
-    on."""
+    """[Arrow][manimgx.Arrow] 除两端外的关键字，供传递它们的类使用。"""
 
     buff: float
-    """How far the arrow stops short of each end, in scene units (default 0.25)."""
+    """箭头距每端缩短多少，以场景单位计（默认 0.25）。"""
 
 
 class Line(TipableVMobject):
-    """A straight line from one point to another, white unless styled; or an arc
-    between them, bent through `path_arc`.
+    """从一点到另一点的直线，未加样式时为白色；或其间弯曲 `path_arc` 的弧。
 
-    An end may be a mobject: the line then starts (or ends) at its point farthest
-    toward the other end (see [get_boundary_point][manimgx.Mobject.get_boundary_point]),
-    so a line between two shapes runs from outline to outline. The line is placed when
-    it is made, and does not follow the mobjects afterwards.
+    一端可为 mobject：直线则从（或到）其朝向另一端最远的点开始（或结束）
+    （见 [get_boundary_point][manimgx.Mobject.get_boundary_point]），因此两形状
+    间的直线从轮廓到轮廓。直线在创建时定位，之后不跟随 mobject。
 
     Args:
-        start: Where the line starts: a point, or a mobject.
-        end: Where it ends: a point, or a mobject.
-        buff: How far it stops short of each end, in scene units (along it, if bent);
-            a line shorter than twice it keeps its ends.
-        path_arc: The angle it bends through, in radians: 0 for straight; otherwise it
-            is an arc, turning counterclockwise if positive, bending right on its way
-            (see [ArcBetweenPoints][manimgx.ArcBetweenPoints]).
+        start: 直线起点：一个点或一个 mobject。
+        end: 直线终点：一个点或一个 mobject。
+        buff: 距每端缩短多少，以场景单位计（弯曲时沿其）；短于两倍它的直线保留其端点。
+        path_arc: 所弯曲的角度，以弧度计：0 为直；否则为弧，为正时逆时针，
+            行进时向右弯（见 [ArcBetweenPoints][manimgx.ArcBetweenPoints]）。
 
     Examples:
         ```python
@@ -2743,16 +2626,16 @@ class Line(TipableVMobject):
         buff: float = 0,
         path_arc: float = 0,
     ) -> Self:
-        """Rebuild the line between two ends, straight or bent.
+        """在两端之间重建直线，直或弯。
 
-        Its tips, if it has any, stay where they are.
+        其尖端（若有）保持在原处。
 
         Args:
-            start: Where it starts: a point, or a mobject (see [Line][manimgx.Line]).
-            end: Where it ends: a point, or a mobject.
-            buff: How far it stops short of each end, in scene units.
-            path_arc: 0 for straight; otherwise the line is bent through its own
-                `path_arc` (see [set_path_arc][manimgx.Line.set_path_arc]).
+            start: 其起点：一个点或一个 mobject（见 [Line][manimgx.Line]）。
+            end: 其终点：一个点或一个 mobject。
+            buff: 距每端缩短多少，以场景单位计。
+            path_arc: 0 为直；否则直线按其自身 `path_arc` 弯曲
+                （见 [set_path_arc][manimgx.Line.set_path_arc]）。
         """
         self._set_start_and_end_attrs(start, end)
         if path_arc:
@@ -2798,30 +2681,26 @@ class Line(TipableVMobject):
         return np.array(mob_or_point)
 
     def set_path_arc(self, new_value: float) -> Self:
-        """Bend the line through a new angle: rebuild it, straight or as an arc, between
-        the ends it was made with.
+        """将直线弯曲一个新角度：在其创建端点间重建，直或为弧。
 
-        It is rebuilt where it was made (or last rebuilt), wherever it has moved since,
-        and keeps its buffer.
+        在其创建处（或上次重建处）重建，无论此后移到何处，并保留其缓冲。
 
         Args:
-            new_value: The angle, in radians: 0 for straight; otherwise an arc, turning
-                counterclockwise if positive.
+            new_value: 角度，以弧度计：0 为直；否则为弧，为正时逆时针。
         """
         self.path_arc = new_value
         self.init_points()
         return self
 
     def put_start_and_end_on(self, start: Point3DLike, end: Point3DLike) -> Self:
-        """Move, turn and scale the line so it runs from `start` to `end`, tips
-        included; its shape stays, scaled in proportion (an arrow's tips keep their
-        size).
+        """移动、旋转并缩放直线使其从 `start` 到 `end`，包含尖端；其形状保持，
+        按比例缩放（箭头的尖端保持其大小）。
 
-        A line whose ends coincide is rebuilt between the new ends.
+        两端重合的直线在新两端间重建。
 
         Args:
-            start: Where its start goes: its start tip's point, if it has one.
-            end: Where its end goes: its end tip's point, if it has one.
+            start: 其起点目标位置：若有起点尖端则为该尖端的点。
+            end: 其终点目标位置：若有终点尖端则为该尖端的点。
 
         Examples:
             ```python
@@ -2846,39 +2725,37 @@ class Line(TipableVMobject):
         return super().put_start_and_end_on(start, end)
 
     def get_vector(self) -> Vector3D:
-        """The vector from the line's start to its end, tips included.
+        """从直线起点到终点的向量，包含尖端。
 
         Returns:
-            The vector, in scene units.
+            向量，以场景单位计。
         """
         return self.get_end() - self.get_start()
 
     def get_unit_vector(self) -> Vector3D:
-        """The line's direction: the unit vector from its start toward its end.
+        """直线的方向：从起点指向终点的单位向量。
 
         Returns:
-            A vector of length 1; zero for a line of no length.
+            长度为 1 的向量；长度为零的直线返回零向量。
         """
         return normalize(self.get_vector())
 
     def get_angle(self) -> float:
-        """The line's angle: the direction from its start to its end, counterclockwise
-        from the positive x-axis.
+        """直线的角度：从起点到终点的方向，从正 x 轴起逆时针。
 
         Returns:
-            The angle, in radians, from -PI to PI.
+            角度，以弧度计，范围 -PI 到 PI。
         """
         return angle_of_vector(self.get_vector())
 
     def get_projection(self, point: Point3DLike) -> Point3D:
-        """The point of the line nearest a point: the point's orthogonal projection onto
-        the line, extended past its ends.
+        """直线上距某点最近的点：该点在直线上的正交投影，可超出端点。
 
         Args:
-            point: The point to project.
+            point: 要投影的点。
 
         Returns:
-            The point on the line, in scene coordinates.
+            直线上的点，以场景坐标表示。
         """
         start = self.get_start()
         end = self.get_end()
@@ -2886,21 +2763,21 @@ class Line(TipableVMobject):
         return start + float(np.dot(point - start, unit_vect)) * unit_vect
 
     def get_slope(self) -> float:
-        """The line's slope: how far it rises for each unit it runs to the right, the
-        tangent of its [angle][manimgx.Line.get_angle].
+        """直线的斜率：每向右一个单位上升多少，即其
+        [角度][manimgx.Line.get_angle] 的正切。
 
         Returns:
-            The slope; very large for a line nearly upright.
+            斜率；近垂直的直线非常大。
         """
         return float(np.tan(self.get_angle()))
 
     def set_angle(self, angle: float, about_point: Point3DLike | None = None) -> Self:
-        """Turn the line so its [angle][manimgx.Line.get_angle] is `angle`: about its
-        start, unless given another point.
+        """旋转直线使其 [角度][manimgx.Line.get_angle] 为 `angle`：关于其起点，
+        除非另给一点。
 
         Args:
-            angle: The new angle, in radians, counterclockwise from the positive x-axis.
-            about_point: The point it turns about; None for its start.
+            angle: 新角度，以弧度计，从正 x 轴起逆时针。
+            about_point: 旋转所绕的点；None 表示其起点。
         """
         if about_point is None:
             about_point = self.get_start()
@@ -2908,11 +2785,10 @@ class Line(TipableVMobject):
         return self
 
     def set_length(self, length: float) -> Self:
-        """Scale the line about its center to a length, tips included (an arrow's tips
-        keep their size).
+        """关于圆心将直线缩放到某长度，包含尖端（箭头的尖端保持其大小）。
 
         Args:
-            length: The new length, from its start to its end, in scene units.
+            length: 新长度，从起点到终点，以场景单位计。
 
         Examples:
             ```python
@@ -2933,17 +2809,15 @@ class Line(TipableVMobject):
 
 
 class CurvesAsSubmobjects(VGroup[VMobject]):
-    """A path split into its curves: a group of one path per curve, each styled as the
-    path is.
+    """将路径拆分为其曲线的组：每条曲线一个路径，各以路径的样式样式化。
 
-    Each part can then be styled or animated on its own: a gradient across the parts
-    colors the path along its length. Only the path's own curves are taken, not its
-    submobjects'.
+    每部分可独立样式化或动画化：跨部分的渐变沿路径长度为其上色。仅取路径自身的
+    曲线，而非其子对象的。
 
     Args:
-        vmobject: The path to split.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the group itself: as it
-            has no points, they do not restyle its parts, which take the path's style.
+        vmobject: 要拆分的路径。
+        **kwargs: 组自身的 [样式关键字][manimgx.drawing.paint.Style]：因其无点，
+            不会重新样式化其部分，各部分取路径的样式。
 
     Examples:
         ```python
@@ -2975,8 +2849,8 @@ class CurvesAsSubmobjects(VGroup[VMobject]):
 def dash_pattern(
     n: int, ratio: float, offset: float, closed: bool
 ) -> tuple[float, float, float]:
-    """CE's dashes as a periodic window over the path (period, duty, phase — fractions of it): an
-    open path starts and ends with a dash; a closed one repeats every 1/n."""
+    """CE 的虚线作为路径上的周期窗口（周期、占空比、相位——以其分数表示）：
+    开放路径以虚线开始和结束；闭合路径每 1/n 重复一次。"""
     dash = ratio / n
     void = (
         (1 - ratio) / n if closed else (1 - ratio if n == 1 else (1 - ratio) / (n - 1))
@@ -2986,30 +2860,26 @@ def dash_pattern(
 
 
 def _even(vmobject: VMobject) -> bool:
-    """Whether a path's curves are all one length (so its parameter measures its length: a
-    dash window over it has equal dashes)."""
+    """路径的曲线是否全部等长（因此其参数度量其长度：其上的虚线窗口
+    有等长虚线）。"""
     lengths = vmobject._geometry.curve_lengths()
     return len(lengths) > 0 and float(np.ptp(lengths)) <= 1e-3 * float(lengths.max())
 
 
 class DashedVMobject(VMobject):
-    """A path drawn in dashes: evenly spaced dashes along another path, in its style.
+    """以虚线绘制的路径：沿另一路径均匀分布的虚线，取其样式。
 
-    An open path starts and ends with a dash; a closed one has as many gaps as dashes,
-    all the way around. Each dash ends as the path's `cap_style` says, and an arrow's
-    tips are drawn whole.
+    开放路径以虚线开始和结束；闭合路径有与虚线等多的间隙，环绕整圈。每条虚线
+    按路径的 `cap_style` 结束，箭头的尖端完整绘制。
 
     Args:
-        vmobject: The path to draw in dashes.
-        num_dashes: How many dashes; 0 draws none.
-        dashed_ratio: The fraction of the path the dashes cover, from 0 to 1; the gaps
-            take the rest.
-        dash_offset: How far the dashes are moved along the path, toward its end, as a
-            fraction of a dash and the gap after it.
-        equal_lengths: Whether the dashes are equally long; if False they are equal
-            stretches of the path's parameter, longer where the path runs faster.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style]; the dashes take the path's
-            paint over them.
+        vmobject: 要以虚线绘制的路径。
+        num_dashes: 虚线数；0 不绘制。
+        dashed_ratio: 虚线覆盖路径的比例，从 0 到 1；其余为间隙。
+        dash_offset: 虚线沿路径向终点移动多远，以一条虚线及其后间隙的分数计。
+        equal_lengths: 虚线是否等长；若为 False 则为路径参数的等长段，
+            路径运行更快处更长。
+        **kwargs: [样式关键字][manimgx.drawing.paint.Style]；虚线取路径的绘制属性。
 
     Examples:
         ```python
@@ -3120,24 +2990,21 @@ class DashedVMobject(VMobject):
 
 
 class DashedLine(Line):
-    """A line drawn in dashes, white unless styled.
+    """以虚线绘制的直线，未加样式时为白色。
 
-    The dashes are the line's stroke drawn in pieces: a whole number of them, at least
-    two, spread evenly from end to end, each about `dash_length` long, each ended as
-    the line's `cap_style` says. It stays one path, placed, bent and tipped as a
-    [Line][manimgx.Line] is, and starts and ends where the line does; its handles are
-    its dashes', the first dash's and the last's. Its dashes are counted when it is
-    made, and scale with it.
+    虚线是直线描边分段绘制：整数段，至少两段，从端到端均匀分布，每段约
+    `dash_length` 长，按直线的 `cap_style` 结束。它保持为一条路径，像
+    [Line][manimgx.Line] 一样定位、弯曲和加尖端，起止于直线端点；其控制柄为
+    其虚线的控制柄，即第一条和最后一条虚线的。虚线在创建时计数，并随其缩放。
 
     Args:
-        start: Where the line starts: a point, or a mobject (see [Line][manimgx.Line]).
-        end: Where it ends: a point, or a mobject.
-        buff: How far it stops short of each end, in scene units.
-        path_arc: The angle it bends through, in radians: 0 for straight.
-        dash_length: The length of each dash, in scene units (default 0.05): about it,
-            as a whole number of dashes spans the line.
-        dashed_ratio: The fraction of the line the dashes cover, from 0 to 1; the rest
-            is gaps.
+        start: 直线起点：一个点或一个 mobject（见 [Line][manimgx.Line]）。
+        end: 直线终点：一个点或一个 mobject。
+        buff: 距每端缩短多少，以场景单位计。
+        path_arc: 所弯曲的角度，以弧度计：0 为直。
+        dash_length: 每段虚线的长度，以场景单位计（默认 0.05）：约为此值，
+            以整数段虚线跨整条直线。
+        dashed_ratio: 虚线覆盖直线的比例，从 0 到 1；其余为间隙。
 
     Examples:
         ```python
@@ -3183,34 +3050,31 @@ class DashedLine(Line):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_first_handle(self) -> Point3D:
-        """The line's first handle: its first dash's, the control point after the
-        line's start toward which that dash leaves it (a third of the way into the
-        dash, on a straight line).
+        """直线的第一个控制柄：其第一条虚线的，即直线起点之后该虚线离开起点
+        所朝向的控制点（直线上为进入虚线三分之一处）。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         start, handle = self.points[:2]
         return start + self._dash_cut() * (handle - start)
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_last_handle(self) -> Point3D:
-        """The line's last handle: its last dash's, the control point before the
-        line's end from which that dash comes into it (a third of the way back into
-        the dash, on a straight line).
+        """直线的最后一个控制柄：其最后一条虚线的，即直线终点之前该虚线进入
+        终点所来自的控制点（直线上为从虚线往回三分之一处）。
 
         Returns:
-            The point, in scene coordinates.
+            该点，以场景坐标表示。
         """
         handle, end = self.points[-2:]
         return end + self._dash_cut() * (handle - end)
 
     def _dash_cut(self) -> float:
-        """How far into the curve at each end of the line the dash there reaches, in
-        that curve's parameter from the end: the dash is the curve cut there, which
-        keeps the end and brings its handle in by as much (de Casteljau). The first
-        dash starts the line and the last ends it, each period × duty of its parameter;
-        drawn solid, the line is one piece, each end curve whole."""
+        """直线每端虚线在该端曲线中达到多远，以从该端起曲线的参数计：虚线为
+        在此处截断的曲线，保留端点并按同量引入其控制柄（de Casteljau）。
+        第一条虚线开始直线、最后一条结束直线，各为其参数的 period × duty；
+        实线绘制时直线为一段，每端曲线完整。"""
         if self.paint.dash is None:
             return 1.0
         period, duty, _ = self.paint.dash
@@ -3218,19 +3082,15 @@ class DashedLine(Line):
 
 
 class TangentLine(Line):
-    """A line tangent to a path at a point along it, `length` long and centered on the
-    point; white unless styled.
+    """在某点沿路径与路径相切的直线，长 `length`，以该点为圆心；未加样式时为白色。
 
-    Its direction is that of the chord between the points `d_alpha` before and after
-    the point.
+    其方向为该点前后 `d_alpha` 处两点间弦的方向。
 
     Args:
-        vmob: The path.
-        alpha: Where along the path, as a proportion of its length: 0 at its start, 1
-            at its end.
-        length: The line's length, in scene units.
-        d_alpha: The proportion of the path's length before and after the point whose
-            chord sets the direction.
+        vmob: 路径。
+        alpha: 沿路径何处，以其长度的比例计：0 在起点，1 在终点。
+        length: 直线的长度，以场景单位计。
+        d_alpha: 该点前后路径长度的比例，其弦确定方向。
 
     Examples:
         ```python
@@ -3267,18 +3127,15 @@ class TangentLine(Line):
 
 
 class Elbow(VMobject):
-    """The mark of a right angle: two segments `width` long meeting at a square corner;
-    white unless styled.
+    """直角的标记：两段长 `width` 的线段在直角处相接；未加样式时为白色。
 
-    Made at the origin, it marks the right angle between the positive x and y axes:
-    from (0, `width`) across to its corner at (`width`, `width`), and down to
-    (`width`, 0); `angle` turns it about the origin. To mark the angle between two
-    lines, see [RightAngle][manimgx.RightAngle].
+    在原点制作，标记正 x 轴和正 y 轴间的直角：从 (0, `width`) 跨到其角
+    (`width`, `width`)，再下到 (`width`, 0)；`angle` 关于原点旋转。要标记两直线
+    间的角，见 [RightAngle][manimgx.RightAngle]。
 
     Args:
-        width: The length of each segment, in scene units.
-        angle: The angle it is turned through about the origin, in radians,
-            counterclockwise.
+        width: 每段线段的长度，以场景单位计。
+        angle: 关于原点旋转的角度，以弧度计，逆时针。
 
     Examples:
         ```python
@@ -3307,26 +3164,24 @@ class Elbow(VMobject):
 
 
 class Arrow(Line):
-    """An arrow: a line with a tip at its end, stopping `buff` short of the two points
-    it joins; white, with a stroke 6 wide, unless styled.
+    """箭头：一条带终点尖端的直线，距所连两点各缩短 `buff`；未加样式时为白色，
+    描边宽 6。
 
-    A short arrow is drawn in proportion: its tip is at most
-    `max_tip_length_to_length_ratio` of its length, and its stroke at most
-    `max_stroke_width_to_length_ratio` wide per unit of its length. Scaled, it keeps
-    its tip's size (see [scale][manimgx.Arrow.scale]).
+    短箭头按比例绘制：其尖端至多为其长度的 `max_tip_length_to_length_ratio`，
+    描边至多每单位长度 `max_stroke_width_to_length_ratio` 宽。缩放时保持尖端大小
+    （见 [scale][manimgx.Arrow.scale]）。
 
     Args:
-        start: Where the arrow starts: a point, or a mobject (see [Line][manimgx.Line]).
-        end: Where it points to: a point, or a mobject.
-        buff: How far it stops short of each end, in scene units (default 0.25): an
-            arrow between two mobjects leaves a gap at each.
-        max_tip_length_to_length_ratio: The longest its tip may be, as a fraction of
-            its length.
-        max_stroke_width_to_length_ratio: The widest its stroke may be, in hundredths
-            of a scene unit, per scene unit of its length.
-        tip_shape: The class of its tip.
-        **kwargs: [Style, tip and bend keywords][manimgx.mobjects.shapes.Arced]:
-            its `path_arc` bends it.
+        start: 箭头起点：一个点或一个 mobject（见 [Line][manimgx.Line]）。
+        end: 箭头指向处：一个点或一个 mobject。
+        buff: 距每端缩短多少，以场景单位计（默认 0.25）：两 mobject 间的箭头
+            在每端留有间隙。
+        max_tip_length_to_length_ratio: 尖端最长可为多长，为其长度的比例。
+        max_stroke_width_to_length_ratio: 描边最宽可为多宽，以每场景单位长度的
+            百分之一场景单位计。
+        tip_shape: 其尖端的类。
+        **kwargs: [样式、尖端和弯曲关键字][manimgx.mobjects.shapes.Arced]：
+            其 `path_arc` 使其弯曲。
 
     Examples:
         ```python
@@ -3377,21 +3232,19 @@ class Arrow(Line):
         scale_tips: bool = False,
         **kwargs: Unpack[Pivot],
     ) -> Self:
-        """Scale the arrow, keeping its tips' size unless `scale_tips`.
+        """缩放箭头，除非 `scale_tips` 否则保持尖端大小。
 
-        The shaft is scaled, and the tips are put back on its ends. Then the shaft's
-        stroke width is set from its new length, as when the arrow was made: the smaller
-        of the width it was made with and `max_stroke_width_to_length_ratio` times its
-        length. An arrow of no length stays as it is.
+        箭杆被缩放，尖端重新加到其端。然后箭杆的描边宽度按其新长度设定，
+        如箭头创建时：取创建时的宽度与 `max_stroke_width_to_length_ratio` 乘其
+        长度的较小值。长度为零的箭头保持原样。
 
         Args:
-            scale_factor: The factor: one, or one per axis (see
-                [Mobject.scale][manimgx.Mobject.scale]).
-            scale_stroke: Whether stroke widths scale too; the shaft's is then set from
-                its length all the same.
-            scale_tips: Whether the tips scale with the shaft.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point that stays
-                fixed (default: its center).
+            scale_factor: 缩放因子：一个，或每轴一个（见
+                [Mobject.scale][manimgx.Mobject.scale]）。
+            scale_stroke: 描边宽度是否也缩放；箭杆的仍按其长度设定。
+            scale_tips: 尖端是否随箭杆缩放。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]：保持不变的点
+                （默认：其圆心）。
 
         Examples:
             ```python
@@ -3431,32 +3284,31 @@ class Arrow(Line):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_normal_vector(self) -> Vector3D:
-        """The normal of the plane the arrow's tip lies in, from its first three
-        anchors.
+        """箭头尖端所在平面的法向量，取自其前三个锚点。
 
         Returns:
-            A unit vector: IN for an arrow in the plane of the screen.
+            单位向量：屏幕平面内的箭头返回 IN。
         """
         p0, p1, p2 = self.tip.get_start_anchors()[:3]
         return normalize(np.cross(p2 - p1, p1 - p0))
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def reset_normal_vector(self) -> Self:
-        """Set the arrow's `normal_vector` to its
-        [tip's normal][manimgx.Arrow.get_normal_vector].
+        """将箭头的 `normal_vector` 设为其
+        [尖端的法向量][manimgx.Arrow.get_normal_vector]。
 
-        Kept for Manim compatibility: nothing reads `normal_vector`.
+        为兼容 Manim 而保留：无任何读取 `normal_vector`。
         """
         self.normal_vector = self.get_normal_vector()
         return self
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_default_tip_length(self) -> float:
-        """The length of the tips the arrow makes unless given one: its `tip_length`,
-        or `max_tip_length_to_length_ratio` times its length if that is shorter.
+        """箭头所生成尖端的默认长度（未另行指定时）：其 `tip_length`，
+        或若更短则为 `max_tip_length_to_length_ratio` 乘其长度。
 
         Returns:
-            The length, in scene units.
+            长度，以场景单位计。
         """
         max_ratio = self.max_tip_length_to_length_ratio
         return min(self.tip_length, max_ratio * self.get_length())
@@ -3471,11 +3323,11 @@ class Arrow(Line):
 
 
 class Vector(Arrow):
-    """A vector: an arrow from the origin to a point; white unless styled.
+    """向量：从原点到某点的箭头；未加样式时为白色。
 
     Args:
-        direction: Where it points to, from the origin: two coordinates, or three.
-        buff: How far it stops short of the origin and of its end, in scene units.
+        direction: 其指向何处，从原点起：两个或三个坐标。
+        buff: 距原点和终点各缩短多少，以场景单位计。
 
     Examples:
         ```python
@@ -3511,20 +3363,19 @@ class Vector(Arrow):
         n_dim: int = 2,
         **kwargs: Unpack[MatrixOptions],
     ) -> Matrix:
-        """Make a label of the vector's coordinates: a column matrix beside its tip.
+        """制作向量坐标的标签：其尖端旁的列矩阵。
 
-        The label, at 0.8 of a matrix's size, is placed 0.25 beyond the vector's end,
-        centered on it vertically: to its right if the vector points right (or straight
-        up or down), to its left otherwise. It is not added to the vector.
+        标签以矩阵大小的 0.8 放置，在向量终点之外 0.25 处，垂直居中：向量指向右
+        （或正上或正下）时在其右侧，否则在其左侧。不添加到向量。
 
         Args:
-            integer_labels: Whether to round the coordinates to integers.
-            n_dim: How many coordinates to show: 2 for x and y, 3 for z too.
-            **kwargs: [Matrix keywords][manimgx.mobjects.grid.MatrixOptions]; `color`
-                colors the whole label.
+            integer_labels: 是否将坐标四舍五入为整数。
+            n_dim: 显示多少坐标：2 为 x 和 y，3 为含 z。
+            **kwargs: [矩阵关键字][manimgx.mobjects.grid.MatrixOptions]；`color`
+                为整个标签上色。
 
         Returns:
-            A new matrix.
+            一个新矩阵。
 
         Examples:
             ```python
@@ -3562,17 +3413,16 @@ class Vector(Arrow):
 
 
 class DoubleArrow(Arrow):
-    """An arrow with a tip at each end; white, with a stroke 6 wide, unless styled.
+    """两端各带一个尖端的箭头；未加样式时为白色，描边宽 6。
 
-    Its tips and its stroke are sized from its length, tip to tip, as an
-    [Arrow][manimgx.Arrow]'s are.
+    其尖端和描边按其长度（尖端到尖端）设定，如同 [Arrow][manimgx.Arrow]。
 
     Args:
-        start: Where it starts: a point, or a mobject (see [Line][manimgx.Line]).
-        end: Where it ends: a point, or a mobject.
-        tip_shape_start: The class of the tip at its start.
-        tip_shape_end: The class of the tip at its end; None for the `tip_shape`
-            keyword's, or else [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip].
+        start: 其起点：一个点或一个 mobject（见 [Line][manimgx.Line]）。
+        end: 其终点：一个点或一个 mobject。
+        tip_shape_start: 起点尖端的类。
+        tip_shape_end: 终点尖端的类；None 表示 `tip_shape` 关键字的值，
+            否则为 [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]。
 
     Examples:
         ```python
@@ -3611,77 +3461,61 @@ class DoubleArrow(Arrow):
 
 
 class _AngleShape(_Style, total=False):
-    """AngleShape's keys, open, for the keywords that add to them."""
+    """AngleShape 的键，开放的，用于向其添加的关键字。"""
 
     quadrant: AngleQuadrant
-    """Which way each side of the angle goes from the crossing: a sign for each line,
-    the first line's first; 1 along the line's direction (from its start toward its
-    end), -1 back toward its start (default (1, 1))."""
+    """角的每侧从交叉点出发的方向：每条线一个符号，第一条线在前；1 沿该线方向
+    （从其起点指向终点），-1 则反向指向起点（默认 (1, 1)）。"""
     other_angle: bool
-    """Whether the arc runs clockwise from the first side to the second, instead of
-    counterclockwise: it then marks the rest of the full turn (default False)."""
+    """弧是否从第一侧到第二侧顺时针运行，而非逆时针：此时标记整圈的其余部分
+    （默认 False）。"""
     dot: bool
-    """Whether to put a dot inside the arc, as a right angle is sometimes marked
-    (default False; an elbow has none)."""
+    """是否在弧内放一个点，如直角有时标记的那样（默认 False；直角标记无点）。"""
     dot_radius: float | None
-    """The dot's radius, in scene units (default None: a tenth of the arc's radius)."""
+    """点的半径，以场景单位计（默认 None：弧半径的十分之一）。"""
     dot_distance: float
-    """How far the dot is from the crossing, as a fraction of the arc's radius (default
-    0.55)."""
+    """点距交叉点多远，以弧半径的分数计（默认 0.55）。"""
     dot_color: ParsableManimColor
-    """The dot's color (default white)."""
+    """点的颜色（默认白色）。"""
 
 
 class AngleShape(_AngleShape, total=False, closed=True):
-    """An [Angle][manimgx.Angle]'s keywords but its radius and its elbow (for right
-    angles, which set them): which angle it marks, and its dot, with the style
-    keywords."""
+    """[Angle][manimgx.Angle] 除半径和直角标记外的关键字（直角设置它们）：
+    标记哪个角，及其点，以及样式关键字。"""
 
 
 class AngleOptions(_AngleShape, total=False, closed=True):
-    """An [Angle][manimgx.Angle]'s keywords but its lines (for the methods that make
-    one)."""
+    """[Angle][manimgx.Angle] 除两直线外的关键字（供制作它的方法使用）。"""
 
     radius: float | None
-    """The arc's radius, or the elbow's side, in scene units (default None: 0.4, or
-    for short lines two thirds of the distance from the crossing to the nearer of the
-    line ends the sides point to, when that is less than 0.6)."""
+    """弧的半径，或直角标记的边长，以场景单位计（默认 None：0.4，或短直线时
+    为从交叉点到侧所指较近端距离的三分之二，当其小于 0.6 时）。"""
     elbow: bool
-    """Whether to mark the angle with an elbow, two segments making a corner between
-    its sides, instead of an arc (default False)."""
+    """是否用直角标记（两段在其两侧间成角的线段）代替弧标记角（默认 False）。"""
 
 
 class Angle(VMobject):
-    """The mark of an angle between two lines: an arc about the point where they cross,
-    counterclockwise from a side along the first line to a side along the second; white
-    unless styled.
+    """两直线间角的标记：关于其交叉点的弧，从沿第一条直线的一侧逆时针到沿第二条
+    直线的一侧；未加样式时为白色。
 
-    The lines are taken as infinite, so they need not reach the point where they cross.
-    From there, `quadrant` picks the way each side goes along its line, and
-    `other_angle` turns the arc clockwise instead, marking the rest of the full turn:
-    together they pick the angle marked, which may be more than half a turn. With
-    `elbow`, the mark is two segments instead, making a corner between the two sides,
-    as a right angle is marked. Parallel lines in the plane of the screen make an empty
-    mark, of value 0.
+    直线被视为无限长，因此无需到达交叉点。从交叉点起，`quadrant` 选择每侧沿其直线
+    的方向，`other_angle` 改为顺时针，标记整圈的其余部分：两者共同选择所标记的角，
+    可超过半圈。带 `elbow` 时，标记为两段线段，在两侧间成角，如直角标记。屏幕平面
+    内的平行线产生空标记，值为 0。
 
     Args:
-        line1: The line the angle is measured from.
-        line2: The line it is measured to.
-        radius: The arc's radius, or the elbow's side, in scene units; None for 0.4, or
-            for short lines two thirds of the distance from the crossing to the nearer
-            of the line ends the sides point to, when that is less than 0.6.
-        quadrant: Which way each side goes from the crossing: a sign for each line,
-            `line1`'s first; 1 along the line's direction (from its start toward its
-            end), -1 back toward its start.
-        other_angle: Whether the arc runs clockwise from the first side to the second
-            instead, marking the rest of the full turn.
-        dot: Whether to put a dot inside the arc (an elbow has none).
-        dot_radius: The dot's radius, in scene units; None for a tenth of the arc's
-            radius.
-        dot_distance: How far the dot is from the crossing, as a fraction of the arc's
-            radius.
-        dot_color: The dot's color.
-        elbow: Whether to mark the angle with an elbow instead of an arc.
+        line1: 角所从测量的直线。
+        line2: 角所至测量的直线。
+        radius: 弧的半径，或直角标记的边长，以场景单位计；None 表示 0.4，或短直线时
+            为从交叉点到侧所指较近端距离的三分之二，当其小于 0.6 时。
+        quadrant: 每侧从交叉点出发的方向：每条线一个符号，`line1` 在前；1 沿该线
+            方向（从其起点指向终点），-1 则反向指向起点。
+        other_angle: 弧是否改为从第一侧到第二侧顺时针运行，标记整圈的其余部分。
+        dot: 是否在弧内放一个点（直角标记无点）。
+        dot_radius: 点的半径，以场景单位计；None 表示弧半径的十分之一。
+        dot_distance: 点距交叉点多远，以弧半径的分数计。
+        dot_color: 点的颜色。
+        elbow: 是否用直角标记代替弧标记角。
 
     Examples:
         ```python
@@ -3813,24 +3647,23 @@ class Angle(VMobject):
         self.set_points(angle_mobject.points)
 
     def get_lines(self) -> VGroup:
-        """The two lines the angle is between.
+        """角所介于的两条直线。
 
         Returns:
-            A new group of the two lines, `line1` first.
+            两直线的新组，`line1` 在前。
         """
         return VGroup(*self.lines)
 
     def get_value(self, degrees: bool = False) -> float:
-        """The size of the angle marked: counterclockwise from its first side to its
-        second, or clockwise, and negative, with `other_angle`.
+        """所标记角的大小：从第一侧到第二侧逆时针，或带 `other_angle` 时顺时针且为负。
 
-        An angle marked with an elbow has no value: asking for it raises an exception.
+        以直角标记的角无值：查询它会引发异常。
 
         Args:
-            degrees: Whether to give it in degrees instead of radians.
+            degrees: 是否以度而非弧度给出。
 
         Returns:
-            The angle, in radians (or degrees), from -TAU to TAU.
+            角，以弧度（或度）计，范围 -TAU 到 TAU。
         """
         return self.angle_value / DEGREES if degrees else self.angle_value
 
@@ -3838,17 +3671,16 @@ class Angle(VMobject):
     def from_three_points(
         A: Point3DLike, B: Point3DLike, C: Point3DLike, **kwargs: Unpack[AngleOptions]
     ) -> Angle:
-        """The mark of the angle ABC: at `B`, from the line toward `A` counterclockwise
-        to the line toward `C`.
+        """角 ABC 的标记：在 `B` 处，从朝 `A` 的直线逆时针到朝 `C` 的直线。
 
         Args:
-            A: A point on the first side.
-            B: The vertex.
-            C: A point on the second side.
-            **kwargs: [Angle keywords][manimgx.mobjects.shapes.AngleOptions].
+            A: 第一侧上一点。
+            B: 顶点。
+            C: 第二侧上一点。
+            **kwargs: [角关键字][manimgx.mobjects.shapes.AngleOptions]。
 
         Returns:
-            A new angle.
+            一个新角。
 
         Examples:
             ```python
@@ -3870,19 +3702,16 @@ class Angle(VMobject):
 
 
 class RightAngle(Angle):
-    """The mark of a right angle between two lines: an [Angle][manimgx.Angle] marked
-    with an elbow; white unless styled.
+    """两直线间直角的标记：以直角标记的 [Angle][manimgx.Angle]；未加样式时为白色。
 
-    The lines need not be perpendicular: the elbow is then a corner of a
-    parallelogram.
+    两直线无需垂直：此时直角标记为平行四边形的一角。
 
     Args:
-        line1: The first line.
-        line2: The second line.
-        length: The length of the elbow's sides, in scene units; None for 0.4, or less
-            for short lines (see [Angle][manimgx.Angle]).
-        **kwargs: [Angle keywords][manimgx.mobjects.shapes.AngleShape]; the dot
-            keywords have no effect.
+        line1: 第一条直线。
+        line2: 第二条直线。
+        length: 直角标记边长的长度，以场景单位计；None 表示 0.4，或短直线时更小
+            （见 [Angle][manimgx.Angle]）。
+        **kwargs: [角关键字][manimgx.mobjects.shapes.AngleShape]；点关键字无效。
 
     Examples:
         ```python
@@ -3916,29 +3745,29 @@ class RightAngle(Angle):
 
 @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
 def adjacent_n_tuples[T](objects: Sequence[T], n: int) -> Iterator[tuple[T, ...]]:
-    """Each run of `n` items in a row, wrapping around at the end: for `[a, b, c]` and
-    2, `(a, b)`, `(b, c)` and `(c, a)`.
+    """一行中连续 `n` 项的每组，末尾回绕：对 `[a, b, c]` 和 2，
+    为 `(a, b)`、`(b, c)` 和 `(c, a)`。
 
     Args:
-        objects: The items.
-        n: How many items each run has.
+        objects: 各项。
+        n: 每组有多少项。
 
     Returns:
-        The runs, as tuples, one starting at each item.
+        各组，以元组形式，每个项开始一组。
     """
     return zip(*(list(objects[k:]) + list(objects[:k]) for k in range(n)), strict=True)
 
 
 @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
 def adjacent_pairs[T](objects: Sequence[T]) -> Iterator[tuple[T, ...]]:
-    """Each item with the next, wrapping around at the end (see
-    [adjacent_n_tuples][manimgx.adjacent_n_tuples]).
+    """每项与下一项的配对，末尾回绕（见
+    [adjacent_n_tuples][manimgx.adjacent_n_tuples]）。
 
     Args:
-        objects: The items.
+        objects: 各项。
 
     Returns:
-        The pairs, as tuples, one starting at each item.
+        各配对，以元组形式，每个项开始一组。
     """
     return adjacent_n_tuples(objects, 2)
 
@@ -3951,21 +3780,19 @@ if TYPE_CHECKING:
 
 
 def _combine(operation: PathOp, *vmobjects: VMobject) -> SkiaPath:
-    """Fold an operation over the operands' own outlines, left to right."""
+    """将运算折叠到各操作数自身轮廓上，从左到右。"""
     paths = [_to_path(m.points, m.tolerance_for_point_equality) for m in vmobjects]
     return reduce(lambda a, b: _pathops().op(a, b, operation), paths)
 
 
 class Union(VMobject):
-    """The union of shapes: the region any of them covers, as a new path; white unless
-    styled.
+    """形状的并集：任一形状所覆盖的区域，作为新路径；未加样式时为白色。
 
-    It is found from the shapes' own paths (not their submobjects'), each the region
-    its fill covers, in the plane of the screen: their z coordinates are dropped. The
-    shapes stay as they are.
+    由各形状自身路径（而非其子对象的）求得，每个为其填充所覆盖的区域，在屏幕平面内：
+    其 z 坐标被丢弃。形状保持原样。
 
     Args:
-        *vmobjects: The shapes: at least two.
+        *vmobjects: 形状：至少两个。
 
     Examples:
         ```python
@@ -3998,16 +3825,14 @@ class Union(VMobject):
 
 
 class Difference(VMobject):
-    """The difference of two shapes: the region the first covers and the second does
-    not, as a new path; white unless styled.
+    """两形状的差：第一个覆盖而第二个不覆盖的区域，作为新路径；未加样式时为白色。
 
-    It is found from the shapes' own paths (not their submobjects'), each the region
-    its fill covers, in the plane of the screen: their z coordinates are dropped. The
-    shapes stay as they are.
+    由各形状自身路径（而非其子对象的）求得，每个为其填充所覆盖的区域，在屏幕平面内：
+    其 z 坐标被丢弃。形状保持原样。
 
     Args:
-        subject: The shape to take a part of.
-        clip: The shape whose region is left out of it.
+        subject: 要取其一部分的形状。
+        clip: 其区域被排除的形状。
 
     Examples:
         ```python
@@ -4032,15 +3857,13 @@ class Difference(VMobject):
 
 
 class Intersection(VMobject):
-    """The intersection of shapes: the region all of them cover, as a new path; white
-    unless styled.
+    """形状的交集：所有形状共同覆盖的区域，作为新路径；未加样式时为白色。
 
-    It is found from the shapes' own paths (not their submobjects'), each the region
-    its fill covers, in the plane of the screen: their z coordinates are dropped. The
-    shapes stay as they are.
+    由各形状自身路径（而非其子对象的）求得，每个为其填充所覆盖的区域，在屏幕平面内：
+    其 z 坐标被丢弃。形状保持原样。
 
     Args:
-        *vmobjects: The shapes: at least two.
+        *vmobjects: 形状：至少两个。
 
     Examples:
         ```python
@@ -4065,16 +3888,14 @@ class Intersection(VMobject):
 
 
 class Exclusion(VMobject):
-    """The exclusive or of two shapes: the region one of them covers but not both, as a
-    new path; white unless styled.
+    """两形状的异或：恰一者覆盖而非两者都覆盖的区域，作为新路径；未加样式时为白色。
 
-    It is found from the shapes' own paths (not their submobjects'), each the region
-    its fill covers, in the plane of the screen: their z coordinates are dropped. The
-    shapes stay as they are.
+    由各形状自身路径（而非其子对象的）求得，每个为其填充所覆盖的区域，在屏幕平面内：
+    其 z 坐标被丢弃。形状保持原样。
 
     Args:
-        subject: The first shape.
-        clip: The second shape.
+        subject: 第一个形状。
+        clip: 第二个形状。
 
     Examples:
         ```python
@@ -4099,18 +3920,17 @@ class Exclusion(VMobject):
 
 
 class PointCloudDot(Mobject1D):
-    """A disk of points: rings of points around a center, pure yellow unless styled.
+    """点圆盘：围绕圆心的点环，未加样式时为纯黄色。
 
-    The rings are 1/`density` scene units apart, from that far from the center out to
-    just inside `radius`, and the points along each ring about as far apart. Its points
-    are small: `stroke_width` 2.
+    各环相距 1/`density` 场景单位，从距圆心那么远到刚好在 `radius` 内，每环上的点
+    间距约相等。其点很小：`stroke_width` 为 2。
 
     Args:
-        center: Where its center is, in scene coordinates.
-        radius: How far out its points reach, in scene units.
-        density: How many rings, and points along a ring, per scene unit.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style]: `color` colors its points,
-            and `stroke_width` sizes them.
+        center: 其圆心位置，以场景坐标表示。
+        radius: 其点达到多远，以场景单位计。
+        density: 每场景单位多少环及每环多少点。
+        **kwargs: [样式关键字][manimgx.drawing.paint.Style]：`color` 为点上色，
+            `stroke_width` 设定其大小。
 
     Examples:
         ```python

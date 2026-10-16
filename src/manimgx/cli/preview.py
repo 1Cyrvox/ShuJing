@@ -1,11 +1,9 @@
-"""`manimgx preview`: a scene in ManimGX's player, in a window of its own, made again each time
-its code is saved.
+"""`manimgx preview`：在 ManimGX 播放器中展示场景，独立窗口运行，每次保存代码时重新生成。
 
-The scene runs here, as `manimgx render` runs it, but its film is recorded as a take (see
-[`Film`][manimgx.Film]) and sent to a [`Window`][manimgx.Window], which plays it as it is made.
-On a save the scene runs again — at once: a run a save has made out of date is cut — and its new
-take replaces the old at the same moment, once it gets there: an edit never loses the place. An
-error is shown over the last good take.
+场景在此运行，如同 `manimgx render` 运行它一样，但其影片被录制为一个片段（参见
+[`Film`][manimgx.Film]）并发送至 [`Window`][manimgx.Window]，由后者在生成的同时播放。
+保存时场景会重新运行——立即运行：被保存操作标记为过期的运行会被中断——新片段在到达
+同一时刻时替换旧片段：编辑不会丢失播放位置。错误会显示在最后一个正常片段之上。
 """
 
 import importlib
@@ -50,19 +48,18 @@ def preview(
     time_: Annotated[
         float,
         typer.Option(
-            "--time", "-t", min=0, help="Where the playhead starts, in seconds."
+            "--time", "-t", min=0, help="播放头起始位置，以秒为单位。"
         ),
     ] = 0.0,
     resolution: Resolution = None,
     fps: Fps = None,
 ) -> None:
-    """Preview a scene live: in a window, made again each time its code is saved.
+    """实时预览场景：在窗口中展示，每次保存代码时重新生成。
 
-    The window plays the scene as it is made. Saving the file, or a module it imports from
-    beside it, runs the scene again, and the window keeps its place; an error shows over the
-    last good picture. A file of several scenes plays the one named, or its first; N and P go
-    to the others. Keys: Space play/pause, ← → 5 s, , . a frame, Option (or Ctrl) with ← → a
-    play, ? all of them. Closing the window, or Ctrl+C, stops."""
+    窗口在场景生成的同时播放。保存文件或其旁边导入的模块会重新运行场景，窗口保持
+    播放位置；错误显示在最后一帧正常画面之上。包含多个场景的文件播放指定的场景，
+    或第一个场景；按 N 和 P 切换其他场景。按键：空格 播放/暂停，← → 5 秒，, . 一帧，
+    Option（或 Ctrl）加 ← → 一次播放，? 显示全部按键。关闭窗口或 Ctrl+C 停止。"""
     if not file.is_file():
         raise fail(f"error: {file}: no such file")
     with Window(f"{file.name} — ManimGX", time=time_) as window:
@@ -85,8 +82,8 @@ def preview(
 
 
 class News:
-    """What makes a run out of date: a file it reads saved again, or another scene asked for
-    in the window. Called, whether there is any (it looks every `POLL` seconds)."""
+    """使一次运行过期的因素：其读取的文件被再次保存，或在窗口中请求了另一个场景。
+    调用时检查是否存在过期因素（每 `POLL` 秒检查一次）。"""
 
     def __init__(self, files: list[Path], window: Window) -> None:
         self.seen = dict(zip(files, stamps(files), strict=True))
@@ -96,7 +93,7 @@ class News:
         self.looked = time.monotonic()
 
     def watch(self, files: list[Path]) -> None:
-        """Watch `files` too: those not watched yet as they are now."""
+        """同时监视 `files`：尚未监视的文件以其当前状态加入监视。"""
         new = [f for f in files if f not in self.seen]
         self.seen.update(zip(new, stamps(new), strict=True))
 
@@ -119,9 +116,8 @@ def run(
     window: Window,
     news: News,
 ) -> list[Path]:
-    """Run the scene once, its take (or its error) into `window`, and cut it once `news`
-    makes it out of date. Returns the files to watch: the scene's, and the modules it imported
-    from beside it."""
+    """运行场景一次，将其片段（或错误）送入 `window`，并在 `news` 标记过期时中断。
+    返回需要监视的文件：场景文件及其旁边导入的模块。"""
     root = file.resolve().parent
     started = time.perf_counter()
 
@@ -164,7 +160,7 @@ def run(
 
 
 class Sources(MetaPathFinder):
-    """The scene-directory imports owned by one authoring generation."""
+    """一次创作世代所拥有的场景目录导入。"""
 
     def __init__(
         self, file: Path, host: set[str], watch: Callable[[list[Path]], None] | None
@@ -212,7 +208,7 @@ class Sources(MetaPathFinder):
 def imports(
     file: Path, watch: Callable[[list[Path]], None] | None = None
 ) -> Iterator[Sources]:
-    """Load the scene's modules for one run; preserve the process that hosts it."""
+    """为一次运行加载场景的模块；保留承载该运行的进程状态。"""
     before, path = dict(sys.modules), sys.path.copy()
     source = Sources(file, {name.partition(".")[0] for name in before}, watch)
     sys.meta_path.insert(sys.meta_path.index(PathFinder), source)
@@ -230,5 +226,5 @@ def imports(
 
 
 def stamps(paths: list[Path]) -> list[float]:
-    """The files' modification times (0 for one that is gone, for now)."""
+    """文件的修改时间（已不存在的文件暂记为 0）。"""
     return [p.stat().st_mtime if p.exists() else 0.0 for p in paths]

@@ -1,11 +1,11 @@
 ---
-title: "Updaters"
-description: "Rules a mobject keeps at every frame: follow another mobject, show a number, redraw itself, or move as time passes."
+title: "更新器"
+description: "mobject 在每一帧保持的规则：跟随另一个 mobject、显示数字、重绘自身，或随时间流逝而移动。"
 ---
 
-# Updaters
+# 更新器
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -21,16 +21,11 @@ class UpdatersHero(m.Scene):
         self.wait()
 ```
 
-An animation changes a mobject for its run time. An updater changes it at every frame, for
-as long as it is attached: it keeps a rule while other things move. A label stays above a
-dot, a number shows where a tracker is, a shape turns as time passes.
+动画在其运行时间内改变一个 mobject。更新器在每一帧改变它，只要它被附加就持续：在其他东西移动时它保持一条规则。标签停留在一个点上方，数字显示跟踪器在哪里，形状随时间流逝而转动。
 
-An updater is a function: ManimGX calls it with the mobject at every frame, in plays and in
-waits alike. A function that also takes `dt` gets the time since it last ran, in seconds,
-for motion that goes on: `lambda mob, dt: mob.rotate(dt)` turns a mobject a radian a
-second.
+更新器是一个函数：ManimGX 在每一帧用 mobject 调用它，在 play 和 wait 中同样如此。一个还接受 `dt` 的函数得到自它上次运行以来的时间，以秒计，用于持续的运动：`lambda mob, dt: mob.rotate(dt)` 每秒将 mobject 转动一弧度。
 
-## Add an updater
+## 添加更新器
 
 ::: manimgx.Mobject.add_updater
     options:
@@ -64,12 +59,9 @@ second.
     options:
       heading_level: 3
 
-## How time-based updaters run
+## 基于时间的更新器如何运行
 
-ManimGX runs a time-based updater at each tick of the simulation clock, 60 times a second
-whatever the frame rate, so that a simulation gives the same result at every frame rate. A
-flow, which does the same however its time is split, runs at every frame instead; a recorder,
-which reads the world, runs after everything else.
+ManimGX 在仿真时钟的每个滴答运行基于时间的更新器，无论帧率如何每秒 60 次，以使仿真在每个帧率下给出相同结果。流，无论其时间如何分割都做相同的事，改为在每一帧运行；记录器，读取世界，在所有其他东西之后运行。
 
 ::: manimgx.mobject.flow
     options:
@@ -79,7 +71,7 @@ which reads the world, runs after everything else.
     options:
       heading_level: 3
 
-## Ready-made updaters
+## 现成更新器
 
 ::: manimgx.always_redraw
     options:
@@ -101,7 +93,7 @@ which reads the world, runs after everything else.
     options:
       heading_level: 3
 
-## Updaters as animations
+## 作为动画的更新器
 
 ::: manimgx.UpdateFromFunc
     options:
@@ -115,7 +107,7 @@ which reads the world, runs after everything else.
     options:
       heading_level: 3
 
-## Trails and outlines
+## 轨迹与轮廓
 
 ::: manimgx.TracedPath
     options:
@@ -124,3 +116,5 @@ which reads the world, runs after everything else.
 ::: manimgx.AnimatedBoundary
     options:
       heading_level: 3
+
+::: manimgx.mobject.Pivot

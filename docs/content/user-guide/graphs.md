@@ -1,9 +1,8 @@
-# Graphs
+# 图形
 
-Axes are a mobject with their own numbers on them. Use them to draw the graph of a
-function, or of data.
+坐标轴是一种带有自身数字的 mobject。可以用它来绘制函数图像或数据图。
 
-## Axes and a graph
+## 坐标轴与图像
 
 ```python
 import manimgx as m
@@ -22,17 +21,14 @@ class Parabola(m.Scene):
         self.play(m.Create(graph))
 ```
 
-- `x_range=[-3, 3, 1]` puts the numbers from −3 to 3 on the x-axis, with a tick at every
-  1. `y_range` does the same for the y-axis.
-- `x_length` and `y_length` set how long the axes are, in units of the frame.
-- `add_coordinates` writes the numbers at the ticks.
-- `axes.plot` draws the graph of a Python function of `x`.
+- `x_range=[-3, 3, 1]` 在 x 轴上放置从 −3 到 3 的数字，每隔 1 一个刻度。`y_range` 对 y 轴做同样的事。
+- `x_length` 和 `y_length` 设置坐标轴的长度，单位为帧的单位。
+- `add_coordinates` 在刻度处写上数字。
+- `axes.plot` 绘制一个以 `x` 为自变量的 Python 函数的图像。
 
-## The axes' own numbers
+## 坐标轴自身的数字
 
-The axes have their own coordinates. On the graph above, the point where `x` is 2 and
-`y` is 4 is not at `[2, 4, 0]` in the frame. `axes.c2p(2, 4)` ("coordinates to point")
-gives its point in the frame. Use it to put mobjects on a graph:
+坐标轴有自己的坐标。在上面的图像中，`x` 为 2 且 `y` 为 4 的点在帧中并不位于 `[2, 4, 0]`。`axes.c2p(2, 4)`（"coordinates to point"，坐标到点）给出该点在帧中的位置。可以用它把 mobject 放到图像上：
 
 ```python
 import manimgx as m
@@ -52,9 +48,9 @@ class OnTheGraph(m.Scene):
         self.add(axes, graph, dot, label)
 ```
 
-## Labels and areas
+## 标签与面积
 
-The axes make the parts that explain a graph:
+坐标轴可以生成用于解释图像的各个部分：
 
 ```python
 import manimgx as m
@@ -78,18 +74,14 @@ class Area(m.Scene):
         self.wait()
 ```
 
-- `get_axis_labels` names the axes.
-- `get_graph_label` writes a label, in LaTeX, at the end of a graph, or at `x_val`.
-- `get_area` fills the area under a graph, between two values of `x`.
+- `get_axis_labels` 为坐标轴命名。
+- `get_graph_label` 在图像的末端或 `x_val` 处写一个 LaTeX 标签。
+- `get_area` 填充图像下方、介于两个 `x` 值之间的面积。
 
-These methods make new mobjects. Add them to the scene, or animate them, as the example
-does.
+这些方法会生成新的 mobject。可以像示例那样把它们添加到场景中，或对其进行动画。
 
-`m.NumberPlane()`, the grid of [Positions](positions.md), is axes too: axes that fill the
-frame, with the frame's own coordinates. The [plotting reference][manimgx.mobjects.plotting]
-shows every kind of axes and graph.
+`m.NumberPlane()`，即 [位置](positions.md) 中的网格，也是坐标轴：填满整个帧、使用帧自身坐标的坐标轴。[绘图参考][manimgx.mobjects.plotting] 展示了各种坐标轴和图像。
 
-## Next
+## 下一步
 
-[Updaters](updaters.md) shows how to make a mobject follow another, such as a dot that
-moves along a graph.
+[更新器](updaters.md) 展示了如何让一个 mobject 跟随另一个 mobject，例如一个沿图像移动的点。

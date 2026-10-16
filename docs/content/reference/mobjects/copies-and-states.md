@@ -1,11 +1,11 @@
 ---
-title: "Copies and states"
-description: "Copy a mobject, keep its state to return to, prepare a state to move to, or make it look like another."
+title: "副本与状态"
+description: "复制一个 mobject，保存其状态以便返回，准备一个状态以便移入，或使其看起来像另一个。"
 ---
 
-# Copies and states
+# 副本与状态
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -23,16 +23,15 @@ class CopiesAndStatesHero(m.Scene):
         self.wait()
 ```
 
-A mobject is one object in the scene: a variable that names it names that object, and a
-change to it shows wherever it is. To have two, copy it. To change a mobject and come
-back, keep its state first. To animate a change into a state that you prepare step by step,
-make its target.
+一个 mobject 是场景中的一个对象：命名它的变量即命名该对象，对它的更改会显示在它
+所在的任何位置。要拥有两个，就复制它。要更改一个 mobject 再回到原样，先保存其
+状态。要将一个更改动画化为一个你逐步准备的状态，就生成它的目标。
 
 ::: manimgx.Mobject.copy
     options:
       heading_level: 2
 
-## Keep a state
+## 保存状态
 
 ::: manimgx.Mobject.save_state
     options:
@@ -42,7 +41,7 @@ make its target.
     options:
       heading_level: 3
 
-## Prepare a state
+## 准备状态
 
 ::: manimgx.Mobject.generate_target
     options:
@@ -52,7 +51,7 @@ make its target.
     options:
       heading_level: 3
 
-## Look like another
+## 变为另一个的样子
 
 ::: manimgx.Mobject.become
     options:

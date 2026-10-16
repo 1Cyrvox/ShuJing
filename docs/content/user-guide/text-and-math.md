@@ -1,11 +1,10 @@
-# Text and math
+# 文本和数学
 
-ManimGX sets text and formulas itself, with [Typst](https://typst.app) and fonts that come
-with it. You don't install LaTeX or fonts, and your text looks the same on every computer.
+ManimGX 自行排版文本和公式，使用 [Typst](https://typst.app) 及其附带的字体。你无需安装 LaTeX 或字体，并且你的文本在每台电脑上看起来都一样。
 
-## Text
+## 文本
 
-`m.Text` shows text exactly as you write it. A new line (`\n`) starts a new line:
+`m.Text` 完全按你书写的方式显示文本。换行符（`\n`）会开始新的一行：
 
 ```python
 import manimgx as m
@@ -20,17 +19,15 @@ class Words(m.Scene):
         self.play(m.FadeIn(note))
 ```
 
-- `font_size` sets the size: 48 unless you give another.
-- `font` sets the font: `"sans-serif"`, `"monospace"`, or the name of a font on your
-  computer. The default is New Computer Modern, the font of LaTeX.
-- `t2c` colors parts of the text: `m.Text("red and blue", t2c={"red": m.RED, "blue": m.BLUE})`.
+- `font_size` 设定大小：默认为 48，除非你另行指定。
+- `font` 设定字体：`"sans-serif"`、`"monospace"`，或你电脑上的某个字体名称。默认为 New Computer Modern，即 LaTeX 的字体。
+- `t2c` 为文本的某些部分着色：`m.Text("red and blue", t2c={"red": m.RED, "blue": m.BLUE})`。
 
-Text is a mobject like any other: you can move it, scale it, color it and animate it.
+文本和其他 mobject 一样：你可以移动它、缩放它、为它着色并为其制作动画。
 
-## Formulas
+## 公式
 
-`m.MathTex` shows a formula, written in LaTeX math. Write it in a raw string, `r"..."`,
-so that Python keeps its backslashes:
+`m.MathTex` 显示用 LaTeX 数学语法编写的公式。请将其写在原始字符串 `r"..."` 中，以便 Python 保留其反斜杠：
 
 ```python
 import manimgx as m
@@ -42,16 +39,13 @@ class Formula(m.Scene):
         self.play(m.Write(formula))
 ```
 
-Fractions, roots, sums and integrals, matrices, `cases`, Greek letters, `\mathbb` and
-`\text` work. LaTeX packages and `\def` don't. If ManimGX doesn't know a command, its
-error names the command.
+分数、根号、求和与积分、矩阵、`cases`、希腊字母、`\mathbb` 和 `\text` 都可用。LaTeX 宏包和 `\def` 不可用。如果 ManimGX 不认识某个命令，其错误信息会指出该命令的名称。
 
-`m.Tex` is for text with math in it: `m.Tex(r"The area is $\pi r^2$.")`.
+`m.Tex` 用于包含数学内容的文本：`m.Tex(r"The area is $\pi r^2$.")`。
 
-## Parts of a formula
+## 公式的各部分
 
-Give `m.MathTex` several strings, and each one becomes a part that you can color or
-animate on its own. `formula[2]` is the third part:
+给 `m.MathTex` 多个字符串，每个字符串都会成为一个可以单独着色或制作动画的部分。`formula[2]` 是第三个部分：
 
 ```python
 import manimgx as m
@@ -65,10 +59,9 @@ class Parts(m.Scene):
         self.play(m.Indicate(formula[2]))
 ```
 
-## Change a formula into another
+## 将一个公式变为另一个
 
-`m.TransformMatchingTex` moves each part of a formula to the part with the same LaTeX
-in another formula. The parts that don't match fade out and in:
+`m.TransformMatchingTex` 将公式的每个部分移动到另一个公式中具有相同 LaTeX 的部分。不匹配的部分会淡出和淡入：
 
 ```python
 import manimgx as m
@@ -85,21 +78,18 @@ class Rearrange(m.Scene):
         self.wait()
 ```
 
-## Numbers
+## 数字
 
-`m.DecimalNumber(3.14)` shows a number. Its `set_value` shows a different one in its
-place, so a number can count up or down as a scene plays: [Updaters](updaters.md) shows
-how.
+`m.DecimalNumber(3.14)` 显示一个数字。其 `set_value` 会在原位显示另一个数字，因此数字可以在场景播放时递增或递减：[更新器](updaters.md)展示了如何操作。
 
 ## Typst
 
-If you know [Typst](https://typst.app), write in it directly: `m.Typst` takes Typst
-markup, and `m.MathTypst` a formula in Typst's math syntax.
+如果你熟悉 [Typst](https://typst.app)，可以直接用它书写：`m.Typst` 接受 Typst 标记，`m.MathTypst` 接受 Typst 数学语法中的公式。
 
 ```py
 m.Typst("*Bold*, _italic_, and math: $sum_(k=1)^n k = (n(n+1))/2$")
 ```
 
-## Next
+## 下一步
 
-[Graphs](graphs.md) shows how to draw axes and plot functions, with labels.
+[图表](graphs.md)将展示如何绘制坐标轴和绘制函数，并带有标签。

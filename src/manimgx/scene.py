@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Scenes and their cameras: mutable worlds evaluated in exact time."""
+"""场景及其相机：在精确时间中求值的可变世界。"""
 
 from __future__ import annotations
 
@@ -144,34 +144,32 @@ def _view_rectangle(height: float, width: float) -> Mobject:
 
 
 class Camera:
-    """What a frame shows: a view of the scene, made of mobjects, so that whatever moves
-    a mobject moves the view.
+    """一帧所显示的内容：场景的一个视图，由 mobject 构成，因此移动任何
+    mobject 即可移动该视图。
 
-    Its [`frame`][manimgx.Camera.frame] is a rectangle in the scene whose center and
-    size are the view: move it, scale it or animate it, and the view pans and zooms. In
-    three dimensions (a [`ThreeDScene`][manimgx.ThreeDScene]'s camera), it also orbits
-    the frame's center, with perspective: five [value trackers][manimgx.ValueTracker]
-    hold its angles `phi` and `theta`, its roll `gamma`, its `zoom` and its
-    `focal_distance` (`phi_tracker`, `theta_tracker`, `gamma_tracker`, `zoom_tracker`
-    and `focal_distance_tracker`), and its light is a point,
-    [`light_source`][manimgx.Camera.light_source]. A camera only describes the view: it
-    never draws.
+    其 [`frame`][manimgx.Camera.frame] 是场景中的一个矩形，其中心与
+    尺寸即为该视图：移动它、缩放它或为其添加动画，视图便会平移与缩放。在
+    三维情形下（[`ThreeDScene`][manimgx.ThreeDScene] 的相机），它还会绕
+    帧中心轨道运动，并带有透视：五个[值跟踪器][manimgx.ValueTracker]
+    分别持有其角度 `phi` 与 `theta`、翻滚角 `gamma`、`zoom` 以及
+    `focal_distance`（`phi_tracker`、`theta_tracker`、`gamma_tracker`、`zoom_tracker`
+    与 `focal_distance_tracker`），其光源为一个点，
+    [`light_source`][manimgx.Camera.light_source]。相机仅描述视图：它
+    从不绘制。
 
     Args:
-        three_d: Whether it sees in three dimensions: with perspective and depth, from
-            its orbit.
-        frame_width: The width of its frame, in scene units; None for the configured one
-            (about 14.2 at 16:9). Its height is the configured one; a width out of the
-            video's proportions stretches the picture.
-        phi: The angle between its line of sight and the z axis, in radians: 0 looks
-            straight down on the xy plane.
-        theta: Its angle around the z axis, in radians, counterclockwise from the x
-            axis: at −90° it looks from the side of negative y, so that x points right.
-        gamma: How far it turns about its line of sight, in radians.
-        focal_distance: Its distance from the frame's center, in scene units: the
-            nearer, the stronger the perspective.
-        zoom: How much it magnifies: 2 shows everything twice as large.
-        light_source_start_point: Where the light is, in scene coordinates.
+        three_d: 是否以三维方式观察：带透视与深度，从其轨道观察。
+        frame_width: 其帧的宽度，以场景单位表示；None 表示使用配置值
+            （16:9 时约为 14.2）。高度取配置值；超出视频比例的宽度会拉伸画面。
+        phi: 其视线与 z 轴之间的夹角，以弧度表示：0 表示从正上方俯视
+            xy 平面。
+        theta: 其绕 z 轴的角度，以弧度表示，从 x 轴逆时针方向计量：在 −90° 时
+            从 y 轴负侧观察，使 x 轴指向右方。
+        gamma: 其绕自身视线转动的角度，以弧度表示。
+        focal_distance: 其与帧中心的距离，以场景单位表示：越近，
+            透视越强。
+        zoom: 其放大倍数：2 表示将一切放大两倍显示。
+        light_source_start_point: 光源位置，以场景坐标表示。
     """
 
     def __init__(
@@ -189,17 +187,16 @@ class Camera:
         from manimgx.mobject import Point
 
         self.three_d = three_d
-        """Whether the camera sees in three dimensions: with perspective and depth, from
-        its orbit."""
+        """相机是否以三维方式观察：带透视与深度，从其轨道观察。"""
         self.frame = _view_rectangle(
             config.frame_height, frame_width or config.frame_width
         )
-        """The view: a rectangle in the scene, centered on the point the camera looks
-        at, as wide and as tall as what it shows.
+        """该视图：场景中的一个矩形，以相机所观察的点为中心，宽与高
+        等于其所显示的范围。
 
-        Move it, scale it or animate it to pan and zoom:
-        `self.play(self.camera.frame.animate.scale(0.5))` zooms in, showing half as
-        much, twice as large. Its outline is not drawn (a stroke width of 0).
+        移动它、缩放它或为其添加动画即可平移与缩放：
+        `self.play(self.camera.frame.animate.scale(0.5))` 放大画面，显示一半的
+        内容，但放大两倍。其轮廓不被绘制（描边宽度为 0）。
         """
         self.phi_tracker, self.theta_tracker, self.gamma_tracker = (
             ValueTracker(phi),
@@ -211,60 +208,53 @@ class Camera:
             ValueTracker(zoom),
         )
         self.light_source = Point(light_source_start_point)
-        """Where the light comes from: a point in the scene, which lights the mobjects
-        shaded in three dimensions (`shade_in_3d`). Move it like any mobject."""
+        """光源所在位置：场景中的一个点，为三维着色的 mobject 提供光照
+        （`shade_in_3d`）。像任何 mobject 一样移动它。"""
         # the mobjects pinned to the screen, as they were given: what they are made of
         # is read every frame (see `fixed_in_frame_mobjects`)
         self._fixed_in_frame: dict[Mobject, None] = {}
         self.background_color = config.background_color
         self.background_opacity = config.background_opacity
-        """The opacity of the background, from 0 to 1: the configured one unless
-        changed."""
+        """背景的不透明度，从 0 到 1：取配置值，除非另行更改。"""
         self.exposure = 1.0
-        """How much the light that mobjects with a [material][manimgx.Material] reflect
-        is scaled before it is shown: 2 is twice as bright (one stop)."""
+        """具有[材质][manimgx.Material]的 mobject 所反射的光在显示前被缩放的倍数：
+        2 表示亮两倍（一档）。"""
         self.tone_mapping: Literal["linear", "agx"] = "linear"
-        """How light brighter than white is shown: "linear" clips it (a lit surface's
-        colors as they are, up to white), "agx" rolls it off as film does (AgX: highlights
-        desaturate toward white, and nothing clips). The light lit surfaces send into a
-        pixel is averaged first and shown once, as a camera records it."""
+        """比白色更亮的光如何显示："linear" 将其截断（被照亮表面的
+        颜色原样显示，最高到白色），"agx" 像胶片那样将其柔和过渡（AgX：高光
+        向白色去饱和，无任何截断）。被照亮表面射入某像素的光先被平均，
+        再一次性显示，如同相机记录的那样。"""
         self.ambient_occlusion = 0.0
-        """How strongly the light from all around (an ambient or an environment light) is
-        shut out of corners, creases and the ground under things, where the surfaces near
-        them block it: 0 not at all (off), 1 the standard strength, more darker. Only
-        mobjects with a [material][manimgx.Material] are lit by that light, and only opaque
-        ones shut it out or are darkened; a sun's, a point's or a spot's light is left as it
-        is.
+        """来自四周的光（环境光或环境光照）被遮挡出角落、折痕以及物体下方
+        地面的程度，遮挡来自其附近表面：0 表示完全不遮挡（关闭），1 表示标准
+        强度，更大则更暗。只有带[材质][manimgx.Material]的 mobject 才会被该光
+        照亮，且只有不透明者才会遮挡或被加暗；太阳光、点光源或聚光灯的光不受
+        影响。
 
-        It is found from what the view shows (screen-space ambient obscurance): a
-        surface the view cannot see, such as a wall seen edge-on, shuts nothing out.
-        Light bounces between the surfaces that shut it out, so light-colored ones
-        darken less, and white ones hardly at all."""
+        它由视图所显示的内容求得（屏幕空间环境光遮蔽）：视图无法看见的
+        表面（例如侧着看的墙）不遮挡任何光。光在遮挡它的表面之间反弹，
+        因此浅色表面加暗较少，白色表面几乎不加暗。"""
         self.ambient_occlusion_radius = 0.3
-        """How far around a point the surfaces that shut light out of it are sought, in
-        scene units: about the size of the creases and contacts to darken."""
+        """在某点周围寻找遮挡其光的表面的范围，以场景单位表示：约为
+        需加暗的折痕与接触的尺寸。"""
         self.bloom = 0.0
-        """How much of the light that mobjects with a [material][manimgx.Material] send
-        into the view the lens spreads around it, as a glow (bloom), from 0 to 1: 0 none
-        (off), 0.05 a lens's faint glow, plain around light brighter than white, 1 all of
-        it. What the glow spreads, the light leaves: the view keeps the light it has,
-        spread.
+        """具有[材质][manimgx.Material]的 mobject 射入视图的光中，被镜头在其
+        周围扩散的部分，作为光晕（bloom），从 0 到 1：0 表示无（关闭），
+        0.05 表示镜头的微弱光晕，在比白色更亮的光周围呈纯色，1 表示全部。
+        光晕所扩散的正是光本身：视图保留其原有的光，并将其扩散。
 
-        It is spread from the light the view shows: what lies nearer, a mobject fixed in
-        the frame too, hides the light behind it. It falls off with the distance from
-        the light: half of it lies within a twentieth of the view's height, nearly all of
-        it within a quarter. It is light, over everything the view shows: over a lit
-        surface, it adds to the surface's light before the tone mapping shows them; over
-        display paint (the background, mobjects without a material, mobjects fixed in the
-        frame), the tone mapping shows it on its own and it adds to the paint, as a screen
-        adds light (white stays white); where the view shows nothing (a transparent
-        background), it shows alone, as opaque as it is bright. Mobjects without a material
-        send no light: they never glow."""
+        光晕由视图所显示的光扩散而来：更近的物体、同样固定在帧中的 mobject
+        会遮挡其后的光。光晕随距光的距离衰减：其一半位于视图高度的二十分之
+        一以内，几乎全部位于四分之一以内。它是光，叠加在视图所显示的一切
+        之上：在被照亮的表面上，它在色调映射显示二者之前叠加到表面的光上；
+        在显示颜料上（背景、无材质的 mobject、固定在帧中的 mobject），色调
+        映射将其单独显示并叠加到颜料上，如同屏幕加光（白色保持白色）；在
+        视图无内容处（透明背景），它单独显示，不透明度等于其亮度。无材质的
+        mobject 不发出光：它们永不产生光晕。"""
 
     @property
     def background_color(self) -> ManimColor:
-        """The color of the background: the configured one unless changed. Set it to any
-        color."""
+        """背景的颜色：取配置值，除非另行更改。可设为任何颜色。"""
         return self._background_color
 
     @background_color.setter
@@ -274,8 +264,7 @@ class Camera:
     # ── the view (CE MovingCamera semantics: the frame mobject is the truth) ────
     @property
     def frame_center(self) -> Point3D:
-        """The point the camera looks at: its frame's center. Set it to move the frame
-        there."""
+        """相机所观察的点：其帧的中心。设置它以将帧移动到该处。"""
         return self.frame.get_center()
 
     @frame_center.setter
@@ -284,20 +273,20 @@ class Camera:
 
     @property
     def frame_width(self) -> float:
-        """The width of the view, in scene units: its frame's."""
+        """视图的宽度，以场景单位表示：即其帧的宽度。"""
         return self.frame.width
 
     @property
     def frame_height(self) -> float:
-        """The height of the view, in scene units: its frame's."""
+        """视图的高度，以场景单位表示：即其帧的高度。"""
         return self.frame.height
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_mobjects_indicating_movement(self) -> list[Mobject]:
-        """The mobjects the view is made of: moving any of them moves the camera.
+        """构成视图的 mobject：移动其中任何一个都会移动相机。
 
         Returns:
-            The frame, the five trackers of the orbit, and the light, in a new list.
+            帧、轨道的五个跟踪器以及光源，在一个新列表中。
         """
         # the view (`feed.view`) reads nothing else a tween can move
         return [self.frame, *self.get_value_trackers(), self.light_source]
@@ -323,22 +312,20 @@ class Camera:
         margin: float = 0,
         animate: bool = True,
     ) -> Animate[Mobject] | Mobject:
-        """Fit the view around mobjects, in two dimensions: center the frame on them,
-        and size it to fit them.
+        """在二维中将视图适配到一组 mobject 周围：将帧居中于其上，
+        并调整尺寸以容纳它们。
 
-        The frame keeps its proportions: its width fits the mobjects, or its height,
-        whichever of the two they fill more of, and `margin` is added to it.
+        帧保持其比例：其宽度适配 mobject，或其高度适配 mobject，
+        取两者中填充较多的一个，并加上 `margin`。
 
         Args:
-            mobjects: The mobjects to fit, the frame itself left out; at least one must
-                remain (a ValueError otherwise).
-            margin: How much wider (or taller) than the mobjects the view is, in scene
-                units.
-            animate: Whether to return an animation of the frame, to play, rather than
-                fit it at once.
+            mobjects: 要适配的 mobject，帧本身被排除在外；至少须有一个
+                保留（否则抛出 ValueError）。
+            margin: 视图比 mobject 多出的宽度（或高度），以场景单位表示。
+            animate: 是否返回帧的动画以供播放，而非立即适配。
 
         Returns:
-            The animation, to play; with `animate` False, the frame, fitted.
+            该动画，以供播放；当 `animate` 为 False 时，返回适配后的帧。
         """
         mobs = [m for m in mobjects if m is not self.frame]
         if not mobs:
@@ -365,11 +352,11 @@ class Camera:
     # ── the 3D orbit ───────────────────────────────────────────────────────────
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_value_trackers(self) -> list[ValueTracker]:
-        """The five trackers of the camera's orbit.
+        """相机轨道的五个跟踪器。
 
         Returns:
-            The trackers of `phi`, `theta`, the focal distance, `gamma` and the zoom, in
-            that order, in a new list.
+            `phi`、`theta`、焦距、`gamma` 与 zoom 的跟踪器，按此
+            顺序，在一个新列表中。
         """
         return [
             self.phi_tracker,
@@ -380,134 +367,131 @@ class Camera:
         ]
 
     def get_phi(self) -> float:
-        """The angle between the camera's line of sight and the z axis.
+        """相机视线与 z 轴之间的夹角。
 
         Returns:
-            The angle, in radians.
+            该角度，以弧度表示。
         """
         return self.phi_tracker.get_value()
 
     def get_theta(self) -> float:
-        """The camera's angle around the z axis, counterclockwise from the x axis.
+        """相机绕 z 轴的角度，从 x 轴逆时针方向计量。
 
         Returns:
-            The angle, in radians.
+            该角度，以弧度表示。
         """
         return self.theta_tracker.get_value()
 
     def get_gamma(self) -> float:
-        """How far the camera turns about its line of sight.
+        """相机绕自身视线转动的角度。
 
         Returns:
-            The angle, in radians.
+            该角度，以弧度表示。
         """
         return self.gamma_tracker.get_value()
 
     def get_zoom(self) -> float:
-        """How much the camera magnifies.
+        """相机的放大倍数。
 
         Returns:
-            The zoom: 1 for none.
+            zoom：1 表示无放大。
         """
         return self.zoom_tracker.get_value()
 
     def get_focal_distance(self) -> float:
-        """The camera's distance from its frame's center.
+        """相机与其帧中心的距离。
 
         Returns:
-            The distance, in scene units.
+            该距离，以场景单位表示。
         """
         return self.focal_distance_tracker.get_value()
 
     def set_phi(self, value: float) -> None:
-        """Set the angle between the camera's line of sight and the z axis, at once.
+        """立即设置相机视线与 z 轴之间的夹角。
 
         Args:
-            value: The angle, in radians: 0 looks straight down on the xy plane.
+            value: 该角度，以弧度表示：0 表示从正上方俯视 xy 平面。
         """
         self.phi_tracker.set_value(value)
 
     def set_theta(self, value: float) -> None:
-        """Set the camera's angle around the z axis, at once.
+        """立即设置相机绕 z 轴的角度。
 
         Args:
-            value: The angle, in radians, counterclockwise from the x axis.
+            value: 该角度，以弧度表示，从 x 轴逆时针方向计量。
         """
         self.theta_tracker.set_value(value)
 
     def set_gamma(self, value: float) -> None:
-        """Set how far the camera turns about its line of sight, at once.
+        """立即设置相机绕自身视线转动的角度。
 
         Args:
-            value: The angle, in radians.
+            value: 该角度，以弧度表示。
         """
         self.gamma_tracker.set_value(value)
 
     # ── objects pinned to the screen ─────────────────────────────────────────────
     @property
     def fixed_in_frame_mobjects(self) -> set[Mobject]:
-        """The mobjects pinned to the screen: those given to
-        [`add_fixed_in_frame_mobjects`][manimgx.Camera.add_fixed_in_frame_mobjects],
-        with every member of their families as they are now: a part one gains later (a
-        number's new digits, what an updater or a Transform makes) is pinned with it."""
+        """固定到屏幕上的 mobject：即传给
+        [`add_fixed_in_frame_mobjects`][manimgx.Camera.add_fixed_in_frame_mobjects]
+        的那些，连同其当前家族的每个成员：之后获得的部分（一个数字的新数位、
+        更新器或 Transform 产生的部分）也随之固定。"""
         return {m for mob in self._fixed_in_frame for m in mob.get_family()}
 
     def add_fixed_in_frame_mobjects(self, *mobjects: Mobject) -> None:
-        """Pin mobjects to the screen: each is drawn where its points are, as in a
-        two-dimensional view centered on the origin, over everything else.
+        """将 mobject 固定到屏幕上：每个按其点所在位置绘制，如同在以原点为中心的
+        二维视图中，绘制在一切之上。
 
-        They stay where they are on the screen whatever the camera's angles, zoom and
-        center: a title placed with `to_corner` stays in its corner. Everything in them
-        is pinned, now and later: a member added later (a number's new digits, what an
-        updater or a Transform makes) is pinned too.
+        无论相机的角度、缩放与中心如何，它们都保持在屏幕上的位置：用
+        `to_corner` 放置的标题停留在其角落。其中的一切现在及以后都被固定：
+        之后添加的成员（一个数字的新数位、更新器或 Transform 产生的部分）也
+        被固定。
 
         Args:
-            *mobjects: The mobjects to pin, with their families.
+            *mobjects: 要固定的 mobject，连同其家族。
         """
         self._fixed_in_frame.update(dict.fromkeys(mobjects))
 
 
 type Act = Callable[[Fraction, "Route | None"], Callable[[], None] | None]
-"""A play's step at an instant: it brings what runs there (of the parts given, if any), and
-returns what opens there (to run once the world is there), if anything."""
+"""一次播放在某时刻的步骤：它将当时运行的内容带入（若有给定部分），并
+返回当时开启的内容（在世界到达该处后运行），若有。"""
 
 
 class Concern(NamedTuple):
-    """What an instant of a play concerns (`Scene._exact`): the route to its parts, and the
-    mobjects whose time-based updaters are brought there."""
+    """一次播放在某时刻所关注的内容（`Scene._exact`）：其各部分的路径，以及
+    其基于时间的更新器被带到该处的 mobject。"""
 
     parts: Route
     mobjects: list[Mobject]
 
 
 class ZoomedCameraConfig(TypedDict, total=False):
-    """The zoomed camera's look: its frame's stroke and its picture's background."""
+    """缩放相机的外观：其帧的描边与其画面的背景。"""
 
     default_frame_stroke_width: float
-    """The width of the zoomed camera frame's outline, in hundredths of a scene unit
-    (default 2)."""
+    """缩放相机帧轮廓的宽度，以场景单位的百分之一表示（默认 2）。"""
     default_frame_stroke_color: ParsableManimColor
-    """The color of the zoomed camera frame's outline (default white)."""
+    """缩放相机帧轮廓的颜色（默认白色）。"""
     background_opacity: float
-    """The opacity of the zoomed picture's background, from 0 to 1 (default 1: it hides
-    what is behind the display)."""
+    """缩放画面背景的不透明度，从 0 到 1（默认 1：遮挡其后的显示内容）。"""
 
 
 class Scene:
-    """A scene: one video, and what happens in it.
+    """一个场景：一段视频，以及其中发生的事情。
 
-    Make a class from it, and write what happens in its
-    [`construct`][manimgx.Scene.construct] method: ManimGX runs it once, from top to
-    bottom, and [`render`][manimgx.Scene.render] records the video. A mobject shows from
-    the moment the scene holds it ([`add`][manimgx.Scene.add] puts one in). Time passes
-    only in [`play`][manimgx.Scene.play] and [`wait`][manimgx.Scene.wait]: whatever
-    `construct` does between them happens at one moment.
+    从它派生一个类，并在其
+    [`construct`][manimgx.Scene.construct] 方法中写下发生的事情：ManimGX
+    从上到下运行它一次，[`render`][manimgx.Scene.render] 记录视频。mobject
+    自场景持有它的那一刻起显示（[`add`][manimgx.Scene.add] 将其放入）。时间
+    仅在 [`play`][manimgx.Scene.play] 与 [`wait`][manimgx.Scene.wait] 中流逝：
+    `construct` 在二者之间所做的一切都发生在同一时刻。
 
-    Each frame shows the scene at its own exact time, so a scene is the same at every
-    frame rate: a second of animation is 60 frames at 60 frames a second, and 30 at 30.
-    When `construct` ends, a last frame shows the scene as it ends, so that its last
-    animation is seen landing. The methods that change a scene give it back, so that
-    their calls chain.
+    每一帧在各自的精确时间显示场景，因此场景在任意帧率下都相同：一秒动画
+    在每秒 60 帧时为 60 帧，在每秒 30 帧时为 30 帧。当 `construct` 结束时，
+    最后一帧显示场景结束时的状态，使其最后一个动画的落定被看见。改变场景的
+    方法返回场景本身，因此其调用可链式串联。
 
     Examples:
         ```python
@@ -524,33 +508,32 @@ class Scene:
     """
 
     three_d: bool = False
-    """Whether the scene's camera sees in three dimensions: True for a
-    [`ThreeDScene`][manimgx.ThreeDScene]."""
+    """场景的相机是否以三维方式观察：为
+    [`ThreeDScene`][manimgx.ThreeDScene] 时为 True。"""
     compositor: Compositor | None = None  # a play's: its tweens' leaves (`play`)
 
     def __init__(self) -> None:
         clock.reset()  # a new world: its clock at 0
         self.camera = Camera(three_d=self.three_d)
-        """The scene's camera: what a frame shows. Move, scale or animate its
-        [`frame`][manimgx.Camera.frame] to pan and zoom."""
+        """场景的相机：一帧所显示的内容。移动、缩放或为其
+        [`frame`][manimgx.Camera.frame] 添加动画以平移与缩放。"""
         self.mobjects: list[Mobject] = []
-        """The mobjects the scene holds, in drawing order: each is drawn over those
-        before it, at an equal z-index. [`add`][manimgx.Scene.add] and
-        [`remove`][manimgx.Scene.remove] change it."""
+        """场景持有的 mobject，按绘制顺序排列：每个绘制在先于它的那些之上，
+        z-index 相等时如此。[`add`][manimgx.Scene.add] 与
+        [`remove`][manimgx.Scene.remove] 改变它。"""
         self.foreground_mobjects: list[Mobject] = []
-        """The mobjects kept in front: drawn over all the others, at an equal z-index
-        (see [`add_foreground_mobjects`][manimgx.Scene.add_foreground_mobjects]). They
-        are among the scene's [`mobjects`][manimgx.Scene.mobjects] too."""
+        """保持在最前的 mobject：绘制在所有其他 mobject 之上，z-index 相等时
+        如此（见 [`add_foreground_mobjects`][manimgx.Scene.add_foreground_mobjects]）。
+        它们也在场景的 [`mobjects`][manimgx.Scene.mobjects] 之中。"""
         self.updaters: list[Callable[[float], object]] = []
-        """The scene's own updaters, in the order they run (see
-        [`add_updater`][manimgx.Scene.add_updater])."""
+        """场景自身的更新器，按其运行顺序排列（见
+        [`add_updater`][manimgx.Scene.add_updater]）。"""
         self._since: dict[object, Fraction] = {}  # when each scene updater was last run
         self.clock = Fraction(0)
-        """The scene's time, exact: a fraction of seconds (see
-        [`time`][manimgx.Scene.time])."""
+        """场景的时间，精确的：秒的分数（见
+        [`time`][manimgx.Scene.time]）。"""
         self.frame = 0
-        """How many frames the scene has recorded: the number of the next one, which
-        shows the world at `frame / fps` seconds."""
+        """场景已记录的帧数：下一帧的编号，该帧显示 `frame / fps` 秒处的世界。"""
         self._records = False  # does anything record the world (`_recording`), this run
         # the play's instants no frame shows, with what each concerns (`_exact`, `_ticks`)
         self._events: dict[Fraction, Concern | None] = {}
@@ -562,52 +545,48 @@ class Scene:
         # the play running: its animations may hide parts of the scene (`display_list`)
         self._animation: Animation | None = None
         self.num_plays = 0
-        """How many plays and waits the scene has run."""
+        """场景已运行的 play 与 wait 次数。"""
         self.film = Film()
-        """The film the scene records: [`render`][manimgx.Scene.render] makes a new one,
-        and returns it."""
+        """场景记录的影片：[`render`][manimgx.Scene.render] 新建一个，
+        并返回它。"""
 
     @property
     @deprecated(
         "Manim CE's: the scene is its own renderer: use the scene", category=None
     )
     def renderer(self) -> Self:
-        """The scene itself: Manim code reaches the camera and the time through
-        `self.renderer`, and a scene has both."""
+        """场景自身：Manim 代码通过 `self.renderer` 访问相机与时间，
+        而场景二者皆有。"""
         return self
 
     @property
     def time(self) -> float:
-        """The scene's time, in seconds.
+        """场景的时间，以秒为单位。
 
-        In `construct`, it is 0 when the scene begins, and the end of each play or wait
-        once it returns. During a play, while animations and updaters run, it is the time
-        of the frame being made.
+        在 `construct` 中，场景开始时为 0，每次 play 或 wait 返回时为其结束时刻。
+        在 play 期间，动画与更新器运行时，它为正在生成的帧的时间。
         """
         return float(clock.now)
 
     # ── lifecycle ─────────────────────────────────────────────────────────────
     def setup(self) -> None:
-        """Prepare the scene: [`render`][manimgx.Scene.render] calls it before
-        `construct`.
+        """准备场景：[`render`][manimgx.Scene.render] 在 `construct` 之前调用它。
 
-        It does nothing unless overridden: override it for what several scenes share, in
-        a class they derive from.
+        除非被重写，否则它什么也不做：在多个场景共享的内容所派生的类中重写它。
         """
 
     def construct(self) -> None:
-        """Describe the scene, what happens and when: override it.
+        """描述场景，发生什么以及何时发生：重写它。
 
-        [`render`][manimgx.Scene.render] runs it once, from top to bottom, and the film
-        is what it leaves behind. It is ordinary Python: loops, functions and variables
-        work as they do anywhere.
+        [`render`][manimgx.Scene.render] 从上到下运行它一次，影片即为其留下的
+        内容。它是普通 Python：循环、函数与变量如在任何地方一样工作。
         """
 
     def tear_down(self) -> None:
-        """Finish the scene: [`render`][manimgx.Scene.render] calls it after
-        `construct`, before the closing frame.
+        """结束场景：[`render`][manimgx.Scene.render] 在 `construct` 之后、
+        闭合帧之前调用它。
 
-        It does nothing unless overridden.
+        除非被重写，否则它什么也不做。
         """
 
     @staticmethod
@@ -624,44 +603,41 @@ class Scene:
         plays: PlayHook | None = None,
         take: Take | None = None,
     ) -> Film:
-        """Run the scene and record its film: `setup`, `construct` and `tear_down`, then
-        a closing frame.
+        """运行场景并记录其影片：`setup`、`construct` 与 `tear_down`，然后
+        一个闭合帧。
 
-        Each frame is sent as it is made: encoded into `video`, an MP4 file, and handed to
-        `frames`, if given; each play or wait, as it ends, is handed to `plays`, if given.
-        A frame is drawn only for the video, or when `frames` asks for its pixels: with
-        neither, the frames are counted, not drawn, which checks a scene quickly. Frames
-        `k = 0, 1, …` sample `k / fps` seconds, after events at the same float instant;
-        the closing frame then shows it at its own instant: the scene's end if a frame falls
-        there, or else the first frame time after it. So the scene's last animation is
-        seen landing.
+        每一帧在生成时即被发送：编码进 `video`（一个 MP4 文件），并交给
+        `frames`（若给定）；每次 play 或 wait 结束时，交给 `plays`（若给定）。
+        仅在需要视频或当 `frames` 请求其像素时才绘制帧：二者皆无时，帧仅被
+        计数而不绘制，可快速检查场景。帧 `k = 0, 1, …` 在同一浮点时刻的事件
+        之后采样 `k / fps` 秒；闭合帧随后在其自身时刻显示场景：若某帧恰落在
+        场景结束处则为该结束时刻，否则为之后的第一个帧时刻。因此场景的最后一个
+        动画的落定被看见。
 
-        Either function, and a take, may raise [`Cut`][manimgx.rendering.film.Cut] to end the
-        film there: the scene stops, and the video is written up to the last frame sent.
-        If the scene fails, the video is not written. A scene renders once: make a new
-        one to render it again.
+        任一函数以及一个 take 都可抛出 [`Cut`][manimgx.rendering.film.Cut] 以在
+        该处结束影片：场景停止，视频写到已发送的最后一帧。若场景失败，视频不
+        被写入。一个场景只渲染一次：再次渲染需新建一个。
 
         Args:
-            video: The MP4 file to write, if any, at the size and frame rate of
-                [`config`][manimgx.config.config] (a whole number of frames a second,
-                and an even width and height).
-            preset: The x264 encoding preset; faster presets make larger files.
-            crf: The x264 constant rate factor, from 0 to 51; lower values give
-                higher quality.
-            frames: A function handed each frame as it is sent (a
-                [`FrameSink`][manimgx.rendering.film.FrameSink]): a [`Frame`][manimgx.rendering.film.Frame],
-                which knows its place in the film and draws its pixels when asked.
-            plays: A function called as each play or wait ends (a
-                [`PlayHook`][manimgx.rendering.film.PlayHook]), with the [`Play`][manimgx.rendering.film.Play]
-                and the animations it played, the world as the play left it.
-            take: Record the film as a take instead, for ManimGX's player to draw: a
-                function handed its bytes as they are recorded (a
-                [`Take`][manimgx.rendering.film.Take]). A take has no video, and no frames for
-                `frames`.
+            video: 要写入的 MP4 文件（若有），尺寸与帧率取
+                [`config`][manimgx.config.config]（每秒整帧数，且宽高均为偶数）。
+            preset: x264 编码预设；更快的预设产生更大的文件。
+            crf: x264 的恒定速率因子，从 0 到 51；值越低质量越高。
+            frames: 一个随每帧发送而被调用的函数（一个
+                [`FrameSink`][manimgx.rendering.film.FrameSink]）：一个
+                [`Frame`][manimgx.rendering.film.Frame]，它知道自己在影片中的位置，
+                并在被请求时绘制其像素。
+            plays: 一个在每次 play 或 wait 结束时被调用的函数（一个
+                [`PlayHook`][manimgx.rendering.film.PlayHook]），带有
+                [`Play`][manimgx.rendering.film.Play] 及其播放的动画，以及 play
+                留下的世界。
+            take: 改为将影片记录为一个 take，供 ManimGX 的播放器绘制：一个随其
+                字节被记录而调用的函数（一个
+                [`Take`][manimgx.rendering.film.Take]）。take 没有视频，也没有供
+                `frames` 的帧。
 
         Returns:
-            The film: how many frames it has, its plays, sections, sounds and captions,
-            and how its video was made.
+            影片：其帧数、play、分段、声音与字幕，以及其视频的生成方式。
         """
         self.film = Film(
             video, frames=frames, plays=plays, take=take, preset=preset, crf=crf
@@ -688,16 +664,15 @@ class Scene:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def display_list(self) -> list[Mobject]:
-        """The mobjects a frame draws, in the order it draws them.
+        """一帧绘制的 mobject，按其绘制顺序。
 
-        They are the members with points of the scene's mobjects, in family order (a
-        mobject before its submobjects), the foreground mobjects last, but the parts the
-        play running hides (its animations' [`hidden`][manimgx.Animation.hidden]); then
-        sorted by z-index, which keeps that order among equal ones. A member held twice
-        is drawn once, at its last place.
+        它们是场景 mobject 中带点的成员，按家族顺序排列（mobject 在其子 mobject
+        之前），前景 mobject 在最后，但正在运行的 play 所隐藏的部分（其动画的
+        [`hidden`][manimgx.Animation.hidden]）除外；然后按 z-index 排序，在相等者
+        之间保持该顺序。被持有两次的成员只绘制一次，在其最后位置。
 
         Returns:
-            A new list.
+            一个新列表。
         """
         members = _family([*self.mobjects, *self.foreground_mobjects])
         if self._animation is not None and (parts := self._animation.hidden):
@@ -708,7 +683,7 @@ class Scene:
         return leaves
 
     def _emit(self, repeat: int = 1) -> None:
-        """Record frames self.frame … self.frame + repeat − 1 (identical: one packet, repeated)."""
+        """记录帧 self.frame … self.frame + repeat − 1（相同：一个数据包，重复）。"""
         if repeat > 0:
             self.film.record(self.camera, self.display_list(), repeat)
             self.frame += repeat
@@ -721,10 +696,10 @@ class Scene:
         frozen: bool = False,
         boundaries: dict[float, Fraction] | None = None,
     ) -> None:
-        """Run to `end`: frames in the observed [clock, end) show the world at their instants (`act` is
-        the play's step, before the updaters); then the world is brought to `end`. `stop` ends the run
-        at the frame it holds after. A frozen run, or one where nothing can change, is one held frame;
-        while anything is simulated, the world also steps at the simulation clock's ticks.
+        """运行到 `end`：在观察到的 [clock, end) 中的帧显示各自时刻的世界（`act` 为
+        play 的步骤，在更新器之前）；然后世界被带到 `end`。`stop` 在其持有的帧处结束
+        运行。冻结的运行，或无任何可变化的运行，为一帧保持；当有事物被模拟时，
+        世界也在模拟时钟的每个 tick 处步进。
         """
         fps, stopped = self._fps(), False
         limit = clock.frame_at(end, fps)
@@ -762,9 +737,9 @@ class Scene:
         return max(t, self.clock, boundaries.get(float(t), t) if boundaries else t)
 
     def _simulation_rate(self) -> int | None:
-        """The simulation clock's rate, if anything in the scene is simulated (a time-based
-        updater that is not a flow — an integrator, a traced path), or in what the play
-        running will bring into it or run; else None."""
+        """模拟时钟的速率，若场景中有任何被模拟的事物（非 flow 的基于时间的
+        更新器——积分器、被追踪的路径），或正在运行的 play 将带入或运行的事物；
+        否则为 None。"""
         if any(simulated(u) for u in self.updaters) or any(
             simulated(u) for m in self._running() for u in m.updaters
         ):
@@ -772,13 +747,13 @@ class Scene:
         return None
 
     def _recording(self) -> bool:
-        """Does anything in the scene, or that the play running runs, record the world (a
-        traced path)?"""
+        """场景中或正在运行的 play 所运行的事物中，是否有任何记录世界（被追踪
+        的路径）？"""
         return any(records(u) for m in self._running() for u in m.updaters)
 
     def _running(self) -> list[Mobject]:
-        """The scene's members, and the mobjects the play running acts on and their
-        families (it may bring them into the scene, or run a target's updaters)."""
+        """场景的成员，以及正在运行的 play 所作用的 mobject 及其家族
+        （它可能将其带入场景，或运行目标的更新器）。"""
         return self.get_mobject_family_members() + [
             m for mob in self._playing for m in mob.get_family()
         ]
@@ -789,10 +764,10 @@ class Scene:
         rate: int | None,
         act: Act | None = None,
     ) -> None:
-        """The world at every instant after now and before `until` that no frame shows: the
-        simulation clock's ticks, where what is simulated steps, and the play's events (its
-        parts' windows opening and closing), where it does not (a simulation's steps are its
-        clock's, whatever the plays)."""
+        """now 之后、`until` 之前每一无帧显示的时刻的世界：模拟时钟的
+        tick，被模拟的事物在该处步进；以及 play 的事件（其各部分的窗口开启与
+        关闭），在该处不步进（模拟的步进为其时钟的步进，无论 play 如何）。
+        """
         ticks = (
             set()
             if rate is None
@@ -817,8 +792,9 @@ class Scene:
         rate: int | None,
         act: Act | None = None,
     ) -> None:
-        """The world a frame at `t` shows: the simulation clock's ticks until then, then `t` —
-        where what is simulated steps only if `t` is a tick."""
+        """`t` 处一帧所显示的世界：到该处的模拟时钟 tick，然后是 `t`——
+        被模拟的事物仅在 `t` 为 tick 时步进。
+        """
         self._ticks(t, rate, act)
         self._instant(t, act, rate is None or (t * rate).denominator == 1)
 
@@ -834,12 +810,12 @@ class Scene:
         stepping: bool = True,
         framing: bool = True,
     ) -> None:
-        """The world at `t`: the play's step, then every updater brought to `t` (simulated ones only
-        where `stepping`, per-frame ones only where `framing`), then the recorders. In a scene
-        that records (`_records`), a frame or an event is computed twice: the world as time
-        brought it there (as a tick sees it), then with its per-frame updaters run; the
-        recorders record both (`TracedPath` spreads what the per-frame updaters changed over the
-        frame)."""
+        """`t` 处的世界：play 的步骤，然后每个被带到 `t` 的更新器（被模拟者仅在
+        `stepping` 时、逐帧者仅在 `framing` 时），然后记录器。在记录场景中
+        （`_records`），一帧或一事件被计算两次：世界如时间将其带到该处（如
+        tick 所见），然后运行其逐帧更新器；记录器记录二者（`TracedPath` 将
+        逐帧更新器在该帧上的变化铺展开）。
+        """
         if framing and self._records:
             self._pass(t, act, stepping, False)
             self._pass(t, act, False, True)
@@ -879,11 +855,12 @@ class Scene:
     def _pure_tweens(
         self, anim: Animation, alpha: list[float]
     ) -> tuple[list[tuple[Transform, Path]], set[int]] | None:
-        """A play that is a pure function of time — its tweens (Transforms along a `Path` between
-        fixed keyframes, one per leaf, under compositions that only time them, going forward) and the
-        objects it introduces; None if anything else acts (updaters, procedures, a camera's picture),
-        and then every frame is computed. Its groups begin every part now (`begin_all`): nothing a
-        part reads when it begins can change before its window opens."""
+        """一个纯时间函数的 play——其 tween（沿固定关键帧之间 `Path` 的
+        Transform，每叶一个，在仅为其计时的组合下，向前进行）以及其引入的
+        对象；若有其他事物作用（更新器、过程、相机的画面），则为 None，
+        此时每一帧都被计算。其组在每个部分开始时即开始其各部分（`begin_all`）：
+        某部分在开始时所读的内容在其窗口开启之前不会改变。
+        """
         from manimgx.animation.timeline import (
             Animation,
             AnimationGroup,
@@ -988,27 +965,26 @@ class Scene:
         alpha: list[float],
         introduced: set[int],
     ) -> None:
-        """A pure play at once: each tween's alpha at every frame from its compositions' clocks
-        (`schedule`); the film mixes the frames."""
+        """一次性完成纯 play：每个 tween 在来自其组合时钟的每一帧处的 alpha
+        （`schedule`）；影片混合各帧。
+        """
         leaves = _tracks(anim, tweens, np.array(alpha), introduced)
         self.film.tween(self.camera, self.display_list(), leaves)
         self.frame += len(alpha)
 
     # ── membership (CE semantics, including group restructuring) ────────────────
     def add(self, *mobjects: Mobject) -> Self:
-        """Put mobjects in the scene, from now on, in front of those it holds.
+        """从现在起将 mobject 放入场景，置于已持有者之前。
 
-        Each is drawn over the mobjects added before it (at an equal z-index), and under
-        the foreground mobjects. A mobject the scene holds already moves to the front.
-        One that is part of a group the scene holds is taken out of the group's place:
-        the group is split, its other members staying where they are, each on its own
-        (and the group's own updaters no longer run); a group added takes its members
-        from wherever the scene held them. The updaters of the mobjects added run from
-        now on: a time-based one's first `dt` counts from the moment its mobject joins
-        the scene.
+        每个绘制在先于它添加的 mobject 之上（z-index 相等时），并在前景
+        mobject 之下。场景已持有的 mobject 移动到最前。作为场景所持有组的一部分的
+        mobject 从组的位置中取出：组被拆分，其其他成员各自留在原处（组的自身
+        更新器不再运行）；添加的组从场景持有它们的任何位置取走其成员。所添加
+        mobject 的更新器从现在起运行：基于时间者的第一个 `dt` 从其 mobject 加入
+        场景的时刻起算。
 
         Args:
-            *mobjects: The mobjects, in order: the last is drawn on top.
+            *mobjects: mobject，按顺序排列：最后一个绘制在最上层。
 
         Examples:
             ```python
@@ -1037,16 +1013,14 @@ class Scene:
         return self
 
     def remove(self, *mobjects: Mobject) -> Self:
-        """Take mobjects out of the scene: they are no longer drawn, and their updaters
-        stop.
+        """将 mobject 移出场景：它们不再被绘制，其更新器停止。
 
-        A mobject that is part of a group the scene holds is taken out the same way: the
-        group is split, its other members staying in the scene, each on its own. A
-        mobject the scene does not hold is ignored. The mobjects themselves are not
-        changed: adding one again shows it as it is then.
+        作为场景所持有组的一部分的 mobject 以同样方式被取出：组被拆分，其其他
+        成员各自留在场景中。场景未持有的 mobject 被忽略。mobject 自身不被改变：
+        再次添加它将显示其当时的状态。
 
         Args:
-            *mobjects: The mobjects to take out.
+            *mobjects: 要移出的 mobject。
         """
         self.mobjects = _restructure(self.mobjects, mobjects, extract=False)
         self.foreground_mobjects = _restructure(
@@ -1055,11 +1029,11 @@ class Scene:
         return self
 
     def add_foreground_mobjects(self, *mobjects: Mobject) -> Self:
-        """Put mobjects in the scene, in front: drawn over all the others, at an equal
-        z-index, even those added after them.
+        """将 mobject 放入场景并置于最前：绘制在所有其他 mobject 之上，z-index
+        相等时如此，即便之后添加的 mobject 也如此。
 
         Args:
-            *mobjects: The mobjects, in order: the last is drawn on top.
+            *mobjects: mobject，按顺序排列：最后一个绘制在最上层。
         """
         self.foreground_mobjects = remove_list_redundancies(
             [*self.foreground_mobjects, *mobjects]
@@ -1070,13 +1044,13 @@ class Scene:
         "add_foreground_mobject is add_foreground_mobjects: use it", category=None
     )
     def add_foreground_mobject(self, *mobjects: Mobject) -> Self:
-        """The same as
-        [`add_foreground_mobjects`][manimgx.Scene.add_foreground_mobjects]."""
+        """等同于
+        [`add_foreground_mobjects`][manimgx.Scene.add_foreground_mobjects]。"""
         return self.add_foreground_mobjects(*mobjects)
 
     def remove_foreground_mobjects(self, *mobjects: Mobject) -> Self:
-        """Take mobjects out of the front: they stay in the scene, where they are in its
-        drawing order, and mobjects added later are drawn over them.
+        """将 mobject 移出最前：它们留在场景中，处于其绘制顺序中的位置，
+        之后添加的 mobject 绘制在它们之上。
         """
         self.foreground_mobjects = _restructure(self.foreground_mobjects, mobjects)
         return self
@@ -1085,50 +1059,49 @@ class Scene:
         "remove_foreground_mobject is remove_foreground_mobjects: use it", category=None
     )
     def remove_foreground_mobject(self, *mobjects: Mobject) -> Self:
-        """The same as
-        [`remove_foreground_mobjects`][manimgx.Scene.remove_foreground_mobjects]."""
+        """等同于
+        [`remove_foreground_mobjects`][manimgx.Scene.remove_foreground_mobjects]。"""
         return self.remove_foreground_mobjects(*mobjects)
 
     def bring_to_front(self, *mobjects: Mobject) -> Self:
-        """Draw mobjects over the others, but under the foreground mobjects: the same as
-        [`add`][manimgx.Scene.add].
+        """将 mobject 绘制在其他 mobject 之上，但在前景 mobject 之下：等同于
+        [`add`][manimgx.Scene.add]。
 
         Args:
-            *mobjects: The mobjects, in order: the last is drawn on top.
+            *mobjects: mobject，按顺序排列：最后一个绘制在最上层。
         """
         return self.add(*mobjects)
 
     def bring_to_back(self, *mobjects: Mobject) -> Self:
-        """Draw mobjects under all the others, at an equal z-index: they move to the
-        start of the scene's mobjects, out of the foreground if they were in it.
+        """将 mobject 绘制在所有其他 mobject 之下，z-index 相等时如此：它们移动
+        到场景 mobject 的起始处，若原在前景中则移出前景。
 
-        A mobject the scene does not hold is added there, at the bottom.
+        场景未持有的 mobject 在此添加，位于最底层。
 
         Args:
-            *mobjects: The mobjects, in order: the first is drawn at the bottom.
+            *mobjects: mobject，按顺序排列：第一个绘制在最底层。
         """
         self.remove(*mobjects)
         self.mobjects = [*mobjects, *self.mobjects]
         return self
 
     def clear(self) -> Self:
-        """Take every mobject out of the scene, the foreground ones too; the scene's own
-        updaters stay.
+        """将每个 mobject 移出场景，前景 mobject 亦然；场景自身的更新器保留。
         """
         self.mobjects, self.foreground_mobjects = [], []
         return self
 
     def replace(self, old: Mobject, new: Mobject) -> None:
-        """Put a mobject in the scene in another's place: where the other is drawn, even
-        inside a group, which then holds the new one.
+        """将一个 mobject 放入场景中替换另一个：在另一个被绘制的位置，即便在
+        组内，组随后持有新的那个。
 
-        `new` is first taken out of the list it joins, if it is there.
-        [`ReplacementTransform`][manimgx.ReplacementTransform] ends with it. A mobject
-        the scene does not hold raises a ValueError.
+        `new` 首先被移出其要加入的列表（若已在其中）。
+        [`ReplacementTransform`][manimgx.ReplacementTransform] 以它结束。场景未
+        持有的 mobject 抛出 ValueError。
 
         Args:
-            old: The mobject to replace: one the scene holds, or a part of one.
-            new: The mobject to put in its place.
+            old: 要被替换的 mobject：场景持有的一个，或其一部分。
+            new: 要放入其位置的 mobject。
         """
 
         def replace_in(lst: list[Mobject]) -> bool:
@@ -1146,41 +1119,39 @@ class Scene:
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_mobject_family_members(self) -> list[Mobject]:
-        """Every mobject in the scene, with all its submobjects, each once.
+        """场景中的每个 mobject，连同其所有子 mobject，各出现一次。
 
         Returns:
-            A new list, in family order, then sorted by z-index (which keeps that order
-            among equal ones).
+            一个新列表，按家族顺序，然后按 z-index 排序（在相等者之间保持
+            该顺序）。
         """
         members = _family(self.mobjects)
         members.sort(key=lambda m: m.z_index)
         return members
 
     def add_updater(self, func: Callable[[float], object]) -> None:
-        """Add an updater to the scene itself: a function it calls with the time that
-        passed.
+        """为场景自身添加一个更新器：一个以流逝时间调用的函数。
 
-        It is handed `dt`, the scene time in seconds since it last ran (or was added),
-        at each instant the scene computes, after the updaters of the mobjects. It steps
-        as a mobject's time-based updater does: on the simulation clock
-        ([`config.simulation_rate`][manimgx.config.Config.simulation_rate] ticks a
-        second, and the end of each play and wait), unless it is a
-        [flow][manimgx.mobject.flow], which runs at every frame. What it returns is
-        ignored.
+        它被传入 `dt`，即自上次运行（或被添加）以来以秒为单位的场景时间，
+        在场景计算的每个时刻、mobject 的更新器之后调用。它像 mobject 的基于
+        时间的更新器那样步进：在模拟时钟上
+        （[`config.simulation_rate`][manimgx.config.Config.simulation_rate]
+        每秒 tick 数，以及每次 play 与 wait 的结束），除非它是
+        [flow][manimgx.mobject.flow]，后者在每帧运行。其返回值被忽略。
 
         Args:
-            func: The updater: a function of one parameter, named `dt`.
+            func: 该更新器：一个单参数函数，名为 `dt`。
         """
         self.updaters.append(func)
         self._since[func] = clock.now
 
     def remove_updater(self, func: Callable[[float], object]) -> None:
-        """Remove an updater from the scene, every time it was added.
+        """从场景移除一个更新器，每次添加都移除。
 
-        This also cancels calls that have not yet run in the current update.
+        这也取消当前更新中尚未运行的调用。
 
         Args:
-            func: The updater.
+            func: 该更新器。
         """
         self.updaters = [f for f in self.updaters if f is not func]
         if func not in self.updaters:
@@ -1188,28 +1159,25 @@ class Scene:
 
     # ── time ─────────────────────────────────────────────────────────────────────
     def play(self, *animations: Animation, **options: Unpack[TransformOptions]) -> None:
-        """Play animations, together, from the scene's present time.
+        """从场景当前时间起，同时播放动画。
 
-        Each animation starts now and lasts its own run time, and ends when its time is up,
-        whatever else still plays: the play lasts as long as the longest one. Then
-        `construct` goes on, at the time the play ended. To play animations one after
-        another, or each a little after the one before it, play a
-        [`Succession`][manimgx.Succession] or a [`LaggedStart`][manimgx.LaggedStart].
+        每个动画从现在开始，持续其自身的运行时间，在其时间用尽时结束，
+        无论其他仍在播放的动画：play 持续至最长者结束。然后 `construct` 在
+        play 结束的时刻继续。要依次播放动画，或每个比前一个稍晚开始，请播放
+        [`Succession`][manimgx.Succession] 或 [`LaggedStart`][manimgx.LaggedStart]。
 
-        A play brings into the scene what its animations change, if the scene doesn't
-        hold it yet, in the order given. An animation that brings its mobject in
-        ([`Create`][manimgx.Create], [`FadeIn`][manimgx.FadeIn], …) adds it as it starts,
-        and a replacement adds the mobject it turns into as it ends. One that takes its
-        mobject out ([`FadeOut`][manimgx.FadeOut], …) removes it as it ends. A
-        [`Wait`][manimgx.Wait] played alone is a [`wait`][manimgx.Scene.wait].
+        play 将其动画所改变的内容带入场景（若场景尚未持有），按给定顺序。引入
+        其 mobject 的动画（[`Create`][manimgx.Create]、[`FadeIn`][manimgx.FadeIn]、…）
+        在其开始时添加它，替换动画在其结束时添加其转换目标。取出其 mobject 的
+        动画（[`FadeOut`][manimgx.FadeOut]、…）在其结束时移除它。单独播放的
+        [`Wait`][manimgx.Wait] 即为 [`wait`][manimgx.Scene.wait]。
 
         Args:
-            *animations: The animations, or iterables of them; at least one.
-            **options: [Transform options][manimgx.animation.transform.TransformOptions]
-                for every animation: each option given replaces that animation's own. So
-                `run_time=2` plays each for 2 seconds, and a `lag_ratio` staggers the
-                parts of each (a [`LaggedStart`][manimgx.LaggedStart] staggers the
-                animations).
+            *animations: 动画，或其可迭代对象；至少一个。
+            **options: 每个动画的[变换选项][manimgx.animation.transform.TransformOptions]：
+                给定的每个选项替换该动画自身的选项。因此 `run_time=2` 将每个
+                动画播放 2 秒，`lag_ratio` 错开每个的各部分（
+                [`LaggedStart`][manimgx.LaggedStart] 错开各动画）。
 
         Examples:
             ```python
@@ -1345,11 +1313,11 @@ class Scene:
             self.clock = end
 
     def _exact(self, parts: list[Window]) -> dict[Fraction, Concern | None]:
-        """Where in the play (its progress) its parts begin and finish: each an instant the
-        scene computes, a frame there or not, with what it concerns: the parts beginning or
-        finishing there, the parts running across it that drive what those read or drive,
-        and, among what those read or drive, the mobjects with time-based updaters. None:
-        everything (a scene's own time-based updater may move anything)."""
+        """play 中（其进度）其各部分开始与结束的位置：每个为场景计算的一个时刻，
+        该处可能有帧也可能无，附带其关注的内容：在该处开始或结束的各部分、
+        跨越该处运行并驱动那些所读或所驱动之物的各部分，以及在这些所读或所驱动
+        之物中带基于时间更新器的 mobject。None：一切（场景自身的基于时间更新器
+        可能移动任何事物）。"""
         full = any(not _per_frame(u) for u in self.updaters)
         moving = {
             id(m): m
@@ -1395,10 +1363,10 @@ class Scene:
         }
 
     def _event(self, t: Fraction, act: Act, concern: Concern) -> None:
-        """An instant no frame shows, where parts of the play begin or finish: only what it
-        concerns is brought to `t` (see `_exact`); the rest waits for the next frame, where
-        nothing can have read it meanwhile. What is simulated does not step here (its steps
-        are its clock's), and no per-frame updater runs."""
+        """无帧显示的某时刻，play 的部分在该处开始或结束：仅将其关注的内容带到
+        `t`（见 `_exact`）；其余等待下一帧，其间无任何事物可读取它。被模拟的事物
+        不在此步进（其步进为其时钟的），且无逐帧更新器运行。
+        """
         clock.now, clock.stepping, clock.framing = t, False, False
         opening = act(t, concern.parts)
         for mob in concern.mobjects:
@@ -1408,9 +1376,9 @@ class Scene:
         clock.stepping = clock.framing = True
 
     def _together(self, begin: Callable[[], object]) -> None:
-        """Run `begin`, in which animations begin together: they all find the scene as it
-        was, and what they bring in (`_introduce`) is looked for in what it holds, found
-        once for them all."""
+        """运行 `begin`，其中各动画同时开始：它们都看到场景原样，其所带入的
+        内容（`_introduce`）在场景所持有者中查找，为它们全体查找一次。
+        """
         self._beginning, self._holding = True, None
         try:
             begin()
@@ -1418,9 +1386,10 @@ class Scene:
             self._beginning, self._holding = False, None
 
     def _introduce(self, mobjects: Sequence[Mobject]) -> None:
-        """Bring in, as an animation that introduces them begins, those of `mobjects` the
-        scene lacks (with something to draw or to run), each by itself, as `add` does: one
-        none of whose family the scene holds joins it without its being searched again."""
+        """在引入它们的动画开始时，将 `mobjects` 中场景所缺者带入（带有可绘制或
+        可运行的内容），各自独立，如同 `add` 所为：其家族无一被场景持有者加入时
+        不再对其搜索。
+        """
         holding = self._holding
         if holding is None or holding[0] is not self.mobjects:
             holding = (self.mobjects, {id(m) for m in _family(self.mobjects)})
@@ -1447,10 +1416,10 @@ class Scene:
             self._holding = holding
 
     def _bring(self, anim: Animation) -> None:
-        """Bring into the scene, as a play begins, what its animations act on that it lacks,
-        in their order, each by itself (what it holds stays in place): all but what an
-        animation introduces (it joins as that animation begins) and what a replacement
-        puts in (as it finishes)."""
+        """在 play 开始时，将其动画所作用而场景所缺者按其顺序各自独立带入场景
+        （已持有者留在原处）：除动画所引入者（在该动画开始时加入）与替换所放入
+        者（在其结束时加入）之外的全部。
+        """
         from manimgx.animation.timeline import AnimationGroup, _held, _lacks
         from manimgx.animation.transform import Transform
 
@@ -1483,23 +1452,19 @@ class Scene:
         stop_condition: Callable[[], bool] | None = None,
         frozen_frame: bool | None = None,
     ) -> None:
-        """Let time pass, playing nothing: the updaters keep running.
+        """让时间流逝，不播放任何动画：更新器继续运行。
 
-        The video goes on for `duration` seconds, and `construct` goes on at their end.
-        With a `stop_condition`, the wait ends at the first frame at which the condition
-        holds, and the scene goes on from that frame's time. With `frozen_frame`, the
-        picture holds instead: the video goes on for `duration`, but nothing moves, no
-        updater runs, and time-based updaters go on afterward as if no time had passed
-        (see [`pause`][manimgx.Scene.pause]).
+        视频延续 `duration` 秒，`construct` 在其结束时继续。带 `stop_condition`
+        时，wait 在条件成立的第一帧结束，场景从该帧时间继续。带 `frozen_frame`
+        时，画面保持：视频延续 `duration`，但无任何移动，无更新器运行，基于时间
+        的更新器在之后如同无时间流逝般继续（见 [`pause`][manimgx.Scene.pause]）。
 
         Args:
-            duration: How long, in seconds.
-            stop_condition: A function of no arguments, checked at every frame once it
-                is drawn: the wait ends at the first at which it returns True. None: the
-                wait lasts its whole duration.
-            frozen_frame: Whether the picture holds while the world stands still; it
-                cannot be combined with a `stop_condition` (a ValueError). None or
-                False: time runs.
+            duration: 持续时长，以秒为单位。
+            stop_condition: 一个无参函数，在每帧绘制后检查：wait 在其返回 True 的
+                第一帧结束。None：wait 持续其全部时长。
+            frozen_frame: 画面是否在世界静止时保持；不能与 `stop_condition` 组合
+                （抛出 ValueError）。None 或 False：时间运行。
 
         Examples:
             ```python
@@ -1527,28 +1492,26 @@ class Scene:
         )
 
     def pause(self, duration: float = DEFAULT_WAIT_TIME) -> None:
-        """Hold the picture while the world stands still: a [`wait`][manimgx.Scene.wait]
-        with `frozen_frame`.
+        """在世界静止时保持画面：一个带 `frozen_frame` 的
+        [`wait`][manimgx.Scene.wait]。
 
-        The video goes on for `duration`; no updater runs, and time-based updaters go on
-        afterwards as if no time had passed.
+        视频延续 `duration`；无更新器运行，基于时间的更新器在之后如同无时间
+        流逝般继续。
 
         Args:
-            duration: How long, in seconds.
+            duration: 持续时长，以秒为单位。
         """
         self.wait(duration, frozen_frame=True)
 
     def wait_until(
         self, stop_condition: Callable[[], bool], max_time: float = 60
     ) -> None:
-        """Let time pass until a condition holds: a [`wait`][manimgx.Scene.wait] that
-        ends at the first frame at which `stop_condition` returns True, or after
-        `max_time` seconds.
+        """让时间流逝直到条件成立：一个在 `stop_condition` 返回 True 的第一帧
+        结束、或在 `max_time` 秒之后结束的 [`wait`][manimgx.Scene.wait]。
 
         Args:
-            stop_condition: A function of no arguments, checked at every frame once it
-                is drawn.
-            max_time: The longest it waits, in seconds.
+            stop_condition: 一个无参函数，在每帧绘制后检查。
+            max_time: 最长等待时间，以秒为单位。
         """
         self.wait(max_time, stop_condition=stop_condition)
 
@@ -1560,25 +1523,23 @@ class Scene:
         *,
         notes: str = "",
     ) -> None:
-        """Begin a section of the film here: a slide, when the film is presented.
+        """在此处开始影片的一个分段：当影片被演示时，即一张幻灯片。
 
-        A film is a row of sections, each lasting until the next begins (the first begins
-        with the film). Presented (`manimgx present`), the film plays a section and, by
-        its type, stops at its end until the presenter goes on, goes on by itself, or
-        plays it again and again until the presenter goes on. A section begins at a
-        frame, whose picture a presentation stops on: if the scene's time falls between
-        two frames, the world holds still until the next one. Rendered, a film just plays
-        through its sections.
+        影片是分段的序列，每个持续到下一个开始（第一个随影片开始）。演示时
+        （`manimgx present`），影片播放一个分段并按其类型在其结束时停止，直到
+        演示者继续、自动继续或反复播放直到演示者继续。分段在一帧处开始，该帧
+        画面为演示所停留：若场景时间落在两帧之间，世界保持静止直到下一帧。
+        渲染时，影片仅依次播放其各分段。
 
         Args:
-            name: The section's name.
-            section_type: How a presentation plays the section that begins here:
-                `"default.normal"` (or `"presentation.normal"`) stops at its end;
-                `"presentation.skip"` goes on by itself; `"presentation.loop"` plays it
-                again until the presenter goes on; `"presentation.complete_loop"` too,
-                finishing its round first.
-            skip_animations: Accepted for Manim compatibility; ignored.
-            notes: What the presenter reads during the section.
+            name: 分段的名称。
+            section_type: 演示如何播放此处开始的分段：
+                `"default.normal"`（或 `"presentation.normal"`）在其结束时停止；
+                `"presentation.skip"` 自动继续；`"presentation.loop"` 反复播放
+                直到演示者继续；`"presentation.complete_loop"` 亦然，但先完成
+                当前一轮。
+            skip_animations: 为兼容 Manim 而接受；被忽略。
+            notes: 演示者在该分段期间朗读的内容。
         """
         fps = self._fps()
         at = Fraction(self.frame) / fps
@@ -1589,15 +1550,16 @@ class Scene:
     def add_subcaption(
         self, content: str, duration: float = 1, offset: float = 0
     ) -> None:
-        """Caption the film: `content` shown from now plus `offset`, for `duration` seconds.
+        """为影片添加字幕：`content` 从现在起加 `offset` 开始显示，持续
+        `duration` 秒。
 
-        The film's [`captions`][manimgx.Film.captions] hold it, with those of its
-        speech; `manimgx render` writes them beside the video, as subtitles.
+        影片的 [`captions`][manimgx.Film.captions] 持有它，连同其语音的字幕；
+        `manimgx render` 将其作为字幕写入视频旁。
 
         Args:
-            content: The caption's text.
-            duration: How long it shows, in seconds.
-            offset: How long after now it begins, in seconds.
+            content: 字幕的文本。
+            duration: 显示时长，以秒为单位。
+            offset: 距现在多久后开始，以秒为单位。
         """
         start = float(clock.now) + offset
         self.film.subcaptions.append(Caption(start, start + duration, content))
@@ -1605,21 +1567,20 @@ class Scene:
     def say(
         self, script: str, *animations: Animation, voice: Voice | None = None
     ) -> Speech:
-        """Speak a script, playing animations as it is said; the scene waits for both.
+        """朗读一段脚本，在其被朗读时播放动画；场景等待二者完成。
 
-        Mark in brackets the words an animation belongs to: the animations given play,
-        in order, during the bracketed words, each starting as its words start and
-        lasting as long as they take to say, or its own run time if that is longer (an
-        empty `[]` starts one where it stands). Without brackets, the animations play
-        during the whole speech. The brackets are not spoken.
+        用方括号标记动画所属的词：给定的动画按顺序在括号标记的词期间播放，每个
+        在其词开始时开始，持续其词的朗读时长，或其自身运行时间（取较长者；空的
+        `[]` 在其所在处开始一个）。无括号时，动画在整个语音期间播放。括号不被
+        朗读。
 
         Args:
-            script: What to say, with a bracketed span for each animation (or none).
-            *animations: The animations, one per span.
-            voice: Who says it; by default the scene's [`voice`][manimgx.Scene.voice].
+            script: 要朗读的内容，每个动画对应一个括号区间（或无）。
+            *animations: 动画，每个区间一个。
+            voice: 朗读者；默认为场景的 [`voice`][manimgx.Scene.voice]。
 
         Returns:
-            The speech, with its words and when each is said.
+            该语音，带有其各词及朗读时刻。
 
         Examples:
             ```python
@@ -1659,20 +1620,19 @@ class Scene:
         return speech
 
     def speech(self, text: str, voice: Voice | None = None) -> Speech:
-        """What the scene's voice says for `text`, without playing it.
+        """场景的语音为 `text` 所说的内容，但不播放。
 
-        Spoken once, then kept in `voice/` beside the scene's file (named by the text), so
-        the scene renders again without speaking again; replace a file there with your
-        own recording of the same words, and it is used instead. Play the speech, add it
-        ([`add_sound`][manimgx.Scene.add_sound]: it speaks while the scene goes on), or
-        read its [`words`][manimgx.Speech.words].
+        朗读一次后保存在场景文件旁的 `voice/` 中（以文本命名），因此场景再次
+        渲染时不再朗读；用你自己相同内容的录音替换其中文件，即可改用该录音。
+        播放该语音、添加它（[`add_sound`][manimgx.Scene.add_sound]：它在场景
+        继续时朗读），或读取其 [`words`][manimgx.Speech.words]。
 
         Args:
-            text: What to say.
-            voice: Who says it; by default the scene's [`voice`][manimgx.Scene.voice].
+            text: 要朗读的内容。
+            voice: 朗读者；默认为场景的 [`voice`][manimgx.Scene.voice]。
 
         Returns:
-            The speech.
+            该语音。
         """
         from manimgx.audio import Fal, cached
 
@@ -1683,9 +1643,9 @@ class Scene:
         return cached(voice or own or Fal(), text, _voice_folder(self))
 
     voice: Voice | None = None
-    """Who speaks the scene's [`say`][manimgx.Scene.say]: any
-    [voice][manimgx.audio.Voice]; None for fal.ai's default model
-    ([`Fal()`][manimgx.audio.fal.Fal])."""
+    """朗读场景 [`say`][manimgx.Scene.say] 的语音：任何
+    [voice][manimgx.audio.Voice]；None 表示 fal.ai 的默认模型
+    （[`Fal()`][manimgx.audio.fal.Fal]）。"""
 
     def add_sound(
         self,
@@ -1693,20 +1653,19 @@ class Scene:
         time_offset: float = 0,
         gain: float | None = None,
     ) -> Clip:
-        """Start a sound: now, or `time_offset` seconds from now; it takes no time.
+        """开始一个声音：现在，或距现在 `time_offset` 秒后；它不占用时间。
 
-        The scene goes on at once, and the sound plays over whatever follows, until it
-        ends (or the film does, or its clip is stopped). Called by an updater, it starts
-        at the instant the updater runs for: a bounce sounds exactly at the bounce. To
-        wait for a sound, [`play`][manimgx.Scene.play] it instead.
+        场景立即继续，声音在随后的内容上播放，直到其结束（或影片结束，或其
+        片段被停止）。由更新器调用时，它在更新器运行的时刻开始：弹跳声恰在
+        弹跳处响起。要等待一个声音，请改为 [`play`][manimgx.Scene.play] 它。
 
         Args:
-            sound: The sound, or its file.
-            time_offset: How long after now it starts, in seconds.
-            gain: How much louder it plays, in decibels (negative: quieter).
+            sound: 该声音，或其文件。
+            time_offset: 距现在多久后开始，以秒为单位。
+            gain: 播放时增大的音量，以分贝表示（负值：更安静）。
 
         Returns:
-            Its clip: [`stop`][manimgx.audio.sound.Clip.stop] it to end it early.
+            其片段：[`stop`][manimgx.audio.sound.Clip.stop] 它以提前结束。
         """
         from manimgx.audio.sound import Clip, Sound
 
@@ -1726,43 +1685,41 @@ class Scene:
     category=None,
 )
 class MovingCameraScene(Scene):
-    """A scene whose camera moves: the name Manim CE knows it by. Every scene's camera
-    moves, so it is a [`Scene`][manimgx.Scene]: animate `self.camera.frame` to pan and
-    zoom.
+    """相机移动的场景：Manim CE 所知的名称。每个场景的相机都可移动，因此
+    它是一个 [`Scene`][manimgx.Scene]：为 `self.camera.frame` 添加动画以平移
+    与缩放。
     """
 
 
 class ZoomedScene(Scene):
-    """A scene with a second camera, whose picture is shown in the frame: a magnifying
-    glass.
+    """带第二个相机的场景，其画面显示在帧中：一个放大镜。
 
-    `zoomed_camera` sees what its frame, a small rectangle in the scene
-    (`zoomed_camera.frame`), covers, and `zoomed_display` shows its picture, larger, in
-    a corner of the frame. Both appear with
-    [`activate_zooming`][manimgx.ZoomedScene.activate_zooming]; move, scale or animate
-    the zoomed camera's frame to look elsewhere, and the picture follows.
+    `zoomed_camera` 观察其帧（场景中的一个小矩形
+    `zoomed_camera.frame`）所覆盖的内容，`zoomed_display` 在帧的一个角落中
+    较大地显示其画面。二者随
+    [`activate_zooming`][manimgx.ZoomedScene.activate_zooming] 出现；移动、
+    缩放或为缩放相机的帧添加动画以观察别处，画面随之跟随。
 
     Args:
-        zoomed_display_height: The display's height, in scene units.
-        zoomed_display_width: The display's width, in scene units.
-        zoomed_display_center: Where the display's center is; None for a corner of the
-            frame.
-        zoomed_display_corner: Which corner of the frame the display is in, when it has
-            no `zoomed_display_center`: a direction, such as [`UR`][manimgx.UR].
-        zoomed_display_corner_buff: The display's distance from the edges at that
-            corner, in scene units.
-        zoomed_camera_config: [The zoomed camera's look][manimgx.scene.ZoomedCameraConfig]:
-            its frame's outline, and its picture's background.
-        zoomed_camera_image_mobject_config: Keywords for the display, the picture of
-            what the zoomed camera sees: its style, and its outline's
-            (`default_display_frame_config`).
-        zoomed_camera_frame_starting_position: Where the zoomed camera's frame starts.
-        zoom_factor: The size of the zoomed camera's frame, as a fraction of the
-            display's: the display magnifies `1 / zoom_factor` times.
-        image_frame_stroke_width: Accepted for Manim compatibility; ignored.
-        zoom_activated: Whether zooming is active:
-            [`activate_zooming`][manimgx.ZoomedScene.activate_zooming] sets it, and it
-            shows nothing by itself.
+        zoomed_display_height: 显示的高度，以场景单位表示。
+        zoomed_display_width: 显示的宽度，以场景单位表示。
+        zoomed_display_center: 显示中心所在位置；None 表示帧的一个角落。
+        zoomed_display_corner: 当无 `zoomed_display_center` 时显示所在的帧的
+            角落：一个方向，如 [`UR`][manimgx.UR]。
+        zoomed_display_corner_buff: 显示在该角落处距各边的距离，以场景单位
+            表示。
+        zoomed_camera_config: [缩放相机的外观][manimgx.scene.ZoomedCameraConfig]：
+            其帧的轮廓，及其画面的背景。
+        zoomed_camera_image_mobject_config: 显示的关键字参数，即缩放相机所观察
+            画面的样式，及其轮廓的
+            （`default_display_frame_config`）。
+        zoomed_camera_frame_starting_position: 缩放相机帧的起始位置。
+        zoom_factor: 缩放相机帧的尺寸，作为显示尺寸的分数：显示放大
+            `1 / zoom_factor` 倍。
+        image_frame_stroke_width: 为兼容 Manim 而接受；被忽略。
+        zoom_activated: 缩放是否激活：
+            [`activate_zooming`][manimgx.ZoomedScene.activate_zooming] 设置它，
+            其自身不显示任何内容。
 
     Examples:
         ```python
@@ -1818,8 +1775,8 @@ class ZoomedScene(Scene):
         super().__init__()
 
     def setup(self) -> None:
-        """Make the zoomed camera and its display: [`render`][manimgx.Scene.render]
-        calls it before `construct`. A subclass that overrides it calls this one first.
+        """创建缩放相机及其显示：[`render`][manimgx.Scene.render] 在 `construct`
+        之前调用它。重写它的子类须先调用本方法。
         """
         from manimgx.mobjects.images import ImageMobjectFromCamera
 
@@ -1849,13 +1806,12 @@ class ZoomedScene(Scene):
         self.zoomed_display = display
 
     def activate_zooming(self, animate: bool = False) -> None:
-        """Show the zoomed camera's frame and its display, in front of everything else.
+        """在最前显示缩放相机的帧及其显示。
 
         Args:
-            animate: Whether to animate their coming first, in two plays: the frame
-                shrinks from the whole view to its place (`get_zoom_in_animation`), then
-                the display grows out of it to its own
-                (`get_zoomed_display_pop_out_animation`).
+            animate: 是否先以两次 play 为其出现添加动画：帧从整个视图缩小到其
+                位置（`get_zoom_in_animation`），然后显示从中生长到自身位置
+                （`get_zoomed_display_pop_out_animation`）。
         """
         self.zoom_activated = True
         if animate:
@@ -1864,18 +1820,16 @@ class ZoomedScene(Scene):
         self.add_foreground_mobjects(self.zoomed_camera.frame, self.zoomed_display)
 
     def get_zoom_in_animation(self, **kwargs: Unpack[TransformOptions]) -> Animation:
-        """Make the animation in which the zoomed camera's frame shrinks from the whole
-        view to its place.
+        """制作缩放相机帧从整个视图缩小到其位置的动画。
 
-        The frame moves to its start at once: it covers the view, centered on the
-        origin, without its outline, until the animation plays.
+        帧立即移动到其起始状态：覆盖视图，以原点为中心，无轮廓，直到动画播放。
 
         Args:
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] (2
-                seconds long unless given a `run_time`).
+            **kwargs: [变换选项][manimgx.animation.transform.TransformOptions]
+                （除非给定 `run_time`，否则为 2 秒）。
 
         Returns:
-            The animation, to play.
+            该动画，以供播放。
         """
         from manimgx.animation.motion import Restore
 
@@ -1891,17 +1845,15 @@ class ZoomedScene(Scene):
     def get_zoomed_display_pop_out_animation(
         self, **kwargs: Unpack[TransformOptions]
     ) -> Animation:
-        """Make the animation in which the display grows out of the zoomed camera's
-        frame to its place.
+        """制作显示从缩放相机帧生长到其位置的动画。
 
-        The display moves to its start at once: over the zoomed camera's frame, until
-        the animation plays.
+        显示立即移动到其起始状态：覆盖缩放相机的帧，直到动画播放。
 
         Args:
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions].
+            **kwargs: [变换选项][manimgx.animation.transform.TransformOptions]。
 
         Returns:
-            The animation, to play.
+            该动画，以供播放。
         """
         from manimgx.animation.motion import Restore
 
@@ -1911,26 +1863,24 @@ class ZoomedScene(Scene):
         return Restore(display, **kwargs)
 
     def get_zoom_factor(self) -> float:
-        """How small the zoomed camera's frame is next to the display.
+        """缩放相机帧相对于显示的尺寸。
 
         Returns:
-            The frame's height over the display's: the display magnifies its inverse.
+            帧高度除以显示高度：显示放大其倒数。
         """
         return self.zoomed_camera.frame.height / self.zoomed_display.height
 
 
 class ThreeDScene(Scene):
-    r"""A scene seen in three dimensions: from a camera that orbits it, with perspective
-    and depth.
+    r"""以三维方式观察的场景：相机绕其轨道运动，带透视与深度。
 
-    The camera looks at the center of its frame from the angles `phi`, from the z axis
-    (0 looks straight down on the xy plane), and `theta`, around it (−90° by default, so
-    that x points right); `gamma` turns it about its line of sight, `zoom` magnifies,
-    and `focal_distance` is how far it is from the point it looks at. Each is a
-    [value tracker][manimgx.ValueTracker] of the [camera][manimgx.Camera], so it moves
-    as any mobject does: [`move_camera`][manimgx.ThreeDScene.move_camera] animates it,
-    and an ambient rotation keeps it turning. Nearer surfaces hide farther ones;
-    mobjects fixed in the frame are drawn flat on the screen, over everything.
+    相机从角度 `phi`（自 z 轴起，0 表示从正上方俯视 xy 平面）与 `theta`（绕
+    z 轴，默认 −90°，使 x 指向右方）观察其帧的中心；`gamma` 使其绕视线转动，
+    `zoom` 放大，`focal_distance` 为其与所观察点的距离。每个都是
+    [相机][manimgx.Camera] 的[值跟踪器][manimgx.ValueTracker]，因此像任何
+    mobject 一样移动：[`move_camera`][manimgx.ThreeDScene.move_camera] 为其添加
+    动画，环境旋转使其持续转动。较近的表面遮挡较远者；固定在帧中的 mobject
+    平铺绘制在屏幕上，位于一切之上。
 
     Examples:
         ```python
@@ -1968,21 +1918,19 @@ class ThreeDScene(Scene):
         focal_distance: float | None = None,
         frame_center: Point3DLike | Mobject | None = None,
     ) -> None:
-        """Set where the camera looks from, at once: each setting given; the others stay
-        as they are.
+        """立即设置相机观察位置：每个给定设置；其余保持不变。
 
         Args:
-            phi: The angle between the camera's line of sight and the z axis, in
-                radians: 0 looks straight down on the xy plane.
-            theta: The camera's angle around the z axis, in radians, counterclockwise
-                from the x axis: at −90° it looks from the side of negative y, so that x
-                points right.
-            gamma: How far the camera turns about its line of sight, in radians.
-            zoom: How much the camera magnifies: 2 shows everything twice as large.
-            focal_distance: The camera's distance from the point it looks at, in scene
-                units: the nearer, the stronger the perspective.
-            frame_center: The point the camera looks at, or a mobject whose center it
-                is: the camera's frame moves there.
+            phi: 相机视线与 z 轴之间的夹角，以弧度表示：0 表示从正上方俯视
+                xy 平面。
+            theta: 相机绕 z 轴的角度，以弧度表示，从 x 轴逆时针方向计量：在
+                −90° 时从 y 轴负侧观察，使 x 轴指向右方。
+            gamma: 相机绕自身视线转动的角度，以弧度表示。
+            zoom: 相机的放大倍数：2 表示将一切放大两倍显示。
+            focal_distance: 相机与所观察点的距离，以场景单位表示：越近，
+                透视越强。
+            frame_center: 相机所观察的点，或其中心为该点的 mobject：相机的帧
+                移动到该处。
         """
         cam = self.camera
         for value, tracker in (
@@ -2007,17 +1955,15 @@ class ThreeDScene(Scene):
     def begin_ambient_camera_rotation(
         self, rate: float = 0.02, about: str = "theta"
     ) -> None:
-        """Start turning the camera steadily, through plays and waits alike, until
-        `stop_ambient_camera_rotation`.
+        """开始稳定转动相机，贯穿 play 与 wait，直到
+        `stop_ambient_camera_rotation`。
 
-        One of the camera's angles grows at a steady rate: its tracker gets an updater
-        (a [flow][manimgx.mobject.flow]) and joins the scene.
+        相机的一个角度以稳定速率增长：其跟踪器获得一个更新器
+        （一个 [flow][manimgx.mobject.flow]）并加入场景。
 
         Args:
-            rate: How fast the angle grows, in radians per second; a negative rate turns
-                the other way.
-            about: The angle: "theta" (around the z axis), "phi" or "gamma", in any
-                case.
+            rate: 角度增长速率，以弧度每秒表示；负值反方向转动。
+            about: 该角度："theta"（绕 z 轴）、"phi" 或 "gamma"，任意大小写。
 
         Examples:
             ```python
@@ -2040,11 +1986,11 @@ class ThreeDScene(Scene):
         self.add(tracker)
 
     def stop_ambient_camera_rotation(self, about: str = "theta") -> None:
-        """Stop turning the camera: every updater of the angle's tracker is removed, and
-        the tracker leaves the scene. The camera stays where it turned to.
+        """停止转动相机：移除该角度跟踪器的每个更新器，跟踪器离开场景。相机
+        停留在其转到的位置。
 
         Args:
-            about: The angle: "theta", "phi" or "gamma", in any case.
+            about: 该角度："theta"、"phi" 或 "gamma"，任意大小写。
         """
         tracker = self._tracker(about)
         tracker.clear_updaters()
@@ -2056,19 +2002,18 @@ class ThreeDScene(Scene):
         origin_phi: float | None = None,
         origin_theta: float | None = None,
     ) -> None:
-        """Start swaying the camera around its orientation, for an illusion of depth,
-        through plays and waits alike, until `stop_3dillusion_camera_rotation`.
+        """开始使相机绕其朝向摇摆，以产生深度错觉，贯穿 play 与 wait，直到
+        `stop_3dillusion_camera_rotation`。
 
-        The camera circles a little: `theta` swings 0.2 radians either side of
-        `origin_theta`, and `phi` between `origin_phi` and 0.2 radians less, a quarter
-        of a cycle apart. The trackers of the two angles get updaters (flows) and join
-        the scene.
+        相机小幅环绕：`theta` 在 `origin_theta` 两侧各 0.2 弧度间摆动，
+        `phi` 在 `origin_phi` 与少 0.2 弧度之间，二者相差四分之一周期。两个
+        角度的跟踪器获得更新器（flow）并加入场景。
 
         Args:
-            rate: How fast it sways, in radians of its cycle per second: a cycle takes
-                2π / `rate` seconds.
-            origin_phi: The `phi` it sways from; None for the camera's present one.
-            origin_theta: The `theta` it sways about; None for the camera's present one.
+            rate: 摇摆速度，以每秒其周期的弧度表示：一个周期耗时
+                2π / `rate` 秒。
+            origin_phi: 摇摆起自的 `phi`；None 表示相机当前值。
+            origin_theta: 摇摆所绕的 `theta`；None 表示相机当前值。
         """
         cam = self.camera
         origin_theta = cam.get_theta() if origin_theta is None else origin_theta
@@ -2088,8 +2033,8 @@ class ThreeDScene(Scene):
         self.add(cam.theta_tracker, cam.phi_tracker)
 
     def stop_3dillusion_camera_rotation(self) -> None:
-        """Stop swaying the camera: every updater of the `theta` and `phi` trackers is
-        removed, and they leave the scene. The camera stays where the sway left it."""
+        """停止摇摆相机：移除 `theta` 与 `phi` 跟踪器的每个更新器，它们离开
+        场景。相机停留在摇摆所留位置。"""
         for tracker in (self.camera.theta_tracker, self.camera.phi_tracker):
             tracker.clear_updaters()
             self.remove(tracker)
@@ -2105,27 +2050,23 @@ class ThreeDScene(Scene):
         added_anims: Sequence[Animation] = (),
         **kwargs: Unpack[TransformOptions],
     ) -> None:
-        """Animate the camera to a new orientation, in one play: each setting given; the
-        others stay as they are.
+        """在一次 play 中为相机添加动画到新朝向：每个给定设置；其余保持不变。
 
-        Each setting moves steadily from its value to the new one, eased by the rate
-        function, so a `theta` 2π greater takes the camera once around. The frame moves
-        to `frame_center` if given, and `added_anims` play along.
+        每个设置从其值稳定移动到新值，由速率函数缓动，因此大 2π 的 `theta`
+        使相机绕一周。帧在给定 `frame_center` 时移动到该处，`added_anims` 一同
+        播放。
 
         Args:
-            phi: The angle between the camera's line of sight and the z axis, in
-                radians: 0 looks straight down on the xy plane.
-            theta: The camera's angle around the z axis, in radians, counterclockwise
-                from the x axis.
-            gamma: How far the camera turns about its line of sight, in radians.
-            zoom: How much the camera magnifies: 2 shows everything twice as large.
-            focal_distance: The camera's distance from the point it looks at, in scene
-                units.
-            frame_center: The point for the camera to look at, or a mobject whose center
-                it is.
-            added_anims: Animations to play along.
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-                every animation of the play, the added ones too.
+            phi: 相机视线与 z 轴之间的夹角，以弧度表示：0 表示从正上方俯视
+                xy 平面。
+            theta: 相机绕 z 轴的角度，以弧度表示，从 x 轴逆时针方向计量。
+            gamma: 相机绕自身视线转动的角度，以弧度表示。
+            zoom: 相机的放大倍数：2 表示将一切放大两倍显示。
+            focal_distance: 相机与所观察点的距离，以场景单位表示。
+            frame_center: 相机要观察的点，或其中心为该点的 mobject。
+            added_anims: 一同播放的动画。
+            **kwargs: play 中每个动画的[变换选项][manimgx.animation.transform.TransformOptions]，
+                附加动画亦然。
 
         Examples:
             ```python
@@ -2162,13 +2103,13 @@ class ThreeDScene(Scene):
             self.remove(cam.frame)
 
     def add_fixed_in_frame_mobjects(self, *mobjects: Mobject) -> None:
-        """Add mobjects pinned to the screen: each is drawn where its points are, as in
-        a two-dimensional view centered on the origin, over everything else.
+        """添加固定到屏幕的 mobject：每个按其点所在位置绘制，如同在以原点为中心的
+        二维视图中，绘制在一切之上。
 
-        They are added to the scene, and stay where they are on the screen whatever the
-        camera's angles, zoom and center: a title placed with `to_corner` stays in its
-        corner. Everything in them is pinned, now and later: a member added later (a
-        number's new digits, what an updater or a Transform makes) is pinned too.
+        它们被添加到场景，无论相机的角度、缩放与中心如何都保持在屏幕上的位置：
+        用 `to_corner` 放置的标题停留在其角落。其中的一切现在及以后都被固定：
+        之后添加的成员（一个数字的新数位、更新器或 Transform 产生的部分）也
+        被固定。
         """
         self.add(*mobjects)
         self.camera.add_fixed_in_frame_mobjects(*mobjects)
@@ -2180,9 +2121,9 @@ def _tracks(
     alpha: np.ndarray,
     introduced: set[int],
 ) -> list[tuple[Mobject, list[Mobject], Path, np.ndarray, np.ndarray]]:
-    """A pure play at these alphas: per leaf, its keyframes, path, and per instant its interval
-    and t (-1: not begun, as the play found it; -2: absent, before the part that brings it
-    begins or after a remover's window closes)."""
+    """在这些 alpha 处的纯 play：每叶其关键帧、路径，以及每时刻其区间
+    与 t（-1：未开始，如 play 所见；-2：不存在，在引入它的部分开始之前或
+    移除器窗口关闭之后）。"""
     from manimgx.animation.timeline import keyframe_at, schedule
 
     alphas = {id(tween): (a, c) for tween, a, c in schedule(anim, alpha)}
@@ -2206,8 +2147,8 @@ def _tracks(
 
 
 def _voice_folder(scene: Scene) -> pathlib.Path:
-    """Where a scene keeps what its voices said: `voice/` beside its file; for a scene
-    with no file (a notebook's), the user's cache."""
+    """场景保存其语音所朗读内容的位置：其文件旁的 `voice/`；对于无文件的
+    场景（笔记本中的），为用户缓存。"""
     try:
         return pathlib.Path(inspect.getfile(type(scene))).parent / "voice"
     except (TypeError, OSError):
@@ -2215,7 +2156,7 @@ def _voice_folder(scene: Scene) -> pathlib.Path:
 
 
 def _leaves(anim: Animation) -> Iterable[Animation]:
-    """The animations under `anim` that act themselves: its parts, and theirs."""
+    """`anim` 之下自身作用的动画：其各部分，以及它们的各部分。"""
     from manimgx.animation.timeline import AnimationGroup
 
     if isinstance(anim, AnimationGroup):
@@ -2232,8 +2173,7 @@ def _sounds(anim: Animation) -> bool:
 
 
 def _acted_on(anim: Animation) -> list[Mobject]:
-    """The mobjects an animation's parts act on, and the targets they run (their own
-    objects)."""
+    """动画各部分所作用的 mobject，以及它们运行的目标（其自身对象）。"""
     return [
         mob
         for part in _leaves(anim)
@@ -2245,7 +2185,7 @@ def _acted_on(anim: Animation) -> list[Mobject]:
 
 
 def _forward(alpha: np.ndarray) -> bool:
-    """Does a part's alpha only go forward — once begun, never not begun again, never back?"""
+    """某部分的 alpha 是否只向前——一旦开始，不再未开始，也不后退？"""
     begun = alpha == alpha
     first = int(np.argmax(begun)) if begun.any() else len(alpha)
     return bool(begun[first:].all() and np.all(np.diff(alpha[first:]) >= 0))
@@ -2255,8 +2195,8 @@ _PACKAGE = os.path.dirname(__file__) + os.sep
 
 
 def _written() -> tuple[str, int] | None:
-    """Where the scene's own code is running: the innermost caller outside ManimGX (a scene's
-    `play`, or the `wait` that plays)."""
+    """场景自身代码运行的位置：ManimGX 之外最内层调用者（一个场景的
+    `play`，或播放它的 `wait`）。"""
     here = inspect.currentframe()
     frame = None if here is None else here.f_back  # `play`'s
     frame = None if frame is None else frame.f_back
@@ -2268,7 +2208,7 @@ def _written() -> tuple[str, int] | None:
 def _restructure(
     mobjects: Sequence[Mobject], to_remove: Iterable[Mobject], extract: bool = True
 ) -> list[Mobject]:
-    """Drop members, replacing each containing group with its surviving children."""
+    """丢弃成员，将每个包含它们的组替换为其存留的子成员。"""
     removing = {id(mob) for mob in (_family(to_remove) if extract else to_remove)}
     if not removing:
         return list(mobjects)
@@ -2305,58 +2245,53 @@ Z_COLOR = BLUE_D
 
 
 class _LabelPlacement(TypedDict, total=False):
-    """LabelPlacement's keys, open, for the keywords that add to them."""
+    """LabelPlacement 的键，开放，供向其添加的关键字使用。"""
 
     at_tip: bool
-    """Whether the label goes beyond the vector's tip, rather than beside its middle
-    (default False)."""
+    """标签是否位于向量尖端之外，而非其旁边中部（默认 False）。"""
     direction: Literal["left", "right"]
-    """Which side of the vector the label goes on, looking along the vector (default
-    "left")."""
+    """沿向量方向看时标签所在的侧（默认 "left"）。"""
     rotate: bool
-    """Whether the label turns with the vector, rather than staying upright (default
-    False)."""
+    """标签是否随向量转动，而非保持直立（默认 False）。"""
 
 
 class LabelPlacement(_LabelPlacement, total=False, closed=True):
-    """Where a vector's label sits (for the methods that pass it on)."""
+    """向量标签所在位置（供传递它的方法使用）。"""
 
 
 class VectorLabelOptions(_LabelPlacement, total=False, closed=True):
-    """Where a vector's label sits, its color and its size (for the methods that pass
-    them on)."""
+    """向量标签所在位置、其颜色与其尺寸（供传递它们的方法使用）。"""
 
     color: ParsableManimColor | None
-    """The label's color, when it is made from a string (default None: the vector's)."""
+    """当标签由字符串生成时的颜色（默认 None：取向量的颜色）。"""
     label_scale_factor: float
-    """How much the label is scaled (default 0.8)."""
+    """标签的缩放倍数（默认 0.8）。"""
 
 
 class UnitSquareOptions(TypedDict, total=False, closed=True):
-    """The unit square's look (for the methods that pass it on)."""
+    """单位正方形的外观（供传递它的方法使用）。"""
 
     color: Colors
-    """The color of its fill and its stroke (default yellow)."""
+    """其填充与描边的颜色（默认黄色）。"""
     opacity: float
-    """Its fill's opacity, from 0 to 1 (default 0.3)."""
+    """其填充的不透明度，从 0 到 1（默认 0.3）。"""
     stroke_width: float
-    """Its stroke's width, in hundredths of a scene unit (default 3)."""
+    """其描边的宽度，以场景单位的百分之一表示（默认 3）。"""
 
 
 class VectorScene(Scene):
-    """A scene for drawing vectors: arrows from the origin, their labels and their
-    coordinates.
+    """用于绘制向量的场景：从原点出发的箭头、其标签与坐标。
 
-    Its methods add a plane and axes, draw vectors and label them, and animate the
-    passage from a vector to its coordinates and back.
-    [`add_vector`][manimgx.VectorScene.add_vector] draws a vector from the origin, in
-    scene units; [`get_vector`][manimgx.VectorScene.get_vector] makes one in the
-    coordinates of the scene's [`plane`][manimgx.VectorScene.plane].
+    其方法添加平面与坐标轴、绘制向量并加标签，以及为从向量到其坐标及反向的
+    转换添加动画。
+    [`add_vector`][manimgx.VectorScene.add_vector] 从原点绘制一个向量，以场景
+    单位表示；[`get_vector`][manimgx.VectorScene.get_vector] 在场景
+    [`plane`][manimgx.VectorScene.plane] 的坐标中生成一个。
 
     Args:
-        basis_vector_stroke_width: The stroke width of the basis vectors (see
-            [`get_basis_vectors`][manimgx.VectorScene.get_basis_vectors]), in hundredths
-            of a scene unit.
+        basis_vector_stroke_width: 基向量的描边宽度（见
+            [`get_basis_vectors`][manimgx.VectorScene.get_basis_vectors]），以场景
+            单位的百分之一表示。
 
     Examples:
         ```python
@@ -2373,14 +2308,14 @@ class VectorScene(Scene):
     """
 
     plane: NumberPlane
-    """The plane whose coordinates [`get_vector`][manimgx.VectorScene.get_vector] reads:
-    a [`LinearTransformationScene`][manimgx.LinearTransformationScene] makes it; in a
-    vector scene, assign it (`self.plane = self.add_plane()`)."""
+    """[`get_vector`][manimgx.VectorScene.get_vector] 读取其坐标的平面：
+    [`LinearTransformationScene`][manimgx.LinearTransformationScene] 创建它；在
+    向量场景中，需将其赋值（`self.plane = self.add_plane()`）。"""
     grows_vectors: ClassVar[bool] = (
         True  # `add_vector` animates unless told (CE's defaults)
     )
-    """Whether [`add_vector`][manimgx.VectorScene.add_vector] shows a vector growing
-    unless told otherwise: True in a vector scene, False in a transformation scene."""
+    """[`add_vector`][manimgx.VectorScene.add_vector] 是否在未另行告知时以生长
+    方式显示向量：向量场景中为 True，变换场景中为 False。"""
 
     def __init__(self, basis_vector_stroke_width: float = 6.0) -> None:
         super().__init__()
@@ -2389,16 +2324,16 @@ class VectorScene(Scene):
     def add_plane(
         self, animate: bool = False, **kwargs: Unpack[NumberPlaneOptions]
     ) -> NumberPlane:
-        """Add a number plane to the scene.
+        """向场景添加一个数平面。
 
         Args:
-            animate: Whether to draw it in ([`Create`][manimgx.Create], its lines
-                overlapping).
-            **kwargs: [Number plane keywords][manimgx.NumberPlane].
+            animate: 是否以动画绘入（[`Create`][manimgx.Create]，其线条
+                重叠）。
+            **kwargs: [数平面关键字][manimgx.NumberPlane]。
 
         Returns:
-            The plane. It is not the scene's [`plane`][manimgx.VectorScene.plane] unless
-            assigned to it.
+            该平面。除非赋值给它，否则它不是场景的
+            [`plane`][manimgx.VectorScene.plane]。
         """
         plane = NumberPlane(**kwargs)
         if animate:
@@ -2407,14 +2342,14 @@ class VectorScene(Scene):
         return plane
 
     def add_axes(self, animate: bool = False, color: Colors = WHITE) -> Axes:
-        """Add axes to the scene, one scene unit to one unit.
+        """向场景添加坐标轴，一个场景单位对应一个单位。
 
         Args:
-            animate: Whether to draw them in ([`Create`][manimgx.Create]).
-            color: Their color.
+            animate: 是否以动画绘入（[`Create`][manimgx.Create]）。
+            color: 其颜色。
 
         Returns:
-            The axes.
+            该坐标轴。
         """
         axes = Axes(color=color, axis_config={"unit_size": 1})
         if animate:
@@ -2425,16 +2360,15 @@ class VectorScene(Scene):
     def get_vector(
         self, numerical_vector: Vector3DLike, **kwargs: Unpack[ArrowTips]
     ) -> Arrow:
-        """Make an arrow from the origin of the scene's plane to a point given in its
-        coordinates.
+        """从场景平面的原点生成一个箭头，指向以平面坐标给定的点。
 
         Args:
-            numerical_vector: The point's coordinates on
-                [`plane`][manimgx.VectorScene.plane]: x and y (a z is ignored).
-            **kwargs: [Arrow keywords][manimgx.Arrow].
+            numerical_vector: 该点在 [`plane`][manimgx.VectorScene.plane] 上的
+                坐标：x 与 y（z 被忽略）。
+            **kwargs: [箭头关键字][manimgx.Arrow]。
 
         Returns:
-            A new arrow, not added to the scene.
+            一个新箭头，未添加到场景。
         """
         x, y = np.asarray(numerical_vector, dtype=float)[:2]
         return Arrow(
@@ -2467,24 +2401,22 @@ class VectorScene(Scene):
         animate: bool | None = None,
         **kwargs: Unpack[ArrowTipsBase],
     ) -> Arrow:
-        """Add a vector to the scene: the arrow given, or a [Vector][manimgx.Vector] from
-        the origin to the coordinates given.
+        """向场景添加一个向量：给定的箭头，或从原点到给定坐标的
+        [Vector][manimgx.Vector]。
 
-        It is shown growing from the origin ([GrowArrow][manimgx.GrowArrow]) if `animate`
-        says so, or else if the scene's `grows_vectors` does (a vector scene's does, a
-        transformation scene's doesn't); then the scene takes it up: a
-        [LinearTransformationScene][manimgx.LinearTransformationScene] moves it with the
-        plane.
+        若 `animate` 为是、或在场景的 `grows_vectors` 为是时（向量场景为是，
+        变换场景为否），它以从原点生长的方式显示（[GrowArrow][manimgx.GrowArrow]）；
+        然后场景接管它：[LinearTransformationScene][manimgx.LinearTransformationScene]
+        使其随平面移动。
 
         Args:
-            vector: An arrow, or the coordinates of a vector's tip, in scene units.
-            color: The vector's color, when it is made from coordinates.
-            animate: Whether it grows in a play; None for the scene's `grows_vectors`.
-            **kwargs: [Arrow keywords][manimgx.mobjects.shapes.ArrowTipsBase] for
-                a vector made from coordinates.
+            vector: 一个箭头，或向量尖端的坐标，以场景单位表示。
+            color: 当由坐标生成时向量的颜色。
+            animate: 是否以 play 生长；None 取场景的 `grows_vectors`。
+            **kwargs: 由坐标生成向量时的[箭头关键字][manimgx.mobjects.shapes.ArrowTipsBase]。
 
         Returns:
-            The arrow.
+            该箭头。
         """
         if not isinstance(vector, Arrow):
             vector = Vector(np.asarray(vector, dtype=float), color=color, **kwargs)
@@ -2496,24 +2428,23 @@ class VectorScene(Scene):
 
     @deprecated("Manim CE's machinery: vector_to_coords calls it", category=None)
     def added_vector(self, vector: Arrow) -> None:
-        """Take up a vector that [add_vector][manimgx.VectorScene.add_vector] added: a
-        vector scene does nothing with it, and a
-        [LinearTransformationScene][manimgx.LinearTransformationScene] moves it with its
-        transformations.
+        """接管一个 [add_vector][manimgx.VectorScene.add_vector] 所添加的向量：
+        向量场景对其不做任何事，
+        [LinearTransformationScene][manimgx.LinearTransformationScene] 使其随其
+        变换移动。
         """
 
     def write_vector_coordinates(
         self, vector: Vector, **kwargs: Unpack[MatrixOptions]
     ) -> Matrix:
-        """Write a vector's coordinates beside its tip, as a column (its
-        `coordinate_label`), in a play of [`Write`][manimgx.Write].
+        """在一个 [`Write`][manimgx.Write] 的 play 中，将向量的坐标作为一列写在
+        其尖端旁（其 `coordinate_label`）。
 
         Args:
-            **kwargs: [Matrix keywords][manimgx.mobjects.grid.MatrixOptions] for the
-                column.
+            **kwargs: 该列的[矩阵关键字][manimgx.mobjects.grid.MatrixOptions]。
 
         Returns:
-            The column.
+            该列。
         """
         coords = vector.coordinate_label(**kwargs)
         self.play(Write(coords))
@@ -2522,15 +2453,15 @@ class VectorScene(Scene):
     def get_basis_vectors(
         self, i_hat_color: Colors = X_COLOR, j_hat_color: Colors = Y_COLOR
     ) -> VGroup:
-        """Make the basis vectors î and ĵ: arrows from the origin to (1, 0) and (0, 1),
-        in scene units.
+        """生成基向量 î 与 ĵ：从原点到 (1, 0) 与 (0, 1) 的箭头，以场景单位
+        表示。
 
         Args:
-            i_hat_color: The color of î.
-            j_hat_color: The color of ĵ.
+            i_hat_color: î 的颜色。
+            j_hat_color: ĵ 的颜色。
 
         Returns:
-            A new group of the two, î first.
+            二者的新组，î 在前。
         """
         return VGroup(
             *(
@@ -2544,14 +2475,14 @@ class VectorScene(Scene):
         )
 
     def get_basis_vector_labels(self, **kwargs: Unpack[LabelPlacement]) -> VGroup:
-        """Make labels for the basis vectors: î and ĵ, in the colors of the x and y axes
-        (green and red).
+        """为基向量生成标签：î 与 ĵ，颜色取 x 与 y 轴的颜色
+        （绿色与红色）。
 
         Args:
-            **kwargs: [Label placement keywords][manimgx.scene.LabelPlacement].
+            **kwargs: [标签位置关键字][manimgx.scene.LabelPlacement]。
 
         Returns:
-            A new group of the two labels, î's first.
+            两个标签的新组，î 的在前。
         """
         i_hat, j_hat = self.get_basis_vectors().submobjects
         return VGroup(
@@ -2577,25 +2508,23 @@ class VectorScene(Scene):
         color: ParsableManimColor | None = None,
         label_scale_factor: float = LARGE_BUFF - 0.2,
     ) -> ManimTextLabel:
-        r"""Make a label for a vector: beside its middle, on its left or its right, or
-        beyond its tip.
+        r"""为向量生成标签：在其旁边中部，左侧或右侧，或在其尖端之外。
 
-        A string is typeset as LaTeX, a single letter as a bold vector
-        (`\vec{\textbf{v}}`), in the vector's color. The label gets a background
-        rectangle, to be read over the lines under it.
+        字符串以 LaTeX 排版，单字母作为粗体向量
+        （`\vec{\textbf{v}}`），颜色取向量的颜色。标签带有背景矩形，
+        以便在其下方的线条之上可读。
 
         Args:
-            vector: The vector, from the origin.
-            label: The label: a mobject, or LaTeX.
-            at_tip: Whether it goes beyond the vector's tip, rather than beside its
-                middle.
-            direction: Which side of the vector it goes on, looking along the vector.
-            rotate: Whether it turns with the vector, rather than staying upright.
-            color: Its color, when it is made from a string; None for the vector's.
-            label_scale_factor: How much it is scaled.
+            vector: 该向量，从原点出发。
+            label: 该标签：一个 mobject，或 LaTeX。
+            at_tip: 是否位于向量尖端之外，而非其旁边中部。
+            direction: 沿向量方向看时标签所在的侧。
+            rotate: 是否随向量转动，而非保持直立。
+            color: 当由字符串生成时的颜色；None 取向量的颜色。
+            label_scale_factor: 其缩放倍数。
 
         Returns:
-            The label, not added to the scene.
+            该标签，未添加到场景。
         """
         if isinstance(label, str):
             if len(label) == 1:
@@ -2628,17 +2557,17 @@ class VectorScene(Scene):
         animate: bool = True,
         **kwargs: Unpack[VectorLabelOptions],
     ) -> ManimTextLabel:
-        """Label a vector, and add the label to the scene (see
-        [`get_vector_label`][manimgx.VectorScene.get_vector_label]).
+        """为向量加标签，并将标签添加到场景（见
+        [`get_vector_label`][manimgx.VectorScene.get_vector_label]）。
 
         Args:
-            vector: The vector, from the origin.
-            label: The label: a mobject, or LaTeX.
-            animate: Whether to write it in ([`Write`][manimgx.Write]).
-            **kwargs: [Vector label keywords][manimgx.scene.VectorLabelOptions].
+            vector: 该向量，从原点出发。
+            label: 该标签：一个 mobject，或 LaTeX。
+            animate: 是否以动画写入（[`Write`][manimgx.Write]）。
+            **kwargs: [向量标签关键字][manimgx.scene.VectorLabelOptions]。
 
         Returns:
-            The label.
+            该标签。
         """
         mathtex_label = self.get_vector_label(vector, label, **kwargs)
         if animate:
@@ -2650,16 +2579,16 @@ class VectorScene(Scene):
     def position_x_coordinate(
         self, x_coord: Mobject, x_line: Line, vector: Vector3DLike
     ) -> Mobject:
-        """Place a vector's x coordinate by the line of its x component, in green: under
-        it for a vector that points up, over it for one that points down.
+        """将向量的 x 坐标置于其 x 分量的线旁，绿色：向上指的向量在其下，
+        向下指的在其上。
 
         Args:
-            x_coord: The coordinate.
-            x_line: The line from the origin along x to the vector's x.
-            vector: The vector's coordinates.
+            x_coord: 该坐标。
+            x_line: 从原点沿 x 到向量 x 分量的线。
+            vector: 向量的坐标。
 
         Returns:
-            The coordinate, placed.
+            该坐标，已放置。
         """
         x_coord.next_to(x_line, -np.sign(vector[1]) * UP)
         x_coord.set_color(X_COLOR)
@@ -2669,16 +2598,16 @@ class VectorScene(Scene):
     def position_y_coordinate(
         self, y_coord: Mobject, y_line: Line, vector: Vector3DLike
     ) -> Mobject:
-        """Place a vector's y coordinate by the line of its y component, in red: right
-        of it for a vector that points right, left of it for one that points left.
+        """将向量的 y 坐标置于其 y 分量的线旁，红色：向右指的向量在其右，
+        向左指的在其左。
 
         Args:
-            y_coord: The coordinate.
-            y_line: The line along y up (or down) to the vector's tip.
-            vector: The vector's coordinates.
+            y_coord: 该坐标。
+            y_line: 沿 y 向上（或向下）到向量尖端的线。
+            vector: 向量的坐标。
 
         Returns:
-            The coordinate, placed.
+            该坐标，已放置。
         """
         y_coord.next_to(y_line, np.sign(vector[0]) * RIGHT)
         y_coord.set_color(Y_COLOR)
@@ -2690,19 +2619,18 @@ class VectorScene(Scene):
         integer_labels: bool = True,
         clean_up: bool = True,
     ) -> tuple[Matrix, Line, Line]:
-        """Show how a vector gives its coordinates, in a series of plays.
+        """以一系列 play 展示向量如何给出其坐标。
 
-        The vector (drawn first, when it is given by its coordinates) gets a line along
-        x and a line up to its tip, each written with its coordinate; the coordinates
-        then move into a column beside its tip.
+        向量（当由坐标给定时先绘制）获得一条沿 x 的线与一条到其尖端的线，
+        各带其坐标写入；然后坐标移动到其尖端旁的一列中。
 
         Args:
-            vector: The vector, from the origin, or its coordinates.
-            integer_labels: Whether the coordinates are rounded to integers.
-            clean_up: Whether the scene is left holding what it held before, at the end.
+            vector: 该向量，从原点出发，或其坐标。
+            integer_labels: 坐标是否四舍五入为整数。
+            clean_up: 场景是否在结束时保持其之前所持有的内容。
 
         Returns:
-            The column of coordinates, the line along x and the line up to the tip.
+            坐标列、沿 x 的线与到尖端的线。
         """
         starting_mobjects = list(self.mobjects)
         show_creation = not isinstance(vector, Vector)
@@ -2738,7 +2666,7 @@ class VectorScene(Scene):
 
 @dataclass
 class _TransformableLabel:
-    """A vector's label that follows the transformations: rewritten as `target_text` (or kept)."""
+    """跟随变换的向量标签：改写为 `target_text`（或保持）。"""
 
     label: Mobject
     vector: Vector
@@ -2749,7 +2677,7 @@ class _TransformableLabel:
 def _merged_plane(
     defaults: NumberPlaneOptions, given: NumberPlaneOptions | None
 ) -> NumberPlaneOptions:
-    """A plane config over its defaults, key by key (and inside its axis and line styles)."""
+    """在默认值之上逐键叠加的平面配置（并在其轴与线样式内部叠加）。"""
     given = given or NumberPlaneOptions()
     merged = defaults | given
     merged["axis_config"] = merged_axis_config(
@@ -2762,36 +2690,32 @@ def _merged_plane(
 
 
 class LinearTransformationScene(VectorScene):
-    """A scene for linear transformations of the plane: a matrix applied to the plane
-    and to everything on it, in one animation.
+    """用于平面的线性变换的场景：一个矩阵作用于平面及其上的一切，在一次动画中。
 
-    Before `construct`, it lays a still plane in the background (`background_plane`), a
-    plane over it that the transformations move ([`plane`][manimgx.VectorScene.plane]),
-    and the basis vectors î and ĵ (`i_hat` and `j_hat`, together `basis_vectors`).
-    [`apply_matrix`][manimgx.LinearTransformationScene.apply_matrix] then transforms
-    what the scene holds, by kind: the points of the transformable mobjects, as the
-    plane's; the vectors, redrawn to where their tips go; the labels that follow them;
-    and the moving mobjects, moved whole to where their centers go. The background and
-    foreground mobjects stay where they are.
+    在 `construct` 之前，它铺设一个静止的背景平面
+    （`background_plane`）、其上一个随变换移动的平面
+    （[`plane`][manimgx.VectorScene.plane]）以及基向量 î 与 ĵ
+    （`i_hat` 与 `j_hat`，合称 `basis_vectors`）。
+    [`apply_matrix`][manimgx.LinearTransformationScene.apply_matrix] 随后按类别
+    变换场景所持有的一切：可变换 mobject 的点，如同平面的点；向量，重绘到其
+    尖端所去之处；跟随它们的标签；以及移动 mobject，整体移动到其中心所去之处。
+    背景与前景 mobject 留在原处。
 
     Args:
-        include_background_plane: Whether a plane stays still in the background.
-        include_foreground_plane: Whether a plane over it moves with the
-            transformations: the scene's `plane`.
-        background_plane_kwargs: [Number plane keywords][manimgx.NumberPlane]
-            for the background plane, over its own (grey lines).
-        foreground_plane_kwargs: [Number plane keywords][manimgx.NumberPlane]
-            for the moving plane, over its own (it reaches past the frame, so that the
-            frame stays covered as it moves).
-        show_coordinates: Whether the background plane's axes are numbered.
-        show_basis_vectors: Whether the basis vectors are drawn; they move with the
-            transformations.
-        basis_vector_stroke_width: The basis vectors' stroke width, in hundredths of a
-            scene unit.
-        i_hat_color: The color of î.
-        j_hat_color: The color of ĵ.
-        leave_ghost_vectors: Whether each transformation leaves faded copies of the
-            vectors where they were.
+        include_background_plane: 是否有一个平面在背景中保持静止。
+        include_foreground_plane: 是否有其上一个随变换移动的平面：即场景的
+            `plane`。
+        background_plane_kwargs: 背景平面的[数平面关键字][manimgx.NumberPlane]，
+            叠加在其自身默认值（灰色线条）之上。
+        foreground_plane_kwargs: 移动平面的[数平面关键字][manimgx.NumberPlane]，
+            叠加在其自身默认值（它延伸超出帧，以便移动时帧保持被覆盖）之上。
+        show_coordinates: 背景平面的坐标轴是否编号。
+        show_basis_vectors: 是否绘制基向量；它们随变换移动。
+        basis_vector_stroke_width: 基向量的描边宽度，以场景单位的百分之一
+            表示。
+        i_hat_color: î 的颜色。
+        j_hat_color: ĵ 的颜色。
+        leave_ghost_vectors: 每次变换是否在向量原处留下其褪色副本。
 
     Examples:
         ```python
@@ -2835,8 +2759,8 @@ class LinearTransformationScene(VectorScene):
         self.j_hat_color = ManimColor(j_hat_color)
         self.leave_ghost_vectors = leave_ghost_vectors
         self.ghost_vectors = VGroup()
-        """The faded copies the transformations left of what they moved whole, where it
-        was, with `leave_ghost_vectors`."""
+        """变换所留的、整体移动之物的褪色副本，在其原处，带
+        `leave_ghost_vectors`。"""
         self.background_plane_kwargs = _merged_plane(
             {
                 "color": GREY,
@@ -2855,10 +2779,10 @@ class LinearTransformationScene(VectorScene):
         )
 
     def setup(self) -> None:
-        """Lay out the planes and the basis vectors, and add them to the scene.
+        """铺设平面与基向量，并将其添加到场景。
 
-        [`render`][manimgx.Scene.render] calls it before `construct`; it acts once. A
-        subclass that overrides it calls this one first.
+        [`render`][manimgx.Scene.render] 在 `construct` 之前调用它；它只执行一次。
+        重写它的子类须先调用本方法。
         """
         if hasattr(self, "has_already_setup"):
             return
@@ -2889,12 +2813,12 @@ class LinearTransformationScene(VectorScene):
     def add_special_mobjects(
         self, mob_list: list[Mobject], *mobs_to_add: Mobject
     ) -> None:
-        """Add mobjects to the scene and to one of its lists of mobjects of a kind
-        (background, foreground, transformable, moving), each once.
+        """将 mobject 添加到场景及其某一类别的 mobject 列表
+        （背景、前景、可变换、移动）之一，各一次。
 
         Args:
-            mob_list: The list.
-            *mobs_to_add: The mobjects, in order; one the list holds already is skipped.
+            mob_list: 该列表。
+            *mobs_to_add: mobject，按顺序；列表已持有者被跳过。
         """
         for mobject in mobs_to_add:
             if mobject not in mob_list:
@@ -2902,59 +2826,55 @@ class LinearTransformationScene(VectorScene):
                 self.add(mobject)
 
     def add_background_mobject(self, *mobjects: Mobject) -> None:
-        """Add mobjects that the transformations leave where they are, as they leave the
-        background plane.
+        """添加变换留在原处的 mobject，如同其留背景平面那样。
         """
         self.add_special_mobjects(self.background_mobjects, *mobjects)
 
     def add_foreground_mobject(self, *mobjects: Mobject) -> Self:
-        """Add mobjects that stay in front: drawn over everything else, and left where
-        they are by the transformations.
+        """添加保持最前的 mobject：绘制在一切之上，且被变换留在原处。
         """
         self.add_special_mobjects(self.foreground_mobjects, *mobjects)
         return self
 
     def add_transformable_mobject(self, *mobjects: Mobject) -> None:
-        """Add mobjects that the transformations move point by point, as they move the
-        plane.
+        """添加变换逐点移动的 mobject，如同其移动平面那样。
         """
         self.add_special_mobjects(self.transformable_mobjects, *mobjects)
 
     def add_moving_mobject(
         self, mobject: Mobject, target_mobject: Mobject | None = None
     ) -> None:
-        """Add a mobject that the transformations move whole, its shape unchanged: to
-        where they take its center.
+        """添加变换整体移动、形状不变的 mobject：移动到变换所取其中心之处。
 
         Args:
-            target_mobject: What it becomes as it moves, placed where the transformation
-                takes its center; None for itself.
+            target_mobject: 其移动时所变成的形态，放置在变换所取其中心之处；
+                None 表示其自身。
         """
         mobject.target = target_mobject
         self.add_special_mobjects(self.moving_mobjects, mobject)
 
     def get_ghost_vectors(self) -> VGroup:
-        """The faded copies the transformations left of what they moved whole, where it
-        was, with `leave_ghost_vectors`.
+        """变换所留的、整体移动之物的褪色副本，在其原处，带
+        `leave_ghost_vectors`。
 
         Returns:
-            The group of them.
+            它们的组。
         """
         return self.ghost_vectors
 
     def get_unit_square(
         self, color: Colors = PURE_YELLOW, opacity: float = 0.3, stroke_width: float = 3
     ) -> Rectangle:
-        """Make a rectangle over the plane's unit square: from its origin, one unit of x
-        wide and one unit of y tall.
+        """生成一个覆盖平面单位正方形的矩形：从其原点起，x 方向一单位宽、
+        y 方向一单位高。
 
         Args:
-            color: The color of its fill and its stroke.
-            opacity: Its fill's opacity, from 0 to 1.
-            stroke_width: Its stroke's width, in hundredths of a scene unit.
+            color: 其填充与描边的颜色。
+            opacity: 其填充的不透明度，从 0 到 1。
+            stroke_width: 其描边的宽度，以场景单位的百分之一表示。
 
         Returns:
-            A new rectangle, also kept as the scene's `square`.
+            一个新矩形，同时保存为场景的 `square`。
         """
         square = self.square = Rectangle(
             color=color,
@@ -2971,14 +2891,14 @@ class LinearTransformationScene(VectorScene):
     def add_unit_square(
         self, animate: bool = False, **kwargs: Unpack[UnitSquareOptions]
     ) -> Self:
-        """Add the plane's unit square, which the transformations move with the plane:
-        its area shows how they scale areas.
+        """添加平面的单位正方形，变换使其随平面移动：其面积显示变换如何缩放
+        面积。
 
-        The moving vectors are then brought to the front, over it.
+        随后移动向量被带到最前，位于其上。
 
         Args:
-            animate: Whether to draw it in: its border, then its fill.
-            **kwargs: [Unit square keywords][manimgx.scene.UnitSquareOptions].
+            animate: 是否以动画绘入：先其边框，后其填充。
+            **kwargs: [单位正方形关键字][manimgx.scene.UnitSquareOptions]。
         """
         square = self.get_unit_square(**kwargs)
         if animate:
@@ -2996,15 +2916,13 @@ class LinearTransformationScene(VectorScene):
     def write_vector_coordinates(
         self, vector: Vector, **kwargs: Unpack[MatrixOptions]
     ) -> Matrix:
-        """Write a vector's coordinates beside its tip, as a column that stays in front,
-        where it is, through the transformations.
+        """将向量的坐标作为一列写在尖端旁，该列保持最前、原位不动，贯穿变换。
 
         Args:
-            **kwargs: [Matrix keywords][manimgx.mobjects.grid.MatrixOptions] for the
-                column.
+            **kwargs: 该列的[矩阵关键字][manimgx.mobjects.grid.MatrixOptions]。
 
         Returns:
-            The column.
+            该列。
         """
         coords = super().write_vector_coordinates(vector, **kwargs)
         self.add_foreground_mobject(coords)
@@ -3020,24 +2938,22 @@ class LinearTransformationScene(VectorScene):
         animate: bool = True,
         **kwargs: Unpack[VectorLabelOptions],
     ) -> ManimTextLabel:
-        """Label a vector with a label that the transformations carry along and rewrite.
+        """为向量加一个变换所携带并改写的标签。
 
-        After a transformation, the label sits by the vector where it went, and reads
-        `new_label`, or else the label in the transformation's name: `L(v)` for a label
-        `v`.
+        变换后，标签位于向量所到之处，并显示 `new_label`，或变换名所包裹的
+        标签：标签 `v` 显示为 `L(v)`。
 
         Args:
-            vector: The vector, from the origin.
-            label: The label: a mobject, or LaTeX (see
-                [`get_vector_label`][manimgx.VectorScene.get_vector_label]).
-            transformation_name: The name of the transformation.
-            new_label: What the label reads after a transformation; None for the
-                transformation's name around it.
-            animate: Whether to write it in.
-            **kwargs: [Vector label keywords][manimgx.scene.VectorLabelOptions].
+            vector: 该向量，从原点出发。
+            label: 该标签：一个 mobject，或 LaTeX（见
+                [`get_vector_label`][manimgx.VectorScene.get_vector_label]）。
+            transformation_name: 变换的名称。
+            new_label: 变换后标签所显示的内容；None 表示变换名包裹它。
+            animate: 是否以动画写入。
+            **kwargs: [向量标签关键字][manimgx.scene.VectorLabelOptions]。
 
         Returns:
-            The label.
+            该标签。
         """
         label_mob = self.label_vector(vector, label, animate, **kwargs)
         if new_label:
@@ -3057,13 +2973,12 @@ class LinearTransformationScene(VectorScene):
     def add_title(
         self, title: str | Mobject, scale_factor: float = 1.5, animate: bool = False
     ) -> Self:
-        """Add a title at the top of the frame, in front and still, on a background
-        rectangle.
+        """在帧顶部添加标题，最前且静止，带背景矩形。
 
         Args:
-            title: The title: a mobject, or text, typeset as [`Tex`][manimgx.Tex].
-            scale_factor: How much text is scaled.
-            animate: Whether to write it in.
+            title: 该标题：一个 mobject，或文本，以 [`Tex`][manimgx.Tex] 排版。
+            scale_factor: 文本的缩放倍数。
+            animate: 是否以动画写入。
         """
         if not isinstance(title, Mobject):
             title = Tex(title).scale(scale_factor)
@@ -3079,14 +2994,14 @@ class LinearTransformationScene(VectorScene):
     def get_matrix_transformation(
         self, matrix: npt.ArrayLike
     ) -> Callable[[Point3D], Point3D]:
-        """The function that applies a matrix to a point.
+        """将矩阵作用于一个点的函数。
 
         Args:
-            matrix: A 2 × 2 matrix, which acts on x and y, or a 3 × 3 one; any other
-                shape raises a ValueError.
+            matrix: 一个作用于 x 与 y 的 2 × 2 矩阵，或一个 3 × 3 矩阵；任何
+                其他形状抛出 ValueError。
 
         Returns:
-            The function from a point to its image.
+            从点到其像的函数。
         """
         return self.get_transposed_matrix_transformation(np.array(matrix).T)
 
@@ -3094,15 +3009,14 @@ class LinearTransformationScene(VectorScene):
     def get_transposed_matrix_transformation(
         self, transposed_matrix: npt.ArrayLike
     ) -> Callable[[Point3D], Point3D]:
-        """The function that applies a matrix to a point, given its transpose.
+        """给定矩阵的转置，将矩阵作用于一个点的函数。
 
         Args:
-            transposed_matrix: The matrix's transpose, whose rows are where the matrix
-                takes î and ĵ: 2 × 2, acting on x and y, or 3 × 3; any other shape
-                raises a ValueError.
+            transposed_matrix: 矩阵的转置，其行为矩阵所取 î 与 ĵ 之处：
+                2 × 2，作用于 x 与 y，或 3 × 3；任何其他形状抛出 ValueError。
 
         Returns:
-            The function from a point to its image.
+            从点到其像的函数。
         """
         matrix = np.array(transposed_matrix, dtype=float)
         if matrix.shape == (2, 2):
@@ -3115,17 +3029,15 @@ class LinearTransformationScene(VectorScene):
 
     @deprecated("Manim CE's machinery: apply_matrix calls it", category=None)
     def get_piece_movement(self, pieces: Iterable[Mobject]) -> Transform:
-        """The animation that moves mobjects whole into their targets (their `target`
-        each), all together.
+        """将 mobject 整体移入其目标（各自的 `target`）的动画，全部同时。
 
-        With `leave_ghost_vectors`, a faded copy of them is left in the scene where they
-        are.
+        带 `leave_ghost_vectors` 时，其褪色副本留在场景中其原处。
 
         Args:
-            pieces: The mobjects; those that are not paths are left out.
+            pieces: 这些 mobject；非路径者被排除。
 
         Returns:
-            A [`Transform`][manimgx.Transform] of them into their targets.
+            一个将其变为目标的 [`Transform`][manimgx.Transform]。
         """
         v_pieces = [piece for piece in pieces if isinstance(piece, VMobject)]
         start = VGroup(*v_pieces)
@@ -3137,14 +3049,13 @@ class LinearTransformationScene(VectorScene):
 
     @deprecated("Manim CE's machinery: apply_matrix calls it", category=None)
     def get_moving_mobject_movement(self, func: MappingFunction) -> Transform:
-        """The animation that moves the moving mobjects whole to where a function takes
-        their centers.
+        """将移动 mobject 整体移到函数所取其中心之处的动画。
 
         Args:
-            func: The function, from a point to its image.
+            func: 该函数，从点到其像。
 
         Returns:
-            A [`Transform`][manimgx.Transform] of them.
+            一个 [`Transform`][manimgx.Transform]。
         """
         for m in self.moving_mobjects:
             if m.target is None:
@@ -3154,14 +3065,14 @@ class LinearTransformationScene(VectorScene):
 
     @deprecated("Manim CE's machinery: apply_matrix calls it", category=None)
     def get_vector_movement(self, func: MappingFunction) -> Transform:
-        """The animation that redraws the moving vectors to where a function takes their
-        tips; a vector that ends up shorter than 0.1 gets a tip as small.
+        """将移动向量重绘到函数所取其尖端之处的动画；最终短于 0.1 的向量获得
+        同样小的尖端。
 
         Args:
-            func: The function, from a point to its image.
+            func: 该函数，从点到其像。
 
         Returns:
-            A [`Transform`][manimgx.Transform] of them.
+            一个 [`Transform`][manimgx.Transform]。
         """
         for v in self.moving_vectors:
             target = Vector(func(v.get_end()), color=v.get_color())
@@ -3173,11 +3084,11 @@ class LinearTransformationScene(VectorScene):
 
     @deprecated("Manim CE's machinery: apply_matrix calls it", category=None)
     def get_transformable_label_movement(self) -> Transform:
-        """The animation that moves each transformable label to where its vector goes,
-        rewritten: it follows `get_vector_movement`, which moves the vectors.
+        """将每个可变换标签移动到其向量所到之处并改写的动画：它跟随
+        `get_vector_movement`，后者移动各向量。
 
         Returns:
-            A [`Transform`][manimgx.Transform] of the labels.
+            一个标签的 [`Transform`][manimgx.Transform]。
         """
         for item in self.transformable_labels:
             moved = item.vector.target
@@ -3191,46 +3102,42 @@ class LinearTransformationScene(VectorScene):
     def apply_matrix(
         self, matrix: npt.ArrayLike, **kwargs: Unpack[TransformOptions]
     ) -> None:
-        """Apply a matrix to the plane and to everything on it, in one play.
+        """在一次 play 中将矩阵作用于平面及其上的一切。
 
-        Everything the transformations move goes where the matrix takes it (see
-        [`apply_function`][manimgx.LinearTransformationScene.apply_function]). Unless a
-        `path_arc` is given, the points travel along arcs that turn through the mean of
-        the angles the matrix turns î and ĵ through.
+        变换所移动的一切都去往矩阵所取之处（见
+        [`apply_function`][manimgx.LinearTransformationScene.apply_function]）。除非
+        给定 `path_arc`，各点沿弧线移动，弧线转过的角度为矩阵转动 î 与 ĵ 所
+        转角度的均值。
 
         Args:
-            matrix: A 2 × 2 matrix, which acts on x and y, or a 3 × 3 one: its columns
-                are where it takes î and ĵ.
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-                every animation of the play (3 seconds long unless given a `run_time`).
+            matrix: 一个作用于 x 与 y 的 2 × 2 矩阵，或一个 3 × 3 矩阵：其列
+                为矩阵所取 î 与 ĵ 之处。
+            **kwargs: play 中每个动画的[变换选项][manimgx.animation.transform.TransformOptions]
+                （除非给定 `run_time`，否则为 3 秒）。
         """
         self.apply_transposed_matrix(np.array(matrix).T, **kwargs)
 
     def apply_inverse(
         self, matrix: npt.ArrayLike, **kwargs: Unpack[TransformOptions]
     ) -> None:
-        """Apply the inverse of a matrix to the plane and to everything on it: undo
-        [`apply_matrix`][manimgx.LinearTransformationScene.apply_matrix] of the same
-        matrix.
+        """将矩阵的逆作用于平面及其上的一切：撤销同一矩阵的
+        [`apply_matrix`][manimgx.LinearTransformationScene.apply_matrix]。
 
         Args:
-            matrix: The matrix, 2 × 2 or 3 × 3, which must be invertible.
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-                every animation of the play.
+            matrix: 该矩阵，2 × 2 或 3 × 3，必须可逆。
+            **kwargs: play 中每个动画的[变换选项][manimgx.animation.transform.TransformOptions]。
         """
         self.apply_matrix(np.linalg.inv(np.asarray(matrix, dtype=float)), **kwargs)
 
     def apply_transposed_matrix(
         self, transposed_matrix: npt.ArrayLike, **kwargs: Unpack[TransformOptions]
     ) -> None:
-        """Apply a matrix, given by its transpose, to the plane and to everything on it:
-        as [`apply_matrix`][manimgx.LinearTransformationScene.apply_matrix] does.
+        """将矩阵（由其转置给出）作用于平面及其上的一切：如同
+        [`apply_matrix`][manimgx.LinearTransformationScene.apply_matrix] 所为。
 
         Args:
-            transposed_matrix: The matrix's transpose, whose rows are where the matrix
-                takes î and ĵ.
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-                every animation of the play.
+            transposed_matrix: 矩阵的转置，其行为矩阵所取 î 与 ĵ 之处。
+            **kwargs: play 中每个动画的[变换选项][manimgx.animation.transform.TransformOptions]。
         """
         func = self.get_transposed_matrix_transformation(transposed_matrix)
         if "path_arc" not in kwargs:
@@ -3247,13 +3154,11 @@ class LinearTransformationScene(VectorScene):
     def apply_inverse_transpose(
         self, t_matrix: npt.ArrayLike, **kwargs: Unpack[TransformOptions]
     ) -> None:
-        """Apply the inverse of a matrix's transpose to the plane and to everything on
-        it.
+        """将矩阵转置的逆作用于平面及其上的一切。
 
         Args:
-            t_matrix: The matrix, 2 × 2 or 3 × 3, which must be invertible.
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-                every animation of the play.
+            t_matrix: 该矩阵，2 × 2 或 3 × 3，必须可逆。
+            **kwargs: play 中每个动画的[变换选项][manimgx.animation.transform.TransformOptions]。
         """
         t_inv = np.linalg.inv(np.array(t_matrix, dtype=float).T).T
         self.apply_transposed_matrix(t_inv, **kwargs)
@@ -3263,16 +3168,14 @@ class LinearTransformationScene(VectorScene):
         function: Callable[[np.ndarray], np.ndarray],
         **kwargs: Unpack[TransformOptions],
     ) -> None:
-        """Apply a function that need not be linear to the plane and to everything on
-        it.
+        """将一个不必线性的函数作用于平面及其上的一切。
 
-        The plane's lines are first divided into many curves, so that they can bend (see
-        [`apply_function`][manimgx.LinearTransformationScene.apply_function]).
+        平面的线条先被分为许多曲线，以便其可弯曲（见
+        [`apply_function`][manimgx.LinearTransformationScene.apply_function]）。
 
         Args:
-            function: The function, from a point to its image, in scene coordinates.
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-                every animation of the play.
+            function: 该函数，从点到其像，以场景坐标表示。
+            **kwargs: play 中每个动画的[变换选项][manimgx.animation.transform.TransformOptions]。
         """
         self.plane.prepare_for_nonlinear_transform()
         self.apply_function(function, **kwargs)
@@ -3283,19 +3186,18 @@ class LinearTransformationScene(VectorScene):
         added_anims: Sequence[Animation] | None = None,
         **kwargs: Unpack[TransformOptions],
     ) -> None:
-        """Apply a function to the plane and to everything on it, in one play.
+        """在一次 play 中将函数作用于平面及其上的一切。
 
-        Every point of the transformable mobjects goes where `function` takes it; each
-        vector is redrawn to where its tip goes, and its transformable label follows it;
-        each moving mobject moves whole to where its center goes; the foreground
-        mobjects stay where they are. With `leave_ghost_vectors`, faded copies of what
-        moves whole are left behind.
+        可变换 mobject 的每个点都去往 `function` 所取之处；每个向量重绘到其
+        尖端所去之处，其可变换标签跟随它；每个移动 mobject 整体移到其中心所
+        去之处；前景 mobject 留在原处。带 `leave_ghost_vectors` 时，整体移动
+        者的褪色副本留在其后。
 
         Args:
-            function: The function, from a point to its image, in scene coordinates.
-            added_anims: Animations to play along.
-            **kwargs: [Transform options][manimgx.animation.transform.TransformOptions] for
-                every animation of the play (3 seconds long unless given a `run_time`).
+            function: 该函数，从点到其像，以场景坐标表示。
+            added_anims: 一同播放的动画。
+            **kwargs: play 中每个动画的[变换选项][manimgx.animation.transform.TransformOptions]
+                （除非给定 `run_time`，否则为 3 秒）。
         """
         kwargs.setdefault("run_time", 3)
         anims: list[Animation] = [

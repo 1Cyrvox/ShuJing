@@ -1,4 +1,4 @@
-"""Sounds and timed speech: sources, edits, placement and soundtrack mixing."""
+"""声音与定时语音：来源、编辑、放置与音轨混合。"""
 
 import dataclasses
 import marshal
@@ -27,25 +27,25 @@ import re
 from collections.abc import Sequence
 
 RATE = 48_000
-"""The soundtrack's sample rate: 48,000 samples a second, as video's sound has."""
+"""音轨的采样率：每秒 48,000 个采样点，与视频的声音一致。"""
 CUT = 0.005
-"""How long a sound cut short fades out, at least, in seconds: a cut mid-wave clicks."""
+"""被截短的声音淡出所需的最短时长，以秒为单位：在波形中间截断会产生咔嗒声。"""
 DUCK_ATTACK, DUCK_RELEASE = 0.15, 0.5
-"""How long a ducking sound takes to dip before speech, and to come back after it (s)."""
+"""闪避声音在语音前下压所需的时间，以及在语音后回升所需的时间（秒）。"""
 BITRATE = 224_000
-"""The soundtrack's bitrate per channel: AAC-LC at 224 kbps."""
+"""音轨每个声道的比特率：AAC-LC，224 kbps。"""
 
 type Source = str | os.PathLike[str] | bytes | np.ndarray
-"""What a sound is made from: a file's path, a file's bytes (any common audio file: WAV, AIFF,
-MP3, AAC/M4A, Opus, Vorbis, FLAC, ALAC; a video's sound too), or samples (float, -1 to 1: one
-column per channel)."""
+"""声音由什么构成：文件的路径、文件的字节（任何常见音频文件：WAV、AIFF、
+MP3、AAC/M4A、Opus、Vorbis、FLAC、ALAC；视频的声音也行），或采样点（浮点数，-1 到 1：每
+个声道一列）。"""
 
 _DECODED: Memo[int, np.ndarray] = Memo(64)
 
 
 @dataclass(frozen=True, slots=True)
 class _Edit:
-    """How a sound is made from its source: in the order applied."""
+    """声音如何由其来源构成：按应用的顺序排列。"""
 
     start: float = 0.0  # the source trimmed to [start, end) seconds
     end: float | None = None
@@ -59,20 +59,20 @@ class _Edit:
 
 
 class Sound(Animation[Mobject]):
-    """A sound a film plays.
+    """影片播放的一段声音。
 
-    Make one from a file, the bytes of one, or samples; edit it (each edit makes a new
-    sound); place it in a scene: [`add_sound`][manimgx.Scene.add_sound] starts it now and
-    takes no time, while [`play`][manimgx.Scene.play] plays it as a part of the play, which
-    then lasts at least as long as the sound. In a composition it starts when its window
-    opens: `LaggedStart(*(AnimationGroup(FadeIn(d), click) for d in dots))` clicks as each
-    dot appears. It changes nothing on screen, and a play's `run_time` does not change it:
-    a sound lasts its [`duration`][manimgx.audio.sound.Sound.duration].
+    从文件、文件字节或采样点构造一个声音；对其进行编辑（每次编辑都会生成一个新的
+    声音）；将其放入场景：[`add_sound`][manimgx.Scene.add_sound] 立即启动它且
+    不占用时间，而 [`play`][manimgx.Scene.play] 将其作为 play 的一部分播放，
+    随后该 play 至少持续与声音一样长的时间。在组合中，它在其窗口
+    打开时启动：`LaggedStart(*(AnimationGroup(FadeIn(d), click) for d in dots))` 在每个
+    点出现时发出咔嗒声。它不会改变屏幕上的任何内容，且 play 的 `run_time` 不会改变它：
+    声音持续其 [`duration`][manimgx.audio.sound.Sound.duration]。
 
     Args:
-        source: A file's path, a file's bytes, or samples: floats from -1 to 1, one
-            column per channel (a 1-D array is mono), copied as they are given.
-        rate: The samples' rate, in samples a second; only for samples.
+        source: 文件的路径、文件的字节或采样点：从 -1 到 1 的浮点数，每个
+            声道一列（一维数组为单声道），按给定方式复制。
+        rate: 采样点的速率，以每秒采样点数为单位；仅用于采样点。
     """
 
     defaults: ClassVar[AnimationOptions] = {"rate_func": linear}
@@ -101,30 +101,30 @@ class Sound(Animation[Mobject]):
         return other
 
     def gain(self, decibels: float) -> Self:
-        """This sound louder by `decibels` (quieter if negative: -6 halves it)."""
+        """将此声音调响 `decibels` 分贝（若为负则调轻：-6 使其减半）。"""
         return self._but(gain=self._edit.gain + decibels)
 
     def fade_in(self, seconds: float) -> Self:
-        """This sound fading in from silence over its first `seconds`."""
+        """此声音在最初的 `seconds` 内从静音淡入。"""
         return self._but(fade_in=seconds)
 
     def fade_out(self, seconds: float) -> Self:
-        """This sound fading out to silence over its last `seconds`."""
+        """此声音在最后的 `seconds` 内淡出至静音。"""
         return self._but(fade_out=seconds)
 
     def trim(self, start: float = 0.0, end: float | None = None) -> Self:
-        """The part of this sound from `start` to `end` seconds (None: its end)."""
+        """此声音从 `start` 秒到 `end` 秒的部分（None：到其结尾）。"""
         return self._but(start=start, end=end)
 
     def loop(self, duration: float | None = None) -> Self:
-        """This sound repeated to last `duration` seconds; None: until the film ends, or
-        until its clip is [stopped][manimgx.audio.sound.Clip.stop]."""
+        """此声音重复播放以持续 `duration` 秒；None：直到影片结束，或
+        直到其片段被[停止][manimgx.audio.sound.Clip.stop]。"""
         return self._but(loop=math.inf if duration is None else duration)
 
     def speed(self, factor: float) -> Self:
-        """This sound played `factor` times as fast, as a tape is: higher and shorter.
+        """此声音以 `factor` 倍速播放，如同磁带一般：更高且更短。
 
-        The resulting speed must be finite and positive.
+        结果速度必须为有限正数。
         """
         speed = self._edit.speed * factor
         if not math.isfinite(speed) or speed <= 0:
@@ -132,13 +132,13 @@ class Sound(Animation[Mobject]):
         return self._but(speed=speed)
 
     def pan(self, position: float) -> Self:
-        """This sound placed from -1 (left) through 0 (center) to 1 (right)."""
+        """将此声音从 -1（左）经 0（中）放置到 1（右）。"""
         return self._but(pan=position)
 
     def duck(self, decibels: float = 12) -> Self:
-        """This sound dipping by `decibels` while anything speaks (while a
-        [`Speech`][manimgx.audio.Speech] plays): music under a narration. It eases down
-        `DUCK_ATTACK` seconds before the speech and back up over `DUCK_RELEASE` after.
+        """此声音在任何语音播放时下压 `decibels` 分贝（当
+        [`Speech`][manimgx.audio.Speech] 播放时）：解说下的音乐。它在语音前
+        `DUCK_ATTACK` 秒开始下压，在语音后 `DUCK_RELEASE` 秒回升。
         """
         return self._but(duck=decibels)
 
@@ -146,11 +146,11 @@ class Sound(Animation[Mobject]):
     def of(
         cls, function: Callable[[np.ndarray], np.ndarray], duration: float
     ) -> "Sound":
-        """A sound made by a function of time: `function(t)`, given the times of its
-        samples (seconds, an array), returns their values (-1 to 1).
+        """由时间函数生成的声音：`function(t)`，传入其采样点的
+        时间（秒，一个数组），返回它们的值（-1 到 1）。
 
         Examples:
-            `Sound.of(lambda t: 0.3 * np.sin(2 * np.pi * 440 * t), 1)`: a second of A.
+            `Sound.of(lambda t: 0.3 * np.sin(2 * np.pi * 440 * t), 1)`：一秒的 A 音。
         """
         t = np.arange(round(duration * RATE)) / RATE
         return cls(np.asarray(function(t), np.float32), rate=RATE)
@@ -158,7 +158,7 @@ class Sound(Animation[Mobject]):
     # ── what it is ──────────────────────────────────────────────────────────────
     @property
     def samples(self) -> np.ndarray:
-        """Its samples at `RATE`: floats, one column per channel (1 or 2)."""
+        """其在 `RATE` 下的采样点：浮点数，每个声道一列（1 或 2）。"""
         made = self.__dict__.get("_made")
         if made is None:
             made = self.__dict__["_made"] = _make(self)
@@ -166,7 +166,7 @@ class Sound(Animation[Mobject]):
 
     @property
     def duration(self) -> float:
-        """How long it lasts, in seconds (inf for a sound looped until stopped)."""
+        """它持续多久，以秒为单位（对于循环播放直到被停止的声音为 inf）。"""
         if self._edit.loop is not None:
             return self._edit.loop
         return len(self.samples) / RATE
@@ -181,8 +181,8 @@ class Sound(Animation[Mobject]):
 
     @property
     def run_time(self) -> float:
-        """Its duration: a sound plays for as long as it lasts. An endless one (`loop()`)
-        cannot be played: add it ([`add_sound`][manimgx.Scene.add_sound]), and stop it.
+        """其时长：声音播放与其持续时长相同。无尽声音（`loop()`）
+        无法被播放：请添加它（[`add_sound`][manimgx.Scene.add_sound]），然后停止它。
         """
         if self._edit.loop == math.inf:
             raise ValueError(
@@ -205,8 +205,8 @@ class Sound(Animation[Mobject]):
 
 @dataclass(eq=False)
 class Clip:
-    """A sound as a film plays it: from `start`, in seconds of scene time, until it ends
-    or is stopped. [`add_sound`][manimgx.Scene.add_sound] returns it."""
+    """影片播放的一段声音：从 `start` 开始，以场景时间的秒为单位，直到它结束
+    或被停止。[`add_sound`][manimgx.Scene.add_sound] 返回它。"""
 
     sound: Sound
     start: Fraction
@@ -216,13 +216,13 @@ class Clip:
     fade: float = 0.0
 
     def stop(self, fade: float = 0.05) -> None:
-        """Stop the sound: it fades out from now (the instant the scene is computing) over
-        `fade` seconds, and is silent after."""
+        """停止声音：它从现在（场景正在计算的瞬间）起在
+        `fade` 秒内淡出，此后静默。"""
         self.end, self.fade = clock.now + clock.rational(fade), fade
 
 
 def _source_samples(sound: Sound) -> np.ndarray:
-    """Source samples at RATE (2-D), possibly borrowed; consumers must not mutate them."""
+    """在 RATE 下的来源采样点（二维），可能是借用的；使用者不得修改它们。"""
     source = sound.source
     if isinstance(source, np.ndarray):
         data = source.astype(np.float32, copy=False).reshape(
@@ -246,7 +246,7 @@ def _decode(raw: bytes) -> np.ndarray:
 
 
 def _resample(data: np.ndarray, rate: float, to: float) -> np.ndarray:
-    """Samples at `rate` resampled to `to`: band-limited (the engine's windowed sinc)."""
+    """将 `rate` 处的采样点重采样到 `to`：带限的（引擎的加窗 sinc）。"""
     from manimgx._engine import resample_audio
 
     channels = data.shape[1]
@@ -255,9 +255,9 @@ def _resample(data: np.ndarray, rate: float, to: float) -> np.ndarray:
 
 
 def _make(sound: Sound) -> np.ndarray:
-    """The sound's samples: its source trimmed, sped, looped, its gain, fades and pan. An
-    endless loop is one round of it, without fades: the mix repeats it for as long as its
-    clip plays, and fades it where the clip starts and ends."""
+    """声音的采样点：其来源经裁剪、变速、循环，并应用增益、淡变和声像。一个
+    无尽循环是它的一轮，不带淡变：混音在其片段播放期间重复它，
+    并在片段开始和结束处淡变它。"""
     e = sound._edit
     data = _source_samples(sound)
     data = data[round(e.start * RATE) : None if e.end is None else round(e.end * RATE)]
@@ -278,7 +278,7 @@ def _make(sound: Sound) -> np.ndarray:
 
 
 def _ramp(data: np.ndarray, fade_in: float, fade_out: float) -> None:
-    """Fade the ends of `data` in place: linear ramps of those lengths."""
+    """就地淡变 `data` 的两端：指定长度的线性斜坡。"""
     for seconds, head in ((fade_in, True), (fade_out, False)):
         n = min(len(data), round(seconds * RATE))
         if n:
@@ -290,12 +290,12 @@ def _ramp(data: np.ndarray, fade_in: float, fade_out: float) -> None:
 
 
 def mix(clips: list[Clip], duration: Fraction) -> np.ndarray | None:
-    """The soundtrack of a film `duration` seconds long: its clips mixed, at RATE (one
-    column per channel: mono when every clip is mono and centered); None if it has none.
+    """时长为 `duration` 秒的影片的音轨：其片段经混合，在 RATE 下（每个
+    声道一列：当所有片段都是单声道且居中时为单声道）；若无片段则为 None。
 
-    A clip plays from its start until its sound ends, it is stopped, or the film ends; a
-    sound cut short fades out over its stop's fade, or `CUT` at least (a cut mid-wave
-    clicks). An endless loop fades in where its clip starts and out where it ends.
+    一个片段从其开始处播放，直到其声音结束、被停止或影片结束；
+    被截短的声音在其停止的淡变时长内淡出，或至少 `CUT`（在波形中间截断
+    会产生咔嗒声）。无尽循环在其片段开始处淡入，在其结束处淡出。
     """
     if not clips:
         return None
@@ -324,8 +324,8 @@ def mix(clips: list[Clip], duration: Fraction) -> np.ndarray | None:
 
 
 def _ducked(clips: list[Clip], decibels: float, at: int, length: int) -> np.ndarray:
-    """The gain of a ducking sound placed at sample `at` for `length` samples: 1, dipping
-    by `decibels` while any speech among `clips` plays (eased on a 10 ms grid)."""
+    """放置在采样点 `at` 处、持续 `length` 个采样点的闪避声音的增益：1，在
+    `clips` 中任何语音播放时下压 `decibels` 分贝（在 10 ms 网格上平滑过渡）。"""
     low, hop = 10 ** (-decibels / 20), RATE // 100
     grid = np.arange(at, at + length + hop, hop, dtype=np.float64) / RATE
     gain = np.ones(len(grid))
@@ -347,8 +347,8 @@ def _ducked(clips: list[Clip], decibels: float, at: int, length: int) -> np.ndar
 
 @dataclass(frozen=True, slots=True)
 class Word:
-    """A word of a speech, and when it is said: from `start` to `end`, in seconds from the
-    speech's start."""
+    """语音中的一个词，以及它何时被说出：从 `start` 到 `end`，以从
+    语音开始的秒数为单位。"""
 
     text: str
     start: float
@@ -356,17 +356,17 @@ class Word:
 
 
 class Speech(Sound):
-    """Speech: a sound that knows what it says and when it says each word.
+    """语音：一种知道自己说什么以及每个词何时被说出的声音。
 
-    A voice returns one. It plays as any sound does; [`Scene.say`][manimgx.Scene.say]
-    also times animations by its words.
+    语音由一个 voice 返回。它像任何声音一样播放；[`Scene.say`][manimgx.Scene.say]
+    还按其词语为动画计时。
 
     Args:
-        source: The audio: a file's path, a file's bytes, or samples.
-        text: What it says.
-        words: Each word and when it is said, if the voice knows; otherwise they are
-            estimated from the audio.
-        rate: The samples' rate; only for samples.
+        source: 音频：文件的路径、文件的字节或采样点。
+        text: 它说了什么。
+        words: 每个词及其被说出的时间，如果 voice 知道；否则从
+            音频中估算。
+        rate: 采样点的速率；仅用于采样点。
     """
 
     speaks: ClassVar[bool] = True
@@ -385,9 +385,9 @@ class Speech(Sound):
 
     @property
     def words(self) -> tuple[Word, ...]:
-        """Its words, in order, with when each is said (in seconds from its start): the
-        voice's, or estimated from the audio; a trim or a change of speed moves them with
-        the audio."""
+        """其词语，按顺序排列，以及每个词被说出的时间（以从其开始的秒数为单位）：
+        voice 提供的，或从音频中估算的；裁剪或变速会随
+        音频移动它们。"""
         if not self._words:
             self._words = estimate(self.text, _source_samples(self))
         e = self._edit
@@ -402,8 +402,8 @@ class Speech(Sound):
 
 
 type Voice = Callable[[str], Speech]
-"""Anything that speaks: a function from text to [`Speech`][manimgx.audio.Speech]. Bring any
-text-to-speech: wrap its call in a function that returns `Speech(audio, text=text)`."""
+"""任何能说话的东西：一个从文本到 [`Speech`][manimgx.audio.Speech] 的函数。引入任何
+文本转语音：将其调用包装在一个返回 `Speech(audio, text=text)` 的函数中。"""
 
 
 # ── timing ───────────────────────────────────────────────────────────────────────────────
@@ -413,9 +413,8 @@ _WORD = re.compile(r"\S+")
 
 
 def estimate(text: str, samples: np.ndarray) -> tuple[Word, ...]:
-    """When each word of `text` is said in `samples`, estimated: the audio's voiced span
-    shared among the words by their letters, with a share more for the pause after a comma or
-    a full stop."""
+    """`text` 中每个词在 `samples` 中被说出的时间，估算得出：音频的发声跨度
+    按词语的字母数分配给各词，逗号或句号后的停顿会获得更多份额。"""
     words = _WORD.findall(text)
     if not words:
         return ()
@@ -451,9 +450,9 @@ def estimate(text: str, samples: np.ndarray) -> tuple[Word, ...]:
 
 @deprecated("ManimGX's machinery: the captions call it", category=None)
 def lines(speech: Speech, width: int = 42) -> list[tuple[float, float, str]]:
-    """A speech as captions: its words in lines of at most `width` characters, a line ending
-    at the end of a sentence, each shown from its first word's start until the next line's
-    (or its last word's end), in seconds from the speech's start."""
+    """将语音转为字幕：其词语排成每行最多 `width` 个字符的行，在句子结束时
+    换行，每行从其第一个词的开始处显示到下一行的
+    （或其最后一个词的结束处），以从语音开始的秒数为单位。"""
     out: list[tuple[float, float, str]] = []
     line: list[Word] = []
     for word in speech.words:
@@ -476,8 +475,8 @@ _SPAN = re.compile(r"\[([^\[\]]*)\]")
 
 @deprecated("ManimGX's machinery: say calls it", category=None)
 def spans(script: str) -> tuple[str, list[tuple[int, int]]]:
-    """The text of a script, its brackets taken out, and each bracketed span's characters
-    in that text: `"Here is [a circle]."` is `("Here is a circle.", [(8, 16)])`."""
+    """脚本的文本，其方括号已去除，以及每个方括号片段在该
+    文本中的字符位置：`"Here is [a circle]."` 为 `("Here is a circle.", [(8, 16)])`。"""
     text, found, at = [], [], 0
     shift = 0
     for m in _SPAN.finditer(script):
@@ -492,8 +491,8 @@ def spans(script: str) -> tuple[str, list[tuple[int, int]]]:
 
 @deprecated("ManimGX's machinery: say calls it", category=None)
 def times(speech: Speech, span: tuple[int, int]) -> tuple[float, float]:
-    """When the characters `span` of a speech's text are said: from the start of its first
-    word to the end of its last; an empty span, the start of the word it comes before.
+    """语音文本中 `span` 字符被说出的时间：从其第一个词的开始到
+    其最后一个词的结束；空片段为其前面那个词的开始。
     """
     begin, end = span
     words = speech.words
@@ -511,11 +510,11 @@ def times(speech: Speech, span: tuple[int, int]) -> tuple[float, float]:
 
 
 def cached(voice: Voice, text: str, folder: Path) -> Speech:
-    """What `voice` says for `text`: spoken once, then kept in `folder` as its audio and a
-    JSON of its words, named by the text and a digest of the voice and the text.
+    """`voice` 为 `text` 说出的内容：说出一次，然后保存在 `folder` 中，作为其音频和
+    一个包含其词语的 JSON，以文本以及 voice 和文本的摘要命名。
 
-    The audio may be replaced (a recording of the same words, in any format the engine
-    reads, under the same name): its words are then timed again, from it.
+    音频可以被替换（相同词语的录音，引擎能读取的任何格式，
+    同名文件下）：其词语随后从它重新计时。
     """
     from manimgx._engine import digest
 
@@ -555,12 +554,11 @@ def cached(voice: Voice, text: str, folder: Path) -> Speech:
 
 
 def _identity(voice: Voice) -> str:
-    """What names a voice in the cache: what decides what it says. A dataclass's repr (its
-    settings; a key is left out of it); a function's name, its code and the plain values it
-    holds (in its closure, its defaults, and the fields of the object a method is bound
-    to); another callable's type and plain fields. A plain value is immutable: a string, a
-    number, a boolean, None, or a tuple of them — a voice's settings, not its state (a
-    client, a list it appends to)."""
+    """在缓存中命名一个 voice 的依据：决定它说什么的因素。数据类的 repr（其
+    设置；某个键被排除在外）；函数的名称、其代码及其持有的纯值（在其闭包、
+    其默认值以及方法所绑定对象的字段中）；其他可调用对象的类型和纯字段。纯值
+    是不可变的：字符串、数字、布尔值、None，或它们的元组——是 voice 的设置，
+    而非其状态（客户端、它追加内容的列表）。"""
     if hasattr(voice, "__dataclass_fields__"):
         return repr(voice)
     fn = getattr(
@@ -586,7 +584,7 @@ def _identity(voice: Voice) -> str:
 
 
 def _code(code: CodeType) -> CodeType:
-    """A voice's code without source locations, including its nested functions."""
+    """一个 voice 的代码，去除源位置信息，包括其嵌套函数。"""
     return code.replace(
         co_filename="",
         co_firstlineno=0,
@@ -598,14 +596,14 @@ def _code(code: CodeType) -> CodeType:
 
 
 def _fields(owner: object) -> tuple[tuple[str, object], ...]:
-    """An object's plain fields, in order of their names."""
+    """一个对象的纯字段，按其名称顺序排列。"""
     plain = ((k, _plain(v)) for k, v in sorted(getattr(owner, "__dict__", {}).items()))
     return tuple((k, v) for k, v in plain if v is not _OTHER)
 
 
 def _plain(value: object) -> object:
-    """`value` if it is plain (immutable: a string, number, boolean, None, or a tuple of
-    them, whose other items are left out); else `_OTHER`."""
+    """若 `value` 是纯值（不可变：字符串、数字、布尔值、None，或它们的元组，
+    其中其他项被排除），则返回 `value`；否则返回 `_OTHER`。"""
     if value is None or isinstance(value, str | int | float | bool | bytes):
         return value
     if isinstance(value, tuple):
@@ -639,7 +637,7 @@ def _sniff(data: bytes) -> str:
 
 
 def _wav(samples: np.ndarray) -> bytes:
-    """Float samples at RATE as a 32-bit float WAV file."""
+    """在 RATE 下的浮点采样点，作为 32 位浮点 WAV 文件。"""
     data = np.ascontiguousarray(samples, np.float32)
     channels = data.shape[1] if data.ndim > 1 else 1
     body = data.tobytes()
@@ -663,10 +661,10 @@ def _wav(samples: np.ndarray) -> bytes:
 
 
 def timed(text: str, pieces: Sequence[tuple[str, float, float]]) -> tuple[Word, ...]:
-    """The words of `text`, timed by a voice's timed pieces of it, in order (its characters,
-    or its tokens): each word from the start of the piece its first letter is in to the end
-    of the piece its last letter is in. Empty if the pieces don't spell the text's letters
-    (a voice that said "two" for "2"): its words are then estimated."""
+    """`text` 的词语，由 voice 对其定时片段按顺序计时（其字符
+    或其标记）：每个词从其第一个字母所在片段的开始到
+    其最后一个字母所在片段的结束。若片段未拼出文本的字母
+    （voice 将 "2" 说成 "two"）则为空：其词语随后被估算。"""
     # each letter of the pieces: its piece's times
     owner: list[tuple[float, float]] = []
     for piece, a, b in pieces:

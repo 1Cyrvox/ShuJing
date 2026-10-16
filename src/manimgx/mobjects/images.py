@@ -1,4 +1,4 @@
-"Pictures on meshes: decoded pixels and live camera views."
+"网格上的图片：解码后的像素与实时相机视图。"
 
 from pathlib import Path
 from typing import TYPE_CHECKING, Self, Unpack
@@ -28,32 +28,29 @@ if TYPE_CHECKING:
 
 
 class ImageMobject(MeshMobject):
-    """A picture: an image file or an array of pixels, on a rectangle as tall as its
-    pixels make it.
+    """一幅图片：一个图像文件或一个像素数组，置于一个与其像素高度相当的矩形上。
 
-    An image `scale_to_resolution` pixels tall (1080 unless given) is as tall as the
-    frame's short side (8 scene units by default), and any other in proportion. Shown
-    larger than its pixels, the picture is reconstructed from them by
-    `resampling_algorithm`: by default a smooth cubic through every pixel; linear blends
-    neighboring pixels; nearest shows each pixel as a square of its color. Shown smaller,
-    it is sampled, not averaged. The mobject's opacity multiplies its pixels' own.
+    一幅 `scale_to_resolution` 像素高（未指定时为 1080）的图像与画框短边
+    （默认为 8 个场景单位）等高，其他图像按比例缩放。当显示尺寸大于其像素时，
+    图片由 `resampling_algorithm` 从像素重建：默认为穿过每个像素的平滑三次曲线；
+    linear 混合相邻像素；nearest 将每个像素显示为其颜色的小方块。当显示尺寸
+    小于其像素时，图片被采样而非平均。该 mobject 的不透明度与其像素自身的相乘。
 
     Args:
-        filename_or_array: The picture: an image file's path, the file's contents
-            (bytes), or an array of pixel values from 0 to 255: (h, w) gray, (h, w, 3)
-            RGB or (h, w, 4) RGBA.
-        scale_to_resolution: How many pixels tall an image as tall as the frame's
-            short side is; 0 for an image 3 units tall, whatever its size.
-        invert: Whether its colors are inverted (not its transparency).
-        image_mode: The mode, as the Pillow library names them, a file is read in:
-            "RGBA", or "L" for gray.
-        resampling_algorithm: How the picture is reconstructed from its pixels, by the
-            Pillow library's number: 0, nearest; 2, linear; 3, cubic (Keys' cubic
-            convolution, Pillow's bicubic);
-            [RESAMPLING_ALGORITHMS][manimgx.RESAMPLING_ALGORITHMS] gives them by name.
-        stroke_width: The width of a border around the picture, in hundredths of a
-            scene unit; 0 for none.
-        stroke_color: The border's color.
+        filename_or_array: 图片内容：图像文件的路径、文件内容
+            （字节串），或取值 0 到 255 的像素值数组：(h, w) 灰度、(h, w, 3)
+            RGB 或 (h, w, 4) RGBA。
+        scale_to_resolution: 与画框短边等高的图像有多少像素高；
+            0 表示图像高 3 个单位，与其尺寸无关。
+        invert: 是否反转其颜色（不反转其透明度）。
+        image_mode: 文件被读入的模式，以 Pillow 库的命名方式表示：
+            "RGBA"，或 "L" 表示灰度。
+        resampling_algorithm: 图片如何从其像素重建，以 Pillow 库的编号表示：
+            0，nearest；2，linear；3，cubic（Keys 的三次卷积，Pillow 的 bicubic）；
+            [RESAMPLING_ALGORITHMS][manimgx.RESAMPLING_ALGORITHMS] 按名称给出这些值。
+        stroke_width: 图片周围边框的宽度，以百分之一场景单位为单位；
+            0 表示无边框。
+        stroke_color: 边框的颜色。
 
     Examples:
         ```python
@@ -148,10 +145,10 @@ class ImageMobject(MeshMobject):
 
     @property
     def pixel_array(self) -> np.ndarray:
-        """The current picture's (h, w, 4) RGBA pixels, from 0 to 255.
+        """当前图片的 (h, w, 4) RGBA 像素，取值 0 到 255。
 
-        Pictures decoded or tinted by this image are read-only. Becoming another
-        textured mesh adopts its texture, including whether it is writable.
+        由该图像解码或着色的图片是只读的。当变为另一个带纹理网格时，
+        会采用其纹理，包括其是否可写。
         """
         texture = self.paint.texture
         assert isinstance(texture, np.ndarray)
@@ -174,13 +171,11 @@ class ImageMobject(MeshMobject):
         alpha: float | None = None,
         family: bool = True,
     ) -> Self:
-        """Paint every pixel `color`, keeping its opacity: the picture becomes a
-        silhouette in that color.
+        """将每个像素着为 `color`，保留其不透明度：图片变为该颜色的剪影。
 
         Args:
-            alpha: Every pixel's opacity too, from 0 to 1; None keeps each one's.
-            family: Accepted for Manim compatibility; ignored: the picture alone is
-                painted.
+            alpha: 同时设置每个像素的不透明度，取值 0 到 1；None 保留各自的原值。
+            family: 仅为 Manim 兼容性而接受；被忽略：仅对图片本身着色。
         """
         pixels = self.pixel_array.copy()
         pixels[:, :, :3] = (ManimColor(color).to_rgb() * 255).astype(np.uint8)
@@ -193,37 +188,35 @@ class ImageMobject(MeshMobject):
     def set_opacity(
         self, opacity: float = 1.0, family: bool = True, *, alpha: float | None = None
     ) -> Self:
-        """Set the picture's opacity, which multiplies its pixels' own.
+        """设置图片的不透明度，该值与其像素自身的相乘。
 
         Args:
-            opacity: The opacity, from 0 to 1.
-            family: Whether its whole family is set (a border too), or the picture
-                alone.
-            alpha: The opacity, by the name Manim's images give it; given, it wins over
-                `opacity`.
+            opacity: 不透明度，取值 0 到 1。
+            family: 是否设置其整个族（包括边框），还是仅设置图片本身。
+            alpha: 不透明度，使用 Manim 图像所用的名称；若给定，则优先于
+                `opacity`。
         """
         return super().set_opacity(opacity if alpha is None else alpha, family)
 
     def set_resampling_algorithm(self, resampling_algorithm: Resampling) -> Self:
-        """Set how the picture is reconstructed from its pixels where it is shown larger
-        than they are.
+        """设置在显示尺寸大于像素时，图片如何从其像素重建。
 
         Args:
-            resampling_algorithm: The filter, by the Pillow library's number: 0, nearest
-                (each pixel a square of its color); 2, linear; 3, cubic (smooth, and
-                through every pixel);
-                [RESAMPLING_ALGORITHMS][manimgx.RESAMPLING_ALGORITHMS] gives them by
-                name.
+            resampling_algorithm: 滤波器，以 Pillow 库的编号表示：0，nearest
+                （每个像素为其颜色的小方块）；2，linear；3，cubic（平滑，且
+                穿过每个像素）；
+                [RESAMPLING_ALGORITHMS][manimgx.RESAMPLING_ALGORITHMS] 按名称给出
+                这些值。
         """
         self.resampling_algorithm = resampling_algorithm
         return self
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def get_style(self) -> Fill:
-        """The picture's style, as fill keywords: its color and its opacity.
+        """图片的样式，以填充关键字表示：其颜色和不透明度。
 
         Returns:
-            A dict of `fill_color` and `fill_opacity`.
+            一个包含 `fill_color` 和 `fill_opacity` 的字典。
         """
         return Fill(fill_color=self.get_color(), fill_opacity=self.get_fill_opacity())
 
@@ -239,34 +232,33 @@ def _to_rgba(pixels: np.ndarray) -> np.ndarray:
 
 
 class ImageCameraOptions(_Style, total=False):
-    """A camera picture's keywords, for the scenes that pass them on: a
-    [ZoomedScene][manimgx.ZoomedScene]'s display.
+    """相机图片的关键字，供将其传递下去的场景使用：例如
+    [ZoomedScene][manimgx.ZoomedScene] 的显示。
 
-    Beyond these, they take the [style keywords][manimgx.drawing.paint.Style].
+    除此之外，它们还接受[样式关键字][manimgx.drawing.paint.Style]。
     """
 
     default_display_frame_config: "FrameOptions | None"
-    """[Surrounding rectangle
-    keywords][manimgx.mobjects.annotations.FrameOptions] for the picture's
-    outline, over a white outline 3 wide with no margin (default None)."""
+    """图片轮廓的[环绕矩形
+    关键字][manimgx.mobjects.annotations.FrameOptions]，覆盖默认的宽 3 白色
+    无边距轮廓（默认为 None）。"""
 
 
 @deprecated("Manim CE's machinery for ZoomedScene: use ZoomedScene", category=None)
 class ImageMobjectFromCamera(MeshMobject):
-    """What a camera sees, as a picture: a rectangle showing the camera's view, drawn
-    anew every frame.
+    """相机所见的内容，作为一幅图片：一个显示相机视图的矩形，每帧重新绘制。
 
-    The picture is 3 units tall, in the frame's proportions. Move the camera's
-    [frame][manimgx.Camera.frame] to look elsewhere, scale it to zoom: the picture
-    follows. The camera sees everything but this picture; a
-    [ZoomedScene][manimgx.ZoomedScene] shows its zoomed camera's view with one.
+    图片高 3 个单位，宽高比与画框一致。移动相机的
+    [frame][manimgx.Camera.frame] 可看向别处，缩放它即可缩放：图片随之变化。
+    相机能看到除该图片之外的所有内容；[ZoomedScene][manimgx.ZoomedScene] 用
+    它来显示其缩放相机的视图。
 
     Args:
-        camera: The camera whose view the picture shows.
-        default_display_frame_config: [Surrounding rectangle
-            keywords][manimgx.mobjects.annotations.FrameOptions] for the
-            outline [add_display_frame][manimgx.ImageMobjectFromCamera.add_display_frame]
-            draws, over a white outline 3 wide with no margin.
+        camera: 其视图由该图片显示的相机。
+        default_display_frame_config: [add_display_frame][manimgx.ImageMobjectFromCamera.add_display_frame]
+            所绘轮廓的[环绕矩形
+            关键字][manimgx.mobjects.annotations.FrameOptions]，覆盖默认的宽 3 白色
+            无边距轮廓。
 
     Examples:
         ```python
@@ -295,7 +287,7 @@ class ImageMobjectFromCamera(MeshMobject):
         **kwargs: Unpack[Style],
     ) -> None:
         self.camera = camera
-        """The camera whose view the picture shows."""
+        """其视图由该图片显示的相机。"""
         frame: FrameOptions = {"stroke_width": 3, "stroke_color": WHITE, "buff": 0}
         self.default_display_frame_config = frame | (default_display_frame_config or {})
         w = (
@@ -312,12 +304,12 @@ class ImageMobjectFromCamera(MeshMobject):
         )
 
     def add_display_frame(self, **kwargs: "Unpack[FrameOptions]") -> Self:
-        """Outline the picture: a surrounding rectangle, added as a submobject.
+        """为图片绘制轮廓：一个环绕矩形，作为子 mobject 添加。
 
         Args:
-            **kwargs: [Surrounding rectangle
-                keywords][manimgx.mobjects.annotations.FrameOptions], over
-                `default_display_frame_config`.
+            **kwargs: [环绕矩形
+                关键字][manimgx.mobjects.annotations.FrameOptions]，覆盖
+                `default_display_frame_config`。
         """
         from manimgx.mobjects.annotations import SurroundingRectangle
 

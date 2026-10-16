@@ -20,10 +20,7 @@
       <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" title="{{ config.site_name | e }}" class="md-header__button md-logo" aria-label="{{ config.site_name }}" data-md-component="logo">
         {% include "partials/logo.html" %}
       </a>
-      <a href="https://academa.ai" title="academa.ai" class="md-header__button md-logo mx-byline">
-        <img class="mx-logo mx-logo--light" src="{{ 'images/byline-light.svg' | url }}" alt="by Academa">
-        <img class="mx-logo mx-logo--dark" src="{{ 'images/byline-dark.svg' | url }}" alt="by Academa">
-      </a>
+
     </div>
     <label class="md-header__button md-icon" for="__drawer" aria-label="{{ lang.t('nav') }}">
       {% set icon = config.theme.icon.menu or "material/menu" %}

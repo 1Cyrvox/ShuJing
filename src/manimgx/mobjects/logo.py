@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Ported from Manim CE 0.21 (MIT); `expand` re-derived as a function of its progress."""
+"""移植自 Manim CE 0.21（MIT）；`expand` 被重新推导为其进度的函数。"""
 
 from __future__ import annotations
 
@@ -119,19 +119,19 @@ MANIM_SVG_PATHS = (
 
 @deprecated("Manim's logo, kept for Manim CE's examples", category=None)
 class ManimBanner(VGroup):
-    """The Manim logo: a large "M" beside a green circle, a blue square and a red
-    triangle, which [create][manimgx.ManimBanner.create] brings in and
-    [expand][manimgx.ManimBanner.expand] opens into the banner: the wordmark "Manim"
-    beside the shapes.
+    """Manim 标志：一个大号 "M" 旁边是一个绿色圆圈、一个蓝色方块和一个红色
+    三角形，[create][manimgx.ManimBanner.create] 将它们带入，而
+    [expand][manimgx.ManimBanner.expand] 将其展开为横幅：文字标 "Manim"
+    位于这些形状旁边。
 
-    The letters are light, for a dark background, unless `dark_theme` is False. The
-    letters "anim" are not submobjects until `expand` sets them after the "M", at the
-    banner's size wherever it is. Playing [Create][manimgx.Create] on the banner plays
-    its `create`.
+    字母为浅色，用于深色背景，除非 `dark_theme` 为 False。字母
+    "anim" 在 `expand` 将它们置于 "M" 之后之前不是子对象，其大小取横幅
+    所在位置的尺寸。对横幅播放 [Create][manimgx.Create] 会播放
+    它的 `create`。
 
     Args:
-        dark_theme: Whether the letters are light (`#ece6e2`), for a dark background,
-            or dark (`#343434`), for a light one.
+        dark_theme: 字母是否为浅色（`#ece6e2`），用于深色背景，
+            或深色（`#343434`），用于浅色背景。
 
     Examples:
         ```python
@@ -187,17 +187,17 @@ class ManimBanner(VGroup):
 
     @override_animation(Create)
     def create(self, run_time: float = 2) -> AnimationGroup:
-        """Make the animation that brings the logo in: the shapes spiral in while the
-        "M" fades in, from a tenth to six tenths of the run time.
+        """构造将标志带入的动画：形状螺旋进入，而
+        "M" 淡入，从运行时间的十分之一到十分之六。
 
-        Both begin at once, so the logo starts from nothing, even if it is already
-        shown. [Create][manimgx.Create] plays it for the banner.
+        两者同时开始，因此标志从无到有，即使它已被
+        显示。[Create][manimgx.Create] 会为横幅播放它。
 
         Args:
-            run_time: How long it takes, in seconds.
+            run_time: 耗时多少秒。
 
         Returns:
-            A new animation.
+            一个新的动画。
         """
         return AnimationGroup(
             SpiralIn(self.shapes, run_time=run_time),
@@ -213,26 +213,25 @@ class ManimBanner(VGroup):
         run_time: float = 1.5,
         direction: Literal["left", "right", "center"] = "center",
     ) -> Animation:
-        """Make the animation that opens the logo into the banner: the "M" and the
-        shapes part, a little too far and back, uncovering "anim" after the "M" to spell
-        "Manim".
+        """构造将标志展开为横幅的动画："M" 和
+        形状分开，稍微过远再回退，在 "M" 之后露出 "anim" 以拼出
+        "Manim"。
 
-        It plays from the banner as it is when it begins, scaled or moved: the "M" and
-        the shapes part along x over the first two thirds of the run time, eased in and
-        out, then settle back by an overshoot, every length in proportion to the
-        banner's size. The letters travel with the "M", behind the shapes, each shown
-        once the square's middle has passed its own, and come in front where the parts
-        are furthest apart and nothing overlaps. Once open, the banner's parts are the
-        shapes, the "M" and "anim", in that order.
+        它从横幅开始时的状态播放，无论是否被缩放或移动："M" 和
+        形状沿 x 轴在运行时间的前三分之二内分开，缓入缓出，
+        然后通过一个过冲回退，每个长度与横幅的尺寸成比例。字母随
+        "M" 一起移动，位于形状之后，每个在方块的中间越过其自身的
+        中间时显示，并在两部分相距最远且无重叠处移至前方。展开后，横幅的各部分依次为
+        形状、"M" 和 "anim"。
 
         Args:
-            run_time: How long it takes, in seconds.
-            direction: What holds still: the "M" ("right": the banner opens to the
-                right), the shapes ("left"), or the banner's middle ("center": each
-                moves half as far).
+            run_time: 耗时多少秒。
+            direction: 何者保持不动："M"（"right"：横幅向右展开）、
+                形状（"left"），或横幅的中间（"center"：每一部分
+                移动一半距离）。
 
         Returns:
-            A new animation.
+            一个新的动画。
 
         Examples:
             ```python
@@ -259,15 +258,13 @@ _SHARES = {"right": (0.0, 1.0), "center": (-0.5, 0.5), "left": (-1.0, 0.0)}
 
 
 class _Expand(Animation[ManimBanner]):
-    """The logo opening into the banner: a function of its progress, from the banner as it
-    begins.
+    """标志展开为横幅：其进度的函数，从横幅开始时的状态出发。
 
-    The wordmark (the M, "anim" set after it) and the shapes part along x by (6.25 + 0.8)·s over
-    the first two thirds, eased in and out, then settle back by the 0.8·s overshoot (s: the
-    banner's scale, its M's height over the height it is built at). The letters travel with the
-    M behind the shapes, each shown once the square's middle has passed its own. Furthest apart
-    nothing overlaps: there the letters come in front of the shapes, as the M is. It reorders
-    the banner's parts, so it acts on the banner itself, updaters and all (no model).
+    文字标（M 及置于其后的 "anim"）和形状沿 x 轴在前三分之二内分开 (6.25 + 0.8)·s，
+    缓入缓出，然后通过 0.8·s 的过冲回退（s：横幅的缩放比例，即其 M 的高度与构建时的高度之比）。字母随
+    M 一起移动，位于形状之后，每个在方块的中间越过其自身的中间时显示。相距最远时
+    无重叠：此时字母移至形状之前，正如 M 那样。它会对
+    横幅的各部分重新排序，因此它作用于横幅本身，包括更新器等（无模型）。
     """
 
     defaults: ClassVar[AnimationOptions] = {

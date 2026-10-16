@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Continuous motion: updater tools, animated outlines and recorded paths."""
+"""连续运动：更新器工具、动画轮廓与记录路径。"""
 
 from __future__ import annotations
 
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 
 
 def _owner(method: Callable[..., object]) -> tuple[Mobject, Callable[..., object]]:
-    """The mobject a bound method belongs to, and its plain function."""
+    """绑定方法所属的 mobject，以及其普通函数。"""
     if not inspect.ismethod(method) or not isinstance(method.__self__, Mobject):
         raise TypeError("expected a method of a mobject, such as `square.move_to`")
     return method.__self__, method.__func__
@@ -58,11 +58,11 @@ def _owner(method: Callable[..., object]) -> tuple[Mobject, Callable[..., object
 
 @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
 def assert_is_mobject_method(method: Callable[..., object]) -> None:
-    """Check that `method` is a method of a mobject, bound to it (as `square.move_to`):
-    anything else raises a TypeError.
+    """检查 `method` 是否为某个 mobject 的方法，并绑定到该 mobject（如 `square.move_to`）：
+    其他任何情况都会引发 TypeError。
 
     Args:
-        method: The method to check.
+        method: 要检查的方法。
     """
     _owner(method)
 
@@ -74,24 +74,22 @@ def assert_is_mobject_method(method: Callable[..., object]) -> None:
 def always[**P](
     method: Callable[P, object], *args: P.args, **kwargs: P.kwargs
 ) -> Mobject:
-    """Call a method of a mobject every frame, with the same arguments: the relation it
-    sets is kept.
+    """每帧调用某个 mobject 的方法，使用相同的参数：所设定的关系得以保持。
 
-    `always(label.next_to, dot, UP)` keeps the label above the dot, wherever the dot
-    goes. It adds a per-frame updater to the mobject the method belongs to (see
-    [`add_updater`][manimgx.Mobject.add_updater]), which first runs at the next frame,
-    not now. The arguments are taken once, as written: pass the mobject to follow
-    (`dot`), not its position (`dot.get_center()`), which would stay where it was.
-    [`Mobject.always`][manimgx.Mobject.always] does the same, as
-    `label.always.next_to(dot, UP)`.
+    `always(label.next_to, dot, UP)` 使标签始终位于点的上方，无论点移动到哪里。它会向该方法
+    所属的 mobject 添加一个逐帧更新器（参见
+    [`add_updater`][manimgx.Mobject.add_updater]），该更新器首次运行于下一帧，而非现在。参数
+    按书写形式一次性取用：传入要跟随的 mobject（`dot`），而非其位置（`dot.get_center()`），后者
+    会停留在原处。[`Mobject.always`][manimgx.Mobject.always] 的作用相同，写作
+    `label.always.next_to(dot, UP)`。
 
     Args:
-        method: A method of a mobject, bound to it (`label.next_to`).
-        *args: Its positional arguments.
-        **kwargs: Its keyword arguments.
+        method: 某个 mobject 的方法，绑定到该 mobject（`label.next_to`）。
+        *args: 其位置参数。
+        **kwargs: 其关键字参数。
 
     Returns:
-        The mobject the method belongs to.
+        方法所属的 mobject。
     """
     mobject, func = _owner(method)
     mobject.add_updater(lambda m: func(m, *args, **kwargs))
@@ -104,22 +102,20 @@ def f_always(
     *arg_generators: Callable[[], object],
     **kwargs: object,
 ) -> Mobject:
-    """Call a method of a mobject every frame, with arguments computed anew each time.
+    """每帧调用某个 mobject 的方法，参数每次重新计算。
 
-    Each positional argument is given as a function of no arguments, called every frame
-    for the value to pass: `f_always(dot.set_x, tracker.get_value)` keeps the dot at the
-    x the tracker holds. It adds a per-frame updater to the mobject the method belongs
-    to (see [`add_updater`][manimgx.Mobject.add_updater]), which first runs at the next
-    frame, not now.
+    每个位置参数以一个无参函数的形式给出，每帧调用以获取要传入的值：
+    `f_always(dot.set_x, tracker.get_value)` 使点保持在追踪器所持有的 x 值上。它会向该方法
+    所属的 mobject 添加一个逐帧更新器（参见
+    [`add_updater`][manimgx.Mobject.add_updater]），该更新器首次运行于下一帧，而非现在。
 
     Args:
-        method: A method of a mobject, bound to it (`dot.set_x`).
-        *arg_generators: For each positional argument, a function of no arguments that
-            gives its value.
-        **kwargs: Keyword arguments, passed as they are.
+        method: 某个 mobject 的方法，绑定到该 mobject（`dot.set_x`）。
+        *arg_generators: 对于每个位置参数，一个无参函数，给出其值。
+        **kwargs: 关键字参数，按原样传入。
 
     Returns:
-        The mobject the method belongs to.
+        方法所属的 mobject。
     """
     mobject, func = _owner(method)
     mobject.add_updater(
@@ -129,19 +125,18 @@ def f_always(
 
 
 def always_redraw[M: Mobject](func: Callable[[], M]) -> M:
-    """Make a mobject that is built anew every frame, by a function.
+    """创建一个每帧由函数重新构建的 mobject。
 
-    `func` builds the mobject now, and every frame the mobject becomes what `func`
-    builds then (see [`become`][manimgx.Mobject.become]): it stays one object in the
-    scene, and follows whatever `func` reads — value trackers, other mobjects. Use it
-    for a shape that depends on others in a way no motion follows: a brace that fits a
-    growing shape, a line between two moving dots, the area under a graph.
+    `func` 现在构建该 mobject，并且每一帧该 mobject 都变为 `func` 当时所构建的对象（参见
+    [`become`][manimgx.Mobject.become]）：它在场景中始终是同一个对象，并跟随 `func` 所读取的
+    任何内容——值追踪器、其他 mobject。适用于形状以无运动跟随的方式依赖于其他对象的情况：贴合
+    不断增长的形状的花括号、两个移动点之间的连线、曲线下方的面积。
 
     Args:
-        func: A function of no arguments that builds the mobject.
+        func: 一个无参函数，用于构建该 mobject。
 
     Returns:
-        The mobject, with its updater: add it to the scene.
+        该 mobject，附带其更新器：将其添加到场景中。
 
     Examples:
         ```python
@@ -168,19 +163,18 @@ def always_redraw[M: Mobject](func: Callable[[], M]) -> M:
 def always_shift[M: Mobject](
     mobject: M, direction: Vector3DLike = RIGHT, rate: float = 0.1
 ) -> M:
-    """Keep a mobject moving in a direction, at a steady speed.
+    """使 mobject 沿某方向以恒定速度持续移动。
 
-    It adds a time-based updater, a [flow][manimgx.mobject.flow], so at every frame
-    the mobject is exactly where its speed has brought it, through plays and waits
-    alike.
+    它添加一个基于时间的更新器，即 [flow][manimgx.mobject.flow]，因此在每一帧该 mobject 都恰好
+    位于其速度所带到的位置，无论在播放还是等待期间皆然。
 
     Args:
-        mobject: The mobject to move.
-        direction: The direction to move in; only its direction counts, not its length.
-        rate: The speed, in scene units per second.
+        mobject: 要移动的 mobject。
+        direction: 移动的方向；仅方向起作用，长度不起作用。
+        rate: 速度，单位为场景单位每秒。
 
     Returns:
-        The mobject, with its updater.
+        该 mobject，附带其更新器。
 
     Examples:
         ```python
@@ -208,21 +202,20 @@ def always_rotate[M: Mobject](
     axis: Vector3DLike = OUT,
     **kwargs: Unpack[Pivot],
 ) -> M:
-    """Keep a mobject turning, at a steady speed.
+    """使 mobject 以恒定速度持续旋转。
 
-    It adds a time-based updater, a [flow][manimgx.mobject.flow], so at every frame
-    the mobject is at exactly the angle its speed has brought it to, through plays and
-    waits alike.
+    它添加一个基于时间的更新器，即 [flow][manimgx.mobject.flow]，因此在每一帧该 mobject 都恰好
+    处于其速度所带到的角度，无论在播放还是等待期间皆然。
 
     Args:
-        mobject: The mobject to turn.
-        rate: The speed, in radians per second; a positive one turns counterclockwise.
-        axis: The axis it turns about.
-        **kwargs: [Pivot keywords][manimgx.mobject.Pivot]: the point it turns
-            about, its center unless given.
+        mobject: 要旋转的 mobject。
+        rate: 速度，单位为弧度每秒；正值表示逆时针旋转。
+        axis: 旋转所绕的轴。
+        **kwargs: [Pivot keywords][manimgx.mobject.Pivot]：旋转所绕的点，
+            未指定时为其中心。
 
     Returns:
-        The mobject, with its updater.
+        该 mobject，附带其更新器。
 
     Examples:
         ```python
@@ -248,23 +241,20 @@ def always_rotate[M: Mobject](
 def turn_animation_into_updater(
     animation: Animation, cycle: bool = False, delay: float = 0
 ) -> Mobject:
-    """Play an animation from an updater of its mobject, on the mobject's own time,
-    instead of in a play.
+    """从 mobject 的更新器播放动画，按 mobject 自身的时间运行，而非在 play 中播放。
 
-    The animation begins at once: it takes its mobject as it is now, and shows its
-    start. Its time then runs with the scene's, from now or from when the mobject joins
-    the scene; after `delay` seconds it plays, at its run time and rate function. When
-    it ends, it finishes and its updater is removed; with `cycle`, it starts over from
-    its beginning instead, again and again. Nothing is added to the scene or taken out
-    of it: add the mobject yourself. The animation and its time are the mobject's: a
-    copy of it plays a copy of them, on itself.
+    动画立即开始：它取该 mobject 当前的样子，并显示其起始状态。随后其时间随场景时间一同推进，
+    从现在起或从该 mobject 加入场景时起；经过 `delay` 秒后开始播放，按其运行时间和速率函数运行。
+    当动画结束时，它完成并移除其更新器；若使用 `cycle`，则改为从头开始，周而复始。不会向场景添加
+    或从中移除任何内容：请自行添加该 mobject。动画及其时间属于该 mobject：其副本播放它们的副本，
+    作用于自身。
 
     Args:
-        cycle: Whether it repeats forever.
-        delay: How long it waits before it starts, in seconds.
+        cycle: 是否永远重复。
+        delay: 开始前等待的时间，单位为秒。
 
     Returns:
-        The animation's mobject, with its updater.
+        动画的 mobject，附带其更新器。
 
     Examples:
         ```python
@@ -320,8 +310,8 @@ def turn_animation_into_updater(
 
 @dataclass
 class _Played:
-    """An animation [turn_animation_into_updater][manimgx.turn_animation_into_updater]
-    plays, and the time it has run (before its delay, negative)."""
+    """[turn_animation_into_updater][manimgx.turn_animation_into_updater] 所播放的动画，
+    以及它已运行的时间（在其延迟之前为负值）。"""
 
     animation: Animation
     elapsed: float
@@ -331,17 +321,16 @@ _PLAYED_KEYS = itertools.count()
 
 
 def cycle_animation(animation: Animation, delay: float = 0) -> Mobject:
-    """Play an animation over and over, from an updater of its mobject:
-    [`turn_animation_into_updater`][manimgx.turn_animation_into_updater] with `cycle`.
+    """从 mobject 的更新器一遍又一遍地播放动画：即带 `cycle` 的
+    [`turn_animation_into_updater`][manimgx.turn_animation_into_updater]。
 
-    Each cycle starts the animation over from its beginning: an animation that does not
-    end where it began jumps back at every cycle.
+    每个周期都从头开始播放动画：若动画的终点与起点不同，则在每个周期处跳回起点。
 
     Args:
-        delay: How long it waits before its first cycle, in seconds.
+        delay: 第一个周期开始前等待的时间，单位为秒。
 
     Returns:
-        The animation's mobject, with its updater.
+        动画的 mobject，附带其更新器。
 
     Examples:
         ```python
@@ -363,24 +352,21 @@ def cycle_animation(animation: Animation, delay: float = 0) -> Mobject:
 
 
 class AnimatedBoundary(VGroup):
-    """An outline that keeps drawing itself around a mobject, cycling through colors.
+    """围绕 mobject 不断自我绘制的轮廓，颜色循环切换。
 
-    Each cycle draws the mobject's outline in the next color, while the outline the
-    cycle before drew thins away; with `back_and_forth`, every other cycle draws it the
-    other way around. It follows the mobject: every frame, it takes the mobject's
-    outline as it is then. It draws only the outline: add it to the scene with the
-    mobject.
+    每个周期以下一个颜色绘制该 mobject 的轮廓，同时上一周期所绘制的轮廓逐渐变细消失；若使用
+    `back_and_forth`，则每隔一个周期反向绘制轮廓。它跟随该 mobject：每一帧都取该 mobject 当时的
+    轮廓。它仅绘制轮廓：请将其与该 mobject 一同添加到场景中。
 
     Args:
-        vmobject: The mobject to outline.
-        colors: The colors, one per cycle, in turn.
-        max_stroke_width: The outline's stroke width, in hundredths of a scene unit.
-        cycle_rate: How many cycles a second.
-        back_and_forth: Whether every other cycle draws the outline from its end back to
-            its start.
-        draw_rate_func: How each drawing is paced: a rate function.
-        fade_rate_func: How each thinning away is paced: a rate function.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the group itself.
+        vmobject: 要绘制轮廓的 mobject。
+        colors: 颜色序列，每个周期依次使用一种。
+        max_stroke_width: 轮廓的线宽，单位为场景单位的百分之一。
+        cycle_rate: 每秒的周期数。
+        back_and_forth: 是否每隔一个周期从轮廓的终点反向绘制回起点。
+        draw_rate_func: 每次绘制的节奏：一个速率函数。
+        fade_rate_func: 每次变细消失的节奏：一个速率函数。
+        **kwargs: 组本身的 [Style keywords][manimgx.drawing.paint.Style]。
 
     Examples:
         ```python
@@ -429,10 +415,10 @@ class AnimatedBoundary(VGroup):
 
     @deprecated("Manim CE's machinery: its updater calls it", category=None)
     def update_boundary_copies(self, dt: float) -> None:
-        """Move the outline on by some time: its updater calls it every frame.
+        """将轮廓推进一段时间：其更新器每帧调用一次。
 
         Args:
-            dt: The time since it last moved on, in seconds.
+            dt: 距上次推进以来的时间，单位为秒。
         """
         self.total_time += dt  # its time now: what this frame shows
         time = self.total_time * self.cycle_rate
@@ -458,21 +444,19 @@ class AnimatedBoundary(VGroup):
     def full_family_become_partial(
         self, mob1: Mobject, mob2: Mobject, a: float, b: float
     ) -> Self:
-        """Make each drawn member of one mobject a stretch of its counterpart in
-        another.
+        """使一个 mobject 的每个已绘制成员成为另一个 mobject 中对应成员的一段拉伸。
 
-        The members with points are paired in family order; each member of `mob1` takes
-        the stretch of its counterpart from proportion `a` to proportion `b` of its
-        curves.
+        带点的成员按家族顺序配对；`mob1` 的每个成员取其对应成员曲线从比例 `a` 到比例 `b` 的一段
+        拉伸。
 
         Args:
-            mob1: The mobject whose members change.
-            mob2: The mobject whose members they take stretches of.
-            a: Where each stretch starts, from 0 to 1.
-            b: Where it ends, from `a` to 1.
+            mob1: 成员发生变化的 mobject。
+            mob2: 成员被取拉伸的 mobject。
+            a: 每段拉伸的起点，从 0 到 1。
+            b: 每段拉伸的终点，从 `a` 到 1。
 
         Returns:
-            This boundary, for chaining.
+            本边界，用于链式调用。
         """
         family1 = mob1.family_members_with_points()
         family2 = mob2.family_members_with_points()
@@ -482,29 +466,23 @@ class AnimatedBoundary(VGroup):
 
 
 class TracedPath(VMobject):
-    """The path a moving point traces: a line through everywhere it has been.
+    """移动点所描绘的路径：一条经过其所有曾到之处的线。
 
-    `traced_point_func` gives the point. The path records where it is at every tick of
-    the simulation clock
-    ([`config.simulation_rate`][manimgx.config.Config.simulation_rate] times a second)
-    and at the end of each play and wait, so it is the same path at any frame rate; at a
-    frame between two ticks, it runs on to where the point is then. It traces while it
-    is in the scene, from when it joins it, and at each instant once everything else
-    has moved: its updater is a [recorder][manimgx.mobject.record].
+    `traced_point_func` 给出该点。路径在仿真时钟的每个滴答
+    （每秒 [`config.simulation_rate`][manimgx.config.Config.simulation_rate] 次）
+    以及每次 play 和 wait 结束时记录其位置，因此在任何帧率下路径都相同；在两个滴答之间的帧上，
+    路径延伸到该点当时的位置。它在场景中时进行描绘，从加入场景时起，且在每个瞬间于其他所有内容
+    移动之后进行：其更新器是一个 [recorder][manimgx.mobject.record]。
 
-    A per-frame updater moves the point at frames only, so what it moves the point by
-    at a frame is its change over the frame that ends there: the path spreads that move
-    over the frame, in proportion to time. A point that a play carries while a
-    per-frame updater turns it traces one smooth curve, not stairs. With
-    `dissipating_time`, only the stretch traced in the last that many seconds remains.
+    逐帧更新器仅在帧上移动该点，因此它在某帧移动该点的量就是该点在以该帧结束的那一帧时间内的
+    变化量：路径将该移动按时间比例分散到该帧上。一个被 play 带动同时被逐帧更新器转动的点描绘出
+    一条平滑曲线，而非阶梯。使用 `dissipating_time` 时，仅保留最近这么多秒内所描绘的那一段。
 
     Args:
-        traced_point_func: A function of no arguments that gives the point to trace
-            (`dot.get_center`).
-        dissipating_time: How long each stretch of the path remains, in seconds; None:
-            all of it remains.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] (by default a white stroke,
-            2 wide).
+        traced_point_func: 一个无参函数，给出要描绘的点（`dot.get_center`）。
+        dissipating_time: 路径每一段保留的时长，单位为秒；None：全部保留。
+        **kwargs: [Style keywords][manimgx.drawing.paint.Style]（默认为白色描边、
+            宽度为 2）。
 
     Examples:
         ```python
@@ -562,20 +540,17 @@ class TracedPath(VMobject):
     @record
     @deprecated("Manim CE's machinery: its updater calls it", category=None)
     def update_path(self, mob: Mobject, dt: float) -> None:
-        """Trace the point where it is now: the path's updater, a
-        [recorder][manimgx.mobject.record].
+        """描绘点当前所在位置：路径的更新器，一个
+        [recorder][manimgx.mobject.record]。
 
-        At a tick of the simulation clock or at the end of a play or wait, the point is
-        traced for good; at a frame between two ticks, the path runs on to it, a
-        stretch the next instant takes back. A frame or an end runs it a second time
-        once the per-frame updaters have run: what they moved the point by is spread
-        over the frame that ends there, each stretch traced since the frame before
-        moved by its share of the frame's time. A dissipating path then drops what it
-        traced more than `dissipating_time` seconds ago.
+        在仿真时钟的滴答处或 play、wait 结束时，该点被永久描绘；在两个滴答之间的帧上，路径延伸到该
+        点，下一瞬间会收回这一段拉伸。帧或结束事件会在逐帧更新器运行之后第二次运行它：逐帧更新器移动
+        该点的量被分散到以该帧结束的那一帧时间上，自上一帧以来描绘的每一段拉伸按其在帧时间中所占的
+        份额移动。随后，耗散路径会丢弃超过 `dissipating_time` 秒之前所描绘的内容。
 
         Args:
-            mob: The path the updater runs on.
-            dt: The time since it last ran, in seconds.
+            mob: 更新器所运行的路径。
+            dt: 距上次运行以来的时间，单位为秒。
         """
         # the second run is the instant's second pass (`clock.framing`, see
         # `Scene._instant`): `_settle` spreads the move
@@ -615,9 +590,8 @@ class TracedPath(VMobject):
         self._last = point
 
     def _settle(self, point: np.ndarray, now: float) -> None:
-        """The frame (or event) ending `now` moved the point on to `point`: each curve traced
-        since the last one takes its share of that move, by when it was traced. A curve's
-        handles move with its anchors, so it stays straight."""
+        """以 `now` 结束的帧（或事件）将点移动到 `point`：自上一帧以来描绘的每条曲线按其描绘时刻
+        分摊该移动量。曲线的控制柄随其锚点一同移动，因此保持为直线。"""
         jump = point - self._last
         if jump.any():
             if not self._open or self._open[-1] != now:  # nothing traced here yet
@@ -643,7 +617,7 @@ class TracedPath(VMobject):
 
 @record
 def _trace(path: Mobject, dt: float) -> None:
-    """A traced path's updater: it traces the path it runs on (its copies, a path that takes
-    its updaters over), and holds nothing of the path it was made for."""
+    """追踪路径的更新器：它描绘其所运行的路径（其副本，即接管其更新器的路径），而不保留其最初
+    所为之创建的路径的任何内容。"""
     if isinstance(path, TracedPath):
         path.update_path(path, dt)

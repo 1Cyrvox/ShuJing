@@ -1,469 +1,300 @@
-# Testing
+# 测试
 
-A test is code that checks that other code does what it should. Written once, it runs
-again after every change, and says whether the change broke something.
+测试是检查其他代码是否按预期工作的代码。编写一次后，它在每次更改之后都会再次运行，并告知更改是否破坏了某些东西。
 
-ManimGX's Python and integration tests are in
-[`tests/`](https://github.com/academa-labs/manimgx/tree/main/tests).
-Most of them render scenes, so the suite needs what rendering needs: a GPU the engine can
-draw with (see [Setup](index.md#a-gpu)). Rendering the corpus's Manim references again
-needs Manim Community Edition too (see
-[Setup](index.md#manim-community-edition)).
+ManimGX 的 Python 测试和集成测试位于
+[`tests/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests)。
+其中大多数会渲染场景，因此测试套件需要渲染所需的一切：引擎可用于绘制的 GPU（参见[设置](index.md#gpu)）。再次渲染语料库的 Manim 参考还需要 Manim Community Edition（参见[设置](index.md#manim-community-edition)）。
 
-The browser package's tests live beside it, in
-[`browser/tests/`](https://github.com/academa-labs/manimgx/tree/main/browser/tests).
-Run them with `just test-typescript`: it builds the package, tests the compiled player and
-embedded worker with browser and Pyodide doubles, and type-checks a consumer of the generated
-public declarations. These tests need Bun; they do not need a GPU or download Pyodide.
+浏览器包的测试位于其旁边，在
+[`browser/tests/`](https://github.com/1Cyrvox/ShuJing/tree/main/browser/tests)。
+使用 `just test-typescript` 运行它们：它会构建该包，用浏览器和 Pyodide 替身测试编译后的播放器和内嵌的 worker，并对生成的公共声明的使用者进行类型检查。这些测试需要 Bun；它们不需要 GPU，也不会下载 Pyodide。
 
-## [pytest](https://docs.pytest.org): the test runner
+## [pytest](https://docs.pytest.org)：测试运行器
 
-pytest finds the files named `test_*.py` under `tests/` and runs the functions in them
-named `test_*`. [pytest-xdist](https://pytest-xdist.readthedocs.io) runs them in parallel,
-a worker per CPU core. `just test` runs them, and passes its arguments on to pytest:
+pytest 会找到 `tests/` 下名为 `test_*.py` 的文件，并运行其中名为 `test_*` 的函数。[pytest-xdist](https://pytest-xdist.readthedocs.io) 会并行运行它们，每个 CPU 核心一个 worker。`just test` 会运行它们，并将其参数传递给 pytest：
 
 ```sh
-just test                                      # the whole suite
-just test tests/integration/test_time.py       # one module
-just test -k add_subpath_example               # the tests whose name matches: one case's
-just test tests/integration/test_time.py -x    # stop at the first failure
+just test                                      # 整个套件
+just test tests/integration/test_time.py       # 一个模块
+just test -k add_subpath_example               # 名称匹配的测试：一个用例的
+just test tests/integration/test_time.py -x    # 在第一个失败处停止
 ```
 
-The whole suite renders every case of the integration corpus, so it takes a while; while
-you work, run the part your change touches. `pyproject.toml` puts the repository's root on
-the path, so the tests import their own tools as `tests.integration.corpus`.
+整个套件会渲染集成语料库的每一个用例，因此需要一些时间；在你工作时，运行你的更改所涉及的部分。`pyproject.toml` 将仓库的根目录放在路径上，因此测试将其自身的工具作为 `tests.integration.corpus` 导入。
 
-The Test workflow runs the suite on every push to `main` and every pull request, on Linux,
-macOS and Windows, with Python 3.13 and 3.14 (see
-[GitHub workflows](github-workflows.md#1-testyaml-the-checks-and-the-tests)).
-The nine benchmark films run on Linux and macOS. Windows still runs the functional
-corpus, native rendering tests, packaging checks and laws of work; its software GPU's
-cost on these long films is outside the performance gate.
+Test 工作流会在每次推送到 `main` 和每个拉取请求时，在 Linux、macOS 和 Windows 上，使用 Python 3.13 和 3.14 运行该套件（参见 [GitHub 工作流](github-workflows.md#1-testyaml)）。九部基准测试影片在 Linux 和 macOS 上运行。Windows 仍然运行功能性语料库、原生渲染测试、打包检查和工作量定律；其软件 GPU 在这些长影片上的开销不在性能门禁之内。
 
-## What the tests are
+## 测试的内容
 
 ```text
 tests/
-├── unit/                 ← properties of each module: unit/<path>/test_<module>.py
-├── conftest.py           ← each test's fresh world, its `config` marks, Hypothesis's profiles
-├── strategies.py         ← what Hypothesis draws, and a registry of every mobject class
-├── oracles.py            ← slow, plainly correct computations to compare with
-├── scenes.py             ← scenes made of functions, drawn or probed; random stories
-├── test_tests.py         ← the suite's own rules
+├── unit/                 ← 每个模块的属性：unit/<path>/test_<module>.py
+├── conftest.py           ← 每个测试的全新世界，其 `config` 标记，Hypothesis 的配置文件
+├── strategies.py         ← Hypothesis 抽取的内容，以及每个 mobject 类的注册表
+├── oracles.py            ← 缓慢、明确正确的计算，用于比较
+├── scenes.py             ← 由函数构成的场景，被绘制或探测；随机故事
+├── test_tests.py         ← 套件自身的规则
 ├── integration/
-│   ├── test_*.py         ← stories: what a comparison with Manim cannot see
-│   ├── test_corpus.py    ← the corpus's three checks, for every case
-│   ├── test_corpus_tools.py ← the corpus's tools keep their rules
-│   ├── cases/            ← the corpus: a folder per case
-│   ├── corpus/           ← the corpus's tools: render, compare, review
-│   ├── review/           ← the review panel: a FastAPI server and its web page
-│   └── settings.json     ← the comparison's metric and tolerance
+│   ├── test_*.py         ← 故事：与 Manim 的比较无法看到的内容
+│   ├── test_corpus.py    ← 语料库的三项检查，针对每个用例
+│   ├── test_corpus_tools.py ← 语料库的工具保持其规则
+│   ├── cases/            ← 语料库：每个用例一个文件夹
+│   ├── corpus/           ← 语料库的工具：渲染、比较、审查
+│   ├── review/           ← 审查面板：一个 FastAPI 服务器及其网页
+│   └── settings.json     ← 比较的度量标准和容差
 ├── docs/
-│   ├── test_llms.py      ← llms.txt's primer, checked against the API; every page's Markdown
-│   ├── test_skill.py     ← the agent skill, checked against its specification
-│   ├── test_reference.py ← the API reference shows every name the package documents, once
-│   ├── test_hidden.py    ← no example in the docs uses a name manimgx hides
-│   ├── test_deprecated.py ← what is deprecated is left out of the reference
-│   └── test_examples.py  ← the narrated examples say what docs/voice/ keeps
+│   ├── test_llms.py      ← llms.txt 的入门指南，对照 API 检查；每个页面的 Markdown
+│   ├── test_skill.py     ← 智能体技能，对照其规范检查
+│   ├── test_reference.py ← API 参考展示了包所文档化的每个名称，一次
+│   ├── test_hidden.py    ← 文档中没有示例使用 manimgx 隐藏的名称
+│   ├── test_deprecated.py ← 已弃用的内容被排除在参考之外
+│   └── test_examples.py  ← 带解说的示例说明了 docs/voice/ 保留的内容
 └── benchmarks/
-    ├── test_laws.py      ← laws of cost: work grows as what is made does
-    ├── test_speed.py     ← timed: this checkout against another commit (just bench)
-    ├── scenes/           ← three scenes, which test_speed.py times
-    ├── harness.py        ← the trees compared, a render measured, and their rounds
-    └── work.py           ← work, counted
+    ├── test_laws.py      ← 成本定律：工作量随所制作内容的增长而增长
+    ├── test_speed.py     ← 计时：此检出与另一个提交的比较 (just bench)
+    ├── scenes/           ← 三个场景，由 test_speed.py 计时
+    ├── harness.py        ← 比较的树、测量的渲染及其轮次
+    └── work.py           ← 工作，已计数
 ```
 
-[`tests/docs/test_llms.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_llms.py)
-checks the primer of the docs' `llms.txt`, written by hand for AI agents (see
-[Documentation](documentation.md#markdown-for-agents)): its scene runs, and every name it
-teaches exists. It also checks that every page is in a section of `llms.txt`, so that every
-page has its Markdown.
-[`tests/docs/test_skill.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_skill.py)
-checks the agent skill's front matter (see
-[Documentation](documentation.md#the-agent-skill)).
-[`tests/docs/test_examples.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_examples.py)
-runs the narrated examples with no voice's key, as the site is built (see
-[Documentation](documentation.md#examples-films-rendered-from-the-code)).
-[`tests/docs/test_reference.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_reference.py)
-keeps the API reference, written by hand, whole: every name the package documents is on a
-page, once, and no name it hides is (see [Documentation](documentation.md#the-api-reference)).
-[`tests/docs/test_hidden.py`](https://github.com/academa-labs/manimgx/blob/main/tests/docs/test_hidden.py)
-type-checks every example the docs show, and fails on a name ManimGX hides (`@deprecated`).
-The unit tests are in `tests/unit/`, the benchmarks in `tests/benchmarks/` (see
-[Benchmarks](#benchmarks)), and the rest of the suite is in `tests/integration/`.
+[`tests/docs/test_llms.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_llms.py)
+检查文档 `llms.txt` 的入门指南，该文件为 AI 智能体手工编写（参见[文档](documentation.md#markdown)）：其场景可以运行，且它教授的每个名称都存在。它还检查每个页面都在 `llms.txt` 的某个章节中，从而每个页面都有其 Markdown。
+[`tests/docs/test_skill.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_skill.py)
+检查智能体技能的 front matter（参见[文档](documentation.md#_8)）。
+[`tests/docs/test_examples.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_examples.py)
+在没有语音密钥的情况下运行带解说的示例，正如站点构建时那样（参见[文档](documentation.md#_4)）。
+[`tests/docs/test_reference.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_reference.py)
+保持手工编写的 API 参考的完整性：包所文档化的每个名称都出现在某个页面上，且仅出现一次，而它隐藏的名称不会出现（参见[文档](documentation.md#api)）。
+[`tests/docs/test_hidden.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/docs/test_hidden.py)
+对文档展示的每个示例进行类型检查，并在遇到 ManimGX 隐藏的名称（`@deprecated`）时失败。
+单元测试在 `tests/unit/` 中，基准测试在 `tests/benchmarks/` 中（参见[基准测试](#_17)），套件的其余部分在 `tests/integration/` 中。
 
-### Unit tests
+### 单元测试
 
-[`tests/unit/`](https://github.com/academa-labs/manimgx/tree/main/tests/unit) mirrors the
-package: `tests/unit/<path>/test_<module>.py` tests
-`src/manimgx/<path>/<module>.py`, and opens with a docstring listing the
-properties it checks. [`tests/test_tests.py`](https://github.com/academa-labs/manimgx/blob/main/tests/test_tests.py)
-holds the suite to both, and its registries to every public mobject and animation class.
+[`tests/unit/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/unit) 与包相对应：`tests/unit/<path>/test_<module>.py` 测试 `src/manimgx/<path>/<module>.py`，并以一个 docstring 开头，列出它检查的属性。[`tests/test_tests.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/test_tests.py) 将套件约束于两者，以及其对每个公共 mobject 和动画类的注册表。
 
-The unit tests check properties of the public API, not examples, and not how the code is
-built inside: no test reads private storage, counts calls or orders hooks to pin how a result
-is reached. With [Hypothesis](https://hypothesis.readthedocs.io), a test states what holds for
-every input, and Hypothesis draws hundreds of inputs, then shrinks any that fails to the
-simplest one that still does. The properties that do the work:
+单元测试检查公共 API 的属性，而非示例，也非代码内部构建方式：没有测试读取私有存储、计数调用或排序钩子来固定结果的达成方式。借助 [Hypothesis](https://hypothesis.readthedocs.io)，测试声明对每个输入都成立的性质，Hypothesis 抽取数百个输入，然后将任何失败的输入缩减为仍然失败的最简单输入。承担工作的属性有：
 
-- agreement with a slow and plainly correct computation from
-  [`tests/oracles.py`](https://github.com/academa-labs/manimgx/blob/main/tests/oracles.py):
-  de Casteljau's construction, numpy's root finder, Gauss–Legendre quadrature, `decimal`
-  arithmetic for a number's digits, the tight box of what is drawn;
-- laws: `AnimationGroup(x)` plays as `x`, nested successions play as one, `Rotate` is
-  `.animate.rotate`, moves played together end as applied in turn;
-- laws every public class keeps, over the registries in
-  [`tests/strategies.py`](https://github.com/academa-labs/manimgx/blob/main/tests/strategies.py):
-  `MOBJECTS` (a copy, a target, a saved state or a construction made again is an independent
-  replica of the same object graph, reaching nothing of its original; its inputs and outputs
-  are values; its box is what it draws) and `ANIMATIONS` (made, it changes nothing; begun, it
-  shows what it showed; it is a function of its progress);
-- state machines checked against a plain model, over any history of public calls: a family's
-  edits, transforms, updaters and their clocks, a scene's membership, a graph's edits, the
-  feeder's books, what a paint remembers;
-- remembered work is invisible: anything made with ManimGX's memories warm is what it is made
-  cold (a test marked `cold` starts and ends with nothing remembered);
-- for time, random stories told on a headless scene
-  ([`tests/scenes.py`](https://github.com/academa-labs/manimgx/blob/main/tests/scenes.py)):
-  a play computed ahead of time shows what the same play computed frame by frame shows,
-  and the world at an instant is the same at every frame rate.
+- 与 [`tests/oracles.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/oracles.py) 中缓慢且明确正确的计算保持一致：de Casteljau 构造、numpy 的求根器、Gauss–Legendre 求积、用于数字数位的 `decimal` 运算、所绘内容的紧致包围盒；
+- 定律：`AnimationGroup(x)` 的播放等同于 `x`，嵌套的顺序播放等同于一次播放，`Rotate` 等同于 `.animate.rotate`，一起播放的移动最终等同于依次应用；
+- 每个公共类保持的定律，基于 [`tests/strategies.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/strategies.py) 中的注册表：`MOBJECTS`（一个副本、一个目标、一个保存的状态或重新构造的对象是同一对象图的独立复制品，不触及其原始对象的任何内容；其输入和输出是值；其包围盒是它绘制的内容）和 `ANIMATIONS`（创建后，它不改变任何东西；开始后，它展示它所展示的内容；它是其进度的函数）；
+- 对照简单模型检查的状态机，覆盖任何公共调用历史：一个家族的编辑、变换、更新器及其时钟，一个场景的成员关系，一个图的编辑，馈送器的账本，画笔记住的内容；
+- 记住的工作是不可见的：在 ManimGX 记忆温暖时创建的任何东西，等同于在记忆冷却时创建的（标记为 `cold` 的测试在开始和结束时都没有记住任何东西）；
+- 对于时间，在无头场景上讲述的随机故事
+  ([`tests/scenes.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/scenes.py))：
+  预先计算的播放展示的内容与逐帧计算的同一播放展示的内容相同，
+  且某一瞬间的世界在每个帧率下都是相同的。
 
-[`tests/conftest.py`](https://github.com/academa-labs/manimgx/blob/main/tests/conftest.py)
-starts every test from the same world: the scene clock at 0 and the configuration as it ships,
-restored after the test. A test that needs another configuration says so with a mark,
-`pytestmark = pytest.mark.config(pixel_width=320, pixel_height=180)` for a module, or
-`@pytest.mark.config(frame_rate=30)` on a test, never by setting and restoring it by hand. It
-also holds Hypothesis's profiles: `default`; `thorough`, 2,000 examples a property
-(`just test-thorough`); and `mutation`. On CI, Hypothesis loads its own `ci` profile.
+[`tests/conftest.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/conftest.py)
+从同一个世界开始每个测试：场景时钟为 0，配置为出厂配置，测试后恢复。需要其他配置的测试通过标记声明，对模块使用 `pytestmark = pytest.mark.config(pixel_width=320, pixel_height=180)`，或对测试使用 `@pytest.mark.config(frame_rate=30)`，从不手动设置和恢复。它还持有 Hypothesis 的配置文件：`default`；`thorough`，每个属性 2,000 个示例（`just test-thorough`）；以及 `mutation`。在 CI 上，Hypothesis 加载其自己的 `ci` 配置文件。
 
-A fix comes with the property it broke, stated so that it fails without the fix. A bug found
-on one input is that input added to the law it broke (an `@example`, or an entry of a
-registry), not a test of its own; work that grew too fast is a row of the laws of cost. A law
-that a known bug breaks marks exactly the cases it breaks `xfail(strict=True)`, its reason the
-bug in a sentence: the day the bug is fixed, the mark has to go.
+修复伴随着它破坏的属性，该属性的声明方式使得没有修复时它就会失败。在某个输入上发现的错误是将该输入添加到它破坏的定律中（一个 `@example`，或注册表的一个条目），而不是一个独立的测试；增长过快的工作是成本定律的一行。已知错误破坏的定律精确地将其破坏的用例标记为 `xfail(strict=True)`，其原因用一句话描述该错误：错误被修复的那一天，该标记必须移除。
 
-### Mutation testing
+### 变异测试
 
-A test that passes proves little unless it would fail were the code wrong.
-[mutmut](https://mutmut.readthedocs.io) checks that: it changes the code in small ways (a
-`<` for a `<=`, a `+` for a `-`), one mutant at a time, and runs the tests against each. A
-mutant that no test fails is a change the tests let through. `just mutate` runs it on the
-modules `[tool.mutmut]` in `pyproject.toml` lists, under the `mutation` profile and with
-everything ManimGX remembers forgotten between tests (`manimgx.caches.clear`), so that a
-cache cannot hide a mutant. It is slow, so it runs by hand, not on CI.
+通过的测试证明不了什么，除非当代码错误时它会失败。
+[mutmut](https://mutmut.readthedocs.io) 检查这一点：它以微小的方式更改代码（将 `<` 改为 `<=`，将 `+` 改为 `-`），每次一个变异体，并对每个变异体运行测试。没有测试失败的变异体是测试放过的更改。`just mutate` 在 `pyproject.toml` 中 `[tool.mutmut]` 列出的模块上运行它，在 `mutation` 配置文件下，并在测试之间遗忘 ManimGX 记住的一切（`manimgx.caches.clear`），从而使缓存无法隐藏变异体。它很慢，因此手动运行，而非在 CI 上运行。
 
-### Stories
+### 故事
 
-Each `test_*.py` module in
-[`tests/integration/`](https://github.com/academa-labs/manimgx/tree/main/tests/integration)
-but `test_corpus.py` tells stories about one subject: time, motion, what the engine draws
-(strokes, fills, images), light, perspective, 3D compositing, the film's hooks, its video,
-sound and takes, the window and the preview, the banner. A story renders a scene and probes
-it at every instant the scene computes, often at several frame rates. Its module's docstring
-lists what it shows. `tests/scenes.py` makes a scene of a function (`scene`, `scene_3d`),
-draws one and keeps its frames as arrays (`frames`), or keeps what a probe sees of it at
-every instant (`instants`).
+[`tests/integration/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration) 中除 `test_corpus.py` 外的每个 `test_*.py` 模块讲述关于某个主题的故事：时间、运动、引擎绘制的内容（描边、填充、图像）、光照、透视、3D 合成、影片的钩子、其视频、声音和片段、窗口和预览、横幅。故事渲染一个场景，并在场景计算的每个瞬间探测它，通常以多个帧率进行。其模块的 docstring 列出它展示的内容。`tests/scenes.py` 由函数创建场景（`scene`、`scene_3d`），绘制一个并将其帧保存为数组（`frames`），或保存探测在每个瞬间所见的内容（`instants`）。
 
-Stories check what a comparison with Manim cannot.
-[`test_time.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/test_time.py),
-for one, checks that what a frame shows does not depend on the frame rate: at 10, 30 and 60
-frames per second, a dot moved by an updater is where its exact trajectory puts it at every
-instant.
+故事检查与 Manim 的比较无法检查的内容。
+例如，[`test_time.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/test_time.py)
+检查帧展示的内容不依赖于帧率：在每秒 10、30 和 60 帧时，由更新器移动的点在每个瞬间都位于其精确轨迹所指定的位置。
 
-A fix or a feature comes with a test that shows it: a story in the module it belongs to,
-or a new corpus case (see [Working with the corpus](#working-with-the-corpus)).
+修复或功能伴随着展示它的测试：在其所属模块中的故事，或一个新的语料库用例（参见[使用语料库](#_13)）。
 
-## The integration corpus
+## 集成语料库
 
-### The problem
+### 问题
 
-ManimGX implements Manim Community Edition's API. Scenes written for Manim must work, and
-keep working as the engine changes. A test of one function does not see a wrong frame, and
-reference images are too many to check by hand. And "the same as Manim" is not "correct":
-Manim has bugs of its own, and ManimGX differs from it on purpose (the exact clock, for
-one).
+ManimGX 实现了 Manim Community Edition 的 API。为 Manim 编写的场景必须能工作，并在引擎更改时继续工作。单个函数的测试看不到错误的帧，而参考图像太多，无法手动检查。而且"与 Manim 相同"并不等于"正确"：Manim 自身有错误，而 ManimGX 有意与之不同（例如精确的时钟）。
 
-So the corpus renders real scenes in both engines, compares them, lets a person decide
-what is right, and holds ManimGX to every stored render so a change cannot pass unnoticed.
+因此，语料库在两个引擎中渲染真实场景，比较它们，让人决定什么是正确的，并将 ManimGX 约束于每个已存储的渲染，从而使更改无法不被察觉地通过。
 
-### A case
+### 用例
 
-A case is a folder in
-[`tests/integration/cases/`](https://github.com/academa-labs/manimgx/tree/main/tests/integration/cases):
+用例是 [`tests/integration/cases/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration/cases) 中的一个文件夹：
 
-- `scene.py`: the only source. It is Manim code, and it reaches the engine only through
-  `import manimgx`. A file the scene reads (an SVG, a sound) sits beside it.
-- `manimgx.mkv` and `ce.mkv`: each engine's lossless frames, generated locally and ignored by Git. Their `.sha256` sidecars record the exact reviewed video files.
-- `case.json`: the facts, written by the tools. The hash of the source both renders came
-  from, the hash of every frame, and how the two engines' frames compare.
-- `review.json`, once a person has reviewed the case: their verdict and note, pinned to the
-  renders they were shown.
+- `scene.py`：唯一的源文件。它是 Manim 代码，仅通过 `import manimgx` 访问引擎。场景读取的文件（SVG、声音）位于其旁边。
+- `manimgx.mkv` 和 `ce.mkv`：每个引擎的无损帧，在本地生成并被 Git 忽略。它们的 `.sha256` 附属文件记录了确切的已审查视频文件。
+- `case.json`：事实，由工具编写。两个渲染共同来源的源文件哈希、每个帧的哈希，以及两个引擎帧的比较结果。
+- `review.json`，一旦有人审查了该用例：他们的裁定和注释，固定在他们所看到的渲染上。
 
-The cases are the examples of Manim's documentation and docstrings (the first line of
-`scene.py` names its source), scenes written to cover ManimGX's API, regressions, and
-scenes written in answer to a question (the question is their docstring). The corpus is
-the specification: what its working cases show is what ManimGX does.
+用例是 Manim 文档和 docstring 中的示例（`scene.py` 的第一行命名其来源）、为覆盖 ManimGX 的 API 而编写的场景、回归测试，以及为回答某个问题而编写的场景（问题是它们的 docstring）。语料库即规范：其有效用例所展示的内容就是 ManimGX 的行为。
 
-### Two engines, one source
+### 两个引擎，一个源文件
 
-Both engines run the same bytes. ManimGX runs `scene.py` as it is. Manim runs it with
-`manimgx` resolved to `manim`, and the run fails if the real ManimGX is ever imported
-([`run_ce.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/run_ce.py)).
-Each render runs in a process of its own, with a fixed hash seed.
+两个引擎运行相同的字节。ManimGX 原样运行 `scene.py`。Manim 在将 `manimgx` 解析为 `manim` 的情况下运行它，如果真正的 ManimGX 被导入，则运行失败
+([`run_ce.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/run_ce.py))。
+每个渲染在各自的进程中运行，使用固定的哈希种子。
 
-A frame is identified by the hash of its pixels, and locally stored in lossless video (x264 in RGB, written and read with [PyAV](https://pyav.basswood-io.com), FFmpeg's libraries in a wheel). A video is rewritten only when its pixels change, so rendering an unchanged scene again changes no file. The committed `.sha256` sidecars identify each reviewed video without putting the video in clone history. The corpus renders at 960 × 540, 10 frames per second.
+帧由其像素的哈希标识，并以无损视频本地存储（RGB 中的 x264，用 [PyAV](https://pyav.basswood-io.com) 写入和读取，FFmpeg 的库在 wheel 中）。视频仅在其像素更改时才重写，因此再次渲染未更改的场景不会更改任何文件。已提交的 `.sha256` 附属文件标识每个已审查的视频，而无需将视频放入克隆历史。语料库以 960 × 540、每秒 10 帧渲染。
 
-### Comparing at the same scene time
+### 在相同场景时间下比较
 
-Frames are paired by scene time, never by index. ManimGX's frame _k_ shows the scene at
-exactly _k_/fps. Manim rounds each play to whole frames and never shows a scene's last
-animation landing; none of that may count against ManimGX. So each ManimGX frame is
-compared with the frame Manim has on screen at the same scene time.
+帧按场景时间配对，而非按索引。ManimGX 的帧 _k_ 在恰好 _k_/fps 时展示场景。Manim 将每次播放舍入到整帧，且从不展示场景最后一次动画的落地；这些都不应算作 ManimGX 的问题。因此，每个 ManimGX 帧与 Manim 在相同场景时间屏幕上的帧进行比较。
 
-Each pair is measured in four metrics, from 0 to 255: `local_max`, `mae`, `rmse` and `max`.
-[`settings.json`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/settings.json)
-picks the one that decides, and its tolerance: `local_max` up to 30. `local_max` is the
-largest mean, over any 7 × 7 window, of each pixel's largest channel difference: a lone
-wrong pixel fades to 1/49 of itself, while a wrong stroke or shape stands out.
+每对在四个度量标准中测量，从 0 到 255：`local_max`、`mae`、`rmse` 和 `max`。
+[`settings.json`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/settings.json)
+选择决定性度量及其容差：`local_max` 最高到 30。`local_max` 是任何 7 × 7 窗口上每个像素最大通道差值的最大均值：单个错误像素衰减到自身的 1/49，而错误的描边或形状则显眼。
 
-See [`compare.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/compare.py).
+参见 [`compare.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/compare.py)。
 
-### Verdicts
+### 裁定
 
-A case is in one of these states:
+用例处于以下状态之一：
 
-| State | Meaning |
+| 状态 | 含义 |
 | --- | --- |
-| `working` | At every ManimGX frame, Manim's frame is within tolerance, and the scenes last as long. |
-| `not_matching` | Otherwise, or Manim could not render the scene. |
-| `not_working` | ManimGX could not render the scene. |
-| `stale`, `unrendered` | The case has no current renders to judge. |
+| `working` | 在每个 ManimGX 帧处，Manim 的帧在容差范围内，且场景持续时间相同。 |
+| `not_matching` | 其他情况，或 Manim 无法渲染该场景。 |
+| `not_working` | ManimGX 无法渲染该场景。 |
+| `stale`、`unrendered` | 该用例没有当前可判断的渲染。 |
 
-The comparison gives a verdict; a person's verdict on exactly these renders overrides it.
-Manim is a reference to look at, not a definition of correct, so "Manim does it this way"
-is a reason to look closely, not a reason to change ManimGX. A case is trusted when it is
-working.
+比较给出裁定；人对恰好这些渲染的裁定会覆盖它。Manim 是供参考的对象，而非正确的定义，因此"Manim 以这种方式做"是仔细查看的理由，而非更改 ManimGX 的理由。用例在工作时被信任。
 
-See [`case.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/case.py).
+参见 [`case.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/case.py)。
 
-### The three checks
+### 三项检查
 
-[`test_corpus.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/test_corpus.py)
-checks every case three ways:
+[`test_corpus.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/test_corpus.py)
+以三种方式检查每个用例：
 
-1. `test_same_source`: both references were rendered from this exact `scene.py`, which
-   imports ManimGX, never Manim. So the two engines ran the same program.
-2. `test_types`: the scene type-checks as written: ty with every rule, no way around the
-   checker (suppression comments, `Any`, `cast`, …), and no value that ManimGX leaves
-   `Any` or `Unknown`
-   ([`typecheck.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/typecheck.py)).
-3. `test_regression`: the latest stable ManimGX release and today's package render the scene in separate fresh processes on the same host and adapter, using the same installed dependencies and fonts. Every RGB pixel, exact duration, timeline and frame count must agree, and the exported MP4 must contain every frame. This covers every case, including those that differ from Manim or await review. Before the first stable release, every scene is still rendered and its exported frame count is checked.
+1. `test_same_source`：两个参考都是从确切的 `scene.py` 渲染的，该文件导入 ManimGX，从不导入 Manim。因此两个引擎运行了相同的程序。
+2. `test_types`：场景按原样进行类型检查：ty 使用每条规则，无法绕过检查器（抑制注释、`Any`、`cast`、……），且没有 ManimGX 留作 `Any` 或 `Unknown` 的值
+   ([`typecheck.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/typecheck.py))。
+3. `test_regression`：最新的稳定 ManimGX 发布和今天的包在相同主机和适配器上的独立全新进程中渲染场景，使用相同安装的依赖和字体。每个 RGB 像素、确切持续时间、时间线和帧数必须一致，且导出的 MP4 必须包含每一帧。这覆盖每个用例，包括与 Manim 不同或等待审查的用例。在首次稳定发布之前，每个场景仍会被渲染，并检查其导出的帧数。
 
-CI resolves the latest stable GitHub release before testing and records its version and wheel SHA-256 identities in a manifest shared by the test workers. Downloads are verified before use. A published release without a compatible wheel, an invalid checksum or a failed download is an error; only the absence of a stable release enables the first-release bootstrap. Locally, the test fixture resolves the latest release, or reads the manifest named by `MANIMGX_CORPUS_RELEASE`.
+CI 在测试前解析最新的稳定 GitHub 发布，并将其版本和 wheel SHA-256 标识记录在测试 worker 共享的清单中。下载在使用前经过验证。没有兼容 wheel 的已发布版本、无效校验和或下载失败都是错误；只有不存在稳定发布时才启用首次发布引导。在本地，测试夹具解析最新发布，或读取由 `MANIMGX_CORPUS_RELEASE` 命名的清单。
 
-Failures keep the release identity, reference movie, process logs and first differing frame pairs in `tests/integration/_diffs/<case>/`. Successful comparisons remove their transient films. No image tolerance is used for regression acceptance. A fresh clone needs the released package download, not archived corpus movies, to run these tests.
+失败会将发布标识、参考影片、进程日志和第一对差异帧保留在 `tests/integration/_diffs/<case>/` 中。成功的比较会移除其临时影片。回归验收不使用图像容差。全新克隆需要已发布包的下载，而非归档的语料库影片，才能运行这些测试。
 
-### Working with the corpus
+### 使用语料库
 
-`test_corpus.py` only checks; `just corpus` renders and reviews. A reference changes only
-when a change means it to, and after someone has looked at the new frames.
+`test_corpus.py` 只检查；`just corpus` 渲染和审查。参考仅在更改有意更改它时才更改，且在有人查看了新帧之后。
 
-The review panel and `just corpus diff CASE` use local movies identified by the committed sidecars. Verify restored movies against those sidecars. To create new review movies, use `just corpus render CASE`; changed pixels update the local facts and require a new review before committing them.
+审查面板和 `just corpus diff CASE` 使用由已提交附属文件标识的本地影片。根据这些附属文件验证恢复的影片。要创建新的审查影片，使用 `just corpus render CASE`；更改的像素会更新本地事实，并在提交前需要新的审查。
 
-- **A new case** is a folder in `cases/` holding its `scene.py`. Render it with `just corpus render CASE`, which renders it in both engines and compares them; look at it (`just review`); and record your verdict with `just corpus review CASE working` (or `not_matching`, or `not_working`; `--note` says why). Commit the scene, facts, review and video hash sidecars; Git ignores the videos.
-- **A change that is meant to change how cases look** renders their references again with
-  `just corpus render CASE…`. A case's review is pinned to the renders it was given for,
-  so it no longer speaks for the new ones: look at the new frames before you commit them,
-  and renew the verdict (in the review panel, or with `just corpus review`).
-- `just corpus status` says where every case stands, and `just corpus --help` lists the
-  rest.
+- **新用例**是 `cases/` 中持有其 `scene.py` 的文件夹。用 `just corpus render CASE` 渲染它，该命令在两个引擎中渲染并比较它们；查看它（`just review`）；并用 `just corpus review CASE working`（或 `not_matching`，或 `not_working`；`--note` 说明原因）记录你的裁定。提交场景、事实、审查和视频哈希附属文件；Git 忽略视频。
+- **有意更改用例外观的更改**用 `just corpus render CASE…` 再次渲染其参考。用例的审查固定在它所针对的渲染上，因此它不再代表新的渲染：在提交前查看新帧，并更新裁定（在审查面板中，或用 `just corpus review`）。
+- `just corpus status` 说明每个用例的状态，`just corpus --help` 列出其余命令。
 
-### The corpus's tools
+### 语料库的工具
 
-`just corpus` runs
-[`tests/integration/corpus`](https://github.com/academa-labs/manimgx/tree/main/tests/integration/corpus):
+`just corpus` 运行
+[`tests/integration/corpus`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration/corpus)：
 
-| Command | What it does |
+| 命令 | 功能 |
 | --- | --- |
-| `render [CASE…] [--all \| --stale] [--engine E] [-j N]` | Render references, then compare them |
-| `compare [CASE…] [--all] [-j N]` | Compare the existing references again |
-| `status [--list STATE…]` | Where every case stands |
-| `review CASE VERDICT [--note TEXT]` | Record a verdict (`auto`: the comparison's) |
-| `settings [--metric M] [--tolerance T]` | The comparison's metric and tolerance |
-| `diff CASE [--frames N]` | Write the most different pairs of Manim's and ManimGX's frames as images |
-| `types` | The type report for every scene |
-| `leaks` | Scenes that render differently after others, in one process |
+| `render [CASE…] [--all \| --stale] [--engine E] [-j N]` | 渲染参考，然后比较它们 |
+| `compare [CASE…] [--all] [-j N]` | 再次比较现有参考 |
+| `status [--list STATE…]` | 每个用例的状态 |
+| `review CASE VERDICT [--note TEXT]` | 记录裁定（`auto`：比较的裁定） |
+| `settings [--metric M] [--tolerance T]` | 比较的度量标准和容差 |
+| `diff CASE [--frames N]` | 将 Manim 和 ManimGX 差异最大的帧对写为图像 |
+| `types` | 每个场景的类型报告 |
+| `leaks` | 在一个进程中，在其他场景之后渲染不同的场景 |
 
-`render` rewrites a local video only when its pixels change, updating that video's SHA-256 sidecar, and a `case.json` only when its facts do. Rendering Manim's references (the `ce` engine, and both engines when a scene changed) needs Manim Community Edition: `uv sync --group ce` (see [Setup](index.md#manim-community-edition)).
+`render` 仅在视频像素更改时重写本地视频，更新该视频的 SHA-256 附属文件，且仅在 `case.json` 的事实更改时重写它。渲染 Manim 的参考（`ce` 引擎，以及场景更改时的两个引擎）需要 Manim Community Edition：`uv sync --group ce`（参见[设置](index.md#manim-community-edition)）。
 
-### The review panel
+### 审查面板
 
-Judging a case means looking at it. `just review` builds the panel's web page (Svelte,
-built by bun with Vite into `web/dist`) and serves it, with its FastAPI server, at
-<http://127.0.0.1:8000>. The panel browses the corpus, shows each case's frames from both
-engines side by side, and records verdicts; it also changes the comparison's settings and
-renders a case again.
+判断用例意味着查看它。`just review` 构建面板的网页（Svelte，由 bun 用 Vite 构建到 `web/dist` 中）并通过其 FastAPI 服务器在 <http://127.0.0.1:8000> 提供服务。面板浏览语料库，并排显示每个用例两个引擎的帧，并记录裁定；它还更改比较的设置并再次渲染用例。
 
-For work on the panel itself, `uv run fastapi dev` serves the server alone, reloading as
-it changes, and `bun run dev` in `tests/integration/review/web/` serves the page.
+对于面板本身的工作，`uv run fastapi dev` 单独提供服务器服务，在其更改时重新加载，`tests/integration/review/web/` 中的 `bun run dev` 提供页面服务。
 
-See [`tests/integration/review/`](https://github.com/academa-labs/manimgx/tree/main/tests/integration/review).
+参见 [`tests/integration/review/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/integration/review)。
 
-## Coverage
+## 覆盖率
 
-Coverage says which lines of ManimGX the tests run, and so which lines no test checks.
-`just test-coverage` runs the suite with [pytest-cov](https://pytest-cov.readthedocs.io):
-a summary in the terminal, and every line in `htmlcov/index.html`.
+覆盖率说明测试运行了 ManimGX 的哪些行，从而哪些行没有测试检查。`just test-coverage` 用 [pytest-cov](https://pytest-cov.readthedocs.io) 运行套件：终端中的摘要，以及 `htmlcov/index.html` 中的每一行。
 
-`[tool.coverage.run]` in `pyproject.toml` measures the package in the tests' processes and
-in the ones they start (the corpus renders each case in its own), with paths relative to
-the repository, so that runs on different systems combine: `just combine-coverage <folder>`
-makes one report of their data files.
+`pyproject.toml` 中的 `[tool.coverage.run]` 在测试进程及其启动的进程（语料库在每个用例的自己的进程中渲染）中测量包，路径相对于仓库，从而使不同系统上的运行可以合并：`just combine-coverage <folder>` 将其数据文件合成一份报告。
 
-The Test workflow combines the coverage of its runs and publishes the report, served by
-Cloudflare as
-[`.github/deploy/coverage.jsonc`](https://github.com/academa-labs/manimgx/blob/main/.github/deploy/coverage.jsonc)
-says: `main`'s at <https://coverage.manimgx.academa.ai>, a pull request's (from a branch of
-this repository) at a preview address, and each commit's linked from its "coverage"
-status.
+Test 工作流合并其运行的覆盖率并发布报告，由 Cloudflare 按照
+[`.github/deploy/coverage.jsonc`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/deploy/coverage.jsonc)
+的说明提供服务：`main` 的报告在 <https://coverage.www.aipaikj.top>，拉取请求的（来自此仓库的分支）在预览地址，每个提交的从其"覆盖率"状态链接。
 
-## Benchmarks
+## 基准测试
 
-Speed is a feature, and a change that slows ManimGX down is a regression like any other.
-The benchmarks, in
-[`tests/benchmarks/`](https://github.com/academa-labs/manimgx/tree/main/tests/benchmarks),
-look for one in two ways: laws of cost, which run with the rest of the suite, and timed
-benchmarks, which run alone.
+速度是一项特性，使 ManimGX 变慢的更改与其他回归一样。基准测试位于
+[`tests/benchmarks/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/benchmarks)，
+以两种方式查找回归：成本定律，与套件其余部分一起运行；以及计时基准测试，单独运行。
 
-### No benchmark holds a number of seconds
+### 没有基准测试持有秒数
 
-A test that asserts "this scene renders in under two seconds" checks the machine as much as
-the code. A scene takes twice as long on one machine as on another (GitHub gives a single
-runner label to machines 1.5 times apart), and on one machine one run differs from the next
-by a few percent. So no benchmark compares a measurement with a number written down: each
-compares two measurements taken side by side.
+断言"此场景在两秒内渲染"的测试检查机器的程度与检查代码相同。场景在一台机器上的耗时是另一台的两倍（GitHub 给相差 1.5 倍的机器同一个 runner 标签），而在同一台机器上，一次运行与下一次相差几个百分点。因此没有基准测试将测量值与写定的数字比较：每个基准测试比较并排获取的两个测量值。
 
-- **Work**, what a render does, is the same on every machine, and can be counted exactly:
-  the Python functions ManimGX runs and its loops' iterations (counted with
-  [`sys.monitoring`](https://docs.python.org/3/library/sys.monitoring.html)), the points
-  computed from a geometry's pieces, the bytes hashed, the bytes handed to the engine
-  ([`work.py`](https://github.com/academa-labs/manimgx/blob/main/tests/benchmarks/work.py)).
-  The laws compare the work of two sizes of one thing.
-- **Time** can only be compared with time measured on the same machine at the same time.
-  The timed benchmarks run this checkout and another commit's ManimGX in turns, and
-  compare them round by round.
+- **工作**，即渲染所做的事，在每台机器上相同，且可以精确计数：ManimGX 运行的 Python 函数及其循环迭代（用 [`sys.monitoring`](https://docs.python.org/3/library/sys.monitoring.html) 计数）、从几何片段计算的点、哈希的字节、交给引擎的字节
+  ([`work.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/benchmarks/work.py))。
+  定律比较同一事物的两种大小的工作量。
+- **时间**只能与同一机器同一时间测量的时间比较。计时基准测试轮流运行此检出和另一个提交的 ManimGX，并逐轮比较。
 
-### Laws of cost
+### 成本定律
 
-[`test_laws.py`](https://github.com/academa-labs/manimgx/blob/main/tests/benchmarks/test_laws.py)
-states how work may grow, and Hypothesis checks it:
+[`test_laws.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/benchmarks/test_laws.py)
+声明工作可能如何增长，Hypothesis 检查它：
 
-- **Growth.** A thing made twice as big does at most twice the work, with a tenth to spare
-  (a surface of twice the resolution, four times): a path built curve by curve, a group of
-  shapes played, a text written, a graph redrawn every frame, a path traced for longer, a
-  film held for longer, a table laid out. Some cost Python nothing more as they grow, their
-  arrays doing the growing (`PYTHON`: no loop runs once an element). Each is a row,
-  `law(build, sizes, power)`: `build(n)` sets a run of size n up and returns it, and only the
-  run is counted. Hypothesis draws the size, and
-  [`target`](https://hypothesis.readthedocs.io/en/latest/reference/api.html#hypothesis.target)
-  climbs toward the worst ratio; the largest size always runs. A law that counts nothing of
-  ManimGX's fails.
-- **Sharing.** Copies of any mobject, moved, turned and scaled, upload what one does: a
-  shape is uploaded once, and its copies and moves are placements of it. Hypothesis draws the
-  class from the registry of every public mobject class, and the copies and the moves.
-- **Stillness.** A scene that holds a mobject still (one with no updater) does as much work
-  for a second as for half a minute: a held frame is sent once.
-- **History.** A story told four times does twice the work of two tellings: nothing a scene
-  keeps makes its later frames dearer.
+- **增长。** 大小翻倍的事物最多做两倍的工作，留有十分之一的余量（分辨率翻倍的表面为四倍）：逐曲线构建的路径、播放的一组形状、书写的文本、每帧重绘的图、追踪更长的路径、持续更久的影片、排布的表格。有些在增长时对 Python 没有额外开销，其数组承担增长（`PYTHON`：一旦有元素，就不运行循环）。每个都是一行，`law(build, sizes, power)`：`build(n)` 设置大小为 n 的运行并返回它，只有运行被计数。Hypothesis 抽取大小，[`target`](https://hypothesis.readthedocs.io/en/latest/reference/api.html#hypothesis.target) 向最差比率攀升；最大大小总是运行。对 ManimGX 没有计数的定律失败。
+- **共享。** 任何 mobject 的副本，无论移动、旋转和缩放，上传的内容与一个相同：形状上传一次，其副本和移动是它的放置。Hypothesis 从每个公共 mobject 类的注册表中抽取类，以及副本和移动。
+- **静止。** 保持 mobject 静止的场景（没有更新器的）一秒所做的工作与半分钟相同：保持的帧只发送一次。
+- **历史。** 讲述四次的故事所做的工作是两次讲述的两倍：场景保留的任何东西都不会使其后续帧更昂贵。
 
-They run with `just test`, in seconds, on every system. They find what changes how work
-grows: when a path read all of its points to find where it ends (fixed in `eef74e37`), a
-path of twice the curves computed four times the points, and the laws of paths and of
-traced paths fail on that code. A law that fails today is marked
-`xfail(strict=True)` with its reason, and the day the code is fixed the mark has to go.
+它们用 `just test` 运行，以秒为单位，在每个系统上。它们发现改变工作增长方式的更改：当路径读取其所有点以找到其终点（在 `eef74e37` 中修复）时，曲线翻倍的路径计算四倍的点，路径和追踪路径的定律在该代码上失败。今天失败的定律被标记为 `xfail(strict=True)` 并附其原因，代码修复的那一天该标记必须移除。
 
-Work cannot see an operation that became slower, the same calls each taking longer: that is
-what the timed benchmarks are for.
+工作无法看到变慢的操作，即相同调用各自耗时更长：这正是计时基准测试的用途。
 
-### Timed benchmarks
+### 计时基准测试
 
-A workload is a scene rendered as a user renders it: `manimgx render`, in a process of its
-own, from launch to the finished video. The workloads, in
-[`test_speed.py`](https://github.com/academa-labs/manimgx/blob/main/tests/benchmarks/test_speed.py),
-are three scenes, at 1920 × 1080 and 60 frames per second as the README's
-[benchmark](https://github.com/academa-labs/manimgx/tree/main/benchmarks) makes its own
-([`scenes/`](https://github.com/academa-labs/manimgx/tree/main/tests/benchmarks/scenes):
-a surface the camera circles, a surface rebuilt every frame, and a 2D explainer), and six
-example films at 480 × 270 and 10 frames per second. In the suite, each is rendered once,
-tiny: it still renders. `just bench` times them against another ManimGX:
+工作负载是按用户渲染方式渲染的场景：`manimgx render`，在各自的进程中，从启动到完成视频。工作负载位于
+[`test_speed.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/benchmarks/test_speed.py)，
+是三个场景，以 1920 × 1080 和每秒 60 帧渲染，正如 README 的
+[基准测试](https://github.com/1Cyrvox/ShuJing/tree/main/benchmarks) 所做
+([`scenes/`](https://github.com/1Cyrvox/ShuJing/tree/main/tests/benchmarks/scenes)：
+相机环绕的表面、每帧重建的表面和 2D 计解器)，以及六个示例影片，以 480 × 270 和每秒 10 帧渲染。在套件中，每个渲染一次，微小：它仍然渲染。`just bench` 将它们与另一个 ManimGX 计时：
 
 ```sh
-just bench                # this checkout against main
-just bench HEAD           # your uncommitted changes against the last commit
-just bench v0.1.0         # against any commit, branch or tag
-just bench ../manimgx-2   # against another checkout, as it is on disk
-just bench main -k orbit  # some of the workloads (arguments go to pytest)
+just bench                # 此检出与 main 的比较
+just bench HEAD           # 你的未提交更改与上一个提交的比较
+just bench v0.1.0         # 与任何提交、分支或标签的比较
+just bench ../manimgx-2   # 与另一个检出的比较，按其在磁盘上的状态
+just bench main -k orbit  # 部分工作负载（参数传递给 pytest）
 ```
 
-- REF's ManimGX is made in pytest's cache (`.pytest_cache/`), from git: with this checkout's
-  engine when REF's engine sources (`rust/`) are this checkout's, else built (the first time
-  takes a few minutes). A different engine owns its build directory, so compiled output
-  cannot cross between the two source trees.
-- Each run is a fresh process, with a fixed hash seed and an empty temporary directory, so no
-  run finds another's Typst layouts. It is measured from launch to exit: what the README
-  times, the imports, the GPU coming up, the storyboard and the encoder included.
-- What is judged is the steadiest measure the host exposes. When every sample has a positive
-  instruction count, the comparison uses the instructions a process retires, which do not
-  change with the cores that ran it, or with what else the machine does. On a Mac whose GPU
-  another program kept 90% busy, identical trees agreed to
-  within 1.7% in every round; their CPU time differed by up to 36% and their wall time by 57%.
-  If any counter is unavailable, as on hosted macOS VMs, every sample and retry uses CPU time,
-  every thread's. Each workload's row names its measure. Wall time includes contention and
-  waits; it and the process's peak memory are reported but not judged.
-- A round runs both, in a random order. The first round is not kept: it reads each tree's
-  files into the disk's cache (a tree made a minute before ran 12% slower until then). Then
-  five rounds (`--bench-rounds`).
-- A round's two measures make a ratio. A workload is slower when the median ratio is more
-  than 5% above 1 and the rounds agree, every one of the five: a machine's noise sends ratios
-  both ways, and a real change moves all of them. A workload that looks slower is timed five
-  rounds more, and is judged on all ten: nine must agree. Then its test fails. A workload that
-  REF cannot render (it uses what came after REF) is skipped.
-- Each tree's work is counted too, once, and the table shows the counts that changed:
-  "points ×7328" says what a slowdown did.
+- REF 的 ManimGX 在 pytest 的缓存（`.pytest_cache/`）中从 git 制作：当 REF 的引擎源（`rust/`）是此检出的时，使用此检出的引擎，否则构建（首次需要几分钟）。不同的引擎拥有其构建目录，因此编译输出不能在两个源代码树之间交叉。
+- 每次运行都是全新进程，使用固定的哈希种子和空的临时目录，因此没有运行能找到另一个的 Typst 布局。它从启动到退出进行测量：即 README 计时的内容，包括导入、GPU 启动、故事板和编码器。
+- 被判定的是主机暴露的最稳定度量。当每个样本都有正的指令计数时，比较使用进程退休的指令，这些指令不随运行它的核心或机器上其他活动而变化。在一台 GPU 被另一个程序保持 90% 占用的 Mac 上，相同的树在每一轮中一致到 1.7% 以内；其 CPU 时间相差最多 36%，壁钟时间相差 57%。如果任何计数器不可用，如在托管的 macOS 虚拟机上，每个样本和重试使用 CPU 时间，每个线程的。每个工作负载的行命名其度量。壁钟时间包括争用和等待；它和进程的峰值内存被报告但不被判定。
+- 一轮运行两者，以随机顺序。第一轮不保留：它将每个树的文件读入磁盘缓存（一分钟前创建的树在此之前慢 12%）。然后五轮（`--bench-rounds`）。
+- 一轮的两个度量构成一个比率。当比率中位数超过 1 的 5% 以上且各轮一致，五轮中的每一轮都一致时，工作负载变慢：机器的噪声使比率双向波动，而真正的更改移动所有比率。看起来变慢的工作负载再计时五轮，并根据所有十轮判定：九轮必须一致。然后其测试失败。REF 无法渲染的工作负载（它使用了 REF 之后的内容）被跳过。
+- 每个树的工作也被计数，一次，表格显示更改的计数："points ×7328" 说明减速做了什么。
 
-Put into the code, a slowdown is found where it costs 5% or more; nothing is found when
-nothing changed. Measured on that busy Mac, commit `289730bd`:
+放入代码后，减速在成本 5% 或以上的地方被发现；没有更改时什么也找不到。在那台忙碌的 Mac 上测量，提交 `289730bd`：
 
-| This checkout | Workloads found slower | Largest change, and its work |
+| 此检出 | 发现变慢的工作负载 | 最大变化及其工作 |
 | --- | --- | --- |
-| Unchanged | none: every round within 1.7% | no count changed |
-| A path read whole to append a curve (`eef74e37` reverted) | neural_untangle, of the 3 tried | +60%: 7,328 times the points |
-| 0.5 ms of Python in every frame | 5 of 9 | +9% (explainer): loops ×6.2 |
-| 150 ms of work as ManimGX is imported | 4 of 9 | +13% (taylor_poles) |
-| A surface refined twice | morph | +50% |
+| 未更改 | 无：每轮在 1.7% 以内 | 无计数更改 |
+| 整体读取路径以追加曲线（`eef74e37` 回退） | neural_untangle，尝试的 3 个中 | +60%：点的 7,328 倍 |
+| 每帧 0.5 ms 的 Python | 9 个中的 5 个 | +9%（explainer）：循环 ×6.2 |
+| ManimGX 导入时 150 ms 的工作 | 9 个中的 4 个 | +13%（taylor_poles） |
+| 表面精炼两次 | morph | +50% |
 
-Timing each scene's frames inside one process, as the benchmarks did before, saw none of the
-work done as ManimGX is imported; judging CPU time on that Mac, an identical tree came out
-12% faster, and a change to code a film never runs made it "5% slower", in every round. What
-instructions cannot see, a wait (a process that sleeps until its GPU is done) or work done on
-the GPU, shows in the wall-time column: read it on a quiet machine.
+在一个进程内对每个场景的帧计时，正如基准测试以前所做，看不到 ManimGX 导入时所做的任何工作；在那台 Mac 上判定 CPU 时间，相同的树快 12%，而影片从不运行的代码更改使其"慢 5%"，每一轮都是。指令看不到的内容，即等待（进程休眠直到其 GPU 完成）或在 GPU 上完成的工作，显示在壁钟时间列中：在安静的机器上读取它。
 
-The [Benchmark workflow](github-workflows.md#2-benchmarkyaml-the-timed-benchmarks) runs them
-on macOS for every pull request that changes the package, against its base, and for every
-push to `main`, against the commit before it; its table is in the run's summary. The measure
-is retired CPU instructions when available, otherwise CPU time, and Metal draws on the GPU.
-This gates host work,
-including geometry, typesetting and encoding; it does not gate GPU execution or waits.
-For changes to shaders or GPU scheduling, review the paired wall times on a quiet machine;
-`just bench` on Linux with lavapipe also includes software drawing in its CPU measure.
-The nine workloads, their resolutions and their rounds are the same on either system.
-A change that is meant to cost time (a feature) says so in its pull request, with the table.
+[Benchmark 工作流](github-workflows.md#2-benchmarkyaml) 在 macOS 上为每个更改包的拉取请求运行它们，与其基线比较，并为每次推送到 `main` 运行，与前一个提交比较；其表格在运行的摘要中。度量是可用时的退休 CPU 指令，否则为 CPU 时间，Metal 在 GPU 上绘制。这门禁主机工作，
+包括几何、排版和编码；它不门禁 GPU 执行或等待。
+对于着色器或 GPU 调度的更改，在安静的机器上审查配对的壁钟时间；
+Linux 上使用 lavapipe 的 `just bench` 也在其 CPU 度量中包含软件绘制。
+九个工作负载、其分辨率和轮次在两个系统上相同。
+有意花费时间的更改（功能）在其拉取请求中说明，附上表格。
 
-## Learn more
+## 了解更多
 
-- [`test_corpus.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/test_corpus.py):
-  the three checks.
-- [`corpus/case.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/case.py):
-  what a case holds, and its states.
-- [`corpus/__main__.py`](https://github.com/academa-labs/manimgx/blob/main/tests/integration/corpus/__main__.py):
-  the corpus's tools.
+- [`test_corpus.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/test_corpus.py)：
+  三项检查。
+- [`corpus/case.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/case.py)：
+  用例持有的内容及其状态。
+- [`corpus/__main__.py`](https://github.com/1Cyrvox/ShuJing/blob/main/tests/integration/corpus/__main__.py)：
+  语料库的工具。

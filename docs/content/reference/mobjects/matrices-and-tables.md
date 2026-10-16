@@ -1,11 +1,11 @@
 ---
-title: "Matrices and tables"
-description: "Entries in rows and columns: matrices between brackets, tables between lines, with entries of numbers, math, text or any mobject."
+title: "矩阵与表格"
+description: "按行列排列的条目：矩阵置于方括号之间，表格置于线条之间，条目可以是数字、数学式、文本或任意 mobject。"
 ---
 
-# Matrices and tables
+# 矩阵与表格
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -24,11 +24,10 @@ class MatricesAndTablesHero(m.Scene):
         self.wait()
 ```
 
-A matrix and a table hold entries in rows and columns: a matrix between brackets, a table
-between lines, with labels for its rows and columns if you give them. Give the entries as
-values, and each kind of matrix or table makes their mobjects: numbers, integers, math,
-text, or the mobjects themselves. Each row, each column and each entry is a mobject, to
-color and animate.
+矩阵与表格将条目按行列排列：矩阵置于方括号之间，表格置于线条之间，若提供则带有
+行列标签。以值的形式给出条目，每种矩阵或表格会将其转化为各自的 mobject：数字、
+整数、数学式、文本，或 mobject 本身。每一行、每一列和每一个条目都是一个 mobject，
+可着色与动画化。
 
 ::: manimgx.Matrix
     options:

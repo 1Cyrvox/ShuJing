@@ -1,4 +1,4 @@
-"""Play reports, annotated pictures and storyboard sheets."""
+"""播放报告、标注图片与分镜图。"""
 
 import math
 from collections.abc import Callable
@@ -35,8 +35,7 @@ GAP, CAPTION = 8, 28
 
 
 def tile(rgba: bytes, width: int, height: int) -> Image.Image:
-    """A picture at tile size: reduced by a whole factor (exact and fast), resized only for the
-    rest."""
+    """缩放至分镜单元尺寸的图片：先按整数因子缩减（精确且快速），余数部分再缩放。"""
     image = Image.frombuffer(
         "RGBA", (width, height), rgba, "raw", "RGBA", 0, 1
     ).convert("RGB")
@@ -51,7 +50,7 @@ def tile(rgba: bytes, width: int, height: int) -> Image.Image:
 
 @dataclass
 class Sheets:
-    """Captioned tiles, six to a sheet, each sheet written as it fills: `path`, `…-2`, …"""
+    """带标题的分镜单元，每张分镜图六个，填满即写入：`path`、`…-2`、……"""
 
     path: Path
     written: list[Path] = field(default_factory=list[Path])
@@ -68,7 +67,7 @@ class Sheets:
             self._flush()
 
     def close(self) -> list[Path]:
-        """The last sheet out; every sheet written."""
+        """输出最后一张分镜图；确保所有分镜图已写入。"""
         with self._writer:
             if self._tiles:
                 self._flush()
@@ -112,8 +111,8 @@ RED = (255, 64, 64)
 
 @dataclass
 class Watch:
-    """A take's timeline, annotated pictures and layout report. As a `plays` hook it samples
-    play endings; `see` inspects the live scene at any moment."""
+    """一次片段的时间线、标注图片与布局报告。作为 `plays` 钩子，它采样各次播放的结尾；
+    `see` 则在任意时刻检视实时场景。"""
 
     storyboard: Sheets
     layout: Layout = field(default_factory=Layout)
@@ -137,7 +136,7 @@ class Watch:
         distinct: bool = False,
         known: Names | None = None,
     ) -> None:
-        """Check and draw the scene now; optionally omit a consecutive identical picture."""
+        """检视并绘制当前场景；可选择省略连续相同的画面。"""
         play = play or (made.film.plays[-1] if made.film.plays else None)
         index = None if play is None else play.index
         where = None if play is None else play.where
@@ -164,8 +163,7 @@ class Watch:
         self.storyboard.add(caption, picture)
 
     def report(self, *, timeline: bool = True, film: "Film | None" = None) -> str:
-        """The timeline (if asked), then the layout, then the sounds the film's end cuts
-        short (given the film)."""
+        """时间线（若请求），随后是布局报告，再是因影片结束而被截断的声音（给定影片时）。"""
         layout = (
             "layout: not checked (a 3D scene)"
             if self.three_d
@@ -181,7 +179,7 @@ class Watch:
 
 
 def _mark(picture: Image.Image, seen: View, marked: list[tuple[int, Problem]]) -> None:
-    """The problems seen now, outlined in red with their numbers."""
+    """将当前发现的问题以红色边框标出，并附编号。"""
     draw = ImageDraw.Draw(picture)
     x0, y0, x1, y1 = seen.frame
     sx, sy = picture.width / (x1 - x0), picture.height / (y1 - y0)
@@ -213,15 +211,15 @@ def said(text: str, limit: int = 28) -> str:
 
 
 def _named(function: Callable[..., object]) -> str:
-    """A recorded method's name (an edit, `mob.animate(lambda m: …)`, has none)."""
+    """已记录方法的名称（编辑操作 `mob.animate(lambda m: …)` 无名称）。"""
     name = getattr(function, "__name__", None)
     return name if isinstance(name, str) else "edit"
 
 
 def describe(animation: Animation) -> str:
-    """An animation as the code wrote it: `Create(Circle)`, `title.animate.shift(…)`,
-    `LaggedStart(4× FadeIn)`; a speech as what it says, `say 'Here is…'`, and a sound as
-    `sound 0.8 s`."""
+    """以代码书写形式表示的动画：`Create(Circle)`、`title.animate.shift(…)`、
+    `LaggedStart(4× FadeIn)`；语音以其内容表示，`say 'Here is…'`，声音以
+    `sound 0.8 s` 表示。"""
     if isinstance(animation, Speech):
         return f"say {said(animation.text)}"
     if isinstance(animation, Sound):
@@ -252,7 +250,7 @@ def describe(animation: Animation) -> str:
 
 
 def _waited(animation: Animation) -> str:
-    """A part of a said line: one that waits for its words, as what it plays."""
+    """一句语音的组成部分：等待其文字的部分，以所播放的内容表示。"""
     parts = animation.animations if isinstance(animation, Succession) else []
     if len(parts) == 2 and isinstance(parts[0], Wait):
         return describe(parts[1])

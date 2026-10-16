@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"Rows and columns of entries: matrices place them between brackets; tables fit cells and rules."
+"按行列排列的条目：矩阵将其置于括号之间；表格则将条目填入单元格并以线条分隔。"
 
 from __future__ import annotations
 
@@ -52,55 +52,55 @@ __all__ = [
 ]
 
 type Entries = Iterable[Iterable[object]] | Iterable[Vector2DLike]
-"""A matrix's entries, row by row: each row an iterable of entries, as its
-`element_to_mobject` takes them."""
+"""矩阵的条目，逐行排列：每一行是一个条目的可迭代对象，正如其
+`element_to_mobject` 所接受的那样。"""
 type ElementFactory = Callable[..., Mobject]
-"""What makes the mobject of a matrix's or a table's entry: called with the entry, and
-with the keywords of `element_to_mobject_config` (a class, as
-[MathTex][manimgx.MathTex], or any function)."""
+"""用于构造矩阵或表格条目的 mobject 的函数：以条目为参数调用，
+并附带 `element_to_mobject_config` 的关键字参数（可以是一个类，如
+[MathTex][manimgx.MathTex]，或任意函数）。"""
 
 
 class MatrixOptions(_Style, total=False, closed=True):
-    """A [Matrix][manimgx.Matrix]'s keywords but its entries, for the methods that pass
-    them on (a [vector's coordinate label][manimgx.Vector.coordinate_label]): its
-    entries' kind, with its layout, brackets and style."""
+    """[Matrix][manimgx.Matrix] 除条目以外的关键字参数，供将其传递下去的方法使用
+    （如[向量的坐标标签][manimgx.Vector.coordinate_label]）：即条目的类型，以及其
+    布局、括号和样式。"""
 
     v_buff: float
-    """The distance between rows, in scene units, from one row's entries' alignment
-    corners to the next's (default 0.8)."""
+    """各行之间的距离，以场景单位表示，从一行的条目对齐角到下一行的对齐角
+    （默认 0.8）。"""
     h_buff: float
-    """The distance between columns, in scene units, likewise (default 1.3)."""
+    """各列之间的距离，以场景单位表示，同上（默认 1.3）。"""
     bracket_h_buff: float
-    """The gap between the entries and each bracket, in scene units (default 0.25)."""
+    """条目与每个括号之间的间距，以场景单位表示（默认 0.25）。"""
     bracket_v_buff: float
-    """How far the brackets reach above and below the entries, in scene units, when
-    stretched (default 0.25)."""
+    """当括号被拉伸时，括号在条目上下方延伸的距离，以场景单位表示
+    （默认 0.25）。"""
     add_background_rectangles_to_entries: bool
-    """Whether each entry gets a background rectangle (default False)."""
+    """每个条目是否获得一个背景矩形（默认 False）。"""
     include_background_rectangle: bool
-    """Whether the matrix gets a background rectangle (default False)."""
+    """矩阵是否获得一个背景矩形（默认 False）。"""
     element_alignment_corner: Vector3DLike
-    """The corner of each entry put on the grid, named by a direction: DR aligns the
-    entries of a column on their right, UL on their left (default DR)."""
+    """每个条目放置在网格上的角，以方向命名：DR 使一列中的条目按其右侧对齐，
+    UL 则按其左侧对齐（默认 DR）。"""
     left_bracket: str
-    r"""The left bracket, as a LaTeX delimiter: `"["`, `"("`, `"\{"`, `"\langle"`,
-    `"|"`, … (default `"["`)."""
+    r"""左括号，作为 LaTeX 分隔符：`"["`, `"("`, `"\{"`, `"\langle"`,
+    `"|"`, …（默认 `"["`）。"""
     right_bracket: str
-    """The right bracket, as a LaTeX delimiter (default `"]"`)."""
+    """右括号，作为 LaTeX 分隔符（默认 `"]"`）。"""
     stretch_brackets: bool
-    """Whether the brackets are stretched to the entries' height, and `bracket_v_buff`
-    beyond (default True)."""
+    """括号是否被拉伸到条目的高度，并再延伸 `bracket_v_buff` 的距离
+    （默认 True）。"""
     bracket_config: MathTexOptions | None
-    """[Math keywords][manimgx.MathTex] for the
-    brackets: their `color`, … (default None: none)."""
+    """括号的 [Math 关键字][manimgx.MathTex]：
+    其 `color`，…（默认 None：无）。"""
 
     element_to_mobject: ElementFactory
-    """The function that makes each entry's mobject, called with the entry and the
-    keywords of `element_to_mobject_config` (default: the matrix class's own,
-    [MathTex][manimgx.MathTex] for a [Matrix][manimgx.Matrix])."""
+    """构造每个条目的 mobject 的函数，以条目和 `element_to_mobject_config` 的关键字
+    参数调用（默认：矩阵类自身的函数，对于 [Matrix][manimgx.Matrix] 为
+    [MathTex][manimgx.MathTex]）。"""
     element_to_mobject_config: Mapping[str, object] | None
-    """Keywords for `element_to_mobject` (default None: the matrix class's own, none
-    for a [Matrix][manimgx.Matrix])."""
+    """`element_to_mobject` 的关键字参数（默认 None：矩阵类自身的设置，对于
+    [Matrix][manimgx.Matrix] 为无）。"""
 
 
 def _same(entry: Mobject) -> Mobject:
@@ -108,20 +108,19 @@ def _same(entry: Mobject) -> Mobject:
 
 
 class _Grid:
-    """Entries in rows and columns (`cells`), each made from its item by the class's `entry` with
-    its `entry_config`, unless the constructor is given others."""
+    """按行列排列的条目（`cells`），每个条目由该类的 `entry` 及其 `entry_config`
+    从其数据项构造而成，除非构造函数被显式传入其他参数。"""
 
     entry: ClassVar[ElementFactory] = MathTex
-    """The function that makes each entry's mobject when the constructor is given no
-    `element_to_mobject`: a class, as [MathTex][manimgx.MathTex], or any function. A
-    subclass sets its own ([IntegerMatrix][manimgx.IntegerMatrix]'s is
-    [Integer][manimgx.Integer])."""
+    """当构造函数未传入 `element_to_mobject` 时，构造每个条目的 mobject 的函数：
+    可以是一个类，如 [MathTex][manimgx.MathTex]，或任意函数。子类会设置其自身的
+    函数（[IntegerMatrix][manimgx.IntegerMatrix] 的是 [Integer][manimgx.Integer]）。"""
     entry_config: ClassVar[Mapping[str, object]] = {}
-    """The keywords `entry` is called with when the constructor is given no
-    `element_to_mobject_config` (none, unless a subclass sets them)."""
+    """当构造函数未传入 `element_to_mobject_config` 时，调用 `entry` 所使用的关键字
+    参数（默认无，除非子类自行设置）。"""
     cells: list[list[Mobject]]
-    """The entries' mobjects, as a list of rows from the top down, each a list of its
-    mobjects from left to right (a table's labels included)."""
+    """条目的 mobject，以从上到下的行列表形式组织，每行为从左到右的 mobject 列表
+    （表格的标签也包含在内）。"""
 
     def _make_cells(
         self,
@@ -134,11 +133,10 @@ class _Grid:
         return [[make(item, **options) for item in row] for row in data]
 
     def get_rows(self) -> VGroup:
-        """The rows, from the top down, each a group of its entries from left to right
-        (a table's labels included).
+        """各行，从上到下，每行为其条目从左到右组成的组（表格的标签也包含在内）。
 
         Returns:
-            A new group of the rows.
+            由各行组成的新组。
 
         Examples:
             ```python
@@ -156,11 +154,10 @@ class _Grid:
         return VGroup(*(VGroup(*row) for row in self.cells))
 
     def get_columns(self) -> VGroup:
-        """The columns, from left to right, each a group of its entries from the top
-        down (a table's labels included).
+        """各列，从左到右，每列为其条目从上到下组成的组（表格的标签也包含在内）。
 
         Returns:
-            A new group of the columns.
+            由各列组成的新组。
 
         Examples:
             ```python
@@ -182,12 +179,12 @@ class _Grid:
         return VGroup(*(VGroup(*column) for column in zip(*self.cells, strict=False)))
 
     def set_row_colors(self, *colors: Colors) -> Self:
-        """Color the rows, from the top down: each one color, or several for a gradient
-        (as [set_color][manimgx.Mobject.set_color] makes one); rows past the last
-        color keep theirs.
+        """为各行着色，从上到下：每行一个颜色，或多个颜色构成渐变
+        （如同 [set_color][manimgx.Mobject.set_color] 的效果）；超出所给颜色数量
+        的行保持原有颜色。
 
         Args:
-            *colors: The rows' colors, in order: a color each, or a list of colors.
+            *colors: 各行的颜色，按顺序给出：每个可以是一个颜色，或一个颜色列表。
 
         Examples:
             ```python
@@ -205,12 +202,12 @@ class _Grid:
         return self
 
     def set_column_colors(self, *colors: Colors) -> Self:
-        """Color the columns, from left to right: each one color, or several for a
-        gradient (as [set_color][manimgx.Mobject.set_color] makes one); columns past
-        the last color keep theirs.
+        """为各列着色，从左到右：每列一个颜色，或多个颜色构成渐变
+        （如同 [set_color][manimgx.Mobject.set_color] 的效果）；超出所给颜色数量
+        的列保持原有颜色。
 
         Args:
-            *colors: The columns' colors, in order: a color each, or a list of colors.
+            *colors: 各列的颜色，按顺序给出：每个可以是一个颜色，或一个颜色列表。
 
         Examples:
             ```python
@@ -233,53 +230,47 @@ class _Grid:
 
 
 class Matrix(_Grid, VMobject):
-    r"""A matrix: entries in rows and columns between brackets; white unless styled.
+    r"""矩阵：条目按行列排列并置于括号之间；默认为白色，除非另行设置样式。
 
-    Each entry is made into a mobject by `element_to_mobject` — by default typeset as
-    math, with [MathTex][manimgx.MathTex] — and put on a grid, rows `v_buff` apart and
-    columns `h_buff` apart, by its bottom right corner (`element_alignment_corner`): the
-    entries of a column are aligned on their right. Brackets, typeset as LaTeX
-    delimiters, stand on either side, stretched to the entries' height; the matrix is
-    centered on the scene's origin. Its [entries][manimgx.Matrix.get_entries] and
-    [brackets][manimgx.Matrix.get_brackets] can be reached, colored and animated, and
-    so can its rows and columns: `get_rows()` and `get_columns()` give them as groups,
-    `set_row_colors(...)` and `set_column_colors(...)` color them.
+    每个条目由 `element_to_mobject` 转换为 mobject —— 默认以
+    [MathTex][manimgx.MathTex] 排版为数学公式 —— 并按其右下角
+    （`element_alignment_corner`）放置在网格上，行间距为 `v_buff`，列间距为 `h_buff`：
+    同一列的条目按其右侧对齐。括号以 LaTeX 分隔符排版，立于两侧，拉伸至条目的高度；
+    矩阵以场景原点为中心。其[条目][manimgx.Matrix.get_entries]和
+    [括号][manimgx.Matrix.get_brackets]可被访问、着色和动画化，其行与列亦然：
+    `get_rows()` 和 `get_columns()` 以组的形式返回它们，
+    `set_row_colors(...)` 和 `set_column_colors(...)` 为其着色。
 
-    Layout and bracket options are used during construction; the resulting cells and
-    brackets hold the matrix's state.
+    布局和括号选项仅在构造期间使用；生成的单元格和括号保存矩阵的状态。
 
     Args:
-        matrix: The entries, row by row: numbers, strings of math or mobjects, as
-            `element_to_mobject` takes them.
-        v_buff: The distance between rows, in scene units, from one row's entries'
-            alignment corners to the next's.
-        h_buff: The distance between columns, in scene units, likewise.
-        bracket_h_buff: The gap between the entries and each bracket, in scene units.
-        bracket_v_buff: How far the brackets reach above and below the entries, in
-            scene units, when stretched.
-        add_background_rectangles_to_entries: Whether each entry gets a background
-            rectangle, in the scene's background color (see
-            [add_background_rectangle][manimgx.Mobject.add_background_rectangle]).
-        include_background_rectangle: Whether the matrix gets a background rectangle
-            (see [add_background_rectangle][manimgx.Mobject.add_background_rectangle]).
-        element_to_mobject: The function that makes each entry's mobject, called with
-            the entry and the keywords of `element_to_mobject_config`: a class, as
-            [DecimalNumber][manimgx.DecimalNumber], or any function; None for the
-            class's own (MathTex, for a Matrix).
-        element_to_mobject_config: Keywords for `element_to_mobject`; None for the
-            class's own (none, for a Matrix).
-        element_alignment_corner: The corner of each entry put on the grid, named by a
-            direction: DR aligns the entries of a column on their right, UL on their
-            left.
-        left_bracket: The left bracket, as a LaTeX delimiter: `"["`, `"("`, `"\{"`,
-            `"\langle"`, `"|"`, ….
-        right_bracket: The right bracket, as a LaTeX delimiter.
-        stretch_brackets: Whether the brackets are stretched to the entries' height,
-            and `bracket_v_buff` beyond.
-        bracket_config: [Math keywords][manimgx.MathTex]
-            for the brackets: their `color`, …; None for none.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the matrix itself: as it
-            has no points, they do not restyle its entries or its brackets.
+        matrix: 条目，逐行排列：数字、数学字符串或 mobject，正如
+            `element_to_mobject` 所接受的那样。
+        v_buff: 各行之间的距离，以场景单位表示，从一行的条目对齐角到下一行的对齐角。
+        h_buff: 各列之间的距离，以场景单位表示，同上。
+        bracket_h_buff: 条目与每个括号之间的间距，以场景单位表示。
+        bracket_v_buff: 当括号被拉伸时，括号在条目上下方延伸的距离，以场景单位表示。
+        add_background_rectangles_to_entries: 每个条目是否获得一个背景矩形，
+            颜色为场景的背景色（参见
+            [add_background_rectangle][manimgx.Mobject.add_background_rectangle]）。
+        include_background_rectangle: 矩阵是否获得一个背景矩形
+            （参见 [add_background_rectangle][manimgx.Mobject.add_background_rectangle]）。
+        element_to_mobject: 构造每个条目的 mobject 的函数，以条目和
+            `element_to_mobject_config` 的关键字参数调用：可以是一个类，如
+            [DecimalNumber][manimgx.DecimalNumber]，或任意函数；None 表示使用
+            该类自身的函数（对于 Matrix 为 MathTex）。
+        element_to_mobject_config: `element_to_mobject` 的关键字参数；None 表示使用
+            该类自身的设置（对于 Matrix 为无）。
+        element_alignment_corner: 每个条目放置在网格上的角，以方向命名：DR 使一列中的
+            条目按其右侧对齐，UL 则按其左侧对齐。
+        left_bracket: 左括号，作为 LaTeX 分隔符：`"["`, `"("`, `"\{"`,
+            `"\langle"`, `"|"`, …。
+        right_bracket: 右括号，作为 LaTeX 分隔符。
+        stretch_brackets: 括号是否被拉伸到条目的高度，并再延伸 `bracket_v_buff` 的距离。
+        bracket_config: 括号的 [Math 关键字][manimgx.MathTex]：
+            其 `color`，…；None 表示无。
+        **kwargs: 矩阵自身的 [Style 关键字][manimgx.drawing.paint.Style]：由于矩阵
+            没有点，这些关键字不会重新设置其条目或括号的样式。
 
     Examples:
         ```python
@@ -339,7 +330,7 @@ class Matrix(_Grid, VMobject):
                     element_alignment_corner,
                 )
         self.elements = VGroup(*it.chain(*self.cells))
-        """The entries, row by row: a group, added to the matrix."""
+        """条目，逐行排列：以组的形式组织，并被添加到矩阵中。"""
         self.add(self.elements)
         bracket_config = {**bracket_config}
         BRACKET_HEIGHT = 0.5977
@@ -366,11 +357,10 @@ class Matrix(_Grid, VMobject):
             self.add_background_rectangle()
 
     def get_entries(self) -> VGroup:
-        """The matrix's entries, row by row.
+        """矩阵的条目，逐行排列。
 
         Returns:
-            The group of the entries; `get_entries()[1]` is the second entry of the
-            first row.
+            条目组成的组；`get_entries()[1]` 是第一行的第二个条目。
 
         Examples:
             ```python
@@ -389,10 +379,10 @@ class Matrix(_Grid, VMobject):
         return self.elements
 
     def get_brackets(self) -> VGroup:
-        r"""The matrix's brackets, the left one first.
+        r"""矩阵的括号，左括号在前。
 
         Returns:
-            The group of the two brackets.
+            由两个括号组成的组。
 
         Examples:
             ```python
@@ -413,13 +403,13 @@ class Matrix(_Grid, VMobject):
 
 
 class DecimalMatrix(Matrix):
-    r"""A matrix of decimal numbers: each entry written as a
-    [DecimalNumber][manimgx.DecimalNumber], with one decimal place unless configured.
+    r"""十进制数矩阵：每个条目以 [DecimalNumber][manimgx.DecimalNumber] 书写，
+    除非另行配置，默认保留一位小数。
 
-    It takes a [Matrix][manimgx.Matrix]'s arguments; its entries are numbers, and its
-    `element_to_mobject_config` gives the numbers'
-    [keywords][manimgx.DecimalNumber], in place of
-    `{"num_decimal_places": 1}`.
+    它接受 [Matrix][manimgx.Matrix] 的参数；其条目为数字，其
+    `element_to_mobject_config` 给出数字的
+    [关键字][manimgx.DecimalNumber]，代替
+    `{"num_decimal_places": 1}`。
 
     Examples:
         ```python
@@ -444,12 +434,11 @@ class DecimalMatrix(Matrix):
 
 
 class IntegerMatrix(Matrix):
-    """A matrix of integers: each entry written as an [Integer][manimgx.Integer], its
-    number rounded to a whole number.
+    """整数矩阵：每个条目以 [Integer][manimgx.Integer] 书写，其数字四舍五入为整数。
 
-    It takes a [Matrix][manimgx.Matrix]'s arguments; its entries are numbers, and its
-    `element_to_mobject_config` gives the numbers'
-    [keywords][manimgx.DecimalNumber].
+    它接受 [Matrix][manimgx.Matrix] 的参数；其条目为数字，其
+    `element_to_mobject_config` 给出数字的
+    [关键字][manimgx.DecimalNumber]。
 
     Examples:
         ```python
@@ -469,10 +458,10 @@ class IntegerMatrix(Matrix):
 
 
 class MobjectMatrix(Matrix):
-    r"""A matrix of mobjects: each entry a mobject, placed as it is.
+    r"""mobject 矩阵：每个条目是一个 mobject，按原样放置。
 
-    It takes a [Matrix][manimgx.Matrix]'s arguments; its entries are mobjects, used
-    themselves (not copied).
+    它接受 [Matrix][manimgx.Matrix] 的参数；其条目为 mobject，直接使用
+    （不复制）。
 
     Examples:
         ```python
@@ -496,58 +485,55 @@ class MobjectMatrix(Matrix):
 
 
 class Table(_Grid, VGroup):
-    """A table: entries in rows and columns, with lines between them, and labels for
-    the rows and the columns if given; white unless styled.
+    """表格：条目按行列排列，其间以线条分隔，若给出则附有行标签和列标签；
+    默认为白色，除非另行设置样式。
 
-    Each entry is made into a mobject by `element_to_mobject` — by default a
-    [Paragraph][manimgx.Paragraph] of its text — and the cells are laid out in a grid,
-    each entry centered in its cell (see
-    [arrange_in_grid][manimgx.Mobject.arrange_in_grid]); the table is centered on the
-    scene's origin. Row labels make a first column, column labels a first row, and
-    `top_left_entry` fills the corner between them. The lines run through the middle of
-    the gaps between rows and between columns, and half a gap beyond the entries. Its
-    rows and columns can be reached as groups, `get_rows()` and `get_columns()`, and
-    colored, `set_row_colors(...)` and `set_column_colors(...)`, labels included.
+    每个条目由 `element_to_mobject` 转换为 mobject —— 默认为其文本的
+    [Paragraph][manimgx.Paragraph] —— 单元格按网格布局排列，每个条目居中于其单元格
+    （参见 [arrange_in_grid][manimgx.Mobject.arrange_in_grid]）；表格以场景原点为中心。
+    行标签构成第一列，列标签构成第一行，`top_left_entry` 填充二者之间的角落。
+    线条穿过行与行、列与列之间间隙的中点，并向条目之外延伸半个间隙的距离。
+    其行与列可以组的形式访问，`get_rows()` 和 `get_columns()`，并可着色，
+    `set_row_colors(...)` 和 `set_column_colors(...)`，标签也包含在内。
 
-    A cell is addressed by its position, `(row, column)`, counted from 1 at the top
-    left, labels included: in a table with row and column labels, (1, 1) is the corner
-    and the first entry is at (2, 2).
+    单元格按其位置 `(row, column)` 寻址，从左上角的 1 开始计数，标签也包含在内：
+    在带有行标签和列标签的表格中，(1, 1) 是角落，第一个条目位于 (2, 2)。
 
-    Grid, line and background options are consumed during construction; cells, labels,
-    line groups and gaps hold the table's state.
+    网格、线条和背景选项仅在构造期间被消费；单元格、标签、线条组和间隙保存
+    表格的状态。
 
     Args:
-        table: The entries, row by row, every row as long: strings, for the default
-            [Paragraph][manimgx.Paragraph]; numbers or mobjects, as another
-            `element_to_mobject` takes them.
-        row_labels: A label for each row, left of it; None for none.
-        col_labels: A label for each column, above it; None for none.
-        top_left_entry: A mobject for the corner above the row labels and left of the
-            column labels, when there are both; None to leave it empty.
-        v_buff: The gap between rows, in scene units.
-        h_buff: The gap between columns, in scene units.
-        include_outer_lines: Whether lines frame the table.
-        include_inner_lines: Whether lines separate its rows and its columns.
-        add_background_rectangles_to_entries: Whether each entry, labels included,
-            gets a background rectangle (see
-            [add_background_to_entries][manimgx.Table.add_background_to_entries]).
-        entries_background_color: The color of the entries' background rectangles.
-        include_background_rectangle: Whether the table gets a background rectangle
-            (see [add_background_rectangle][manimgx.Mobject.add_background_rectangle]).
-        background_rectangle_color: The color of the table's background rectangle.
-        element_to_mobject: The function that makes each entry's mobject, called with
-            the entry and the keywords of `element_to_mobject_config`: a class, as
-            [MathTex][manimgx.MathTex], or any function; None for the class's own
-            (Paragraph, for a Table).
-        element_to_mobject_config: Keywords for `element_to_mobject`; None for the
-            class's own (none, for a Table).
-        arrange_in_grid_config: [Grid keywords][manimgx.Mobject.arrange_in_grid]
-            for laying out the cells, over the table's own rows, columns and gaps:
-            `cell_alignment`, `col_alignments`, …; None for none.
-        line_config: [Line keywords][manimgx.Line] for the
-            lines: their `color`, `stroke_width`, …; None for none.
-        **kwargs: [Style keywords][manimgx.drawing.paint.Style] of the table itself: as it
-            has no points, they do not restyle its entries or its lines.
+        table: 条目，逐行排列，每行长度相同：字符串，供默认的
+            [Paragraph][manimgx.Paragraph] 使用；数字或 mobject，供其他
+            `element_to_mobject` 使用。
+        row_labels: 每行的标签，置于其左侧；None 表示无。
+        col_labels: 每列的标签，置于其上方；None 表示无。
+        top_left_entry: 当行标签和列标签同时存在时，位于行标签上方、列标签左侧
+            角落处的 mobject；None 表示留空。
+        v_buff: 各行之间的间隙，以场景单位表示。
+        h_buff: 各列之间的间隙，以场景单位表示。
+        include_outer_lines: 是否有线条框住表格。
+        include_inner_lines: 是否有线条分隔其行与列。
+        add_background_rectangles_to_entries: 每个条目（包括标签）是否获得一个背景矩形
+            （参见
+            [add_background_to_entries][manimgx.Table.add_background_to_entries]）。
+        entries_background_color: 条目背景矩形的颜色。
+        include_background_rectangle: 表格是否获得一个背景矩形
+            （参见 [add_background_rectangle][manimgx.Mobject.add_background_rectangle]）。
+        background_rectangle_color: 表格背景矩形的颜色。
+        element_to_mobject: 构造每个条目的 mobject 的函数，以条目和
+            `element_to_mobject_config` 的关键字参数调用：可以是一个类，如
+            [MathTex][manimgx.MathTex]，或任意函数；None 表示使用该类自身的函数
+            （对于 Table 为 Paragraph）。
+        element_to_mobject_config: `element_to_mobject` 的关键字参数；None 表示使用
+            该类自身的设置（对于 Table 为无）。
+        arrange_in_grid_config: 用于布局单元格的
+            [Grid 关键字][manimgx.Mobject.arrange_in_grid]，覆盖表格自身的行、列和
+            间隙设置：`cell_alignment`, `col_alignments`, …；None 表示无。
+        line_config: 线条的 [Line 关键字][manimgx.Line]：
+            其 `color`, `stroke_width`, …；None 表示无。
+        **kwargs: 表格自身的 [Style 关键字][manimgx.drawing.paint.Style]：由于表格
+            没有点，这些关键字不会重新设置其条目或线条的样式。
 
     Examples:
         ```python
@@ -598,21 +584,19 @@ class Table(_Grid, VGroup):
         row_label_data = list(row_labels) if row_labels is not None else []
         col_label_data = list(col_labels) if col_labels is not None else []
         self.row_labels = row_label_data or None
-        """The row labels, top to bottom; None if there are none."""
+        """行标签，从上到下；若无则为 None。"""
         self.col_labels = col_label_data or None
-        """The column labels, left to right; None if there are none."""
+        """列标签，从左到右；若无则为 None。"""
         self.top_left_entry = top_left_entry
-        """The mobject in the corner between the labels; None if there is none."""
+        """标签之间角落处的 mobject；若无则为 None。"""
         self.row_dim = len(table_data)
-        """How many rows of entries the table has, labels not counted."""
+        """表格的条目行数，不含标签。"""
         self.col_dim = len(table_data[0])
-        """How many columns of entries the table has, labels not counted."""
+        """表格的条目列数，不含标签。"""
         self.v_buff = v_buff
-        """The gap between rows, in scene units, as the table was made: scaling the
-        table leaves it as it is."""
+        """各行之间的间隙，以场景单位表示，即表格创建时的值：缩放表格不会改变该值。"""
         self.h_buff = h_buff
-        """The gap between columns, in scene units, as the table was made: scaling the
-        table leaves it as it is."""
+        """各列之间的间隙，以场景单位表示，即表格创建时的值：缩放表格不会改变该值。"""
         entries_background_color = ManimColor(entries_background_color)
         background_rectangle_color = ManimColor(background_rectangle_color)
         if any(len(row) != len(table_data[0]) for row in table_data):
@@ -622,7 +606,7 @@ class Table(_Grid, VGroup):
             table_data, element_to_mobject, element_to_mobject_config
         )
         self.elements_without_labels = VGroup(*it.chain(*cells))
-        """The entries but the labels, row by row."""
+        """不含标签的条目，逐行排列。"""
         empty_corner = None
         if self.row_labels is not None:
             for k in range(len(self.row_labels)):
@@ -640,8 +624,7 @@ class Table(_Grid, VGroup):
                 cells.insert(0, self.col_labels)
         self.cells = cells
         self.elements = VGroup(*it.chain(*self.cells))
-        """Every entry of the table, labels included, row by row: a group, added to the
-        table."""
+        """表格的每个条目，包括标签，逐行排列：以组的形式组织，并被添加到表格中。"""
         layout = GridArrangement(
             rows=len(self.cells), cols=len(self.cells[0]), buff=(h_buff, v_buff)
         )
@@ -684,11 +667,11 @@ class Table(_Grid, VGroup):
             self.add_background_rectangle(color=background_rectangle_color)
 
     def get_horizontal_lines(self) -> VGroup:
-        """The table's horizontal lines: the outer ones first, top then bottom, if it
-        has them, then those between its rows, from the top down.
+        """表格的水平线：若存在外框线，则先为外框线（先上后下），然后是各行之间的线，
+        从上到下。
 
         Returns:
-            The group of the lines.
+            由线条组成的组。
 
         Examples:
             ```python
@@ -710,25 +693,25 @@ class Table(_Grid, VGroup):
         return self.horizontal_lines
 
     def get_vertical_lines(self) -> VGroup:
-        """The table's vertical lines: the outer ones first, left then right, if it has
-        them, then those between its columns, from left to right.
+        """表格的垂直线：若存在外框线，则先为外框线（先左后右），然后是各列之间的线，
+        从左到右。
 
         Returns:
-            The group of the lines.
+            由线条组成的组。
         """
         return self.vertical_lines
 
     def get_entries(self, pos: Sequence[int] | None = None) -> Mobject:
-        """The table's entries, labels included, or the one at a position.
+        """表格的条目，包括标签，或返回指定位置处的条目。
 
         Args:
-            pos: The position, `(row, column)`, counted from 1 at the top left, labels
-                included; None for every entry.
+            pos: 位置 `(row, column)`，从左上角的 1 开始计数，标签也包含在内；
+                None 表示返回所有条目。
 
         Returns:
-            The entry; or every entry, row by row, in a group.
-            The absent corner between row and column labels is an empty mobject,
-            omitted from the group.
+            指定位置的条目；或所有条目，逐行排列，以组的形式组织。
+            行标签和列标签之间缺失的角落是一个空的 mobject，
+            在组中被省略。
 
         Examples:
             ```python
@@ -752,14 +735,14 @@ class Table(_Grid, VGroup):
         return self.elements
 
     def get_entries_without_labels(self, pos: Sequence[int] | None = None) -> Mobject:
-        """The table's entries but its labels, or the one at a position among them.
+        """表格中除标签外的条目，或返回这些条目中指定位置处的条目。
 
         Args:
-            pos: The position, `(row, column)`, counted from 1 at the top left entry
-                that is not a label; None for every such entry.
+            pos: 位置 `(row, column)`，从左上角第一个非标签条目的 1 开始计数；
+                None 表示返回所有此类条目。
 
         Returns:
-            The entry; or every entry but the labels, row by row, in a group.
+            指定位置的条目；或除标签外的所有条目，逐行排列，以组的形式组织。
 
         Examples:
             ```python
@@ -787,31 +770,30 @@ class Table(_Grid, VGroup):
         return self.elements_without_labels
 
     def get_row_labels(self) -> VGroup:
-        """The table's row labels, from the top down.
+        """表格的行标签，从上到下。
 
         Returns:
-            A new group of the labels; empty if there are none.
+            由标签组成的新组；若无标签则为空组。
         """
         if self.row_labels is not None:
             return VGroup(*self.row_labels)
         return VGroup()
 
     def get_col_labels(self) -> VGroup:
-        """The table's column labels, from left to right.
+        """表格的列标签，从左到右。
 
         Returns:
-            A new group of the labels; empty if there are none.
+            由标签组成的新组；若无标签则为空组。
         """
         if self.col_labels is not None:
             return VGroup(*self.col_labels)
         return VGroup()
 
     def get_labels(self) -> VGroup:
-        """The table's labels: its top left entry, if it has one, then its column
-        labels, then its row labels.
+        """表格的标签：若存在则先为左上角条目，然后是列标签，最后是行标签。
 
         Returns:
-            A new group of the labels; empty if there are none.
+            由标签组成的新组；若无标签则为空组。
 
         Examples:
             ```python
@@ -838,34 +820,32 @@ class Table(_Grid, VGroup):
         return label_group
 
     def add_background_to_entries(self, color: ParsableManimColor = BLACK) -> Self:
-        """Put a background rectangle behind each entry, labels included (see
-        [add_background_rectangle][manimgx.Mobject.add_background_rectangle]).
+        """在每个条目（包括标签）后方放置一个背景矩形（参见
+        [add_background_rectangle][manimgx.Mobject.add_background_rectangle]）。
 
-        The rectangles are the entries' `background_rectangle`s:
-        [create][manimgx.Table.create] fades in those of the entries but the labels.
+        这些矩形是各条目的 `background_rectangle`：
+        [create][manimgx.Table.create] 会淡入除标签外的条目所对应的背景矩形。
 
         Args:
-            color: The rectangles' color.
+            color: 矩形的颜色。
         """
         for mob in self.get_entries():
             mob.add_background_rectangle(color=ManimColor(color))
         return self
 
     def get_cell(self, pos: Sequence[int] = (1, 1), **kwargs: Unpack[Style]) -> Polygon:
-        """Make the rectangle of a cell: its row's height and its column's width,
-        reaching half a gap beyond them on every side, so that it meets the lines;
-        blue unless styled.
+        """构造某个单元格的矩形：其高度为所在行的高度，宽度为所在列的宽度，
+        四周各向外延伸半个间隙的距离，以便与线条相接；默认为蓝色，除非另行设置样式。
 
-        The gaps are `v_buff` and `h_buff`, as the table was made: on a table scaled
-        since, the rectangle reaches as far beyond the entries as before.
+        间隙为 `v_buff` 和 `h_buff`，即表格创建时的值：对于之后缩放过的表格，
+        矩形向外延伸的距离与缩放前相同。
 
         Args:
-            pos: The cell's position, `(row, column)`, counted from 1 at the top left,
-                labels included.
-            **kwargs: [Style keywords][manimgx.drawing.paint.Style].
+            pos: 单元格的位置 `(row, column)`，从左上角的 1 开始计数，标签也包含在内。
+            **kwargs: [Style 关键字][manimgx.drawing.paint.Style]。
 
         Returns:
-            A new [Polygon][manimgx.Polygon], not added to the table.
+            一个新的 [Polygon][manimgx.Polygon]，不会被添加到表格中。
 
         Examples:
             ```python
@@ -908,22 +888,21 @@ class Table(_Grid, VGroup):
         pos: Sequence[int] = (1, 1),
         **kwargs: Unpack[FrameOptions],
     ) -> BackgroundRectangle:
-        """Make a highlight for a cell: a
-        [BackgroundRectangle][manimgx.BackgroundRectangle] over the
-        [cell's rectangle][manimgx.Table.get_cell], bright yellow (`PURE_YELLOW`) unless
-        given a color.
+        """为某个单元格构造高亮：一个覆盖在
+        [单元格矩形][manimgx.Table.get_cell] 之上的
+        [BackgroundRectangle][manimgx.BackgroundRectangle]，默认为亮黄色
+        （`PURE_YELLOW`），除非另行指定颜色。
 
-        It is not added to the table: put it behind the entries, as
-        [add_highlighted_cell][manimgx.Table.add_highlighted_cell] does.
+        它不会被添加到表格中：请将其置于条目之后，正如
+        [add_highlighted_cell][manimgx.Table.add_highlighted_cell] 所做的那样。
 
         Args:
-            pos: The cell's position, `(row, column)`, counted from 1 at the top left,
-                labels included.
-            **kwargs: [Frame keywords][manimgx.mobjects.annotations.FrameOptions]:
-                its `color`, `buff`, `fill_opacity`, ….
+            pos: 单元格的位置 `(row, column)`，从左上角的 1 开始计数，标签也包含在内。
+            **kwargs: [Frame 关键字][manimgx.mobjects.annotations.FrameOptions]：
+                其 `color`, `buff`, `fill_opacity`, …。
 
         Returns:
-            A new background rectangle.
+            一个新的背景矩形。
         """
         if kwargs.get("color") is None:  # not given, None too
             kwargs["color"] = PURE_YELLOW
@@ -935,17 +914,16 @@ class Table(_Grid, VGroup):
         pos: Sequence[int] = (1, 1),
         **kwargs: Unpack[FrameOptions],
     ) -> Self:
-        """Highlight a cell: put a [highlight][manimgx.Table.get_highlighted_cell]
-        behind everything in the table.
+        """高亮某个单元格：将一个[高亮][manimgx.Table.get_highlighted_cell]置于
+        表格中所有内容之后。
 
-        The highlight is the `background_rectangle` of the entry at `pos`:
-        [create][manimgx.Table.create] fades it in, unless the entry is a label.
+        该高亮是位于 `pos` 处条目的 `background_rectangle`：
+        [create][manimgx.Table.create] 会将其淡入，除非该条目是标签。
 
         Args:
-            pos: The cell's position, `(row, column)`, counted from 1 at the top left,
-                labels included.
-            **kwargs: [Frame keywords][manimgx.mobjects.annotations.FrameOptions]:
-                its `color`, `buff`, `fill_opacity`, ….
+            pos: 单元格的位置 `(row, column)`，从左上角的 1 开始计数，标签也包含在内。
+            **kwargs: [Frame 关键字][manimgx.mobjects.annotations.FrameOptions]：
+                其 `color`, `buff`, `fill_opacity`, …。
 
         Examples:
             ```python
@@ -977,26 +955,25 @@ class Table(_Grid, VGroup):
         entry_animation: Callable[..., Animation] = FadeIn,
         **kwargs: Unpack[AnimationOptions],
     ) -> AnimationGroup:
-        """Make an animation that builds the table: its lines, then its entries, then
-        its labels, then each entry's background rectangle, one after another.
+        """构造一个构建表格的动画：先绘制线条，然后是条目，然后是标签，
+        最后是每个条目的背景矩形，依次进行。
 
-        Each part is its own animation, made with the options given; the parts follow
-        one another by `lag_ratio`, 1 unless given. The entries but the labels are
-        moved to a z-index of 2, over backgrounds and highlights.
+        每个部分都是独立的动画，以所给选项构造；各部分通过 `lag_ratio` 依次衔接，
+        默认为 1，除非另行指定。除标签外的条目会被移至 z-index 2，位于背景和高亮
+        之上。
 
         Args:
-            line_animation: The animation that draws the lines.
-            label_animation: The animation that draws the labels.
-            element_animation: The animation that draws the entries but the labels.
-            entry_animation: The animation that brings in each entry's background
-                rectangle (the highlights of
-                [add_highlighted_cell][manimgx.Table.add_highlighted_cell]).
-            **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions]
-                for each part (`run_time` is each part's), and `lag_ratio` for the
-                whole: 1 plays the parts one after another, 0 all at once.
+            line_animation: 绘制线条的动画。
+            label_animation: 绘制标签的动画。
+            element_animation: 绘制除标签外条目的动画。
+            entry_animation: 引入每个条目背景矩形的动画（即
+                [add_highlighted_cell][manimgx.Table.add_highlighted_cell] 的高亮）。
+            **kwargs: 每个部分的 [动画选项][manimgx.animation.timeline.AnimationOptions]
+                （`run_time` 为每个部分各自的运行时间），以及整体的 `lag_ratio`：
+                1 表示各部分依次播放，0 表示同时播放。
 
         Returns:
-            A new animation group.
+            一个新的动画组。
 
         Examples:
             ```python
@@ -1036,11 +1013,11 @@ class Table(_Grid, VGroup):
 
 
 class MathTable(Table):
-    """A table of math: each entry typeset as math, with [MathTex][manimgx.MathTex].
+    """数学表格：每个条目以 [MathTex][manimgx.MathTex] 排版为数学公式。
 
-    It takes a [Table][manimgx.Table]'s arguments; its entries are strings of math, or
-    numbers, and its `element_to_mobject_config` gives their
-    [math keywords][manimgx.MathTex].
+    它接受 [Table][manimgx.Table] 的参数；其条目为数学字符串或数字，其
+    `element_to_mobject_config` 给出它们的
+    [math 关键字][manimgx.MathTex]。
 
     Examples:
         ```python
@@ -1061,10 +1038,10 @@ class MathTable(Table):
 
 
 class MobjectTable(Table):
-    """A table of mobjects: each entry a mobject, placed as it is.
+    """mobject 表格：每个条目是一个 mobject，按原样放置。
 
-    It takes a [Table][manimgx.Table]'s arguments; its entries are mobjects, used
-    themselves (not copied).
+    它接受 [Table][manimgx.Table] 的参数；其条目为 mobject，直接使用
+    （不复制）。
 
     Examples:
         ```python
@@ -1091,12 +1068,11 @@ class MobjectTable(Table):
 
 
 class IntegerTable(Table):
-    r"""A table of integers: each entry written as an [Integer][manimgx.Integer], its
-    number rounded to a whole number.
+    r"""整数表格：每个条目以 [Integer][manimgx.Integer] 书写，其数字四舍五入为整数。
 
-    It takes a [Table][manimgx.Table]'s arguments; its entries are numbers, and its
-    `element_to_mobject_config` gives their
-    [number keywords][manimgx.DecimalNumber].
+    它接受 [Table][manimgx.Table] 的参数；其条目为数字，其
+    `element_to_mobject_config` 给出它们的
+    [number 关键字][manimgx.DecimalNumber]。
 
     Examples:
         ```python
@@ -1119,13 +1095,13 @@ class IntegerTable(Table):
 
 
 class DecimalTable(Table):
-    """A table of decimal numbers: each entry written as a
-    [DecimalNumber][manimgx.DecimalNumber], with one decimal place unless configured.
+    """十进制数表格：每个条目以 [DecimalNumber][manimgx.DecimalNumber] 书写，
+    除非另行配置，默认保留一位小数。
 
-    It takes a [Table][manimgx.Table]'s arguments; its entries are numbers, and its
-    `element_to_mobject_config` gives their
-    [number keywords][manimgx.DecimalNumber], in place of
-    `{"num_decimal_places": 1}`.
+    它接受 [Table][manimgx.Table] 的参数；其条目为数字，其
+    `element_to_mobject_config` 给出它们的
+    [number 关键字][manimgx.DecimalNumber]，代替
+    `{"num_decimal_places": 1}`。
 
     Examples:
         ```python

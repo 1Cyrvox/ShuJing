@@ -1,7 +1,7 @@
-"""Lights: what lights the mobjects that have a [material][manimgx.Material] in a
-three-dimensional scene. A light is a mobject that draws nothing: placed, moved and
-animated like any, and a scene's lights are the ones in it. Its intensity is what a white
-matte surface shows: 1 makes such a surface facing the light white."""
+"""光源：在三维场景中为带有 [material][manimgx.Material] 的 mobject 提供照明的对象。
+光源是一种不绘制任何内容的 mobject：可以像任何 mobject 一样被放置、移动和动画化，
+场景中的光源即为其中所包含的光源。其强度表示一个白色哑光表面所呈现的亮度：
+1 使得面向该光源的此类表面呈现为白色。"""
 
 from __future__ import annotations
 
@@ -35,18 +35,17 @@ if TYPE_CHECKING:
 
 
 class Light(VectorizedPoint):
-    """A light: its color and how bright it is, at its point (each kind reads the point its
-    own way).
+    """一种光源：在其所在点处具有自身的颜色和亮度（每种类型以各自的方式读取该点）。
 
     Args:
-        location: Where it is, in scene coordinates.
-        color: Its color.
-        intensity: How bright it is: 1 makes a white matte surface facing it white.
-        **kwargs: [Look keywords][manimgx.drawing.paint.Look] (a name, a z-index).
+        location: 光源所在位置，以场景坐标表示。
+        color: 光源的颜色。
+        intensity: 光源的亮度：1 使得面向它的白色哑光表面呈现为白色。
+        **kwargs: [Look keywords][manimgx.drawing.paint.Look]（名称、z-index 等）。
     """
 
     kind: ClassVar[int] = 0
-    """How the renderer reads it: 0 ambient, 1 sun, 2 point, 3 spot, 4 environment."""
+    """渲染器读取它的方式：0 环境光、1 太阳光、2 点光源、3 聚光灯、4 环境光照。"""
 
     def __init__(
         self,
@@ -61,12 +60,12 @@ class Light(VectorizedPoint):
 
 
 class AmbientLight(Light):
-    """Light from every direction alike: the sky, or a room's light come back from its walls.
-    It lights what no other light reaches, so that nothing goes black.
+    """来自各个方向均相同的光：天空，或房间灯光经墙壁反射回来的光。
+    它照亮其他光源无法触及的部分，使任何地方都不会变成纯黑。
 
     Args:
-        color: Its color.
-        intensity: How bright it is: 1 makes a white matte surface white, from every side.
+        color: 光源的颜色。
+        intensity: 光源的亮度：1 使得从任何方向看白色哑光表面都呈现为白色。
         **kwargs: [Look keywords][manimgx.drawing.paint.Look].
 
     Examples:
@@ -94,14 +93,14 @@ class AmbientLight(Light):
 
 
 class SunLight(Light):
-    """Parallel light from far away, coming from where its point is as seen from the origin:
-    move the point around the origin to turn the light.
+    """来自远处的平行光，从其所在点相对于原点的方向射来：
+    围绕原点移动该点即可转动光源。
 
     Args:
-        location: Where the light comes from: its direction from the origin.
-        color: Its color.
-        intensity: How bright it is: 1 makes a white matte surface facing it white.
-        shadows: Whether what it lights casts shadows (on the mobjects with a material).
+        location: 光源来自的方向：即其相对于原点的方向。
+        color: 光源的颜色。
+        intensity: 光源的亮度：1 使得面向它的白色哑光表面呈现为白色。
+        shadows: 它所照亮的物体是否投射阴影（作用于带有材质的 mobject）。
         **kwargs: [Look keywords][manimgx.drawing.paint.Look].
 
     Examples:
@@ -136,15 +135,15 @@ class SunLight(Light):
 
 
 class PointLight(Light):
-    """Light from its point in every direction, a bulb's: it falls off with the square of the
-    distance, and fades out entirely by `radius`.
+    """从其所在点向各个方向发出的光，如同灯泡：其亮度随距离的平方衰减，
+    并在 `radius` 处完全消失。
 
     Args:
-        location: Where it is, in scene coordinates.
-        color: Its color.
-        intensity: How bright it is one unit away: 1 makes a white matte surface facing it
-            there white.
-        radius: How far its light reaches, in scene units.
+        location: 光源所在位置，以场景坐标表示。
+        color: 光源的颜色。
+        intensity: 距其一个单位距离处的亮度：1 使得在该处面向它的白色哑光表面
+            呈现为白色。
+        radius: 光照到达的距离，以场景单位表示。
         **kwargs: [Look keywords][manimgx.drawing.paint.Look].
 
     Examples:
@@ -180,18 +179,18 @@ class PointLight(Light):
 
 
 class SpotLight(PointLight):
-    """A point light's cone: from its point to the point `toward`, as wide as `angle` either
-    side of its axis, its edge softened over the outer `softness` of the angle.
+    """点光源的锥形光束：从其所在点指向 `toward` 点，在其轴线两侧各 `angle` 宽度内展开，
+    锥边在角度的外侧 `softness` 范围内柔和过渡。
 
     Args:
-        location: Where it is, in scene coordinates.
-        toward: The point it shines toward.
-        color: Its color.
-        intensity: How bright it is one unit away, on its axis.
-        radius: How far its light reaches, in scene units.
-        angle: Half its cone's opening, in radians.
-        softness: The fraction of `angle`, at the cone's edge, over which its light fades.
-        shadows: Whether what it lights casts shadows (on the mobjects with a material).
+        location: 光源所在位置，以场景坐标表示。
+        toward: 光束所指向的点。
+        color: 光源的颜色。
+        intensity: 距其一个单位距离处、沿轴线方向的亮度。
+        radius: 光照到达的距离，以场景单位表示。
+        angle: 锥形光束开口的一半，以弧度表示。
+        softness: 在锥边处 `angle` 的比例，光照在该范围内逐渐衰减。
+        shadows: 它所照亮的物体是否投射阴影（作用于带有材质的 mobject）。
         **kwargs: [Look keywords][manimgx.drawing.paint.Look].
 
     Examples:
@@ -237,9 +236,9 @@ class SpotLight(PointLight):
 
 @dataclass(frozen=True, slots=True, eq=False)
 class Picture:
-    """An environment's picture as the engine takes it: equirectangular (its width twice its
-    height), each pixel RGBE (a byte of red, green, blue and a shared exponent), row by row
-    from the top; `id` names it to the player (the views that show it carry the id)."""
+    """环境图像在引擎接收时的形式：等距矩形投影（宽度为高度的两倍），
+    每个像素为 RGBE 格式（红、绿、蓝各一个字节，外加一个共享的指数字节），
+    自顶向下逐行存储；`id` 用于向播放器命名该图像（显示它的视图携带该 id）。"""
 
     id: int
     width: int
@@ -253,33 +252,32 @@ _PICTURE_IDS = itertools.count(1)  # (0: the studio; a view carries an id as a f
 @forgets
 @functools.lru_cache(maxsize=4)
 def _picture(data: bytes) -> Picture:
-    """A Radiance picture's immutable contents, decoded once while remembered (the engine
-    halves it until no wider than 4096)."""
+    """一张 Radiance 图像的不可变内容，在缓存期间仅解码一次（引擎会将其
+    逐级减半，直到宽度不超过 4096）。"""
     width, height, rgbe = _engine.read_hdr(data)
     return Picture(next(_PICTURE_IDS), width, height, bytes(rgbe))
 
 
 class EnvironmentLight(Light):
-    """Light from all around: a picture of the surroundings, each direction's light the
-    picture's there, as at the place it was taken. Metals mirror it, rough ones blur it,
-    and matte surfaces take its light from every side. A sun in the picture lights as a
-    sun does: its light comes from its direction alone, and it casts shadows. A scene
-    lights by one picture (a second environment light shows the first's).
+    """来自周围环境的光：一张周围环境的图像，每个方向的光即图像中该方向处的光，
+    如同在拍摄地点所看到的那样。金属表面会镜像它，粗糙表面会模糊它，
+    哑光表面则从各个方向接收其光照。图像中的太阳如同太阳光源一样照明：
+    其光仅来自其方向，并投射阴影。一个场景由一张图像照明
+    （第二个环境光会显示第一个环境光所对应的图像）。
 
-    The picture is a panorama (equirectangular: a Radiance `.hdr` file, its width twice
-    its height), its up the scene's up (`OUT`), its centre seen looking along `RIGHT`.
-    Rotate the light to turn its surroundings: its points are where it is and, a unit
-    away, its picture's `RIGHT` and up.
+    该图像为全景图（等距矩形投影：一种 Radiance `.hdr` 文件，宽度为高度的两倍），
+    其上方对应场景的上方（`OUT`），其中心朝向沿 `RIGHT` 方向看去。
+    旋转该光源即可转动其周围环境：其点表示光源所在位置，而距其一个单位距离处
+    分别为图像的 `RIGHT` 方向和上方。
 
     Args:
-        picture: A Radiance (`.hdr`) file's path; None, a studio's (built in: a dim room
-            with softboxes: a key light where Manim's light source is, a fill, a strip for
-            rims, a light overhead).
-        color: Its tint: the picture's light times this color.
-        intensity: How bright it is: the picture's light times this (a picture of light
-            1 all around makes a white matte surface white).
-        shadows: Whether its picture's sun, if it has one, casts shadows (on the mobjects
-            with a material).
+        picture: 一个 Radiance（`.hdr`）文件的路径；为 None 时使用内置摄影棚
+            （内置提供：一间昏暗的房间，配有柔光箱：在 Manim 光源位置处的主光、
+            一盏补光、一条用于勾勒轮廓的条形光，以及一盏顶光）。
+        color: 光源的色调：图像的光乘以此颜色。
+        intensity: 光源的亮度：图像的光乘以此值（一张四周光强均为 1 的图像
+            会使白色哑光表面呈现为白色）。
+        shadows: 图像中的太阳（若存在）是否投射阴影（作用于带有材质的 mobject）。
         **kwargs: [Look keywords][manimgx.drawing.paint.Look].
 
     Examples:
@@ -320,8 +318,8 @@ class EnvironmentLight(Light):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def axes(self) -> tuple[np.ndarray, np.ndarray]:
-        """Its picture's `RIGHT` and up in the scene, as it is turned: unit vectors, at a right
-        angle."""
+        """其图像的 `RIGHT` 方向和上方在场景中的表示，随光源的转动而转动：
+        为单位向量，且相互垂直。"""
         origin = self.points[0]
         right, up = (s.points[0] - origin for s in self.submobjects[:2])
         up = up / max(float(np.linalg.norm(up)), 1e-9)

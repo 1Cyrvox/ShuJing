@@ -1,19 +1,12 @@
-"""Typeset mobjects from Typst, literal Unicode, and LaTeX source.
+"""将 Typst、字面 Unicode 和 LaTeX 源排版为 mobject。
 
-Typst documents as mobjects: every glyph and shape of the layout becomes a part (a glyph its
-outline, shared per font and glyph, placed where Typst put it). After CE 0.21 (MIT).
+Typst 文档作为 mobject：排版中的每个字形和形状都成为一个部分（字形即其轮廓，按字体和字形共享，放置在 Typst 所放的位置）。在 CE 0.21（MIT）之后。
 
-CE's Pango text classes, typeset by Typst: one submobject per non-space glyph, in reading
-order, sized so a font-size-48 capital has CE's height.
+CE 的 Pango 文本类，由 Typst 排版：每个非空格字形对应一个子 mobject，按阅读顺序排列，大小使得 font-size-48 的大写字母具有 CE 的高度。
 
-The text is set literally, as Typst strings. Slant and weight (`t2s`, `t2w`) change the layout,
-so they are set as runs; color does not: every glyph knows the characters it draws,
-so `gradient`, `t2g` and `t2c` color it by character, and a glyph whose characters differ in
-color is cut at its carets. A key is a slice "[a:b]" or each occurrence of a string; a key that
-occurs nowhere picks nothing.
+文本按字面值排版，作为 Typst 字符串。倾斜和字重（`t2s`、`t2w`）会改变排版，因此它们按片段设置；颜色不会：每个字形知道它绘制的字符，因此 `gradient`、`t2g` 和 `t2c` 按字符为其着色，而其字符颜色不同的字形会在其插入符处被切割。键是切片 "[a:b]" 或字符串的每次出现；不出现于任何处的键不选取任何内容。
 
-CE's LaTeX classes, typeset by Typst: LaTeX converted by mitex, so `MathTex("a", "=", "b")[i]`
-is part i. A MathTex's strings are one formula, a Tex's one text: joined, and typeset once.
+CE 的 LaTeX 类，由 Typst 排版：LaTeX 由 mitex 转换，因此 `MathTex("a", "=", "b")[i]` 即第 i 个部分。MathTex 的字符串是一个公式，Tex 的字符串是一个文本：连接后，排版一次。
 
 """
 
@@ -100,7 +93,7 @@ _HEX: Memo[tuple[float, ...], str] = Memo(1 << 12)
 
 
 def _ink(rgba: np.ndarray, color: str) -> str:
-    """A paint Typst gave: its default ink (black) is `color`."""
+    """Typst 给出的绘制：其默认墨色（黑色）为 `color`。"""
     return color if not rgba[:3].any() else _hex(rgba)
 
 
@@ -114,134 +107,130 @@ def _hex(rgba: np.ndarray) -> str:
 
 
 class _TypstOptions(_Look, Repaint, total=False):
-    """TypstOptions's keys, open, for the keywords that add to them."""
+    """TypstOptions 的键，开放，用于向其添加的关键字。"""
 
     font_size: float
-    """The size of the text: an em is `font_size / 96` scene units, 0.5 at the default,
-    48 (a [Text][manimgx.Text] is sized by its capitals instead: 0.449 units tall at
-    48)."""
+    """文本的大小：一个 em 为 `font_size / 96` 场景单位，默认时为 0.5，
+    48（[Text][manimgx.Text] 按其大写字母确定大小：48 时高 0.449 单位）。"""
     typst_preamble: str
-    """Typst code set before the document: `#set` and `#show` rules, `#let`
-    definitions, imports (default "")."""
+    """在文档之前设置的 Typst 代码：`#set` 和 `#show` 规则、`#let`
+    定义、导入（默认为 ""）。"""
     font_paths: list[str | Path] | None
-    """Directories of font files (.ttf, .otf, .ttc, .otc), searched with their
-    subdirectories before the fonts manimgx ships; a path to a file adds nothing
-    (default None)."""
+    """字体文件（.ttf、.otf、.ttc、.otc）的目录，在 manimgx 附带的字体之前
+    连同其子目录一起搜索；指向文件的路径不添加任何内容
+    （默认为 None）。"""
     should_center: bool
-    """Whether the mobject is centered on the origin (default True)."""
+    """mobject 是否居中于原点（默认为 True）。"""
     height: float | None
-    """The height to scale the mobject to, in scene units, instead of sizing it by
-    `font_size` (default None)."""
+    """将 mobject 缩放至的高度，以场景单位计，而非按 `font_size` 确定大小
+    （默认为 None）。"""
     width: float | None
-    """The width to scale the mobject to, in scene units, instead of sizing it by
-    `font_size`; with a `height` too, the width is set last (default None)."""
+    """将 mobject 缩放至的宽度，以场景单位计，而非按 `font_size` 确定大小；
+    若同时给出 `height`，则宽度最后设置（默认为 None）。"""
     package_path: str | Path | None
-    """The directory Typst packages are imported from, which holds them as
-    `namespace/name/version` directories: `#import "@preview/name:1.0.0"` reads
-    `preview/name/1.0.0` (default None: none but mitex, which manimgx's engine holds).
-    Nothing is downloaded."""
+    """Typst 包导入的目录，将包存放为 `namespace/name/version` 目录：
+    `#import "@preview/name:1.0.0"` 读取 `preview/name/1.0.0`（默认为 None：
+    除 mitex 外无任何包，mitex 由 manimgx 的引擎持有）。不下载任何内容。"""
 
 
 class TypstOptions(_TypstOptions, total=False, closed=True):
-    """[Typst][manimgx.Typst]'s keywords, for the classes that pass them on: text and
-    LaTeX.
+    """[Typst][manimgx.Typst] 的关键字，用于传递它们的类：文本和
+    LaTeX。
 
-    Beyond these, they take the [look keywords][manimgx.drawing.paint.Look], and the
-    [paint keywords][manimgx.drawing.paint.Repaint], which paint over the colors the
-    typesetting gives the parts.
+    除此之外，它们还接受[外观关键字][manimgx.drawing.paint.Look]和
+    [绘制关键字][manimgx.drawing.paint.Repaint]，后者在排版赋予各部分的颜色之上
+    重新着色。
     """
 
 
 class TypstGlyph(VMobject):
-    """One glyph as Typst set it, a part of a typeset mobject: its outline, placed, and
-    which characters of the source it draws.
+    """Typst 所设置的一个字形，排版 mobject 的一个部分：其轮廓，已放置，以及
+    它绘制的源字符。
 
-    `node` is where the glyph's source node starts in the Typst code (-1 if it isn't
-    from the code), `drawn` the bytes of that node's text it draws, `key` its outline,
-    `x_advance` its width in font units.
+    `node` 是字形的源节点在 Typst 代码中起始的位置（若不来自代码则为 -1），
+    `drawn` 为该节点文本中它绘制的字节，`key` 为其轮廓，
+    `x_advance` 为其以字体单位计的宽度。
     """
 
     # Immutable float64 bytes, shared by copies; absent for ordinary glyphs.
     _carets: bytes = b""
 
     node: int
-    """Where the source node the glyph came from starts in the Typst code, in bytes. A
-    glyph a package's code drew (a radical a package's function sets) came from the
-    innermost element of the code around it (its equation); -1 if none is."""
+    """字形来源的源节点在 Typst 代码中起始的位置，以字节计。由包代码
+    绘制的字形（包函数设置的根号）来自其周围代码的最内层元素（其方程）；
+    若无则为 -1。"""
     drawn: tuple[int, int]
-    """The bytes of that node's text the glyph's cluster draws, from and to: of a string
-    literal, the bytes of its value; -1, -1 if the node is an element around it."""
+    """该节点文本中字形簇绘制的字节，从哪到哪：对于字符串
+    字面量，为其值的字节；若节点是其周围的元素则为 -1, -1。"""
     key: int
-    """The provenance key of its outline and font carets, the same in every process.
-    Assigning a key does not change the live glyph's outline or carets."""
+    """其轮廓和字体插入符的来源键，在每个进程中相同。
+    赋予键不会改变活动字形的轮廓或插入符。"""
     x_advance: float
-    """Its advance, the width it takes in the line, in font units: a ligature's carets
-    divide it."""
+    """其前进量，即它在行中占据的宽度，以字体单位计：连字
+    的插入符将其分割。"""
 
 
 class Typst(VMobject):
-    r"""A Typst document, typeset in the engine: every glyph and shape of its layout is
-    a part, white unless styled.
+    r"""一个 Typst 文档，在引擎中排版：其排版中的每个字形和形状都是
+    一个部分，未加样式时为白色。
 
-    The code is Typst markup, a document's body on a page as large as what it holds:
-    `*strong*`, `_emphasis_`, math between `$` signs, `#set` and `#show` rules, and the
-    rest of Typst. The parts are what Typst lays out, in document order, spaces
-    excluded: glyphs ([TypstGlyph][manimgx.mobjects.text.TypstGlyph]) and
-    shapes (a rule, a fraction's bar, a box). A labelled box, `#box[…] <name>`, is a
-    group: [select][manimgx.Typst.select] gives it. Packages are imported from
-    `package_path` (and mitex, `@preview/mitex:0.2.7`, from ManimGX's engine), never
-    downloaded; code Typst can't typeset raises a
-    [TypstError][manimgx.drawing.typesetting.TypstError].
+    代码是 Typst 标记，即页面上文档的正文，页面大小恰好容纳其内容：
+    `*strong*`、`_emphasis_`、`$` 符号之间的数学、`#set` 和 `#show` 规则，
+    以及 Typst 的其余部分。各部分是 Typst 排版出的内容，按文档顺序排列，
+    不含空格：字形（[TypstGlyph][manimgx.mobjects.text.TypstGlyph]）和
+    形状（规则、分数的横线、方框）。带标签的方框 `#box[…] <name>` 是一个
+    组：[select][manimgx.Typst.select] 可获取它。包从 `package_path` 导入
+    （以及 mitex，`@preview/mitex:0.2.7`，来自 ManimGX 的引擎），从不下载；
+    Typst 无法排版的代码会引发
+    [TypstError][manimgx.drawing.typesetting.TypstError]。
 
-    Text is set in Libertinus Serif and math in New Computer Modern Math, Typst's
-    defaults, unless the code sets another font. The fonts are those ManimGX ships, so a
-    document looks the same on every machine: Typst's own (these two, New Computer
-    Modern and DejaVu Sans Mono), Noto Sans, and Noto faces for the scripts those lack,
-    from Arabic, Hebrew and Devanagari to Chinese, Japanese and Korean, with symbols and
-    emoji; a character a font lacks is set in one that has it. Fonts in `font_paths`
-    come first, and a system font is read only for a family the code names that none of
-    these has. A paragraph's direction and the forms of Han characters follow the code's
-    `lang` and `dir` (`#set text(lang: "ja")`, `#set text(dir: rtl)`); a
-    [Text][manimgx.Text] sets them from its characters.
+    文本以 Libertinus Serif 排版，数学以 New Computer Modern Math 排版，
+    即 Typst 的默认值，除非代码设置了其他字体。字体为 ManimGX 附带的字体，
+    因此文档在每台机器上看起来相同：Typst 自带的（这两种、New Computer
+    Modern 和 DejaVu Sans Mono）、Noto Sans，以及为上述字体所缺文字体提供的
+    Noto 字体，从阿拉伯文、希伯来文和天城体到中文、日文和韩文，以及符号和
+    表情符号；字体缺少的字符会用拥有该字符的字体排版。`font_paths` 中的
+    字体优先，仅当代码命名的字体族在上述字体中均无时才读取系统字体。段落
+    方向和汉字的字形跟随代码的 `lang` 和 `dir`（`#set text(lang: "ja")`、
+    `#set text(dir: rtl)`）；[Text][manimgx.Text] 从其字符设置它们。
 
-    What Typst paints in its default ink, black, takes `color`, and the colors the code
-    sets are kept, unless paint keywords (`fill_color` and the rest) paint over every
-    part. A document is typeset once: the same code is read back from a cache on disk,
-    in any process.
+    Typst 以其默认墨色（黑色）绘制的内容取 `color`，代码设置的颜色予以保留，
+    除非绘制关键字（`fill_color` 等）在每个部分之上重新绘制。文档排版一次：
+    相同的代码在任何进程中从磁盘缓存读回。
 
     Args:
-        typst_code: The document: Typst markup.
-        font_size: The size of the text: an em is `font_size / 96` scene units (0.5 at
-            48).
-        typst_preamble: Typst code set before the document: rules, definitions,
-            imports.
-        font_paths: Directories of font files, searched, with their subdirectories,
-            before the fonts ManimGX ships.
-        should_center: Whether the mobject is centered on the origin.
-        height: The height to scale the mobject to, in scene units; None to size it by
-            `font_size`.
-        width: The width to scale it to, in scene units, after `height`; None to size
-            it by `font_size`.
-        package_path: The directory Typst packages are imported from (as
-            `namespace/name/version` directories), besides mitex, which ManimGX's
-            engine holds; None for none but mitex.
-        font_scale: How much larger than `font_size` the text is set: the layout is
-            scaled by `font_size * font_scale`, while
-            [font_size][manimgx.Typst.font_size] reads `font_size`. A
-            [Text][manimgx.Text] sets it to its font's own scale, which makes a capital
-            as tall in every font.
-        color: The color of Typst's default ink, black; None for white.
-        fill_color: A fill color for every part; None keeps the typeset ones.
-        fill_opacity: A fill opacity for every part, from 0 to 1; None keeps the
-            typeset ones.
-        stroke_color: A stroke color for every part; None keeps the typeset ones.
-        stroke_opacity: A stroke opacity for every part, from 0 to 1; None keeps the
-            typeset ones.
-        stroke_width: A stroke width for every part, in hundredths of a scene unit;
-            None keeps the typeset ones, which scale with the mobject.
-        opacity: The opacity of every part's fill and stroke, from 0 to 1, where
-            `fill_opacity` or `stroke_opacity` doesn't give one; None keeps the
-            typeset ones.
+        typst_code: 文档：Typst 标记。
+        font_size: 文本的大小：一个 em 为 `font_size / 96` 场景单位（48 时
+            为 0.5）。
+        typst_preamble: 在文档之前设置的 Typst 代码：规则、定义、
+            导入。
+        font_paths: 字体文件的目录，连同其子目录在 ManimGX 附带的字体
+            之前搜索。
+        should_center: mobject 是否居中于原点。
+        height: 将 mobject 缩放至的高度，以场景单位计；None 则按
+            `font_size` 确定大小。
+        width: 在 `height` 之后将 mobject 缩放至的宽度，以场景单位计；None 则按
+            `font_size` 确定大小。
+        package_path: Typst 包导入的目录（作为
+            `namespace/name/version` 目录），除 ManimGX 引擎持有的 mitex 外；
+            None 表示除 mitex 外无任何包。
+        font_scale: 文本排版时比 `font_size` 大多少：排版按
+            `font_size * font_scale` 缩放，而
+            [font_size][manimgx.Typst.font_size] 读取 `font_size`。
+            [Text][manimgx.Text] 将其设为字体自身的缩放比例，使每个字体中
+            大写字母的高度相同。
+        color: Typst 默认墨色（黑色）的颜色；None 为白色。
+        fill_color: 每个部分的填充颜色；None 保留排版的颜色。
+        fill_opacity: 每个部分的填充不透明度，从 0 到 1；None 保留
+            排版的不透明度。
+        stroke_color: 每个部分的描边颜色；None 保留排版的颜色。
+        stroke_opacity: 每个部分的描边不透明度，从 0 到 1；None 保留
+            排版的不透明度。
+        stroke_width: 每个部分的描边宽度，以百分之一场景单位计；
+            None 保留排版的宽度，其随 mobject 缩放。
+        opacity: 每个部分的填充和描边的不透明度，从 0 到 1，在
+            `fill_opacity` 或 `stroke_opacity` 未给出的地方使用；None 保留
+            排版的不透明度。
 
     Examples:
         ```python
@@ -287,9 +276,9 @@ class Typst(VMobject):
         # how much larger than font_size the text is set (a font's calibration: see Text)
         self._font_scale = font_scale
         self.typst_code = typst_code
-        """The Typst code the mobject was typeset from."""
+        """mobject 排版所用的 Typst 代码。"""
         self.typst_preamble = typst_preamble
-        """The Typst code set before it."""
+        """在其之前设置的 Typst 代码。"""
         # unless a stroke width is given, a stroke keeps its share of its part's size as
         # typeset: (part, its size and its stroke width as typeset)
         self._strokes_scale = stroke_width is None
@@ -325,9 +314,9 @@ class Typst(VMobject):
             self.set(width=width)
 
     def _build(self, layout: Layout, scale: float | None) -> float:
-        """Every glyph and shape of the layout, in document order, Typst's black ink painted this
-        mobject's color, and the labelled groups. With `scale`, parts are built in place (the ink
-        centered and scaled). Returns the ink's height as typeset."""
+        """排版中的每个字形和形状，按文档顺序排列，Typst 的黑色墨色绘制为
+        此 mobject 的颜色，以及带标签的组。若给出 `scale`，部分就地构建（墨色
+        居中并缩放）。返回墨色按排版时的高度。"""
         rows = layout.rows
         # each part's placement (a glyph) or points (a shape), and the ink box around them all:
         # the one box, its curves' tight box
@@ -409,19 +398,19 @@ class Typst(VMobject):
         return height
 
     def select(self, key: str | int) -> VGroup:
-        """Find the parts of a labelled group: of every group with that label, as one.
+        """查找带标签组的各部分：将每个具有该标签的组作为一个整体。
 
-        A label names a box in the code, `#box[…] <name>`; a
-        [MathTypst][manimgx.MathTypst] makes a group of `{{ … }}` too, named by
-        `{{ … : name }}` or numbered in order. An unknown label raises KeyError, a
-        number out of range IndexError.
+        标签为代码中方框命名，`#box[…] <name>`；
+        [MathTypst][manimgx.MathTypst] 也将 `{{ … }}` 作为一个组，由
+        `{{ … : name }}` 命名或按顺序编号。未知标签引发 KeyError，超出
+        范围的编号引发 IndexError。
 
         Args:
-            key: The label; or the number of a MathTypst's unnamed `{{ … }}` group, from
-                0.
+            key: 标签；或 MathTypst 未命名 `{{ … }}` 组的编号，从
+                0 开始。
 
         Returns:
-            A new group of the parts themselves (not copies), in order.
+            各部分本身（非副本）按顺序组成的新组。
 
         Examples:
             ```python
@@ -447,9 +436,8 @@ class Typst(VMobject):
 
     @property
     def font_size(self) -> float:
-        """The mobject's effective font size, including scaling. Explicit width or height
-        determines this size when given at construction. Set it to a positive size to
-        scale the mobject to it."""
+        """mobject 的有效字号，包含缩放。构造时给出的显式宽度或高度
+        决定此大小。将其设为正数可将 mobject 缩放至该大小。"""
         return (
             self.height
             / self.initial_height
@@ -470,23 +458,23 @@ class Typst(VMobject):
         scale_stroke: bool = False,
         **kwargs: Unpack[Pivot],
     ) -> Self:
-        """Scale the mobject and its whole family about a point, as
-        [Mobject.scale][manimgx.Mobject.scale] does; the strokes the typesetting drew (a
-        rule, a box's outline) keep their share of their part's size, unless the mobject
-        was made with a `stroke_width`.
+        """将 mobject 及其整个族围绕某点缩放，如同
+        [Mobject.scale][manimgx.Mobject.scale] 所做；排版绘制的描边（规则、
+        方框轮廓）保持其占部分大小的份额，除非 mobject 由 `stroke_width`
+        创建。
 
         Args:
-            scale_factor: The factor: 2 doubles the mobject's size, 0.5 halves it; or
-                its factors along x, y and z.
-            scale_stroke: Whether the other strokes' widths scale too, by the factor.
-            **kwargs: [Pivot keywords][manimgx.mobject.Pivot].
+            scale_factor: 缩放因子：2 将 mobject 大小加倍，0.5 减半；或
+                沿 x、y 和 z 的各因子。
+            scale_stroke: 其他描边的宽度是否也按因子缩放。
+            **kwargs: [Pivot 关键字][manimgx.mobject.Pivot]。
         """
         result = super().scale(scale_factor, scale_stroke=scale_stroke, **kwargs)
         self._scale_strokes()
         return result
 
     def _scale_strokes(self) -> None:
-        """Each typeset stroke's width, its share of its part's size again."""
+        """每个排版描边的宽度，恢复为其占部分大小的份额。"""
         if not self._strokes_scale:
             return
         for part, typeset_size, typeset_width in self._strokes:
@@ -507,9 +495,9 @@ _LABELLED = re.compile(r"^(.*)\s*:\s*([a-zA-Z_][a-zA-Z0-9_-]*)\s*$", re.DOTALL)
 
 
 def _groups(expression: str) -> tuple[str, list[str]]:
-    """The expression with each `{{ body }}` or `{{ body : label }}` as `manimgrp(label, body)`
-    (unlabelled groups numbered `_grp-0`, `_grp-1`…), and the labels in order. A group runs to
-    its matching `}}`; one never closed stays as written, with all that follows it."""
+    """将表达式中的每个 `{{ body }}` 或 `{{ body : label }}` 转换为 `manimgrp(label, body)`
+    （未命名组编号为 `_grp-0`、`_grp-1`……），以及按顺序的标签。组运行至
+    其匹配的 `}}`；未闭合的组保持原样，连同其后所有内容。"""
     tokens = _TOKEN.findall(expression)
     out: list[str] = []
     labels: list[str] = []
@@ -547,16 +535,16 @@ def _groups(expression: str) -> tuple[str, list[str]]:
 
 
 class MathTypst(Typst):
-    """A formula in Typst's math syntax, typeset in display style: its parts are its
-    glyphs and shapes, white unless styled.
+    """以 Typst 数学语法表示的公式，以展示样式排版：其部分为
+    字形和形状，未加样式时为白色。
 
-    `MathTypst("x^2 + y^2")` typesets `$ x^2 + y^2 $`, in New Computer Modern Math.
-    Double braces make groups, which [select][manimgx.Typst.select] gives: `{{ x^2 }}`
-    is numbered, 0 the first, and `{{ x^2 : square }}` is named "square"; the braces are
-    not typeset.
+    `MathTypst("x^2 + y^2")` 排版 `$ x^2 + y^2 $`，使用 New Computer Modern Math。
+    双花括号构成组，[select][manimgx.Typst.select] 可获取：`{{ x^2 }}`
+    按顺序编号，0 为第一个，`{{ x^2 : square }}` 命名为 "square"；花括号
+    不被排版。
 
     Args:
-        math_expression: The formula, in Typst math.
+        math_expression: 公式，以 Typst 数学表示。
 
     Examples:
         ```python
@@ -626,11 +614,11 @@ _SLICE = re.compile(r"\[(-?\d*):(-?\d*)\]")  # CE's slice keys, "[a:b]"
 _FAR = 1e6  # a cut's outer edges, in font units: past any glyph's ink
 
 type Style = tuple[str, str]
-"""A run's CE weight and CE slant."""
+"""一个片段的 CE 字重和 CE 倾斜。"""
 
 
 def _arguments(style: Style) -> str:
-    """Typst's text arguments for a style."""
+    """某样式的 Typst 文本参数。"""
     weight, slant = style
     return (
         f"weight: {_WEIGHTS.get(weight.upper(), 400)},"
@@ -639,18 +627,18 @@ def _arguments(style: Style) -> str:
 
 
 def _fonts(font: str) -> str:
-    """Typst's font list for a CE font name: a generic family's faces, or the family named
-    and then ManimGX's default face (for a family no font has, or a character it lacks).
-    Typst falls back among ManimGX's fonts after them."""
+    """CE 字体名对应的 Typst 字体列表：通用字体族的字体，或命名的字体族
+    而后 ManimGX 的默认字体（用于无任何字体拥有的字体族，或其缺少的字符）。
+    Typst 在其后于 ManimGX 的字体中回退。"""
     families = _GENERIC.get(font.lower(), (font, DEFAULT_FONT))
     return f"({''.join(f'{typst_string(f)}, ' for f in dict.fromkeys(families))})"
 
 
 def _rules(text: str) -> str:
-    """The Typst rules a text's characters call for: a right-to-left paragraph when its first
-    strong character is (Unicode's rule, UAX #9 P2-P3; Typst takes a paragraph's direction
-    from its language), and a CJK text's language, which picks its Han characters' regional
-    forms: Japanese with kana, Korean with hangul, else Chinese (Simplified)."""
+    """文本字符所需的 Typst 规则：当其首个强字符为右到左字符时的右到左段落
+    （Unicode 规则，UAX #9 P2-P3；Typst 从语言取段落方向），以及 CJK 文本
+    的语言，决定汉字的区域字形：有假名的为日文，有谚文的为韩文，
+    否则为中文（简体）。"""
     rules = ""
     for ch in text:
         kind = unicodedata.bidirectional(ch)
@@ -668,8 +656,8 @@ def _rules(text: str) -> str:
 
 
 def _find(text: str, key: str) -> list[range]:
-    """The characters of `text` a key picks, as CE defines them: "[a:b]" is a slice of the text
-    as written; any other key, each occurrence of it (not overlapping)."""
+    """键所选取的 `text` 字符，按 CE 定义："[a:b]" 为所写文本的切片；
+    任何其他键，为其每次出现（不重叠）。"""
     match = _SLICE.fullmatch(key)
     if match is not None:
         start, stop = (int(g) if g else None for g in match.groups())
@@ -690,8 +678,8 @@ def _literal(
     at: int,
     first: int,
 ) -> int:
-    """Append `text` as a Typst string (set literally; tabs as `tab_width` spaces) and record,
-    for each byte of its value, the character it came from. Return where the string ends.
+    """将 `text` 作为 Typst 字符串追加（按字面值排版；制表符为 `tab_width` 个空格），
+    并为其值的每个字节记录其来源字符。返回字符串结束的位置。
     """
     value: list[str] = []
     chars: list[int] = []
@@ -706,9 +694,9 @@ def _literal(
 
 
 def _lines(line_spacing: float) -> str:
-    """The Typst rules that set lines on a baseline grid: baselines (1 + line_spacing) em
-    apart, whatever the glyphs on them (-1: CE's default, 0.3). A line's box is its baseline,
-    so the leading is the whole pitch."""
+    """在基线网格上设置行距的 Typst 规则：基线间距为 (1 + line_spacing) em，
+    与其上的字形无关（-1：CE 默认值 0.3）。行的方框即其基线，
+    因此行距为整个间距。"""
     gap = _LINE_SPACING if line_spacing == -1 else line_spacing
     return (
         '#set text(top-edge: "baseline", bottom-edge: "baseline")\n'
@@ -717,7 +705,7 @@ def _lines(line_spacing: float) -> str:
 
 
 def _calibration(font: str, kwargs: TypstOptions) -> float:
-    """A capital's exact measured scale, reusing Typst's cached construction."""
+    """大写字母的精确测量缩放，复用 Typst 缓存的构造。"""
     options: TypstOptions = {"font_size": DEFAULT_FONT_SIZE}
     if "font_paths" in kwargs:
         options["font_paths"] = kwargs["font_paths"]
@@ -727,99 +715,96 @@ def _calibration(font: str, kwargs: TypstOptions) -> float:
 
 
 class TextOptions(_TypstOptions, total=False, closed=True):
-    """[Text][manimgx.Text]'s keywords, for the classes that pass them on:
-    [Paragraph][manimgx.Paragraph].
+    """[Text][manimgx.Text] 的关键字，用于传递它们的类：
+    [Paragraph][manimgx.Paragraph]。
 
-    Beyond these, they take the
-    [Typst keywords][manimgx.mobjects.text.TypstOptions].
+    除此之外，它们还接受
+    [Typst 关键字][manimgx.mobjects.text.TypstOptions]。
     """
 
     line_spacing: float
-    """The space between lines, in ems: a text's baselines are `1 + line_spacing` ems
-    apart, whatever the glyphs on them (default -1: 0.3)."""
+    """行间距，以 em 计：文本的基线间距为 `1 + line_spacing` em，
+    与其上的字形无关（默认 -1：0.3）。"""
     font: str
-    """The font family: one manimgx ships (New Computer Modern, Libertinus Serif,
-    DejaVu Sans Mono, Noto Sans, …), "serif", "sans-serif" or "monospace", one in
-    `font_paths`, or else one of the system's; a family found nowhere falls back to New
-    Computer Modern (default "": New Computer Modern)."""
+    """字体族：manimgx 附带的（New Computer Modern、Libertinus Serif、
+    DejaVu Sans Mono、Noto Sans……）、"serif"、"sans-serif" 或 "monospace"、
+    `font_paths` 中的，或系统的字体族；无处可寻的字体族回退到 New
+    Computer Modern（默认 ""：New Computer Modern）。"""
     slant: str
-    """The slant: `NORMAL`, `ITALIC` or `OBLIQUE` (default `NORMAL`)."""
+    """倾斜：`NORMAL`、`ITALIC` 或 `OBLIQUE`（默认 `NORMAL`）。"""
     weight: str
-    """The weight, by name, from `THIN` through `NORMAL` and `BOLD` to `ULTRAHEAVY`
-    (default `NORMAL`); the font's nearest weight is used."""
+    """字重，按名称，从 `THIN` 经 `NORMAL` 和 `BOLD` 到 `ULTRAHEAVY`
+    （默认 `NORMAL`）；使用字体最接近的字重。"""
     t2c: Mapping[str, ParsableManimColor] | None
-    """A color for each key: a slice `"[a:b]"` of the text as written, spaces included,
-    or a string, each occurrence of it (default None)."""
+    """每个键的颜色：所写文本的切片 `"[a:b]"`（含空格），
+    或字符串的每次出现（默认 None）。"""
     t2g: Mapping[str, Sequence[ParsableManimColor]] | None
-    """A gradient for each key: its colors spread along the characters the key picks, as
-    `t2c` picks them (default None)."""
+    """每个键的渐变：其颜色沿键选取的字符分布，如同
+    `t2c` 选取它们（默认 None）。"""
     t2s: Mapping[str, str] | None
-    """A slant for each key, picking characters as `t2c` does (default None)."""
+    """每个键的倾斜，按 `t2c` 的方式选取字符（默认 None）。"""
     t2w: Mapping[str, str] | None
-    """A weight for each key, picking characters as `t2c` does (default None)."""
+    """每个键的字重，按 `t2c` 的方式选取字符（默认 None）。"""
     gradient: Sequence[ParsableManimColor] | None
-    """Colors spread along the whole text, character by character, spaces included
-    (default None)."""
+    """颜色沿整个文本逐字符分布，含空格
+    （默认 None）。"""
     tab_width: int
-    """How many spaces a tab is set as (default 4)."""
+    """制表符排版的空格数（默认 4）。"""
     disable_ligatures: bool
-    """Whether every character is a glyph of its own, with no ligatures (default False:
-    "fi" may be one glyph)."""
+    """每个字符是否各自为字形，无连字（默认 False：
+    "fi" 可为一个字形）。"""
 
 
 class Text(Typst):
-    """Text in a font, typeset by Typst as it is written: white unless styled.
+    """某字体中的文本，由 Typst 按所写形式排版：未加样式时为白色。
 
-    Spaces stay, a newline breaks the line, a tab is `tab_width` spaces, and nothing is
-    markup ("= Title" is no heading). The lines are set on a grid: their baselines are
-    `1 + line_spacing` ems apart, whatever the glyphs on them. The parts are the glyphs,
-    in reading order, spaces excluded: `Text("Hello")[0]` is the "H", a
-    [TypstGlyph][manimgx.mobjects.text.TypstGlyph]. A ligature is one glyph
-    (the "ffi" of "office", in the default font) unless `disable_ligatures`.
+    空格保留，换行断行，制表符为 `tab_width` 个空格，无任何
+    标记（"= Title" 不是标题）。行设在网格上：基线间距为
+    `1 + line_spacing` em，与其上的字形无关。各部分为字形，
+    按阅读顺序排列，不含空格：`Text("Hello")[0]` 为 "H"，即
+    [TypstGlyph][manimgx.mobjects.text.TypstGlyph]。连字为单个字形
+    （默认字体中 "office" 的 "ffi"），除非 `disable_ligatures`。
 
-    A text is set in one font, from the fonts ManimGX ships, so it looks the same on
-    every machine: New Computer Modern unless `font` names another. "serif",
-    "sans-serif" (or "sans") and "monospace" (or "mono") are New Computer Modern, Noto
-    Sans and DejaVu Sans Mono. Fonts in `font_paths` come first; a family neither they
-    nor ManimGX have is read from the system's fonts, and one found nowhere falls back
-    to New Computer Modern. A character the font lacks is set in another font that has
-    it: ManimGX ships Noto faces for Arabic, Hebrew, the Indic scripts, Thai, Chinese,
-    Japanese, Korean and more, with symbols and emoji. In any font, a capital is 0.449
-    scene units tall at the default size, 48, and in proportion at others: each font is
-    scaled to that, and `font_size` still reads the size asked for.
+    文本以一种字体排版，来自 ManimGX 附带的字体，因此在每台机器上
+    看起来相同：除非 `font` 命名其他字体，否则为 New Computer Modern。
+    "serif"、"sans-serif"（或 "sans"）和 "monospace"（或 "mono"）分别为
+    New Computer Modern、Noto Sans 和 DejaVu Sans Mono。`font_paths` 中的
+    字体优先；它们和 ManimGX 都没有的字体族从系统字体读取，无处可寻的
+    回退到 New Computer Modern。字体缺少的字符用拥有该字符的其他字体排版：
+    ManimGX 为阿拉伯文、希伯来文、印度文、泰文、中文、日文、韩文等
+    附带 Noto 字体，以及符号和表情符号。任何字体中，默认大小 48 时大写字母
+    高 0.449 场景单位，其他大小按比例：每个字体缩放至此，
+    `font_size` 仍读取所请求的大小。
 
-    A text whose first letter is from a right-to-left script (Arabic, Hebrew) is set as
-    a right-to-left paragraph, its lines lined up on the right. A Chinese, Japanese or
-    Korean text takes its language from its characters (Japanese with kana, Korean with
-    hangul, else Chinese), which gives its Han characters their regional forms.
+    首字母来自右到左文字（阿拉伯文、希伯来文）的文本作为右到左段落排版，
+    其行右对齐。中文、日文或韩文文本从其字符取语言（有假名的为日文，有
+    谚文的为韩文，否则为中文），决定汉字的区域字形。
 
-    Keys pick characters: a slice `"[a:b]"` of the text as written, spaces included, or
-    a string, each occurrence of it (a key that occurs nowhere picks nothing). `t2s` and
-    `t2w` set what they pick in another slant or weight; `gradient`, then `t2g`, then
-    `t2c` color it, each over the one before. Color never changes the layout: the text
-    is laid out once, and each glyph takes the color of the characters it draws — a
-    ligature that a color boundary crosses is cut there, each piece in its characters'
-    color. A custom glyph's path-building methods also construct its color pieces.
+    键选取字符：所写文本的切片 `"[a:b]"`（含空格），或字符串的每次出现
+    （不出现于任何处的键不选取任何内容）。`t2s` 和 `t2w` 将所选内容设为
+    另一倾斜或字重；`gradient`、然后 `t2g`、然后 `t2c` 为其着色，每个覆盖
+    前一个。颜色从不改变排版：文本排版一次，每个字形取其绘制字符的颜色——
+    跨越颜色边界的连字在该处切割，每段取其字符的颜色。自定义字形的路径
+    构建方法也构建其颜色段。
 
     Args:
-        text: The text, as written.
-        line_spacing: The space between lines, in ems: the baselines are
-            `1 + line_spacing` ems apart; -1 for 0.3.
-        font: The font family, or "serif", "sans-serif" or "monospace"; "" for New
-            Computer Modern.
-        slant: `NORMAL`, `ITALIC` or `OBLIQUE`.
-        weight: A weight by name, from `THIN` through `NORMAL` and `BOLD` to
-            `ULTRAHEAVY`; the font's nearest weight is used.
-        t2c: A color for each key.
-        t2g: A gradient for each key: its colors spread along what the key picks.
-        t2s: A slant for each key.
-        t2w: A weight for each key.
-        gradient: Colors spread along the whole text, character by character, spaces
-            included.
-        tab_width: How many spaces a tab is set as.
-        disable_ligatures: Whether every character is a glyph of its own.
-        **kwargs: [Typst keywords][manimgx.mobjects.text.TypstOptions]:
-            `font_size` (48 unless given), `color`, `width` or `height`, and the rest.
+        text: 文本，按所写形式。
+        line_spacing: 行间距，以 em 计：基线间距为
+            `1 + line_spacing` em；-1 为 0.3。
+        font: 字体族，或 "serif"、"sans-serif" 或 "monospace"；"" 为 New
+            Computer Modern。
+        slant: `NORMAL`、`ITALIC` 或 `OBLIQUE`。
+        weight: 按名称的字重，从 `THIN` 经 `NORMAL` 和 `BOLD` 到
+            `ULTRAHEAVY`；使用字体最接近的字重。
+        t2c: 每个键的颜色。
+        t2g: 每个键的渐变：其颜色沿键选取的内容分布。
+        t2s: 每个键的倾斜。
+        t2w: 每个键的字重。
+        gradient: 颜色沿整个文本逐字符分布，含空格。
+        tab_width: 制表符排版的空格数。
+        disable_ligatures: 每个字符是否各自为字形。
+        **kwargs: [Typst 关键字][manimgx.mobjects.text.TypstOptions]：
+            `font_size`（未给出时为 48）、`color`、`width` 或 `height`，以及其余。
 
     Examples:
         ```python
@@ -893,7 +878,7 @@ class Text(Typst):
         if kwargs.get("fill_opacity") is None and kwargs.get("opacity") is None:
             kwargs["fill_opacity"] = 1.0  # filled, unless an opacity is given
         self.text = text
-        """The text, as it was written."""
+        """文本，按所写形式。"""
         self.original_text = text
         self.font = font
         self.slant, self.weight = slant, weight
@@ -943,8 +928,8 @@ class Text(Typst):
         base: Style,
         styles: list[Style] | None,
     ) -> tuple[str, dict[int, list[int]]]:
-        """The Typst code setting the text (from byte `at`): a string per run of one style, and for
-        each string where it starts and the character each byte of its value came from.
+        """设置文本的 Typst 代码（从字节 `at` 起）：每段相同样式的字符串，以及
+        每个字符串的起始位置和其值每个字节的来源字符。
         """
         out: list[str] = []
         runs: dict[int, list[int]] = {}
@@ -968,8 +953,8 @@ class Text(Typst):
         return "".join(out), runs
 
     def _characters(self, runs: dict[int, list[int]]) -> list[range]:
-        """Each part's characters: those its glyph's cluster draws, through the string it came
-        from (none for a part not from the text: a list's marker, an underline)."""
+        """每个部分的字符：其字形簇绘制的字符，经其来源字符串
+        （非来自文本的部分无：列表标记、下划线）。"""
         clusters = []
         for part in self.submobjects:
             drawn: list[int] = []
@@ -979,8 +964,8 @@ class Text(Typst):
         return clusters
 
     def _paint(self, colors: Mapping[int, ManimColor]) -> None:
-        """Each glyph takes its characters' colors (a grapheme's color: its first character's);
-        a glyph of several colors is cut at its carets."""
+        """每个字形取其字符的颜色（字素的颜色：其首字符的）；
+        多色字形在其插入符处切割。"""
         graphemes = _engine.graphemes(self._chars)
         for part, chars in zip(self.submobjects, self._clusters):
             if not chars:
@@ -1002,8 +987,8 @@ class Text(Typst):
 
 
 def _cut(glyph: TypstGlyph, paints: list[ManimColor | None]) -> None:
-    """Cut a glyph at its carets (the font's, else equal parts) into pieces of one color each; the
-    glyph becomes their group."""
+    """在插入符处（字体的，否则等分）将字形切割为每段单色；字形
+    成为它们的组。"""
     n = len(paints)
     carets: np.ndarray | tuple[float, ...] = np.frombuffer(glyph._carets, dtype="<f8")
     if len(carets) != n - 1:
@@ -1050,19 +1035,18 @@ def _cut(glyph: TypstGlyph, paints: list[ManimColor | None]) -> None:
 
 
 class Paragraph(VGroup):
-    """Lines of text set as one paragraph: on one grid of baselines, each line at the
-    paragraph's start or where `alignment` puts it.
+    """作为一段落排版的文本行：在同一基线网格上，每行位于段落
+    开头或 `alignment` 所定位置。
 
-    The lines are one [Text][manimgx.Text] (`lines_text`), joined by newlines, so they
-    share its grid: their baselines are `1 + line_spacing` ems apart (1.3 unless
-    `line_spacing` is given). The paragraph's parts are its lines, from the top, each
-    the group of its glyphs.
+    各行为一个 [Text][manimgx.Text]（`lines_text`），由换行连接，因此
+    共享其网格：基线间距为 `1 + line_spacing` em（未给出
+    `line_spacing` 时为 1.3）。段落的各部分为各行，自顶向下，每行
+    为其字形的组。
 
     Args:
-        *text: The lines: each string is one, or several, split at its newlines.
-        alignment: "left", "center" or "right" to line the lines up on that side or
-            center them; None to start each at the paragraph's start (the left, for
-            left-to-right text).
+        *text: 各行：每个字符串为一行，或在换行处分为多行。
+        alignment: "left"、"center" 或 "right" 将各行在该侧对齐或
+            居中；None 使每行从段落开头开始（左到右文本的左侧）。
 
     Examples:
         ```python
@@ -1093,8 +1077,8 @@ class Paragraph(VGroup):
                 "typst_preamble", ""
             )
         self.lines_text = whole = Text(joined, **kwargs)
-        """The lines as one [Text][manimgx.Text], joined by newlines: the paragraph's
-        lines group its glyphs."""
+        """作为单个 [Text][manimgx.Text] 的各行，由换行连接：段落的
+        各行组其字形。"""
         # the parts are the lines, each the group of its glyphs (CE's structure)
         starts = [0, *(i + 1 for i, ch in enumerate(joined) if ch == "\n")]
         lines: list[list[Mobject]] = [[] for _ in starts]
@@ -1113,8 +1097,8 @@ _IMPORT = (
 
 
 def _standalone(tex: str) -> str:
-    """CE's `_modify_special_strings`: make a lone fragment of a formula typeset on its own.
-    Its mends are math's (a trailing `dot` is `\\dot`'s); text is converted as written."""
+    """CE 的 `_modify_special_strings`：使公式的孤立片段独立排版。
+    其 mends 为数学的（末尾 `dot` 为 `\\dot` 的）；文本按所写形式转换。"""
     tex = tex.strip()
     if tex in ("\\over", "\\overline", "\\sqrt", "\\sqrt{") or tex.endswith(
         ("_", "^", "dot")
@@ -1140,9 +1124,9 @@ _HOLE = 0xE000  # private-use characters: mitex passes them through as they are
 
 
 def _isolate_braces(strings: list[str], math: bool) -> list[str]:
-    """CE's double braces: `{{…}}` sets what it holds apart as a part of its own. In math,
-    where spaces mean nothing, once they split anything every part is stripped; text keeps
-    its spaces, so its strings still join into the text as written."""
+    """CE 的双花括号：`{{…}}` 将所含内容作为独立部分。在数学中，
+    空格无意义，一旦分割任何内容则每段去除空格；文本保留
+    其空格，因此其字符串仍按所写形式连接为文本。"""
     pieces = [p for s in strings for p in _BRACES.split(s)]
     if math and len(pieces) > len(strings):
         pieces = [p.strip() for p in pieces]
@@ -1154,9 +1138,9 @@ _DEPTH = {"{": 1, "}": -1, "begin": 1, "end": -1, "left": 1, "right": -1}
 
 
 def _balanced(tex: str) -> bool:
-    """Does the LaTeX stand on its own: every group, environment and delimiter it opens closed
-    in it, and none closed that it did not open? (mitex closes what is left open, so a
-    piece converting on its own does not tell.)"""
+    """LaTeX 是否独立：其打开的每个组、环境和定界符在其中闭合，
+    且未闭合其未打开的？（mitex 会闭合遗留的未闭合内容，因此
+    独立转换的片段不能说明。）"""
     depth = 0
     for command, brace in _TOKENS.findall(tex):
         depth += _DEPTH.get(command or brace, 0)
@@ -1168,12 +1152,12 @@ def _balanced(tex: str) -> bool:
 def _one_formula(
     pieces: list[str], separator: str, convert: Callable[[str], str]
 ) -> tuple[str, str, dict[int, str]]:
-    """The pieces as one formula, or one text: the Typst code of their joined LaTeX
-    (`convert`: mitex's conversion of LaTeX math, or of LaTeX text); its skeleton, the same
-    code with each piece that stands on its own (a `hole`) a private-use character; and each
-    hole's code. The holes are converted on their own, in the joined LaTeX's skeleton, and the
-    skeleton with their code in place is checked to be what the whole converts to: telling
-    the pieces apart never changes the code."""
+    """将各片段作为一个公式或一个文本：其连接 LaTeX 的 Typst 代码
+    （`convert`：mitex 对 LaTeX 数学或 LaTeX 文本的转换）；其骨架，即
+    相同代码但每个独立片段（一个 `hole`）为私用区字符；以及每个
+    hole 的代码。各 hole 独立转换，置于连接 LaTeX 的骨架中，将
+    其代码填入的骨架与整体转换结果比较以确认相同：区分各片段
+    从不改变代码。"""
     whole = convert(separator.join(pieces))
     holes: dict[int, str] = {}
     for i, piece in enumerate(pieces):
@@ -1200,17 +1184,17 @@ def _one_formula(
 
 
 def _fill(skeleton: str, holes: Mapping[int, str]) -> str:
-    """The skeleton with each hole's code (or what stands for it) in its place."""
+    """将每个 hole 的代码（或其占位）填入其位置的骨架。"""
     for i, code in holes.items():
         skeleton = skeleton.replace(chr(_HOLE + i), code)
     return skeleton
 
 
 def _in_place(skeleton: str, holes: Mapping[int, str]) -> dict[int, str]:
-    """Each hole's markup as it reads in the whole. Typst reads a line's first characters
-    apart (`- `, `+ `, `= ` and `/ ` begin a list's item, an enumeration's, a heading, a
-    term), so a hole that goes on with a line is read after an empty expression, which
-    keeps it on the line."""
+    """每个 hole 在整体中读取的标记。Typst 会将行首字符单独读取
+    （`- `、`+ `、`= ` 和 `/ ` 分别开始列表项、枚举项、标题、
+    术语），因此接续一行的 hole 在空表达式之后读取，使其
+    留在该行。"""
     read = {}
     for i, code in holes.items():
         before = _fill(skeleton[: skeleton.index(chr(_HOLE + i))], holes)
@@ -1232,16 +1216,16 @@ def _text(latex: str) -> str:
 
 
 def _markup(code: str, scope: str = "") -> str:
-    """Typst markup (mitex's conversion of LaTeX text) as an expression of its content, in
-    mitex's scope and, after it, the bindings `scope` lists ("name: value, ")."""
+    """Typst 标记（mitex 对 LaTeX 文本的转换）作为其内容的表达式，在
+    mitex 的作用域中，其后为 `scope` 列出的绑定（"name: value, "）。"""
     within = f"mitex-scope + ({scope})" if scope else "mitex-scope"
     return f'eval({typst_string(code)}, mode: "markup", scope: {within})'
 
 
 def _bindings(codes: Mapping[int, str]) -> tuple[str, dict[int, int]]:
-    """Typst code binding each string's content (its markup, evaluated) to its name, `p{i}`;
-    and where in that code each string's markup starts, in bytes, which every glyph the
-    markup draws comes from."""
+    """将每个字符串的内容（其标记，已求值）绑定到其名称 `p{i}` 的 Typst 代码；
+    以及该代码中每个字符串标记起始的位置（以字节计），标记绘制的
+    每个字形均来自此。"""
     out, starts, at = [], {}, 0
     for i, code in codes.items():
         head = f"#let p{i} = eval("
@@ -1253,8 +1237,8 @@ def _bindings(codes: Mapping[int, str]) -> tuple[str, dict[int, int]]:
 
 
 def _same(a: Layout, b: Layout) -> bool:
-    """Whether two layouts draw the same: the same items, placed and painted alike, wherever
-    in the code they came from."""
+    """两个排版是否绘制相同：相同项，放置和绘制方式相同，无论
+    来自代码何处。"""
     return (
         np.array_equal(a.rows[:, : NODE.start], b.rows[:, : NODE.start])
         and len(a.shapes) == len(b.shapes)
@@ -1264,19 +1248,19 @@ def _same(a: Layout, b: Layout) -> bool:
 
 @deprecated("use MathTex", category=None)
 class SingleStringMathTex(Typst):
-    r"""One LaTeX formula, typeset in the engine, whose parts are its glyphs: white
-    unless styled.
+    r"""一个 LaTeX 公式，在引擎中排版，其部分为字形：未加样式时
+    为白色。
 
-    The LaTeX is converted to Typst as a [MathTex][manimgx.MathTex]'s is, and set in
-    display style; the parts are not grouped by strings, so `formula[i]` is its i-th
-    glyph (or shape, such as a fraction's bar), in the order Typst sets them.
+    LaTeX 如 [MathTex][manimgx.MathTex] 般转换为 Typst，以展示样式设置；
+    各部分不按字符串分组，因此 `formula[i]` 为其第 i 个字形
+    （或形状，如分数的横线），按 Typst 设置顺序。
 
     Args:
-        tex_string: The formula, in LaTeX.
-        organize_left_to_right: Whether to order the parts by their centers, from left
-            to right, rather than as Typst sets them.
-        tex_environment: Any environment (the default, "align*") sets the string as
-            math; None as LaTeX text, math between `$` signs.
+        tex_string: 公式，以 LaTeX 表示。
+        organize_left_to_right: 是否按各部分的中心从左到右排序，
+            而非按 Typst 设置顺序。
+        tex_environment: 任何环境（默认 "align*"）将字符串设为
+            数学；None 为 LaTeX 文本，数学在 `$` 符号之间。
 
     Examples:
         ```python
@@ -1300,7 +1284,7 @@ class SingleStringMathTex(Typst):
         **kwargs: Unpack[TypstOptions],
     ) -> None:
         self.tex_string = tex_string = str(tex_string)
-        """The LaTeX the formula was typeset from."""
+        """公式排版所用的 LaTeX。"""
         self.tex_environment = tex_environment
         body = (
             f"$ #{_math(tex_string)} $" if tex_environment else f"#{_text(tex_string)}"
@@ -1312,88 +1296,87 @@ class SingleStringMathTex(Typst):
 
 
 class MathTexPart(VGroup):
-    """One of a [MathTex][manimgx.MathTex]'s parts: the glyphs one of its strings adds
-    to the formula, as a group that knows the string.
+    """[MathTex][manimgx.MathTex] 的一个部分：其某个字符串为公式
+    添加的字形，作为知道该字符串的组。
 
     Args:
-        tex_string: The LaTeX it was typeset from.
-        *members: Its glyphs.
+        tex_string: 排版所用的 LaTeX。
+        *members: 其字形。
     """
 
     def __init__(self, tex_string: str, *members: Mobject) -> None:
         super().__init__(*members)
         self.tex_string = tex_string
-        """The LaTeX the part was typeset from."""
+        """该部分排版所用的 LaTeX。"""
 
 
 class MathTexOptions(_TypstOptions, total=False, closed=True):
-    """[MathTex][manimgx.MathTex]'s keywords, for the classes that pass them on:
-    [Tex][manimgx.Tex], [BulletedList][manimgx.BulletedList], [Title][manimgx.Title] and
-    labels.
+    """[MathTex][manimgx.MathTex] 的关键字，用于传递它们的类：
+    [Tex][manimgx.Tex]、[BulletedList][manimgx.BulletedList]、[Title][manimgx.Title] 和
+    标签。
 
-    Beyond these, they take the
-    [Typst keywords][manimgx.mobjects.text.TypstOptions].
+    除此之外，它们还接受
+    [Typst 关键字][manimgx.mobjects.text.TypstOptions]。
     """
 
     arg_separator: str
-    """What joins the strings into `tex_string`, the formula a MathTex is typeset as,
-    or the text a Tex is (default " "; "" for a Tex)."""
+    """将字符串连接为 `tex_string` 的分隔符，即 MathTex 排版的公式，
+    或 Tex 排版的文本（默认 " "；Tex 为 ""）。"""
     substrings_to_isolate: Iterable[str] | None
-    """Substrings to make parts of their own: each string is split around every
-    occurrence of each (default None)."""
+    """使其各自成为部分的子串：每个字符串在每个子串的每次出现处
+    分割（默认 None）。"""
     tex_to_color_map: Mapping[str, ParsableManimColor] | None
-    """A color for each substring, which is made a part of its own, as
-    `substrings_to_isolate` makes it, and colored (default None)."""
+    """每个子串的颜色，子串如 `substrings_to_isolate` 般成为独立部分
+    并着色（默认 None）。"""
     tex_environment: str | None
-    """How the strings are read: with a name containing "align" ("align*", a MathTex's
-    default), as math; with any other ("center", a Tex's default, which also centers the
-    lines), or None, as LaTeX text, math between `$` signs."""
+    """字符串的读取方式：名称含 "align"（"align*"，MathTex 的
+    默认）为数学；任何其他（"center"，Tex 的默认，也使行
+    居中），或 None 为 LaTeX 文本，数学在 `$` 符号之间。"""
 
 
 class MathTex(Typst):
-    r"""LaTeX math, typeset in the engine, a part per string: `MathTex("a^2", "+",
-    "b^2")[2]` is the $b^2$, to color, move or match with another formula.
+    r"""LaTeX 数学，在引擎中排版，每个字符串为一个部分：`MathTex("a^2", "+",
+    "b^2")[2]` 为 $b^2$，可着色、移动或与另一公式匹配。
 
-    There is no LaTeX installation: the LaTeX is converted to Typst (by mitex, part of
-    the engine) and typeset in display style, in New Computer Modern Math, white unless
-    styled. Most of LaTeX's math converts: fractions, roots, sums and integrals,
-    matrices (`pmatrix`, `bmatrix`, `array`), `cases` and `aligned`, accents, `\mathbb`
-    and the other alphabets, `\text`, `\left` and `\right`, `\color`, `\newcommand`.
-    Packages don't — `\usepackage` and their commands, such as `\ce` or `\SI` — nor does
-    `\def`: a command mitex doesn't know raises a
-    [TypstError][manimgx.drawing.typesetting.TypstError].
+    无需 LaTeX 安装：LaTeX 转换为 Typst（由 mitex，引擎的一部分）并以
+    展示样式排版，使用 New Computer Modern Math，未加样式时为白色。大部分
+    LaTeX 数学可转换：分数、根号、求和与积分、
+    矩阵（`pmatrix`、`bmatrix`、`array`）、`cases` 和 `aligned`、重音、`\mathbb`
+    和其他字母表、`\text`、`\left` 和 `\right`、`\color`、`\newcommand`。
+    包不可——`\usepackage` 及其命令（如 `\ce` 或 `\SI`）——`\def` 也不可：
+    mitex 不知的命令引发
+    [TypstError][manimgx.drawing.typesetting.TypstError]。
 
-    The strings are one formula, joined by `arg_separator` and typeset whole, so parting
-    a formula moves none of its glyphs. Each string is a part, a
-    [MathTexPart][manimgx.MathTexPart] of the glyphs it adds, and double braces set a
-    part apart within a string: `MathTex("{{a^2}} + {{b^2}} = {{c^2}}")` has the five
-    parts of the first example below. A string that stands on its own (its braces,
-    environments and `\left`…`\right` closed within it) holds exactly its glyphs. The
-    rest, such as a fraction's bar or the glyphs of a fragment like `"^2"`, go to the
-    first fragment between the standing strings around them: in
-    `MathTex(r"\frac{", "a", "}{", "b", "}")` the bar is the closing `"}"`'s, where TeX
-    draws it, and in `MathTex(r"e^{i", r"\pi}")`, split inside a term, every glyph is
-    the first part's. A formula whose parts can't be told apart raises ValueError.
+    各字符串为一个公式，由 `arg_separator` 连接并整体排版，因此分割
+    公式不会移动任何字形。每个字符串为一个部分，即其添加字形的
+    [MathTexPart][manimgx.MathTexPart]，双花括号在字符串内设置独立
+    部分：`MathTex("{{a^2}} + {{b^2}} = {{c^2}}")` 有下面第一个示例的五个
+    部分。独立存在的字符串（其花括号、环境和 `\left`…`\right` 在其中闭合）
+    恰好持有其字形。其余，如分数的横线或 `"^2"` 等片段的字形，归入
+    其周围独立字符串之间的第一个片段：在
+    `MathTex(r"\frac{", "a", "}{", "b", "}")` 中横线属于闭合的 `"}"`，TeX
+    在此绘制它，而在 `MathTex(r"e^{i", r"\pi}")` 中，在项内分割，每个字形
+    属于第一个部分。无法区分部分的公式引发 ValueError。
 
-    `substrings_to_isolate` and `tex_to_color_map` split the strings further;
-    [set_color_by_tex][manimgx.MathTex.set_color_by_tex] and
-    [get_part_by_tex][manimgx.MathTex.get_part_by_tex] find parts by their LaTeX, and
-    [TransformMatchingTex][manimgx.TransformMatchingTex] moves each part to the part
-    written the same way in another formula. Read as text (see [Tex][manimgx.Tex]), the
-    strings are one text in the same way, spaces and all.
+    `substrings_to_isolate` 和 `tex_to_color_map` 进一步分割字符串；
+    [set_color_by_tex][manimgx.MathTex.set_color_by_tex] 和
+    [get_part_by_tex][manimgx.MathTex.get_part_by_tex] 按其 LaTeX 查找部分，
+    [TransformMatchingTex][manimgx.TransformMatchingTex] 将每个部分移至
+    另一公式中以相同方式书写的部分。作为文本读取（见 [Tex][manimgx.Tex]），
+    字符串以同样方式成为一个文本，含空格。
 
     Args:
-        *tex_strings: The formula, in LaTeX: a string per part (a number is written as
-            a string), and a part per `{{…}}` within one.
-        arg_separator: What joins the strings into `tex_string`, the formula (or text)
-            they are typeset as.
-        substrings_to_isolate: Substrings to make parts of their own: each string is
-            split around every occurrence of each.
-        tex_to_color_map: A color for each substring, which is made a part of its own
-            and colored.
-        tex_environment: How the strings are read: with a name containing "align" (the
-            default, "align*"), as math; with any other, or None, as LaTeX text, math
-            between `$` signs.
+        *tex_strings: 公式，以 LaTeX 表示：每个字符串为一个部分（数字写为
+            字符串），字符串内的每个 `{{…}}` 也为一个部分。
+        arg_separator: 将字符串连接为 `tex_string` 的分隔符，即它们排版的
+            公式（或文本）。
+        substrings_to_isolate: 使其各自成为部分的子串：每个字符串在每个
+            子串的每次出现处分割。
+        tex_to_color_map: 每个子串的颜色，子串成为独立部分
+            并着色。
+        tex_environment: 字符串的读取方式：名称含 "align"（默认
+            "align*"）为数学；任何其他或 None 为 LaTeX 文本，数学
+            在 `$` 符号之间。
 
     Examples:
         ```python
@@ -1445,12 +1428,12 @@ class MathTex(Typst):
             if isolate
             else strings
         )
-        """The strings, a part's each: the arguments, split at `{{…}}` and around the
-        isolated substrings."""
+        """各字符串，每个为一个部分：参数，在 `{{…}}` 处和孤立子串
+        周围分割。"""
         self.arg_separator = arg_separator
         self.tex_string = arg_separator.join(self.tex_strings)
-        """The LaTeX of the whole formula, or text: the strings, joined by
-        `arg_separator`."""
+        """整个公式或文本的 LaTeX：字符串由
+        `arg_separator` 连接。"""
         self.tex_environment = tex_environment
         preamble = f"{_IMPORT}{_MANIMGRP}\n" if math else _IMPORT
         kwargs["typst_preamble"] = preamble + kwargs.get("typst_preamble", "")
@@ -1509,14 +1492,14 @@ class MathTex(Typst):
     def _compose(
         self, strings: list[str], separator: str
     ) -> tuple[str, dict[int, int], str | None]:
-        """The strings as one text, joined by `separator`, set as the document sets it (see
-        `_set`): the document's body; where in it the code of each string that stands on its
-        own (a hole, see `_one_formula`) starts, and the string's index; and the whole as one
-        text, which the body must draw exactly (None if no string is told apart).
+        """将各字符串作为由 `separator` 连接的一个文本，按文档设置方式设置（见
+        `_set`）：文档正文；其中每个独立字符串的代码（一个 hole，见
+        `_one_formula`）起始的位置和该字符串的索引；以及作为单一文本的整体，
+        正文必须精确绘制（若无字符串被区分则为 None）。
 
-        Each hole's code is evaluated on its own and bound to a name, which the code of the
-        joined text calls in the hole's place, so every glyph comes from the code of the
-        string that drew it, and Typst shapes the text across them as it shapes the whole.
+        每个 hole 的代码独立求值并绑定到名称，连接文本的代码在 hole 位置调用
+        该名称，因此每个字形来自绘制它的字符串的代码，Typst 跨越它们
+        塑形文本如同塑形整体。
         """
         if len(strings) < 2:  # nothing to tell apart
             return self._set(_text(separator.join(strings))), {}, None
@@ -1529,23 +1512,23 @@ class MathTex(Typst):
         return bindings + self._set(text), starts, self._set(_markup(whole))
 
     def _set(self, text: str) -> str:
-        """The text (a Typst expression of its content) as the document sets it: centered
-        in the "center" environment."""
+        """文本（其内容的 Typst 表达式）按文档设置方式设置：在
+        "center" 环境中居中。"""
         if self.tex_environment == "center":
             return f"#align(center)[#{text}]"
         return f"#{text}"
 
     def _owners(self, layout: Layout, starts: Mapping[int, int]) -> dict[int, int]:
-        """The string each item of the layout came from, if it came from a string's code
-        (where it starts in the body, `starts`): a glyph or shape the code drew, or one
-        drawn within an element of it (a radical within an equation)."""
+        """排版中每个项来自的字符串，若来自某字符串的代码
+        （其在正文中的起始位置，`starts`）：代码绘制的字形或形状，或
+        在其元素内绘制的（方程内的根号）。"""
         nodes = (layout.rows[:, NODE.start].astype(np.int64) - layout.body).tolist()
         return {k: starts[node] for k, node in enumerate(nodes) if node in starts}
 
     def _regroup(self, owners: Mapping[int, int], holes: Collection[int]) -> None:
-        """The parts: each string's own items (`owners`, the item's index to the string's),
-        and every other item to the first string that is not a hole between the strings
-        whose items are around it; else to the one before (the first, before any)."""
+        """各部分：每个字符串自己的项（`owners`，项索引到字符串索引），
+        以及其他项归入其周围项的字符串之间非 hole 的第一个字符串；
+        否则归入前一个（第一个，在任何之前）。"""
         count, leaves = len(self.tex_strings), list(self.submobjects)
         if not count:
             return
@@ -1578,9 +1561,9 @@ class MathTex(Typst):
             self.submobjects = groups
 
     def _regroup_by_twin(self, twin: Layout, holes: set[int]) -> None:
-        """Parts from the formula's boxed twin, which draws what the formula draws in the same
-        order: a hole's glyphs and shapes are labelled; the rest belong to the piece between
-        the holes around them (the first, if several are)."""
+        """从公式的带框孪生得出的部分，孪生以相同顺序绘制公式所绘内容：
+        hole 的字形和形状已标记；其余属于其周围 hole 之间的片段
+        （若多个则为第一个）。"""
         rows, leaves = twin.rows, self.submobjects
         if len(rows) != len(leaves) or any(
             (row[KIND] == GLYPH) != isinstance(leaf, TypstGlyph)
@@ -1598,16 +1581,16 @@ class MathTex(Typst):
     def get_parts_by_tex(
         self, tex: str, substring: bool = True, case_sensitive: bool = True
     ) -> VGroup:
-        """Find the parts whose LaTeX contains `tex`, or is it.
+        """查找 LaTeX 包含 `tex` 或等于 `tex` 的部分。
 
         Args:
-            tex: The LaTeX to look for.
-            substring: Whether a part whose LaTeX contains `tex` matches; if not, only
-                one whose LaTeX is `tex`.
-            case_sensitive: Whether upper and lower case differ.
+            tex: 要查找的 LaTeX。
+            substring: LaTeX 包含 `tex` 的部分是否匹配；若否，仅
+                LaTeX 等于 `tex` 的部分。
+            case_sensitive: 大小写是否区分。
 
         Returns:
-            A new group of the parts themselves, in order.
+            各部分本身按顺序组成的新组。
         """
 
         def match(s: str) -> bool:
@@ -1625,16 +1608,16 @@ class MathTex(Typst):
     def get_part_by_tex(
         self, tex: str, substring: bool = True, case_sensitive: bool = True
     ) -> Mobject | None:
-        r"""Find the first part whose LaTeX contains `tex`, or is it.
+        r"""查找首个 LaTeX 包含 `tex` 或等于 `tex` 的部分。
 
         Args:
-            tex: The LaTeX to look for.
-            substring: Whether a part whose LaTeX contains `tex` matches; if not, only
-                one whose LaTeX is `tex`.
-            case_sensitive: Whether upper and lower case differ.
+            tex: 要查找的 LaTeX。
+            substring: LaTeX 包含 `tex` 的部分是否匹配；若否，仅
+                LaTeX 等于 `tex` 的部分。
+            case_sensitive: 大小写是否区分。
 
         Returns:
-            The part itself, or None if none matches.
+            部分本身，若无匹配则为 None。
 
         Examples:
             ```python
@@ -1654,14 +1637,14 @@ class MathTex(Typst):
         return parts[0] if len(parts) else None
 
     def index_of_part(self, part: Mobject) -> int:
-        """Find where a part is among the formula's parts; a mobject that is not one
-        raises ValueError.
+        """查找部分在公式各部分中的位置；非部分的 mobject
+        引发 ValueError。
 
         Args:
-            part: One of the parts.
+            part: 其中一个部分。
 
         Returns:
-            Its index, from 0.
+            其索引，从 0 开始。
         """
         return self.submobjects.index(part)
 
@@ -1672,14 +1655,14 @@ class MathTex(Typst):
         substring: bool = True,
         case_sensitive: bool = True,
     ) -> Self:
-        """Color the parts whose LaTeX contains `tex`, or is it.
+        """为 LaTeX 包含 `tex` 或等于 `tex` 的部分着色。
 
         Args:
-            tex: The LaTeX to look for.
-            color: Their color.
-            substring: Whether a part whose LaTeX contains `tex` matches; if not, only
-                one whose LaTeX is `tex`.
-            case_sensitive: Whether upper and lower case differ.
+            tex: 要查找的 LaTeX。
+            color: 它们的颜色。
+            substring: LaTeX 包含 `tex` 的部分是否匹配；若否，仅
+                LaTeX 等于 `tex` 的部分。
+            case_sensitive: 大小写是否区分。
 
         Examples:
             ```python
@@ -1706,14 +1689,14 @@ class MathTex(Typst):
         substring: bool = True,
         case_sensitive: bool = True,
     ) -> Self:
-        """Color parts by their LaTeX: for each entry, the parts whose LaTeX contains
-        it, or is it.
+        """按 LaTeX 为部分着色：每个条目对应 LaTeX 包含它或等于它的
+        部分。
 
         Args:
-            texs_to_color_map: A color for each piece of LaTeX, applied in order.
-            substring: Whether a part whose LaTeX contains a piece matches; if not, only
-                one whose LaTeX is the piece.
-            case_sensitive: Whether upper and lower case differ.
+            texs_to_color_map: 每段 LaTeX 的颜色，按顺序应用。
+            substring: LaTeX 包含该段的部分是否匹配；若否，仅
+                LaTeX 等于该段的部分。
+            case_sensitive: 大小写是否区分。
         """
         for tex, color in texs_to_color_map.items():
             self.set_color_by_tex(tex, color, substring, case_sensitive)
@@ -1721,8 +1704,8 @@ class MathTex(Typst):
 
 
 def _split(s: str, isolate: list[str], math: bool) -> list[str]:
-    """The string split around each isolated substring; in math, where spaces mean
-    nothing, without the parts that are only spaces."""
+    """在每个孤立子串周围分割字符串；在数学中空格无意义，
+    去除仅为空格的部分。"""
     parts = [s]
     for sub in sorted(isolate, key=len, reverse=True):
         out: list[str] = []
@@ -1741,23 +1724,23 @@ def _split(s: str, isolate: list[str], math: bool) -> list[str]:
 
 
 class Tex(MathTex):
-    r"""LaTeX text, typeset in the engine and centered, a part per string: math goes
-    between `$` signs.
+    r"""LaTeX 文本，在引擎中排版并居中，每个字符串为一个部分：数学在
+    `$` 符号之间。
 
-    It is a [MathTex][manimgx.MathTex] that reads its strings as LaTeX text: bold
-    (`\textbf`), italics (`\emph`, `\textit`), line breaks (`\\`) and inline math
-    convert. The text is set in New Computer Modern, as LaTeX sets it, the math in New
-    Computer Modern Math; white unless styled. The strings are one text, joined by
-    `arg_separator` (nothing, by default) and typeset whole, as a MathTex's are one
-    formula: `Tex("Fade", "In")` reads "FadeIn", and parting a text moves none of its
-    glyphs. Its parts are told apart as a formula's are; a ligature two strings share is
-    the first's.
+    它是将其字符串作为 LaTeX 文本读取的 [MathTex][manimgx.MathTex]：粗体
+    （`\textbf`）、斜体（`\emph`、`\textit`）、换行（`\\`）和行内数学
+    可转换。文本以 New Computer Modern 排版，如同 LaTeX 所设，数学以 New
+    Computer Modern Math 排版；未加样式时为白色。各字符串为由
+    `arg_separator`（默认为空）连接的一个文本并整体排版，如同 MathTex 的
+    公式：`Tex("Fade", "In")` 读取 "FadeIn"，分割文本不会移动任何
+    字形。其部分如同公式一样区分；两个字符串共享的连字
+    属于第一个。
 
     Args:
-        *tex_strings: The text, in LaTeX: a string per part.
-        **kwargs: [MathTex keywords][manimgx.MathTex]:
-            the strings are joined by "" and read in a "center" environment unless
-            `arg_separator` and `tex_environment` say otherwise.
+        *tex_strings: 文本，以 LaTeX 表示：每个字符串为一个部分。
+        **kwargs: [MathTex 关键字][manimgx.MathTex]：
+            字符串由 "" 连接并在 "center" 环境中读取，除非
+            `arg_separator` 和 `tex_environment` 另有指定。
 
     Examples:
         ```python
@@ -1786,17 +1769,17 @@ _BULLET = "bullet"
 
 
 class BulletedList(Tex):
-    r"""A bulleted list: an item per line, each after a bullet, lined up on the left.
+    r"""项目列表：每行一个项，每项在项目符号之后，左对齐。
 
-    Typst sets the items as a list: each bullet is a centered dot (LaTeX's `\cdot` at
-    twice its size), `SMALL_BUFF` from its item, and the items are `buff` apart, in
-    scene units at the list's font size. Each item is LaTeX text (math between `$`
-    signs) and a part of its own, its bullet first: `items[1]` is the second item.
-    `height` and `width` scale the list as set.
+    Typst 将各项设为列表：每个项目符号为居中点（LaTeX 的 `\cdot` 的
+    两倍大小），距其项 `SMALL_BUFF`，各项间距 `buff`，以列表字号
+    的场景单位计。每项为 LaTeX 文本（数学在 `$` 符号之间）且为独立
+    部分，其项目符号在前：`items[1]` 为第二项。
+    `height` 和 `width` 按设置缩放列表。
 
     Args:
-        *items: The items, in LaTeX.
-        buff: The space between items, in scene units.
+        *items: 各项，以 LaTeX 表示。
+        buff: 项之间的间距，以场景单位计。
 
     Examples:
         ```python
@@ -1840,16 +1823,16 @@ class BulletedList(Tex):
     def _compose(
         self, strings: list[str], separator: str
     ) -> tuple[str, dict[int, int], str | None]:
-        """The items as a Typst list, each item's code bound to its name, as a Tex binds a
-        string's (see `MathTex._compose`): every glyph comes from its item's code."""
+        """将各项作为 Typst 列表，每项的代码绑定到其名称，如同 Tex 绑定
+        字符串（见 `MathTex._compose`）：每个字形来自其项的代码。"""
         codes = {i: _engine.mitex_text(s) for i, s in enumerate(strings)}
         bindings, starts = _bindings(codes)
         items = ", ".join(f"p{i}" for i in codes)
         return f"{bindings}#list({items})", starts, None
 
     def _owners(self, layout: Layout, starts: Mapping[int, int]) -> dict[int, int]:
-        """Each item's glyphs, and its bullet: one glyph, in its own labelled box, the
-        items' bullets in their order."""
+        """每项的字形及其项目符号：一个字形，在其带标签的方框中，
+        各项的项目符号按其顺序。"""
         owners = super()._owners(layout, starts)
         bullets = (rows for label, rows in layout.labels if label == _BULLET)
         for item, rows in enumerate(bullets):
@@ -1857,11 +1840,11 @@ class BulletedList(Tex):
         return owners
 
     def fade_all_but(self, index: int, opacity: float = 0.5) -> Self:
-        """Fade every item but one: the others' fill to `opacity`, the one's to 1.
+        """淡出除一项外的所有项：其余项的填充为 `opacity`，该项为 1。
 
         Args:
-            index: The item's index, from 0.
-            opacity: The other items' fill opacity, from 0 to 1.
+            index: 项的索引，从 0 开始。
+            opacity: 其他项的填充不透明度，从 0 到 1。
         """
         part = self.submobjects[index]
         for other in self.submobjects:
@@ -1870,17 +1853,17 @@ class BulletedList(Tex):
 
 
 class Title(Tex):
-    """A title: LaTeX text at the top of the frame, over a line across it.
+    """标题：位于画面顶部的 LaTeX 文本，其上有一条横线。
 
-    The line is the last part, and the title's `underline`; a `color` colors it with
-    the text, as [set_color][manimgx.Mobject.set_color] would.
+    横线为最后一个部分，即标题的 `underline`；`color` 如
+    [set_color][manimgx.Mobject.set_color] 般为横线和文本着色。
 
     Args:
-        *text_parts: The title, in LaTeX: a string per part.
-        include_underline: Whether a line is drawn under the title.
-        match_underline_width_to_text: Whether the line is as wide as the title; if
-            not, it spans the frame but 1 unit at each side.
-        underline_buff: The gap between the title and the line, in scene units.
+        *text_parts: 标题，以 LaTeX 表示：每个字符串为一个部分。
+        include_underline: 是否在标题下绘制横线。
+        match_underline_width_to_text: 横线是否与标题同宽；若
+            否，横线横跨画面但每侧留 1 单位。
+        underline_buff: 标题与横线之间的间距，以场景单位计。
 
     Examples:
         ```python
@@ -1918,5 +1901,5 @@ class Title(Tex):
                 underline.set_color(color)
             self.add(underline)
             self.underline = underline
-            """The line under the title, its last part (a title made without one has
-            none)."""
+            """标题下方的横线，其最后一个部分（无横线的标题
+            无此部分）。"""

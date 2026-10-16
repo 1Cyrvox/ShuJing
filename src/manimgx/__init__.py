@@ -1,4 +1,4 @@
-"""Manim's authoring API, backed by ManimGX's scene, object and animation models."""
+"""Manim 的创作 API，由 ManimGX 的场景、对象和动画模型支撑。"""
 
 import numpy as np
 

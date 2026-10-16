@@ -1,4 +1,4 @@
-"""Offline scene exports: video, inspections and presentations."""
+"""离线场景导出：视频、检视与演示。"""
 
 import json
 import os
@@ -54,7 +54,7 @@ def render(
         typer.Option(
             "--output",
             "-o",
-            help="The video (.mp4). [default: <Scene>.mp4 beside the file]",
+            help="视频文件（.mp4）。[默认：文件旁的 <Scene>.mp4]",
         ),
     ] = None,
     resolution: Resolution = None,
@@ -62,7 +62,7 @@ def render(
     preset: Annotated[
         X264Preset,
         typer.Option(
-            help="Encoding speed: faster presets encode sooner but produce larger files."
+            help="编码速度：更快的预设编码更早完成，但生成更大的文件。"
         ),
     ] = DEFAULT_ENCODER_PRESET,
     crf: Annotated[
@@ -70,15 +70,14 @@ def render(
         typer.Option(
             min=0,
             max=51,
-            help="Video quality: lower values give higher quality and larger files.",
+            help="视频质量：值越低质量越高、文件越大。",
         ),
     ] = DEFAULT_ENCODER_CRF,
 ) -> None:
-    """Render a scene to an MP4 video, with its sound.
+    """将场景渲染为带声音的 MP4 视频。
 
-    Also writes a storyboard beside the video (the frame at each play's end, layout problems
-    outlined and numbered) and lists those problems — see `manimgx inspect` — and, if the
-    scene speaks or has subcaptions, its subtitles (.srt)."""
+    同时在视频旁写入分镜图（每次播放结尾的帧，布局问题以边框标出并编号）并列出
+    这些问题——参见 `manimgx inspect`——若场景包含语音或字幕，还写入字幕文件（.srt）。"""
     kind = scene(file, name)
     video = output or file.with_name(f"{kind.__name__}.mp4")
     if video.suffix.lower() != ".mp4":
@@ -106,7 +105,7 @@ def render(
 
 
 def moments(given: list[str]) -> set[Fraction | None]:
-    """Distinct times in seconds; None means `end`. `-t 1,2` is `-t 1 -t 2`."""
+    """以秒为单位的互异时刻；None 表示 `end`。`-t 1,2` 等价于 `-t 1 -t 2`。"""
     out: set[Fraction | None] = set()
     for part in (p.strip() for text in given for p in text.split(",")):
         if not part:
@@ -135,8 +134,8 @@ def inspect(
             "-t",
             metavar="TIME",
             help=(
-                "Seconds from the start, or 'end'; several: repeat -t or separate with"
-                " commas."
+                "从开始的秒数，或 'end'；多个时刻：重复 -t 或用逗号"
+                " 分隔。"
             ),
             show_default=False,
         ),
@@ -146,23 +145,22 @@ def inspect(
         typer.Option(
             "--output",
             "-o",
-            help="The storyboard (.png). [default: <Scene>.storyboard.png beside the file]",
+            help="分镜图（.png）。[默认：文件旁的 <Scene>.storyboard.png]",
         ),
     ] = None,
 ) -> None:
-    """Inspect a scene: annotated PNGs, timeline and 2D layout checks, without video.
+    """检视场景：生成标注 PNG、时间线和二维布局检查，不生成视频。
 
-    Samples play and wait endings by default. With -t, inspects the frames a video player
-    shows at those times; 'end' is the last frame. Checks for clipped content, overlapping
-    text, lines or fills over text, and small labels. 3D scenes get pictures and a timeline;
-    layout checks are skipped. Only sampled moments are checked.
+    默认采样各次播放和等待的结尾。使用 -t 时，检视视频播放器在那些时刻显示的帧；
+    'end' 表示最后一帧。检查内容包括内容被裁剪、文字重叠、线条或填充覆盖文字、
+    以及标签过小。三维场景生成图片和时间线；布局检查被跳过。仅检视被采样的时刻。
 
-    Pictures are chronological, captioned #play t=… file:line, with problems outlined and
-    numbered. Six fit on each sheet (more go on `<name>-2.png`, …). Default sampling omits
-    consecutive identical pictures. With -t, only the requested frames are drawn, and the
-    scene stops after the last requested frame's play unless 'end' is included.
+    图片按时间顺序排列，标注为 #play t=… file:line，问题以边框标出并编号。
+    每张分镜图放六张图片（多余的放入 `<name>-2.png`、……）。默认采样省略连续相同
+    的图片。使用 -t 时，仅绘制请求的帧，且除非包含 'end'，场景在最后一个请求帧
+    所属的播放结束后停止。
 
-    Exits 1 for layout problems; notes, such as a graph leaving the frame, do not count.
+    存在布局问题时退出码为 1；提示（如图形超出画面）不计入问题。
     """
     kind = scene(file, name)
     wanted = moments(time or [])
@@ -182,7 +180,7 @@ def inspect(
     watch = Watch(Sheets(target))
 
     class Sampling(Scene):
-        """Observe selected frames through the scene's existing evaluation methods."""
+        """通过场景现有的求值方法观察选定的帧。"""
 
         def _emit(self, repeat: int = 1) -> None:
             while pending and pending[-1][0] < self.frame + repeat:
@@ -241,8 +239,8 @@ def present(
         typer.Option(
             "--output",
             "-o",
-            help="The video (.mp4); the page is written beside it (.html). [default:"
-            " <Scene>.mp4 beside the file]",
+            help="视频文件（.mp4）；页面写在其旁（.html）。[默认:"
+            " 文件旁的 <Scene>.mp4]",
         ),
     ] = None,
     resolution: Resolution = None,
@@ -250,19 +248,19 @@ def present(
     pdf: Annotated[
         bool,
         typer.Option(
-            help="Also write a PDF: the picture each slide ends on, a page each."
+            help="同时写入 PDF：每张幻灯片结束时的画面，每张一页。"
         ),
     ] = False,
     show: Annotated[
-        bool, typer.Option("--open/--no-open", help="Open the page in the browser.")
+        bool, typer.Option("--open/--no-open", help="在浏览器中打开页面。")
     ] = True,
 ) -> None:
-    """Present a scene: its sections are the slides.
+    """演示场景：其各节即为幻灯片。
 
-    Renders the video, writes a page that plays it (it stops at the end of each section,
-    until you go on), and opens it. Keys: → or Space next, ← back, F full screen, B black,
-    Shift+P presenter view (notes, the next slide, a timer), C captions, ? help. A clicker
-    works: it sends the same keys. Begin a section with `self.next_section(...)` in the scene.
+    渲染视频，写入一个播放该视频的页面（在每个节末暂停，直到你继续），并打开它。
+    按键：→ 或空格 下一张，← 上一张，F 全屏，B 黑屏，Shift+P 演讲者视图
+    （备注、下一张幻灯片、计时器），C 字幕，? 帮助。翻页器可用：它发送相同的按键。
+    在场景中用 `self.next_section(...)` 开始一个节。
     """
     kind = scene(file, name)
     video = output or file.with_name(f"{kind.__name__}.mp4")
@@ -300,17 +298,17 @@ def present(
 
 
 def page(film: Film, video: str | os.PathLike[str], title: str = "ManimGX") -> str:
-    """The page that presents `film`, whose video is `video` (a path or URL, as the page
-    will find it: relative to the page, typically).
+    """演示 `film` 的页面，其视频为 `video`（路径或 URL，页面据此查找：
+    通常相对于页面）。
 
     Args:
-        film: The film, rendered.
-        video: Where the page finds its video: a URL string, or a filesystem path
-            (relative to the page, unless absolute).
-        title: The page's title.
+        film: 已渲染的影片。
+        video: 页面查找视频的位置：URL 字符串或文件系统路径
+            （相对于页面，除非为绝对路径）。
+        title: 页面的标题。
 
     Returns:
-        The page's HTML.
+        页面的 HTML。
     """
     deck = {
         "fps": float(film.fps),

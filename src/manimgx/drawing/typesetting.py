@@ -1,6 +1,6 @@
-"""Typst source → its layout, typeset in this process (`_engine.typeset`) and cached on disk.
-A layout is one row per item (glyph or shape) in document order, each shape's curves, and each
-labelled group's items; the layout owns each glyph's immutable outline and carets."""
+"""Typst 源码 → 其排版布局，在本进程中排版（`_engine.typeset`）并缓存于磁盘。
+布局为文档顺序中每个项目（字形或形状）对应一行，包含每个形状的曲线，以及每个
+带标签分组的成员；布局拥有每个字形的不可变轮廓和插入符记录。"""
 
 import functools
 import os
@@ -31,10 +31,9 @@ TYPST_TEMPLATE = (
     " {text_size}pt)\n{preamble}\n"
 )
 TypstError = _engine.TypstError
-"""The error raised when Typst can't typeset a document, or LaTeX can't be converted to
-Typst: its message is Typst's (or mitex's), each error with the bytes of the source it
-is at, counted from the start of the whole document typeset — a page setup and the
-preamble come before the code."""
+"""当 Typst 无法排版文档，或 LaTeX 无法转换为 Typst 时抛出的错误：
+其消息为 Typst（或 mitex）的消息，每个错误附带其所在源码的字节位置，
+从整个被排版文档的起始处计数——页面设置和前导部分位于代码之前。"""
 
 # a row's columns (see rust/engine/src/typeset.rs): an item's origin is its source node (start,
 # end; its own, else the innermost element around it from the source) and the bytes of the
@@ -59,10 +58,10 @@ type Glyph = tuple[int, Shape | None, bytes]
 
 @dataclass(frozen=True, slots=True)
 class Layout:
-    """A typeset drawing: `rows` (n × ROW, glyphs with outlines and shapes), `shapes`
-    (cubic points, y up), `labels` (a label and its rows, including empty groups),
-    `body` (where the body starts in the source, in bytes), and `glyphs` (the
-    immutable outline and caret records its rows name)."""
+    """一个排版后的绘图：`rows`（n × ROW，带轮廓和形状的字形），`shapes`
+    （三次曲线控制点，y 轴向上），`labels`（一个标签及其对应的行，包括空分组），
+    `body`（正文在源码中的起始位置，以字节计），以及 `glyphs`（其各行所引用的
+    不可变轮廓和插入符记录）。"""
 
     rows: np.ndarray
     shapes: list[np.ndarray]
@@ -94,13 +93,13 @@ type Stored = tuple[
 
 
 def typst_string(text: str) -> str:
-    """Write `text` as a Typst string literal, which Typst reads back as exactly `text`.
+    """将 `text` 写作 Typst 字符串字面量，Typst 会将其原样读回为恰好 `text`。
 
     Args:
-        text: Any text.
+        text: 任意文本。
 
     Returns:
-        The literal, its quotes included.
+        该字面量，包含其引号。
     """
     escaped = (
         text.replace("\\", "\\\\")
@@ -118,22 +117,22 @@ def typeset(
     font_paths: list[str | Path] | None = None,
     package_path: str | Path | None = None,
 ) -> Layout:
-    """Typeset a Typst document, and read its layout off Typst's frames.
+    """排版一个 Typst 文档，并从 Typst 的帧中读取其布局。
 
-    The document is set in the fonts ManimGX ships (Typst's own and the Noto faces),
-    after those in `font_paths`; a system font is read only for a family the document
-    names that none of them has. A layout is kept in the current user's cache directory
-    (the browser's private filesystem in a page): the same document, with the same fonts
-    and packages, is read back, not typeset again, in any process.
+    文档使用 ManimGX 附带的字体（Typst 自带字体和 Noto 字面）排版，
+    排在 `font_paths` 中字体之后；系统字体仅在文档指定了上述字体均不包含
+    的字族时才会被读取。布局保存在当前用户的缓存目录中
+    （在页面中为浏览器的私有文件系统）：同一文档，在相同字体和包的条件下，
+    会在任意进程中被读回，而不会重新排版。
 
     Args:
-        body: The document's body: Typst markup.
-        preamble: Typst code set before the body.
-        text_size: The text's size, in points.
-        font_paths: Directories of font files, searched, with their subdirectories,
-            before the fonts ManimGX ships.
-        package_path: The directory Typst packages are imported from, besides mitex
-            (the engine's); None for none but mitex.
+        body: 文档的正文：Typst 标记。
+        preamble: 排在正文之前的 Typst 代码。
+        text_size: 文本的字号，以磅为单位。
+        font_paths: 字体文件所在目录，连同其子目录一起搜索，
+            排在 ManimGX 附带字体之前。
+        package_path: Typst 包的导入目录，除 mitex（引擎自带的）之外；
+            None 表示仅有 mitex。
     """
     prefix = TYPST_TEMPLATE.format(text_size=text_size, preamble=preamble)
     source = prefix + body + "\n"
@@ -155,7 +154,7 @@ def typeset(
 
 
 def _glyph(key: int, points: bytes, carets: bytes) -> Glyph:
-    """Decode one immutable record, reusing it while remembered."""
+    """解码一条不可变记录，在其被记住期间复用之。"""
     record = _GLYPHS.get(key)
     if record is None:
         array = np.frombuffer(points).reshape(-1, 3)
@@ -168,8 +167,8 @@ def _glyph(key: int, points: bytes, carets: bytes) -> Glyph:
 @forgets
 @functools.cache
 def _files(paths: tuple[str, ...]) -> bytes:
-    """The files a layout depends on besides its source (fonts, packages), as paths, sizes and
-    times, once per process."""
+    """布局除其源码外所依赖的文件（字体、包），以路径、大小和
+    时间表示，每进程一次。"""
     found = []
     for root in map(Path, paths):
         found.append(f"{root}\0".encode())
@@ -182,7 +181,7 @@ def _files(paths: tuple[str, ...]) -> bytes:
 
 
 def _read(path: Path) -> Stored | None:
-    """A stored layout, if there is one and the fonts it was set with haven't changed."""
+    """一个已存储的布局，前提是存在且其排版所用字体未发生更改。"""
     try:
         stored: Stored = pickle.loads(path.read_bytes())
     except (OSError, pickle.UnpicklingError, EOFError, ValueError):
@@ -194,7 +193,7 @@ def _read(path: Path) -> Stored | None:
 
 
 def _write(path: Path, stored: Stored) -> None:
-    """Store a layout: written whole, then renamed, so a reader never sees half of one."""
+    """存储一个布局：整体写入后再重命名，使读取者永远不会看到只写了一半的布局。"""
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(dir=path.parent) as own:
@@ -208,7 +207,7 @@ def _write(path: Path, stored: Stored) -> None:
 def _typeset(
     source: str, fonts: tuple[str, ...], packages: str | None, revision: int
 ) -> Stored:
-    """Typeset with Typst; every glyph's key by content, with its outline and carets along."""
+    """用 Typst 排版；每个字形按键内容索引，附带其轮廓和插入符。"""
     raw, shapes, labels, system = _engine.typeset(
         source, fonts, packages, revision=revision
     )

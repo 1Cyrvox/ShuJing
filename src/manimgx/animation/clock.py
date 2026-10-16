@@ -1,11 +1,10 @@
-"""Scene time: one exact clock, and the clocks that run off it.
+"""场景时间：一个精确时钟，以及由它驱动的各个时钟。
 
-A frame shows the world at one instant (frame k at k/fps). An animation is evaluated at its own
-window of scene time; a time-based updater gets the time its clock ran since it last stepped; a
-per-frame updater re-establishes its relation. A flow (an updater whose steps compose) is exact
-at any instant; any other time-based updater is simulated on the simulation clock
-(`config.simulation_rate` ticks a second, plus the scene's events), so it behaves the same at
-every frame rate. `speed` runs off scene time, warped by ChangeSpeed."""
+一帧展示世界在某一瞬间的状态（第 k 帧在 k/fps 处）。动画在它自己的场景时间窗口内被求值；
+基于时间的更新器获取其时钟自上次步进以来所走过的时间；逐帧更新器重新建立其关系。
+流（其步进可复合的更新器）在任意瞬间都是精确的；任何其他基于时间的更新器都在模拟时钟上
+被模拟（`config.simulation_rate` 每秒滴答数，加上场景的事件），因此它在每一帧率下表现一致。
+`speed` 由场景时间驱动，经 ChangeSpeed 扭曲。"""
 
 from collections.abc import Callable
 from fractions import Fraction
@@ -14,7 +13,7 @@ from math import inf, nextafter, ulp
 
 
 def _rounding_cell(value: float) -> tuple[Fraction, Fraction, bool]:
-    """The binary64 rounding interval, and whether its ties belong to this value."""
+    """binary64 的舍入区间，以及其平局是否归属此值。"""
     magnitude = abs(value)
     exact = Fraction(magnitude)
     low = (exact + Fraction(nextafter(magnitude, -inf))) / 2
@@ -24,10 +23,10 @@ def _rounding_cell(value: float) -> tuple[Fraction, Fraction, bool]:
 
 
 def rational(value: float | Fraction) -> Fraction:
-    """Recover the simplest rational that rounds to an authored float.
+    """恢复舍入到所编写浮点数的最简有理数。
 
-    A duration such as 5/6 keeps its frame boundary, while distinct floats stay distinct
-    and a positive duration never becomes zero. Integers and explicit fractions are exact.
+    诸如 5/6 这样的时长保持其帧边界，而不同的浮点数保持不同，
+    且正时长永远不会变为零。整数和显式分数是精确的。
     """
     exact = Fraction(value)
     if not isinstance(value, float) or exact.denominator == 1:
@@ -49,28 +48,26 @@ def rational(value: float | Fraction) -> Fraction:
 
 
 def frame_at(time: float | Fraction, rate: Fraction, *, after: bool = False) -> int:
-    """First frame at this observed instant or later (strictly later with `after`)."""
+    """此观测瞬间或更晚的首帧（使用 `after` 时严格更晚）。"""
     low, high, closed = _rounding_cell(float(time))
     at = (high if after else low) * rate
     return int(at // 1 + 1 if closed == after else -(-at // 1))
 
 
 now = Fraction(0)
-"""The instant being computed — or, between plays, the end of the last one (where the scene's
-own code runs)."""
+"""正在计算的瞬间——或者，在播放之间，上一次播放的结束处（场景自身代码运行的地方）。"""
 stepping: bool = True
-"""Do simulated updaters (time-based, not flows) step at `now`? At every instant — unless the
-scene is simulating: then at the ticks of its simulation clock and at its events only."""
+"""模拟更新器（基于时间的，非流）是否在 `now` 处步进？在每一瞬间——除非场景正在模拟：
+此时仅在其模拟时钟的滴答处和其事件处步进。"""
 framing: bool = True
-"""Do per-frame updaters run at `now`? At frames and events — not at a tick between frames: an
-updater that takes no time is called once a frame, whatever else the scene simulates."""
+"""逐帧更新器是否在 `now` 处运行？在帧和事件处——不在帧之间的滴答处：
+一个不耗时的更新器每帧调用一次，无论场景还模拟什么。"""
 
 
 class Clock:
-    """Local time as a function of scene time: scene time, except over its warps (from `start`, for
-    `duration`, covering `span` of local time along `progress`, a monotone map of [0, 1] onto
-    itself). Where warps overlap, the one begun last rules while it lasts, so the clock only ever
-    runs forward."""
+    """作为场景时间函数的本地时间：场景时间，除了在其扭曲处（从 `start` 开始，持续
+    `duration`，沿 `progress` 覆盖 `span` 的本地时间，`progress` 是 [0, 1] 到其自身的单调映射）。
+    在扭曲重叠处，最后开始的扭曲在其持续期间主导，因此时钟只会向前运行。"""
 
     def __init__(self) -> None:
         self.warps: list[tuple[float, float, float, Callable[[float], float]]] = []
@@ -113,7 +110,7 @@ speed = Clock()
 
 
 def reset() -> None:
-    """A new scene: its clock at 0, no warps."""
+    """一个新场景：其时钟为 0，无扭曲。"""
     global now, stepping, framing
     now, stepping, framing = Fraction(0), True, True
     speed.warps.clear()

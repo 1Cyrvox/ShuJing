@@ -1,11 +1,11 @@
 ---
-title: "Polygons"
-description: "Shapes of straight sides, from triangles to stars, and the rectangles that frame the screen."
+title: "多边形"
+description: "由直边构成的形状，从三角形到星形，以及框住屏幕的矩形。"
 ---
 
-# Polygons
+# 多边形
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -37,11 +37,9 @@ class PolygonsHero(m.Scene):
         self.wait()
 ```
 
-A polygon is a shape of straight sides, from each corner to the next and from the last back
-to the first. Give `m.Polygon` its corners, or take a ready-made one: a triangle, a square, a
-rectangle, a regular polygon, a star. Every polygon can round its corners.
+多边形是由直边构成的形状，从一个角到下一个角，再从最后一个角回到第一个角。将你的角点传给 `m.Polygon`，或者使用一个现成的：三角形、正方形、矩形、正多边形、星形。每个多边形都可以圆角化其角。
 
-A polygram is several polygons in one shape; a polygon is a polygram of one.
+多角形（polygram）是在一个形状中的若干个多边形；多边形是只有一个的多角形。
 
 ::: manimgx.Polygon
     options:
@@ -87,7 +85,7 @@ A polygram is several polygons in one shape; a polygon is a polygram of one.
     options:
       heading_level: 2
 
-## The screen's shape
+## 屏幕的形状
 
 ::: manimgx.ScreenRectangle
     options:
@@ -96,3 +94,7 @@ A polygram is several polygons in one shape; a polygon is a polygram of one.
 ::: manimgx.FullScreenRectangle
     options:
       heading_level: 3
+
+::: manimgx.mobjects.shapes.RegularPolygonOptions
+::: manimgx.mobjects.shapes.RectangleOptions
+::: manimgx.mobjects.shapes.ScreenOptions

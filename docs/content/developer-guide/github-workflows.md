@@ -1,352 +1,340 @@
-# GitHub workflows
+# GitHub 工作流
 
-## The problem
+## 问题
 
-Some tasks must run the same way every time:
+有些任务必须每次以相同的方式运行：
 
-- **For every change**, pushed to `main` or proposed in a pull request: run the checks,
-  and the tests on every system and Python ManimGX supports; time it against the code
-  before it; build the docs; publish the tests' coverage and a preview of the docs.
-- **For every release:** test; build the wheels, the source distribution, the font
-  packages and the executables; publish them to GitHub and PyPI, the package for the
-  browser to npm, and the Docker image to ghcr.io.
-- **For every issue and pull request:** a first reply to a newcomer's issue, a first
-  review, and an assistant that a maintainer can ask.
-- **When a maintainer requests an update:** review and update pinned actions and dependencies.
+- **每次变更**，推送到 `main` 或以 pull request 提出时：运行检查，
+  并在 ManimGX 支持的每个系统和 Python 上运行测试；与之前的代码进行计时比较；构建文档；发布测试覆盖率和文档预览。
+- **每次发布：**测试；构建 wheel、源码发行版、字体
+  包和可执行文件；将它们发布到 GitHub 和 PyPI，将浏览器
+  包发布到 npm，将 Docker 镜像发布到 ghcr.io。
+- **每个 issue 和 pull request：**对新来者 issue 的首次回复、首次
+  评审，以及维护者可以调用的助手。
+- **当维护者请求更新时：**评审并更新锁定的 action 和依赖项。
 
-Done by hand, steps get forgotten, and every run costs someone's time.
+手动完成时，步骤会被遗忘，而且每次运行都要耗费某人的时间。
 
-## What are GitHub Actions?
+## 什么是 GitHub Actions？
 
-[GitHub Actions](https://docs.github.com/en/actions) runs automation on GitHub's servers
-when something happens in the repository. A workflow is a file in `.github/workflows/`
-that says:
+[GitHub Actions](https://docs.github.com/en/actions) 在仓库中发生某些事件时，于 GitHub 的服务器上运行自动化。工作流是 `.github/workflows/` 中的一个文件，它指定：
 
-1. **When it runs:** a push to `main`, a pull request, a tag, a comment, a click in
-   GitHub's interface.
-2. **What it does:** jobs, each a list of steps (commands, or published actions).
-3. **Where it runs:** on a fresh virtual machine: Ubuntu, macOS or Windows.
+1. **何时运行：**推送到 `main`、pull request、标签、评论、在
+   GitHub 界面中的点击。
+2. **做什么：**作业，每个作业是一个步骤列表（命令或已发布的 action）。
+3. **在哪里运行：**在一台全新的虚拟机上：Ubuntu、macOS 或 Windows。
 
-A job that builds or tests begins as you would on a new machine: it checks out the
-repository, installs `just` and `uv` (and, on Linux, Mesa's lavapipe to draw with when it
-renders), and runs `just` recipes (see [Setup](index.md)). The
-workflows run the justfile's recipes, so a task does the same in CI as on your machine.
+构建或测试的作业如同你在新机器上所做的那样开始：它检出
+仓库，安装 `just` 和 `uv`（在 Linux 上还安装 Mesa 的 lavapipe 以供渲染时绘图），并运行 `just` 配方（见 [环境搭建](index.md)）。工作流运行 justfile 的配方，因此任务在 CI 中和在你的机器上执行方式相同。
 
-## ManimGX's workflows
+## ManimGX 的工作流
 
-The seven regular build, release and collaboration workflows are in
-[`.github/workflows/`](https://github.com/academa-labs/manimgx/tree/main/.github/workflows).
+七个常规的构建、发布和协作工作流位于
+[`.github/workflows/`](https://github.com/1Cyrvox/ShuJing/tree/main/.github/workflows)。
 
-### 1. [`test.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/test.yaml): the checks and the tests
+### 1. [`test.yaml`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/workflows/test.yaml)：检查与测试
 
-**When it runs:**
+**何时运行：**
 
-- Every push to `main`.
-- Every pull request.
-- By hand, from GitHub's interface.
-- When the Release workflow calls it.
+- 每次推送到 `main`。
+- 每个 pull request。
+- 手动触发，从 GitHub 界面。
+- 当 Release 工作流调用它时。
 
-**What it does**, in six job definitions:
+**做什么**，包含六个作业定义：
 
-1. **Run pre-commit checks**, on Ubuntu: installs the locked tools without compiling the
-   project, then runs `just check` with automatic environment synchronization disabled.
-2. **Test the browser package**, on Ubuntu: checks the Rust browser feature, runs its
-   browser tests with Chrome, then runs `just test-typescript` against the compiled worker,
-   player and public declarations.
-3. **Build and link**, once on Linux, macOS and Windows: checks source acquisition and
-   linked codecs, builds one stable-ABI wheel, and runs `just test-rust`. Linux installs
-   lavapipe for the renderer tests. Each successful job keeps its wheel.
-4. **Test**, six times: installs that OS's same wheel on Python 3.13 and 3.14, checks the
-   installed product, acquires the verified frozen corpus packages, then runs
-   `just test-coverage`. These jobs do not rebuild the extension. They keep coverage and
-   rendering failure evidence even when the suite fails.
-5. **Combine the coverage**, even when a test job failed: `just combine-coverage` makes one
-   report of the jobs' data, and its table goes in the run's summary. The report is kept,
-   with the data of a coverage badge (`badge.json`).
-6. **Publish the coverage**, for `main`'s pushes and for pull requests from a branch of the
-   repository: to the Worker `manimgx-coverage`
-   ([`.github/deploy/coverage.jsonc`](https://github.com/academa-labs/manimgx/blob/main/.github/deploy/coverage.jsonc)).
-   `main`'s report is served at <https://coverage.manimgx.academa.ai>. Each commit's report
-   is also a preview deployment of its own (in the preview `main`, or `pr-<number>`), which
-   the commit's "coverage" status links to.
+1. **运行 pre-commit 检查**，在 Ubuntu 上：安装锁定的工具但不编译
+   项目，然后禁用自动环境同步运行 `just check`。
+2. **测试浏览器包**，在 Ubuntu 上：检查 Rust 浏览器特性，用 Chrome 运行其
+   浏览器测试，然后针对编译后的 worker、
+   player 和公开声明运行 `just test-typescript`。
+3. **构建与链接**，在 Linux、macOS 和 Windows 上各一次：检查源码获取和
+   链接的编解码器，构建一个稳定 ABI 的 wheel，并运行 `just test-rust`。Linux 为
+   渲染器测试安装 lavapipe。每个成功的作业会保留其 wheel。
+4. **测试**，共六次：在该操作系统上安装相同的 wheel（Python 3.13 和 3.14），检查
+   已安装的产品，获取经过验证的冻结语料包，然后运行
+   `just test-coverage`。这些作业不重建扩展。即使测试套件失败，它们也会保留覆盖率和
+   渲染失败证据。
+5. **合并覆盖率**，即使某个测试作业失败：`just combine-coverage` 将各作业的数据合并为一份
+   报告，其表格会放入运行的摘要中。报告会被保留，
+   同时保留覆盖率徽章的数据（`badge.json`）。
+6. **发布覆盖率**，针对 `main` 的推送以及来自仓库分支的 pull request：发布到 Worker `manimgx-coverage`
+   （[`.github/deploy/coverage.jsonc`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/deploy/coverage.jsonc)）。
+   `main` 的报告通过 <https://coverage.www.aipaikj.top> 提供。每个提交的报告
+   也是其自身的预览部署（在预览 `main` 或 `pr-<number>` 中），提交的
+   "coverage" 状态会链接到它。
 
-### 2. [`benchmark.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/benchmark.yaml): the timed benchmarks
+### 2. [`benchmark.yaml`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/workflows/benchmark.yaml)：计时基准测试
 
-**When it runs:**
+**何时运行：**
 
-- Every push to `main` and every pull request that changes the package, the engine, the
-  examples, the benchmarks, their workflow or the dependencies.
-- By hand, from GitHub's interface, against a commit, branch or tag you name.
+- 每次推送到 `main`，以及每个变更了包、引擎、
+  示例、基准测试、其工作流或依赖项的 pull request。
+- 手动触发，从 GitHub 界面，针对你指定的提交、分支或标签。
 
-**What it does**, in one job on macOS: runs `just bench` against the base (see
-[Testing](testing.md#timed-benchmarks)). A pull request is
-checked out merged into its base, so its base is the merge's first parent; a push to `main`
-is compared with the commit before it. Metal draws on the GPU, while
-retired CPU instructions, when exposed, or CPU time judge host work. Each workload's summary
-names the measure used. A workload that became slower fails the job,
-and every workload's change goes in the run's summary. Paired runs stay on the same machine;
-all nine workloads keep their resolutions and rounds. GPU execution and waits appear only
-in the wall-time column: shader and GPU scheduling changes require reviewing those times
-on a quiet machine. Linux and Windows keep their functional rendering tests.
+**做什么**，在 macOS 上的一个作业中：针对基准运行 `just bench`（见
+[测试](testing.md#_20)）。pull request 会以
+合并到其基准后的状态检出，因此其基准是合并的第一个父提交；推送到 `main`
+则与其前一个提交比较。Metal 在 GPU 上绘图，而
+已退役的 CPU 指令（当暴露时）或 CPU 时间则用于评判宿主机工作。每个工作负载的摘要
+会注明所使用的度量方式。变慢的工作负载会导致作业失败，
+每个工作负载的变化都会放入运行的摘要中。配对运行保持在同一台机器上；
+所有九个工作负载保留其分辨率和轮次。GPU 执行和等待仅出现在
+wall-time 列中：着色器和 GPU 调度的变更需要在
+安静的机器上审查那些时间。Linux 和 Windows 保留其功能性渲染测试。
 
-### 3. [`deploy-docs.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/deploy-docs.yaml): the docs site
+### 3. [`deploy-docs.yaml`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/workflows/deploy-docs.yaml)：文档站点
 
-**When it runs:**
+**何时运行：**
 
-- Every push to `main`.
-- Every pull request, as it is opened, updated, reopened and closed.
-- By hand, from GitHub's interface.
+- 每次推送到 `main`。
+- 每个 pull request，在其打开、更新、重新打开和关闭时。
+- 手动触发，从 GitHub 界面。
 
-**What it does**, in four jobs:
+**做什么**，包含四个作业：
 
-1. **Build**, on macOS for every run except a pull request's closing: checks the docs'
-   JavaScript interactions and reference declarations, restores verified film-cache entries,
-   runs `just render-docs`, saves completed films, then runs `just build-docs-pages`.
-   Metal draws the examples; narrated examples speak from `docs/voice/`, so no voice key is
-   needed. The built `docs/site/` is kept for seven days. Deployment configuration is checked
-   out separately from the trusted base commit, so the build cannot supply commands for a job
-   with credentials to execute.
-2. **Deploy**, from `main` (a push, or a run by hand): deploys what the build made to
-   Cloudflare Workers with `wrangler deploy --config .github/deploy/docs.jsonc`, the
-   commit's hash as its message. The `docs` environment shows the site's address,
-   <https://manimgx.academa.ai>.
-3. **Preview**, for a pull request from a branch of the repository: uploads the build as a
-   preview named `pr-<number>`, at its own address, shown on the `docs-preview`
-   environment.
-4. **Delete the previews**, when a pull request closes, for both docs and coverage. An
-   absent preview is already clean; authentication failures and other API errors fail
-   the job.
+1. **构建**，在 macOS 上运行（pull request 关闭时除外）：检查文档的
+   JavaScript 交互和引用声明，恢复经过验证的影片缓存条目，
+   运行 `just render-docs`，保存已完成的影片，然后运行 `just build-docs-pages`。
+   Metal 绘制示例；旁白示例从 `docs/voice/` 发声，因此不需要语音密钥。构建好的 `docs/site/` 保留七天。部署配置从
+   受信任的基准提交中单独检出，因此构建无法为带有凭据的作业
+   提供要执行的命令。
+2. **部署**，来自 `main`（推送或手动运行）：使用 `wrangler deploy --config .github/deploy/docs.jsonc` 将构建产物部署到
+   Cloudflare Workers，以提交的哈希作为其消息。`docs` 环境显示站点地址，
+   <https://www.aipaikj.top>。
+3. **预览**，针对来自仓库分支的 pull request：将构建产物作为
+   名为 `pr-<number>` 的预览上传，拥有自己的地址，显示在 `docs-preview`
+   环境中。
+4. **删除预览**，当 pull request 关闭时，同时针对文档和覆盖率。不存在的
+   预览视为已清理；认证失败和其他 API 错误会导致
+   作业失败。
 
-See [Documentation](documentation.md#deployment) for how the site is served.
+关于站点如何提供服务，见 [文档](documentation.md#_11)。
 
-### 4. [`release.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/release.yaml): a release
+### 4. [`release.yaml`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/workflows/release.yaml)：发布
 
-**When it runs:**
+**何时运行：**
 
-- A pushed tag, `vX.Y.Z` (`just release`; see
-  [Project management](project-management.md#releases)).
-- A pull request that changes how releases are made: the release's workflows and scripts,
-  the `pyproject.toml` files, the npm package, or the engine's crates' manifests and build
-  scripts. It is a dry run: it builds everything, and publishes nothing.
-- By hand, from GitHub's interface, on a branch: a dry run too.
+- 推送的标签，`vX.Y.Z`（`just release`；见
+  [项目管理](project-management.md#_11)）。
+- 变更发布方式的 pull request：发布的 workflows 和脚本、
+  `pyproject.toml` 文件、npm 包，或引擎 crate 的清单和构建
+  脚本。这是试运行：构建一切，但不发布任何内容。
+- 手动触发，从 GitHub 界面，在分支上：同样是试运行。
 
-**What it does**, in order. Everything is built before anything is published:
+**做什么**，按顺序执行。所有内容在发布任何东西之前都会先构建：
 
-1. **Check the version.** A tag must be `v` followed by ManimGX's version (in
-   `pyproject.toml`), and the changelog must have a section for that
-   version. A version that ends in `aN`,
-   `bN` or `rcN` is a pre-release.
-2. **Test**, on a tag: it runs the Test workflow.
-3. **Build:** the wheels (`create-wheels.yaml`), the source distribution and the wheels'
-   complete source (`just build-source`: the committed repository, including its build
-   recipes, fonts and browser sources, with every crate and each
-   archive the engine's build fetches, plus the exact distribution sources retained by the
-   Linux wheel jobs; the source archive waits for those platform builds; see
-   [Others' sources](engine.md#others-sources)), the font packages (`just build-fonts`), and
-   the executables, from the wheels (`create-executables.yaml`), and the packed npm artifact.
-   Each Linux architecture builds its Docker image from these same wheel and font artifacts,
-   with external dependencies authenticated against `uv.lock`. The images pass the product
-   smoke test without network access. BuildKit retains their provenance and SBOM in OCI archives.
-4. **Draft the GitHub release**, on a tag: it signs each file's provenance (an attestation
-   of the workflow, the commit and the run that built it, which
-   `gh attestation verify FILE --repo academa-labs/manimgx` checks), and drafts the release
-   `manimgx X.Y.Z` with the files (the complete source too, which PyPI doesn't get), its notes
-   the changelog's section for the version (`just release-notes`), then where the complete
-   source is, which x264's and FFmpeg's licenses ask for. The draft then becomes public,
-   making those sources available before registry uploads start.
-5. **Publish to PyPI:** the font packages first, then ManimGX's wheels and source
-   distribution, with `uv publish`, each with its
-   [PEP 740](https://peps.python.org/pep-0740/) attestation. `--check-url` skips files PyPI
-   already has: the fonts are released when they change. Each package has its own GitHub
-   environment and trusted publisher: `pypi` for `manimgx`, `pypi-fonts` for
-   `manimgx-fonts`, and `pypi-fonts-cjk` for `manimgx-fonts-cjk`. The font jobs run as a
-   matrix, each downloading only its package's distributions. Before the first release,
-   register three pending publishers on PyPI with owner `academa-labs`, repository
-   `manimgx`, workflow `release.yaml`, and those environment names; create the matching
-   GitHub environments with release tags (`v*`) allowed. Pending publishers need distinct
-   workflow/environment combinations, even when their project names differ. Publishing
-   uses the workflow's OIDC token: no PyPI token is stored.
-6. **Publish to npm:** `publish-npm.yaml` acquires the browser's tarball from the public
-   GitHub release and verifies its attestation against the release workflow, tag and commit.
-   It confirms the matching Python browser wheel is public on PyPI before publishing with
-   provenance. After an accepted upload, verification waits up to five minutes for registry
-   visibility. A retry accepts an existing version only when its SHA512 integrity matches
-   the exact tarball. The same workflow can run by hand from `main`, with a published `tag`,
-   to retry publication with current tools without rebuilding or moving that tag.
-   For the first release, before the package exists on npm, create a
-   short-lived granular token with read/write access to all packages and bypass 2FA,
-   and store it as `NPM_TOKEN` in the GitHub `npm` environment (allow `v*` tags and `main`).
-   The token is passed only to the publishing step. Once the package exists, configure
-   its npm trusted publishers with owner `academa-labs`, repository `manimgx`, workflows
-   `release.yaml` and `publish-npm.yaml`, and environment `npm`; npm checks the caller's
-   workflow identity. Enable direct publishing (`npm publish`),
-   since the workflow does not stage releases. Then revoke the token and delete the
-   GitHub secret: subsequent releases use OIDC.
-7. **Publish the Docker image:** copy the tested OCI archives without changing their digests,
-   including the provenance and SBOM, and assemble the `linux/amd64` and `linux/arm64`
-   platform index. Its provenance is signed, and it is published to
-   `ghcr.io/academa-labs/manimgx`, tagged `X.Y.Z` and `X.Y` (a pre-release,
-   `X.Y.Z` only), labeled `MIT AND GPL-3.0-or-later`: ManimGX's code, and the engine, which
-   x264 makes GPL-3.0-or-later as a whole. It needs no new package resolution or image build.
-   After the first upload, set the container package's
-   [visibility to Public](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#configuring-visibility-of-packages-for-an-organization)
-   in its GitHub package settings; repository visibility does not set package visibility.
-   Confirm an anonymous pull before announcing the release.
-8. **Confirm completion:** all registry uploads have succeeded and the GitHub release is
-   public. Publication across registries is not atomic; a failed destination can be retried
-   using the retained artifacts. Publishing alone does not lock the release's files or tag: that requires
-   GitHub's [immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)
-   to be enabled for the repository. This workflow attaches every file while the release
-   is a draft and does not change that setting. Recorded artifact digests and provenance
-   attestations verify acquired bytes; they do not enable GitHub's immutability policy.
+1. **检查版本。**标签必须是 `v` 后跟 ManimGX 的版本（在
+   `pyproject.toml` 中），且变更日志必须有该
+   版本的章节。以 `aN`、
+   `bN` 或 `rcN` 结尾的版本是预发布版本。
+2. **测试**，在标签上：运行 Test 工作流。
+3. **构建：**wheel（`create-wheels.yaml`）、源码发行版和 wheel 的
+   完整源码（`just build-source`：已提交的仓库，包括其构建
+   配方、字体和浏览器源码，以及每个 crate 和引擎构建所获取的每个
+   归档，加上 Linux wheel 作业保留的精确发行版源码；
+   源码归档等待这些平台构建完成；见
+    [他人的源码](engine.md#_12)）、字体包（`just build-fonts`），以及
+   由 wheel 生成的可执行文件（`create-executables.yaml`）和打包的 npm 制品。
+   每个 Linux 架构从这些相同的 wheel 和字体制品构建其 Docker 镜像，
+   外部依赖根据 `uv.lock` 进行认证。镜像在无网络访问的情况下通过产品
+   冒烟测试。BuildKit 将其来源证明和 SBOM 保留在 OCI 归档中。
+4. **起草 GitHub release**，在标签上：为每个文件的来源证明签名（即对
+   工作流、提交和构建它的运行的证明，可由
+   `gh attestation verify FILE --repo 1Cyrvox/ShuJing` 验证），并起草 release
+   `manimgx X.Y.Z`，包含这些文件（也包括完整源码，PyPI 不会收到），其说明为
+   变更日志中该版本的章节（`just release-notes`），然后说明完整
+   源码的位置，这是 x264 和 FFmpeg 的许可证所要求的。草稿随后变为公开，
+   在注册表上传开始之前使这些源码可用。
+5. **发布到 PyPI：**先发布字体包，然后是 ManimGX 的 wheel 和源码
+   发行版，使用 `uv publish`，每个都附带其
+   [PEP 740](https://peps.python.org/pep-0740/) 证明。`--check-url` 会跳过 PyPI 已有的文件：字体在变更时发布。每个包有自己的 GitHub
+   环境和受信任的发布者：`manimgx` 对应 `pypi`，`manimgx-fonts` 对应
+   `pypi-fonts`，`manimgx-fonts-cjk` 对应 `pypi-fonts-cjk`。字体作业以
+   矩阵方式运行，每个作业仅下载其包的发行版。在首次发布之前，
+   在 PyPI 上注册三个待定发布者，owner 为 `1Cyrvox`，repository 为
+   `manimgx`，workflow 为 `release.yaml`，以及那些环境名称；创建匹配的
+   GitHub 环境并允许 release 标签（`v*`）。待定发布者需要不同的
+   workflow/environment 组合，即使其项目名称不同。发布
+   使用工作流的 OIDC 令牌：不存储 PyPI 令牌。
+6. **发布到 npm：**`publish-npm.yaml` 从公开的
+   GitHub release 获取浏览器的 tarball，并根据 release 工作流、标签和提交验证其证明。
+   它确认匹配的 Python 浏览器 wheel 已在 PyPI 上公开，然后才带
+   来源证明进行发布。上传被接受后，验证最多等待五分钟以等待注册表
+   可见。重试仅在现有版本的 SHA512 完整性匹配
+   确切的 tarball 时才接受该版本。同一工作流可以从 `main` 手动运行，使用已发布的 `tag`，
+   以当前工具重试发布而无需重建或移动该标签。
+   对于首次发布，在包存在于 npm 之前，创建一个
+   短期的细粒度令牌，具有对所有包的读/写访问权限并绕过 2FA，
+   将其作为 `NPM_TOKEN` 存储在 GitHub `npm` 环境中（允许 `v*` 标签和 `main`）。
+   该令牌仅传递给发布步骤。包存在后，配置
+   其 npm 受信任发布者，owner 为 `1Cyrvox`，repository 为 `manimgx`，workflows 为
+   `release.yaml` 和 `publish-npm.yaml`，environment 为 `npm`；npm 检查调用者的
+   工作流身份。启用直接发布（`npm publish`），
+   因为工作流不暂存 release。然后撤销令牌并删除
+   GitHub 密钥：后续发布使用 OIDC。
+7. **发布 Docker 镜像：**复制经过测试的 OCI 归档而不改变其摘要，
+   包括来源证明和 SBOM，并组装 `linux/amd64` 和 `linux/arm64`
+   平台索引。其来源证明已签名，并发布到
+   `ghcr.io/1Cyrvox/ShuJing`，标记为 `X.Y.Z` 和 `X.Y`（预发布版本
+   仅 `X.Y.Z`），标签为 `MIT AND GPL-3.0-or-later`：ManimGX 的代码，以及引擎，由于
+   x264 使整体成为 GPL-3.0-or-later。它不需要新的包解析或镜像构建。
+   首次上传后，在其 GitHub 包设置中将容器包的
+   [可见性设为 Public](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility#configuring-visibility-of-packages-for-an-organization)；
+   仓库可见性不会设置包可见性。
+   在宣布发布之前确认匿名拉取成功。
+8. **确认完成：**所有注册表上传均已成功，且 GitHub release 已
+   公开。跨注册表的发布不是原子的；失败的目标可以使用
+   保留的制品重试。仅发布不会锁定 release 的文件或标签：这需要
+   为仓库启用 GitHub 的
+   [不可变 release](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)。
+   此工作流在 release 为草稿时附加每个文件，并且
+   不更改该设置。记录的制品摘要和来源
+   证明验证所获取的字节；它们不启用 GitHub 的不可变性策略。
 
-### 5. [`create-wheels.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/create-wheels.yaml): the wheels
+### 5. [`create-wheels.yaml`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/workflows/create-wheels.yaml)：wheel
 
-**When it runs:** when the Release workflow calls it (or Create executables, run by hand),
-and by hand, to try a branch's wheels.
+**何时运行：**当 Release 工作流调用它时（或 Create executables 手动运行时），以及手动运行以尝试某个分支的 wheel 时。
 
-**What it does:** a job per platform (Linux x86_64 and arm64, macOS arm64 and x86_64,
-Windows x86_64, and Pyodide) runs `just build-wheel`; the macOS x86_64 wheel is cross-compiled
-on an arm64 runner (`CIBW_ARCHS`), and tested there under Rosetta, and a Linux job builds Mesa's
-lavapipe for its wheel first (`scripts/release/build_lavapipe.sh`). cibuildwheel builds the
-platform's wheel and tests it on every
-supported Python, as `[tool.cibuildwheel]` in `pyproject.toml` says (see
-[Project management](project-management.md#distribution)). Each wheel is kept as
-`wheel-<platform>`.
+**做什么：**每个平台一个作业（Linux x86_64 和 arm64、macOS arm64 和 x86_64、
+Windows x86_64 和 Pyodide）运行 `just build-wheel`；macOS x86_64 wheel 在
+arm64 runner 上交叉编译（`CIBW_ARCHS`），并在其上通过 Rosetta 测试，Linux 作业首先为其 wheel 构建 Mesa 的
+lavapipe（`scripts/release/build_lavapipe.sh`）。cibuildwheel 构建该
+平台的 wheel 并在每个
+受支持的 Python 上测试，如 `pyproject.toml` 中的 `[tool.cibuildwheel]` 所述（见
+[项目管理](project-management.md#_4)）。每个 wheel 保留为
+`wheel-<platform>`。
 
-### 6. [`create-executables.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/create-executables.yaml): the executables
+### 6. [`create-executables.yaml`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/workflows/create-executables.yaml)：可执行文件
 
-**When it runs:** when the Release workflow calls it, with its wheels, and by hand, when it
-builds the wheels first.
+**何时运行：**当 Release 工作流调用它时（带有其 wheel），以及手动运行时（此时它会
+先构建 wheel）。
 
-**What it does:** a job per platform takes the platform's wheel and runs
+**做什么：**每个平台一个作业，获取该平台的 wheel 并运行
 `just create-executable`
-([`scripts/release/create_executable.py`](https://github.com/academa-labs/manimgx/blob/main/scripts/release/create_executable.py)),
-which renders a scene with the executable before it keeps it. Linux builds the launcher
-inside the wheel's manylinux SDK, so both require glibc 2.28 or newer. A fresh glibc 2.28
-container then runs the executable without Python, a GPU driver, network access, or an
-installation cache: it uses its embedded Python and bundled lavapipe. macOS uses Metal and
-Windows uses WARP. Each executable is kept as
-`executable-<platform>`: `manimgx-<os>-<arch>.tar.gz`, or a `.zip` on Windows.
+（[`scripts/release/create_executable.py`](https://github.com/1Cyrvox/ShuJing/blob/main/scripts/release/create_executable.py)），
+它在保留可执行文件之前先用它渲染一个场景。Linux 在
+wheel 的 manylinux SDK 内构建启动器，因此两者都需要 glibc 2.28 或更新版本。一个全新的 glibc 2.28
+容器随后在没有 Python、GPU 驱动程序、网络访问或
+安装缓存的情况下运行该可执行文件：它使用其内嵌的 Python 和内置的 lavapipe。macOS 使用 Metal，
+Windows 使用 WARP。每个可执行文件保留为
+`executable-<platform>`：`manimgx-<os>-<arch>.tar.gz`，Windows 上则为 `.zip`。
 
-The interpreter is an exact Python Build Standalone release and target archive, verified
-by SHA-256. The executable archive includes `build-inputs.json`, the original `PYTHON.json`,
-and `LICENSE-PYTHON`; the metadata and notices also remain inside the embedded Python.
-The source artifact retains the launcher's locked sources and `python-inputs.tar.xz`,
-which contains the interpreter's build recipe, metadata, and notices. The corresponding
-open-source runtime inputs are retained once, by digest, in `release-sources/python/`;
-each platform's receipt identifies its inputs and the final source build verifies them.
-Selection follows the pinned PBS and CPython build recipes, including Windows' separate
-libffi, Tcl and Tk inputs. Sources needed only to recover an upstream notice are marked
-separately in the receipt.
+解释器是一个精确的 Python Build Standalone 发行版和目标归档，通过
+SHA-256 验证。可执行文件归档包括 `build-inputs.json`、原始的 `PYTHON.json`
+和 `LICENSE-PYTHON`；元数据和声明也保留在内嵌的 Python 中。
+源码制品保留启动器的锁定源码和 `python-inputs.tar.xz`，
+其中包含解释器的构建配方、元数据和声明。对应的
+开源运行时输入按摘要唯一保留在 `release-sources/python/` 中；
+每个平台的回执标识其输入，最终的源码构建会验证它们。
+选择遵循锁定的 PBS 和 CPython 构建配方，包括 Windows 单独的
+libffi、Tcl 和 Tk 输入。仅用于恢复上游声明的源码在
+回执中单独标记。
 
-Windows' interpreter also carries Microsoft's proprietary `vcruntime140.dll` and
-`vcruntime140_1.dll`, recorded as `vcruntime:140` in `PYTHON.json`. These are binary
-redistributables governed by [Microsoft's distribution terms](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files),
-not open-source components supplied by the source archive.
+Windows 的解释器还携带 Microsoft 专有的 `vcruntime140.dll` 和
+`vcruntime140_1.dll`，在 `PYTHON.json` 中记录为 `vcruntime:140`。这些是受
+[Microsoft 分发条款](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files) 管辖的二进制
+可再分发组件，而非源码归档提供的开源组件。
 
-### 7. [`ai.yaml`](https://github.com/academa-labs/manimgx/blob/main/.github/workflows/ai.yaml): Claude on issues and pull requests
+### 7. [`ai.yaml`](https://github.com/1Cyrvox/ShuJing/blob/main/.github/workflows/ai.yaml)：issue 和 pull request 上的 Claude
 
-Claude runs through [claude-code-action](https://github.com/anthropics/claude-code-action),
-on Amazon Bedrock. GitHub's OIDC token is exchanged for a short-lived AWS session (for the
-role in the variable `AWS_ROLE`), so no key is stored. The jobs that use it run in the `ai`
-environment, and each run has a budget in dollars.
+Claude 通过 [claude-code-action](https://github.com/anthropics/claude-code-action) 运行，
+基于 Amazon Bedrock。GitHub 的 OIDC 令牌被交换为一个短期的 AWS 会话（对应
+变量 `AWS_ROLE` 中的角色），因此不存储任何密钥。使用它的作业在 `ai`
+环境中运行，每次运行都有以美元计的预算。
 
-**When it runs:** an issue is opened, a comment is made on an issue or a pull request, or a
-pull request is opened or marked ready for review.
+**何时运行：**打开 issue、在 issue 或 pull request 上发表评论，或
+pull request 被打开或标记为准备好评审时。
 
-**What it does**, in three ways:
+**做什么**，有三种方式：
 
-- **A first reply** to an issue opened by someone outside the team (not an owner, a member
-  or a collaborator, and not a bot). A model, Claude Sonnet, reads the issue, the titles of
-  the open issues and the repository, and can do nothing else: it may only read the
-  checked-out files, and it answers with a reply of at most 2,000 characters and up to
-  three related issues. Its instructions are the workflow's own (`prompt`).
-  A second job, with no model and no checkout, posts the reply: it refuses one that looks
-  like it carries a credential, defuses its @-mentions, drops its images, links the related
-  issues, and says that the reply is automated and that a maintainer will follow up.
-- **A review** of a pull request from a branch of the repository (not a draft, and not a
-  bot's), when it is opened or marked ready: Anthropic's code-review plugin, with Claude
-  Opus, comments on the problems it is sure of.
-- **@claude:** a maintainer mentions @claude in a new issue, or in a comment on an issue or
-  a pull request, and asks for anything: an answer, a review, a change. The job first
-  checks that the author can write to the repository, and stops otherwise. Claude Opus
-  works in the environment `just sync` makes, and its commands run in Claude Code's
-  sandbox: they reach only GitHub, PyPI, crates.io and npm, and never see the AWS session. It
-  is told to follow [`AGENTS.md`](https://github.com/academa-labs/manimgx/blob/main/AGENTS.md),
-  to run `just check` and the tests its change touches before it pushes, and to open a
-  change as a draft pull request. On a pull request from a fork, it only reads.
+- **首次回复**，针对团队外部人员（不是 owner、member
+  或 collaborator，也不是 bot）打开的 issue。一个模型 Claude Sonnet 读取 issue、
+  打开的 issue 的标题和仓库，除此之外不能做任何事：它只能读取
+  检出的文件，并以最多 2,000 个字符的回复和最多
+  三个相关 issue 来回答。其指令是工作流自身的（`prompt`）。
+  第二个作业没有模型也没有检出，负责发布回复：它会拒绝看起来
+  携带凭据的回复，消除其中的 @-mention，删除其中的图片，链接相关
+  issue，并说明该回复是自动生成的，维护者会跟进。
+- **评审**，针对来自仓库分支的 pull request（不是草稿，也不是
+  bot 的），在其打开或标记为准备好时：Anthropic 的 code-review 插件，使用 Claude
+  Opus，对它确信的问题发表评论。
+- **@claude：**维护者在新 issue 中，或在 issue 或
+  pull request 的评论中提及 @claude，并要求任何东西：回答、评审、变更。作业首先
+  检查作者是否可以写入仓库，否则停止。Claude Opus
+  在 `just sync` 创建的环境中工作，其命令在 Claude Code 的
+  沙箱中运行：它们只能访问 GitHub、PyPI、crates.io 和 npm，永远看不到 AWS 会话。它
+  被告知遵循 [`AGENTS.md`](https://github.com/1Cyrvox/ShuJing/blob/main/AGENTS.md)，
+  在推送之前运行 `just check` 及其变更涉及的测试，并以
+  草稿 pull request 的形式打开变更。对于来自 fork 的 pull request，它只读取。
 
-## Deployment credentials
+## 部署凭据
 
-Builds and tests receive no deployment credentials. Publishing jobs use only the trusted
-base commit's deployment files and the static artifacts:
+构建和测试不接收部署凭据。发布作业仅使用受信任
+基准提交的部署文件和静态制品：
 
-- The checks, the tests and the docs' build run the repository's code (they build the
-  engine and render scenes), with a token that can only read the repository. The jobs that
-  get Cloudflare's API token run a pinned Wrangler on the built files (and `gh`, to set
-  the coverage status). Cleanup uses the trusted base commit's `cleanup.py`. Neither
-  deployment configuration nor executable code is taken from a build artifact.
-- Academa's `internal/manimgx-hosting` Terraform unit owns the Worker identities,
-  custom domains, GitHub environments and credentials. Each site's
-  `CLOUDFLARE_API_TOKEN` can edit only that Worker; the account ID is the repository
-  variable `CLOUDFLARE_ACCOUNT_ID`. Production environments allow `main`; preview
-  environments also allow pull request merge refs.
-- Pull requests from forks and from Dependabot get no secrets: they are built and tested,
-  not previewed, and their coverage is not published.
-- The first reply's model can only read, and the job that posts its reply runs no model.
-- The @claude assistant is the exception: it runs the repository's code (`just sync`, the
-  checks, the tests) with the AWS session at hand, and its sandbox hides the session from
-  every command it runs.
+- 检查、测试和文档构建运行仓库的代码（它们构建
+  引擎并渲染场景），使用的令牌只能读取仓库。获取
+  Cloudflare API 令牌的作业在构建的文件上运行锁定的 Wrangler（以及 `gh`，用于设置
+  覆盖率状态）。清理使用受信任基准提交的 `cleanup.py`。部署配置和可执行代码均不从构建制品中获取。
+- Academa 的 `internal/manimgx-hosting` Terraform 单元拥有 Worker 身份、
+  自定义域名、GitHub 环境和凭据。每个站点的
+  `CLOUDFLARE_API_TOKEN` 只能编辑该 Worker；账户 ID 是仓库
+  变量 `CLOUDFLARE_ACCOUNT_ID`。生产环境允许 `main`；预览
+  环境还允许 pull request 合并引用。
+- 来自 fork 和 Dependabot 的 pull request 不获取任何密钥：它们被构建和测试，
+  但不预览，其覆盖率也不发布。
+- 首次回复的模型只能读取，发布其回复的作业不运行模型。
+- @claude 助手是例外：它在 AWS 会话可用的情况下运行仓库的代码（`just sync`、
+  检查、测试），其沙箱对它运行的每个命令隐藏该会话。
 
-Every workflow's default permissions are none (`permissions: {}`); each job asks for what
-it needs.
+每个工作流的默认权限均为无（`permissions: {}`）；每个作业按需申请权限。
 
-## Details
+## 细节
 
-- One run of the Test and docs workflows per pull request or branch at a time: a new
-  commit to a pull request cancels its running one, while a run on `main` finishes before
-  the next one begins.
-- Every action is pinned to a commit, its version in a comment beside it, and wrangler's
-  version is pinned in `WRANGLER_VERSION`. Maintainers review updates to these pins, and
-  [zizmor](https://docs.zizmor.sh), one of the checks of `just check`, finds security
-  problems in the workflows.
-- The Test, docs and AI workflows reuse compiled Rust dependencies. The browser engine
-  has a separate cache key. Pull request builds do not write the shared caches; docs saves
-  only from `main`, Test also saves from explicit non-PR runs, and AI only restores them.
+- Test 和文档工作流每个 pull request 或分支同时只运行一次：向
+  pull request 的新提交会取消其正在运行的作业，而 `main` 上的运行会在
+  下一次开始之前完成。
+- 每个 action 都锁定到一个提交，其版本在旁边的注释中，wrangler 的
+  版本锁定在 `WRANGLER_VERSION` 中。维护者评审这些锁定的更新，
+  [zizmor](https://docs.zizmor.sh) 作为 `just check` 的一项检查，用于发现工作流中的安全
+  问题。
+- Test、文档和 AI 工作流复用已编译的 Rust 依赖。浏览器引擎
+  有单独的缓存键。Pull request 构建不写入共享缓存；文档仅从
+  `main` 保存，Test 还从显式的非 PR 运行中保存，AI 仅恢复它们。
 
-## Dependency updates
+## 依赖更新
 
-Maintainers initiate dependency updates and validate them before integrating them into
-`main`. There is no scheduled Dependabot configuration, so version updates do not create
-branches automatically. [Dependabot alerts](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-alerts)
-remain enabled; automatic security-update pull requests are disabled. Alerts and upstream
-release notes guide maintenance, including checks of the actions pinned by commit.
+维护者发起依赖更新，并在将其集成到
+`main` 之前进行验证。没有计划性的 Dependabot 配置，因此版本更新不会
+自动创建分支。[Dependabot 告警](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-alerts)
+保持启用；自动安全更新 pull request 已禁用。告警和上游
+发行说明指导维护工作，包括对按提交锁定的 action 的检查。
 
-- `just upgrade` refreshes the Python and Rust lockfiles within the manifests' version
-  requirements and regenerates the third-party notice. Review major-version changes
-  explicitly, including their API, behavior and license; some requirements already allow them.
-- Review the browser and corpus review panel's dependencies in their own `package.json`
-  and `bun.lock`. Run their checks and builds with the new lockfiles.
-- Review action commits, pre-commit hook revisions, Docker base images and the native
-  source pins separately. These are not changed by `just upgrade`; update their recorded
-  versions and source identities together.
+- `just upgrade` 在清单的版本要求范围内刷新 Python 和 Rust 的 lockfile，
+  并重新生成第三方声明。显式评审
+  主版本变更，包括其 API、行为和许可证；某些要求已经允许它们。
+- 在各自的 `package.json`
+  和 `bun.lock` 中评审浏览器和语料库评审面板的依赖。使用新的 lockfile 运行其检查和构建。
+- 分别评审 action 提交、pre-commit hook 版本、Docker 基础镜像和原生
+  源码锁定。这些不会被 `just upgrade` 更改；一起更新其记录的
+  版本和源码标识。
 
-Run `just check` and the affected tests after an update. Changes to the native dependency
-closure also need the platform builds, package smoke tests and source/notice checks; changes
-to the render path need the corpus and paired benchmarks. A new version alone is not evidence
-of compatibility.
+更新后运行 `just check` 和受影响的测试。原生依赖
+闭包的变更还需要平台构建、包冒烟测试和源码/声明检查；渲染
+路径的变更需要语料库和配对基准测试。仅新版本本身不能证明
+兼容性。
 
-## Other files in `.github/`
+## `.github/` 中的其他文件
 
-The [contributing guide](https://github.com/academa-labs/manimgx/blob/main/.github/CONTRIBUTING.md),
-the security policy, the code of conduct, the issue forms (a bug, a feature, the docs, a
-question; no blank issues) and the pull request template (a summary, a test plan, and the
-use of AI). GitHub shows each where it applies.
+[贡献指南](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CONTRIBUTING.md)、
+安全策略、行为准则、issue 表单（bug、功能、文档、
+问题；没有空白 issue）和 pull request 模板（摘要、测试计划以及
+AI 的使用）。GitHub 会在适用的地方分别显示它们。
 
-## Learn more
+## 了解更多
 
-- [`.github/workflows/`](https://github.com/academa-labs/manimgx/tree/main/.github/workflows):
-  the workflow files.
-- [GitHub Actions' documentation](https://docs.github.com/en/actions).
-- [Dependabot alerts](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-alerts).
+- [`.github/workflows/`](https://github.com/1Cyrvox/ShuJing/tree/main/.github/workflows)：
+  工作流文件。
+- [GitHub Actions 文档](https://docs.github.com/en/actions)。
+- [Dependabot 告警](https://docs.github.com/en/code-security/concepts/supply-chain-security/dependabot-alerts)。

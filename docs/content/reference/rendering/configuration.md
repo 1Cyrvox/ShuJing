@@ -1,11 +1,11 @@
 ---
-title: "Configuration"
-description: "The configuration every scene is made and rendered with: the video's size and frame rate, its background, and the frame's size in units."
+title: "配置"
+description: "每个场景制作和渲染所用的配置：视频的尺寸和帧率、它的背景，以及帧以单位计的尺寸。"
 ---
 
-# Configuration
+# 配置
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 m.config.pixel_width, m.config.pixel_height = 1080, 1920
@@ -24,12 +24,9 @@ class ConfigurationHero(m.Scene):
         self.wait()
 ```
 
-`m.config` holds what every scene is made with: the video's size in pixels, its frame rate,
-its background, and the frame's size in units. Set it after `import manimgx as m`, before
-the scene is made; the command line's options set it too (`-r 1080x1920`, `--fps 30`).
+`m.config` 持有每个场景制作时所用的内容：视频以像素计的尺寸、它的帧率、它的背景，以及帧以单位计的尺寸。在 `import manimgx as m` 之后、场景制作之前设置它；命令行的选项也会设置它（`-r 1080x1920`、`--fps 30`）。
 
-The frame has the video's shape, and its short side is 8 units: a wide video shows about
-14.2 × 8 units, a tall one 8 × 14.2, and the 8 × 8 square in the middle is in both.
+帧具有视频的形状，它的短边为 8 个单位：宽视频显示约 14.2 × 8 个单位，高视频显示 8 × 14.2，而中间的 8 × 8 正方形在两者中都存在。
 
 ::: manimgx.config.config
     options:

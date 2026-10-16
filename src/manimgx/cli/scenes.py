@@ -1,4 +1,4 @@
-"""A command-line scene run: its arguments, source file, format, film and author-facing errors."""
+"""命令行场景运行：其参数、源文件、格式、影片与面向作者的报错。"""
 
 import dataclasses
 import difflib
@@ -34,7 +34,7 @@ from manimgx.scene import Scene
 
 @dataclass(frozen=True, slots=True)
 class Size:
-    """A picture's size in pixels."""
+    """图片的像素尺寸。"""
 
     width: int
     height: int
@@ -44,7 +44,7 @@ class Size:
 
 
 def size(text: str) -> Size:
-    """`WIDTHxHEIGHT` as a size."""
+    """将 `WIDTHxHEIGHT` 解析为尺寸。"""
     width, _, height = text.lower().partition("x")
     try:
         parsed = Size(int(width), int(height))
@@ -63,7 +63,7 @@ File = Annotated[
     Path,
     typer.Argument(
         metavar="FILE",
-        help="The scene file: a Python file defining ManimGX scenes.",
+        help="场景文件：定义 ManimGX 场景的 Python 文件。",
         show_default=False,
     ),
 ]
@@ -72,7 +72,7 @@ SceneName = Annotated[
     typer.Argument(
         metavar="SCENE",
         help=(
-            "The scene (a class in the file); needed only if the file defines several."
+            "场景（文件中的一个类）；仅当文件定义了多个场景时需要。"
         ),
         show_default=False,
     ),
@@ -87,7 +87,7 @@ Resolution = Annotated[
         parser=size,
         metavar="WxH",
         help=(
-            "Pixels, e.g. 1280x720. [default: the scene's config, 1920x1080 unless set]"
+            "像素，如 1280x720。[默认：场景的 config，未设置则为 1920x1080]"
         ),
         show_default=False,
     ),
@@ -96,7 +96,7 @@ Fps = Annotated[
     int | None,
     typer.Option(
         min=1,
-        help="Frames per second. [default: the scene's config, 60 unless set]",
+        help="每秒帧数。[默认：场景的 config，未设置则为 60]",
         show_default=False,
     ),
 ]
@@ -131,7 +131,7 @@ def _names() -> list[str]:
 
 
 def hints(error: BaseException) -> list[str]:
-    """What to write instead, for the mistakes a scene's author makes in names."""
+    """针对场景作者在命名上的错误，提示应改用什么。"""
     text = str(error)
     if isinstance(error, AttributeError) and (
         match := re.search(r"module 'manimgx' has no attribute '(\w+)'", text)
@@ -164,8 +164,8 @@ def _instead(name: str) -> str:
 
 
 def report_error(error: BaseException) -> str:
-    """The error as it went through the scene's code: its last frames there (and where ManimGX
-    raised it), the error, and hints."""
+    """错误经过场景代码后的形式：场景中的最后几帧（以及 ManimGX 抛出它的位置）、
+    错误信息和提示。"""
     frames = traceback.extract_tb(error.__traceback__)
     own = [
         f
@@ -190,11 +190,11 @@ def report_error(error: BaseException) -> str:
 
 
 class Mistake(Exception):
-    """The command was given wrong; the message says how to give it."""
+    """命令输入有误；消息说明正确的用法。"""
 
 
 class Source(SourceFileLoader):
-    """Current authoring source, with no timestamp-bytecode reuse or cache writes."""
+    """当前创作源，不复用带时间戳的字节码，也不写入缓存。"""
 
     def get_code(self, fullname: str) -> CodeType:
         linecache.cache.pop(self.path, None)
@@ -202,9 +202,9 @@ class Source(SourceFileLoader):
 
 
 def load(path: Path) -> ModuleType:
-    """Run the file as a module named by its stem, with its directory first on the path (so it
-    imports its neighbours) — not as `__main__`, so its own `if __name__ == "__main__":` block
-    stays put."""
+    """以文件名（不含扩展名）为模块名运行该文件，将其目录置于路径最前（使其能导入
+    同目录的邻居）——不以 `__main__` 运行，因此其自身的 `if __name__ == "__main__":`
+    块保持原位不执行。"""
     defaults = Config()
     for field in dataclasses.fields(Config):
         setattr(config, field.name, getattr(defaults, field.name))
@@ -222,7 +222,7 @@ def load(path: Path) -> ModuleType:
 
 
 def scenes(module: ModuleType) -> list[type[Scene]]:
-    """The scenes the module defines, in the order it defines them."""
+    """模块所定义的场景，按定义顺序排列。"""
     return [
         value
         for value in vars(module).values()
@@ -233,7 +233,7 @@ def scenes(module: ModuleType) -> list[type[Scene]]:
 
 
 def pick(path: Path, module: ModuleType, name: str | None) -> type[Scene]:
-    """The scene `name` names — or, unnamed, the file's only scene."""
+    """`name` 所指名的场景——未指名时，取文件中唯一的场景。"""
     found = scenes(module)
     names = [scene.__name__ for scene in found]
     if name is not None:
@@ -257,7 +257,7 @@ def pick(path: Path, module: ModuleType, name: str | None) -> type[Scene]:
 
 @dataclass(frozen=True, slots=True)
 class Format:
-    """The picture a take makes: its size in pixels and frames per second."""
+    """一次拍摄所生成的画面：其像素尺寸和每秒帧数。"""
 
     width: int
     height: int
@@ -265,8 +265,7 @@ class Format:
 
     @classmethod
     def own(cls, size: Size | None = None, fps: float | None = None) -> Self:
-        """The scene's own format — as its file leaves `config` — unless `size` or `fps` say
-        otherwise."""
+        """场景自身的格式——即其文件对 `config` 的设置——除非 `size` 或 `fps` 另有指定。"""
         shape = size or Size(config.pixel_width, config.pixel_height)
         return cls(shape.width, shape.height, fps or config.frame_rate)
 
@@ -275,15 +274,14 @@ class Format:
 
 
 def fail(message: str, code: int = 2) -> typer.Exit:
-    """Say what went wrong (on stderr) and end with `code`: 2 the command was wrong, 1 the scene
-    failed."""
+    """说明出错原因（输出到 stderr）并以 `code` 退出：2 表示命令有误，1 表示场景失败。"""
     typer.echo(message, err=True)
     return typer.Exit(code)
 
 
 def scene(file: Path, name: str | None) -> type[Scene]:
-    """The scene the command names: its file run on ManimGX's own config (whatever the file
-    sets there is the scene's, not a take's before it), and it picked."""
+    """命令所指名的场景：其文件在 ManimGX 自身的配置上运行（文件在此设置的任何内容
+    都属于该场景，而非此前某次拍摄），并选出该场景。"""
     try:
         return pick(file, load(file), name)
     except Mistake as mistake:
@@ -293,8 +291,8 @@ def scene(file: Path, name: str | None) -> type[Scene]:
 
 
 type Watch = Callable[[Scene, Play, tuple[Animation, ...]], object]
-"""What a command does when a play ends: the scene (as the play left it), the play, and what it
-played."""
+"""一次播放结束时命令所执行的操作：接收场景（播放结束时的状态）、该次播放及其
+所播放的内容。"""
 
 
 def take(
@@ -307,8 +305,8 @@ def take(
     preset: X264Preset = DEFAULT_ENCODER_PRESET,
     crf: float = DEFAULT_ENCODER_CRF,
 ) -> tuple[Scene, Film]:
-    """Run the scene at `look`, making its film (and video, frames and plays, as asked). On a
-    terminal, a status line on stderr follows the plays as they end."""
+    """以 `look` 格式运行场景，生成其影片（以及视频、帧和播放记录，视请求而定）。
+    在终端中，stderr 上的状态行会随各次播放的结束而更新。"""
     config.pixel_width, config.pixel_height = look.width, look.height
     config.frame_rate = look.fps
     shown = Console(stderr=True)

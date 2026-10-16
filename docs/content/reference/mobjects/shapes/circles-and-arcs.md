@@ -1,11 +1,11 @@
 ---
-title: "Circles and arcs"
-description: "Circles, dots, ellipses and arcs, and the rings and slices made from them."
+title: "圆与弧"
+description: "圆、点、椭圆和弧，以及由它们制成的圆环和扇形。"
 ---
 
-# Circles and arcs
+# 圆与弧
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -30,11 +30,9 @@ class CirclesAndArcs(m.Scene):
         self.wait()
 ```
 
-A circle is an arc that goes all the way around. An arc is a part of a circle: from a start
-angle, counterclockwise through an angle. A dot is a small filled circle, to mark a point.
-A ring is the region between two circles, and a slice of it, or of a disc, is a sector.
+圆是一段绕了一整圈的弧。弧是圆的一部分：从一个起始角开始，逆时针转过一定角度。点是一个小的实心圆，用于标记一个位置。圆环是两个圆之间的区域，而圆环或圆盘的一片是一个扇形。
 
-Arcs end in tips as lines do: see [Lines and arrows](lines-and-arrows.md#tips).
+弧的末端如同线一样可以带有箭头尖端：参见 [线与箭头](lines-and-arrows.md#_3)。
 
 ::: manimgx.Circle
     options:
@@ -67,3 +65,6 @@ Arcs end in tips as lines do: see [Lines and arrows](lines-and-arrows.md#tips).
 ::: manimgx.Sector
     options:
       heading_level: 2
+
+::: manimgx.mobjects.shapes.ArcOptions
+::: manimgx.mobjects.shapes.SectorOptions

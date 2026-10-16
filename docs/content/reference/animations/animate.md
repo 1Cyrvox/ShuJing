@@ -1,11 +1,11 @@
 ---
-title: "Animate a change"
-description: "Put `.animate` before a method, and play animates the change it makes; or move a mobject to a target, or back to a saved state."
+title: "为变化添加动画"
+description: "在方法前加上 `.animate`，play 便会对该方法所产生的变化添加动画；或将 mobject 移动到目标，或回到已保存的状态。"
 ---
 
-# Animate a change
+# 为变化添加动画
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -18,13 +18,13 @@ class AnimateHero(m.Scene):
         self.play(square.animate.move_to(m.ORIGIN).set_color(m.BLUE))
 ```
 
-`square.shift(m.RIGHT)` moves the square at once. `square.animate.shift(m.RIGHT)` makes an
-animation that moves it: give it to `play`, and the square moves for the animation's run
-time. Chain several calls after `.animate`, and they happen together. Give `.animate` the
-animation keywords, `square.animate(run_time=2)`, to time it.
+`square.shift(m.RIGHT)` 一次性移动正方形。`square.animate.shift(m.RIGHT)` 创建一个
+移动它的动画：将其传给 `play`，正方形便在动画的运行时间内移动。在 `.animate` 后链式
+调用多个方法，它们会同时发生。将动画关键字传给 `.animate`，即
+`square.animate(run_time=2)`，来为其计时。
 
-`.animate` goes from the mobject as it is when the animation starts to the mobject as the
-calls leave it: each point travels on a straight line, unless you give a `path_arc`.
+`.animate` 从动画开始时 mobject 的当前状态变化到调用结束后 mobject 的状态：每个点沿
+直线行进，除非你给定一个 `path_arc`。
 
 ::: manimgx.Mobject.animate
     options:
@@ -34,7 +34,7 @@ calls leave it: each point travels on a straight line, unless you give a `path_a
     options:
       heading_level: 2
 
-## To a prepared state
+## 到达预备状态
 
 ::: manimgx.MoveToTarget
     options:

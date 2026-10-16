@@ -1,11 +1,11 @@
 ---
-title: "Networks"
-description: "Graphs in the sense of networks: vertices joined by edges, laid out for you or by hand, which grow and change as a scene plays."
+title: "网络"
+description: "网络意义上的图：由边连接的顶点，自动或手动布局，随场景播放而增长和变化。"
 ---
 
-# Networks
+# 网络
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -19,14 +19,13 @@ class NetworksHero(m.Scene):
         self.wait()
 ```
 
-A network is vertices, joined by edges: a graph, as graph theory says it. (For the graph of
-a function, see [Plotting](graphs/plotting.md).) [Graph][manimgx.Graph] joins its vertices
-with lines, [DiGraph][manimgx.DiGraph] with arrows, from each edge's first vertex to its
-second. Each lays its vertices out for you (`layout="spring"`, `"circular"`, `"tree"`, …),
-or where you place them; a vertex is a dot unless you give another mobject.
+网络是由边连接的顶点：即图论意义上的图。（关于函数的图形，请参见
+[绘图](graphs/plotting.md)。）[Graph][manimgx.Graph] 用线连接其顶点，
+[DiGraph][manimgx.DiGraph] 用箭头连接，从每条边的第一个顶点指向第二个。两者都会自动为你
+布局顶点（`layout="spring"`、`"circular"`、`"tree"`、…），或按你指定的位置放置；顶点默认
+为圆点，除非你指定其他 mobject。
 
-Both can do what follows: add and remove vertices and edges, change their layout, and read
-a network from NetworkX.
+两者都能执行以下操作：添加和移除顶点与边、更改布局，以及从 NetworkX 读取网络。
 
 ::: manimgx.Graph
     options:
@@ -42,9 +41,9 @@ a network from NetworkX.
     options:
       heading_level: 3
 
-## What a network can do
+## 网络能做什么
 
-Graph and DiGraph are both made from GenericGraph, which holds what they can do.
+Graph 和 DiGraph 都继承自 GenericGraph，后者包含了它们的共有功能。
 
 ::: manimgx.mobjects.graph.GenericGraph
     options:
@@ -52,3 +51,5 @@ Graph and DiGraph are both made from GenericGraph, which holds what they can do.
       extra:
         members_only: true
       members: [vertices, edges, add_vertices, remove_vertices, add_edges, remove_edges, change_layout, from_networkx, update_edges]
+
+::: manimgx.mobjects.graph.VertexOptions

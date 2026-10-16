@@ -1,11 +1,11 @@
 ---
-title: "Together and in turn"
-description: "Play animations at once, one after another, or each shortly after the one before it; slow down or speed up a play."
+title: "同时与依次"
+description: "同时播放动画、依次播放，或每个在前一个之后稍后播放；放慢或加快一次播放。"
 ---
 
-# Together and in turn
+# 同时与依次
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -22,9 +22,8 @@ class TogetherHero(m.Scene):
         self.wait()
 ```
 
-`self.play(a, b)` plays a and b together. A group plays animations as one: together, one
-after another, or each a little after the one before it. A group is an animation itself, so
-groups nest, and a group plays inside a larger play.
+`self.play(a, b)` 同时播放 a 和 b。组将动画作为一个整体播放：同时、依次，或每个在前
+一个之后稍后播放。组本身也是一个动画，因此组可以嵌套，组也可以在更大的播放中播放。
 
 ::: manimgx.AnimationGroup
     options:

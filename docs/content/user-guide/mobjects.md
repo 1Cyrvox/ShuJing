@@ -1,9 +1,8 @@
-# Mobjects
+# Mobject
 
-A mobject is anything that you can show in a video. This page shows the kinds of
-mobjects, and how to change their color, size and angle.
+mobject 是任何你可以在视频中展示的东西。本页展示 mobject 的种类，以及如何更改它们的颜色、大小和角度。
 
-## Shapes
+## 形状
 
 ```python
 import manimgx as m
@@ -21,16 +20,13 @@ class Shapes(m.Scene):
         self.add(shapes)
 ```
 
-Each shape takes its size when you make it: a circle its `radius`, a square its
-`side_length`, a rectangle its `width` and `height`. Without them, a shape has a size of
-its own: a circle's radius is 1, and a square's side is 2.
+每个形状在创建时确定其大小：圆通过 `radius`，正方形通过 `side_length`，矩形通过 `width` 和 `height`。如果不指定，形状会有自己的默认大小：圆的半径为 1，正方形的边长为 2。
 
-To make a shape of your own, give `m.Polygon` its corners:
-`m.Polygon([0, 0, 0], [3, 0, 0], [0, 2, 0])`.
+要创建你自己的形状，请给 `m.Polygon` 指定其顶点：`m.Polygon([0, 0, 0], [3, 0, 0], [0, 2, 0])`。
 
-## Lines, arrows and dots
+## 线条、箭头和点
 
-A line goes from one point to another:
+线条从一个点延伸到另一个点：
 
 ```python
 import manimgx as m
@@ -45,12 +41,11 @@ class Lines(m.Scene):
         self.add(line, arrow, dashed, dot)
 ```
 
-An arrow stops a little before its points, so that it doesn't cover what it points at.
-To make it touch them, give `buff=0`. A dot is a small filled circle at a point.
+箭头会在其端点之前停下一小段距离，以免遮挡它所指向的内容。要让箭头触碰到端点，请给出 `buff=0`。点是位于某一点的小型实心圆。
 
-## Text and formulas
+## 文本和公式
 
-`m.Text` shows text, and `m.MathTex` shows a formula, written in LaTeX:
+`m.Text` 显示文本，`m.MathTex` 显示用 LaTeX 编写的公式：
 
 ```python
 import manimgx as m
@@ -65,12 +60,11 @@ class TextAndFormula(m.Scene):
         self.add(lines)
 ```
 
-Write a formula in a raw string, `r"..."`, so that Python keeps its backslashes.
-[Text and math](text-and-math.md) shows more.
+请将公式写在原始字符串 `r"..."` 中，以便 Python 保留其反斜杠。[文本和数学](text-and-math.md)展示了更多内容。
 
-## Color
+## 颜色
 
-Give a mobject its color when you make it:
+在创建 mobject 时为其指定颜色：
 
 ```python
 import manimgx as m
@@ -86,23 +80,17 @@ class Colors(m.Scene):
         self.add(circles)
 ```
 
-- `color` colors the outline and the inside.
-- `fill_opacity` fills the inside: 0 is empty, 1 is solid. Most shapes are empty
-  unless you fill them.
-- `stroke_width` sets the width of the outline: 4 for most shapes, and 6 for an
-  arrow, unless you give another.
+- `color` 为轮廓和内部着色。
+- `fill_opacity` 填充内部：0 为空，1 为实心。大多数形状默认为空，除非你填充它们。
+- `stroke_width` 设置轮廓的宽度：大多数形状为 4，箭头为 6，除非你另行指定。
 
-ManimGX has names for colors: `m.WHITE`, `m.GREY`, `m.BLUE`, `m.TEAL`, `m.GREEN`,
-`m.YELLOW`, `m.GOLD`, `m.ORANGE`, `m.RED`, `m.PINK`, `m.PURPLE` and more. Most of them
-also come in five shades: `m.BLUE_A` is the lightest blue, and `m.BLUE_E` the
-darkest. You can also give a color as a hex code, such as `"#58C4DD"`.
+ManimGX 为颜色提供了名称：`m.WHITE`、`m.GREY`、`m.BLUE`、`m.TEAL`、`m.GREEN`、`m.YELLOW`、`m.GOLD`、`m.ORANGE`、`m.RED`、`m.PINK`、`m.PURPLE` 等等。其中大多数还有五种深浅变体：`m.BLUE_A` 是最浅的蓝色，`m.BLUE_E` 是最深的。你也可以用十六进制代码给出颜色，例如 `"#58C4DD"`。
 
-To change a color later, use `set_color`, `set_fill` or `set_stroke`:
-`circle.set_fill(m.RED, opacity=1)`.
+要在之后更改颜色，请使用 `set_color`、`set_fill` 或 `set_stroke`：`circle.set_fill(m.RED, opacity=1)`。
 
-## Size and angle
+## 大小和角度
 
-`scale` multiplies the size of a mobject, and `rotate` turns it counterclockwise:
+`scale` 将 mobject 的大小按倍数缩放，`rotate` 将其逆时针旋转：
 
 ```python
 import manimgx as m
@@ -121,28 +109,24 @@ class SizeAndAngle(m.Scene):
         self.add(squares)
 ```
 
-`scale(2)` makes a mobject twice as large, and `scale(0.5)` half as large. Its center
-stays where it is. `45 * m.DEGREES` is an angle of 45 degrees.
+`scale(2)` 使 mobject 变为两倍大，`scale(0.5)` 使其减半。它的中心保持在原位。`45 * m.DEGREES` 是 45 度的角度。
 
-## Groups
+## 组
 
-A group is a mobject made of other mobjects. When you move, scale, color or animate a
-group, you do it to every mobject in it. `group[0]` is the first one, `group[1]` the
-second.
+组是由其他 mobject 组成的 mobject。当你移动、缩放、着色或制作动画一个组时，你是在对其中的每个 mobject 执行操作。`group[0]` 是第一个，`group[1]` 是第二个。
 
 ```py
 shapes = m.VGroup(circle, square, triangle)
-shapes.set_color(m.YELLOW)  # all three turn yellow
-shapes[0].scale(2)  # the circle grows
+shapes.set_color(m.YELLOW)  # 三个全部变为黄色
+shapes[0].scale(2)  # 圆变大
 ```
 
-## What covers what
+## 谁遮盖谁
 
-A mobject that you add later covers a mobject that you added before. To bring a
-mobject to the front, give it a higher z-index: `circle.set_z_index(1)`.
+后添加的 mobject 会遮盖先添加的 mobject。要将一个 mobject 提到最前面，请给它更高的 z-index：`circle.set_z_index(1)`。
 
-The [reference](../reference/mobjects/index.md) shows every kind of mobject.
+[参考文档](../reference/mobjects/index.md)展示了每种 mobject。
 
-## Next
+## 下一步
 
-Your mobjects are in place. [Animations](animations.md) shows how to move and change them.
+你的 mobject 已就位。[动画](animations.md)将展示如何移动和更改它们。

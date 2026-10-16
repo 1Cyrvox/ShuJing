@@ -1,4 +1,4 @@
-"""Directions, buffers, math constants and style enums (values identical to Manim CE 0.21)."""
+"""方向、间距常量、数学常量与样式枚举（取值与 Manim CE 0.21 一致）。"""
 
 from enum import Enum
 from typing import Literal
@@ -66,95 +66,91 @@ __all__ = [
 
 
 def _constant(value: npt.ArrayLike) -> Vector3D:
-    """A direction as a constant: read-only, so that a mobject that keeps it (an arc's
-    center, a number's edge) can't change it for everything made after."""
+    """将方向作为常量返回：只读，使得持有它的 mobject（如圆弧的圆心、数字的边缘）
+    不会改变它而影响后续创建的所有对象。"""
     array = np.array(value, dtype=float)
     array.flags.writeable = False
     return array
 
 
 ORIGIN: Vector3D = _constant((0.0, 0.0, 0.0))
-"""The center of the scene: (0, 0, 0)."""
+"""场景的中心：(0, 0, 0)。"""
 UP: Vector3D = _constant((0.0, 1.0, 0.0))
-"""One unit up: (0, 1, 0)."""
+"""向上一个单位：(0, 1, 0)。"""
 DOWN: Vector3D = _constant((0.0, -1.0, 0.0))
-"""One unit down: (0, −1, 0)."""
+"""向下一个单位：(0, −1, 0)。"""
 RIGHT: Vector3D = _constant((1.0, 0.0, 0.0))
-"""One unit right: (1, 0, 0)."""
+"""向右一个单位：(1, 0, 0)。"""
 LEFT: Vector3D = _constant((-1.0, 0.0, 0.0))
-"""One unit left: (−1, 0, 0)."""
+"""向左一个单位：(−1, 0, 0)。"""
 IN: Vector3D = _constant((0.0, 0.0, -1.0))
-"""One unit into the screen, away from the viewer: (0, 0, −1)."""
+"""向屏幕内一个单位，远离观察者：(0, 0, −1)。"""
 OUT: Vector3D = _constant((0.0, 0.0, 1.0))
-"""One unit out of the screen, toward the viewer: (0, 0, 1)."""
+"""向屏幕外一个单位，朝向观察者：(0, 0, 1)。"""
 X_AXIS: Vector3D = _constant((1.0, 0.0, 0.0))
-"""The direction of the x axis: (1, 0, 0)."""
+"""x 轴的方向：(1, 0, 0)。"""
 Y_AXIS: Vector3D = _constant((0.0, 1.0, 0.0))
-"""The direction of the y axis: (0, 1, 0)."""
+"""y 轴的方向：(0, 1, 0)。"""
 Z_AXIS: Vector3D = _constant((0.0, 0.0, 1.0))
-"""The direction of the z axis, out of the screen: (0, 0, 1)."""
+"""z 轴的方向，指向屏幕外：(0, 0, 1)。"""
 UL: Vector3D = _constant(UP + LEFT)
-"""Up and left, toward the upper left corner: (−1, 1, 0)."""
+"""向上且向左，朝向左上角：(−1, 1, 0)。"""
 UR: Vector3D = _constant(UP + RIGHT)
-"""Up and right, toward the upper right corner: (1, 1, 0)."""
+"""向上且向右，朝向右上角：(1, 1, 0)。"""
 DL: Vector3D = _constant(DOWN + LEFT)
-"""Down and left, toward the lower left corner: (−1, −1, 0)."""
+"""向下且向左，朝向左下角：(−1, −1, 0)。"""
 DR: Vector3D = _constant(DOWN + RIGHT)
-"""Down and right, toward the lower right corner: (1, −1, 0)."""
+"""向下且向右，朝向右下角：(1, −1, 0)。"""
 
 PI = np.pi
-"""π: half a turn, in radians."""
+"""π：半圈，以弧度表示。"""
 TAU = 2 * PI
-"""τ = 2π: a whole turn, in radians."""
+"""τ = 2π：一整圈，以弧度表示。"""
 DEGREES = TAU / 360
-"""One degree, in radians: `30 * DEGREES` is a twelfth of a turn."""
+"""一度的弧度值：`30 * DEGREES` 表示一圈的十二分之一。"""
 
 SMALL_BUFF = 0.1
-"""A small gap, in scene units: 0.1."""
+"""小间距，以场景单位表示：0.1。"""
 MED_SMALL_BUFF = 0.25
-"""A medium-small gap, in scene units: 0.25, the default between mobjects
-placed next to each other."""
+"""中偏小间距，以场景单位表示：0.25，是相邻排列的 mobject 之间的默认间距。"""
 MED_LARGE_BUFF = 0.5
-"""A medium-large gap, in scene units: 0.5, the default between a mobject and the
-frame's edge."""
+"""中偏大间距，以场景单位表示：0.5，是 mobject 与画面边缘之间的默认间距。"""
 LARGE_BUFF = 1
-"""A large gap, in scene units: 1."""
+"""大间距，以场景单位表示：1。"""
 DEFAULT_MOBJECT_TO_EDGE_BUFFER = MED_LARGE_BUFF
-"""The gap a mobject keeps from the frame's edge by default, in scene units: 0.5
-(`to_edge`, `to_corner`)."""
+"""mobject 默认与画面边缘保持的间距，以场景单位表示：0.5
+（`to_edge`、`to_corner`）。"""
 DEFAULT_MOBJECT_TO_MOBJECT_BUFFER = MED_SMALL_BUFF
-"""The gap between mobjects placed next to each other by default, in scene units:
-0.25 (`next_to`, `arrange`)."""
+"""相邻排列的 mobject 之间的默认间距，以场景单位表示：0.25
+（`next_to`、`arrange`）。"""
 DEFAULT_DOT_RADIUS = 0.08
-"""A dot's radius by default, in scene units."""
+"""点的默认半径，以场景单位表示。"""
 DEFAULT_SMALL_DOT_RADIUS = 0.04
-"""A small dot's radius, in scene units: half the default."""
+"""小点的半径，以场景单位表示：默认值的一半。"""
 DEFAULT_DASH_LENGTH = 0.05
-"""A dashed line's dash length by default, in scene units."""
+"""虚线的默认划线长度，以场景单位表示。"""
 DEFAULT_ARROW_TIP_LENGTH = 0.35
-"""An arrow tip's length by default, in scene units."""
+"""箭头尖端的默认长度，以场景单位表示。"""
 DEFAULT_STROKE_WIDTH = 4
-"""A stroke's width by default, in hundredths of a scene unit."""
+"""笔画的默认宽度，以百分之一场景单位表示。"""
 DEFAULT_FONT_SIZE = 48
-"""Text's font size by default."""
+"""文本的默认字体大小。"""
 DEFAULT_WAIT_TIME = 1.0
-"""How long a wait lasts by default, in seconds."""
+"""等待的默认持续时间，以秒为单位。"""
 DEFAULT_POINTWISE_FUNCTION_RUN_TIME = 3.0
-"""How long [ApplyPointwiseFunction][manimgx.ApplyPointwiseFunction], which moves every
-point through a function, and the animations built on it run by default, in seconds."""
+"""[ApplyPointwiseFunction][manimgx.ApplyPointwiseFunction]（将每个点通过一个函数
+映射）及其衍生动画的默认运行时长，以秒为单位。"""
 SCALE_FACTOR_PER_FONT_POINT = 1 / 960
-"""The scale of typeset text per unit of font size: Typst and LaTeX, typeset in 10-point
-type, are scaled so a point is `font_size` / 960 scene units and an em `font_size` / 96
-(0.5 at the default, 48). A [Text][manimgx.Text] is sized by its capitals instead."""
+"""排版文本每单位字体大小的缩放比例：Typst 和 LaTeX 以 10 磅字排版，缩放使得
+一个 point 为 `font_size` / 960 个场景单位，一个 em 为 `font_size` / 96
+（默认 48 时为 0.5）。[Text][manimgx.Text] 则以其大写字母高度来确定尺寸。"""
 
 
 class LineJointType(Enum):
-    """How a stroke is joined where its path turns (`joint_type`): round, beveled or
-    mitered.
+    """笔画在路径转折处的连接方式（`joint_type`）：圆角、斜角或尖角。
 
-    The default, `AUTO`, is mitered. A two-dimensional scene draws the joints, of a
-    stroke and of its background stroke alike; a three-dimensional scene miters every
-    stroke.
+    默认值 `AUTO` 为尖角。二维场景会绘制连接处，对笔画及其背景笔画一视同仁；
+    三维场景则将所有笔画以尖角连接。
 
     Examples:
         ```python
@@ -175,25 +171,24 @@ class LineJointType(Enum):
     """
 
     AUTO = 0
-    """The default: mitered, as `MITER`."""
+    """默认值：尖角，即 `MITER`。"""
     ROUND = 1
-    """Round corners."""
+    """圆角。"""
     BEVEL = 2
-    """Corners cut straight across."""
+    """斜角，角处直线截断。"""
     MITER = 3
-    """Pointed corners, where the stroke's edges meet; cut straight across where the
-    point would lie more than five stroke widths from the path's corner."""
+    """尖角，笔画边缘在此交汇；当尖点距路径转角超过五个笔画宽度时，改为直线截断。"""
 
 
 class CapStyleType(Enum):
-    """How a stroke ends (`cap_style`): round, butt or square.
+    """笔画端点的样式（`cap_style`）：圆形、平头或方形。
 
-    Every end a stroke shows is capped: the ends of an open path, the moving end of a
-    reveal ([Create][manimgx.Create], [Write][manimgx.Write], …) and both ends of every
-    dash. A closed path shown whole has no ends, and a stroke of no length (a path that
-    stays at one point) shows as a dot with round caps, a square with square ones. The
-    default, `AUTO`, is butt. A two-dimensional scene draws the caps, of a stroke and of
-    its background stroke alike; a three-dimensional scene ends every stroke flat.
+    笔画所显示的每一个端点都会被加盖：开放路径的端点、显现动画
+    （[Create][manimgx.Create]、[Write][manimgx.Write]……）的移动端以及每段
+    虚线的两端。完整显示的闭合路径没有端点；长度为零的笔画（停留在一点的路径）
+    在圆形端盖下显示为圆点，在方形端盖下显示为方块。默认值 `AUTO` 为平头。
+    二维场景会绘制端盖，对笔画及其背景笔画一视同仁；三维场景则将所有笔画
+    以平头结束。
 
     Examples:
         ```python
@@ -213,57 +208,56 @@ class CapStyleType(Enum):
     """
 
     AUTO = 0
-    """The default: flat at the end, as `BUTT`."""
+    """默认值：端点平头，即 `BUTT`。"""
     ROUND = 1
-    """A half disk past the end."""
+    """端点处延伸出半个圆盘。"""
     BUTT = 2
-    """Flat, at the end."""
+    """平头，在端点处截平。"""
     SQUARE = 3
-    """Flat, half the stroke's width past the end."""
+    """平头，在端点外延伸半个笔画宽度。"""
 
 
 NORMAL = "NORMAL"
-"""Text's normal slant, upright, and its normal weight (400)."""
+"""文本的正体倾斜（直立）及其常规字重（400）。"""
 ITALIC = "ITALIC"
-"""An italic slant of text."""
+"""文本的斜体倾斜。"""
 OBLIQUE = "OBLIQUE"
-"""An oblique slant of text: its upright letters, slanted."""
+"""文本的倾斜体：将正体字母倾斜。"""
 BOLD = "BOLD"
-"""A weight of text: bold (700)."""
+"""文本字重：粗体（700）。"""
 THIN = "THIN"
-"""A weight of text: thin (100)."""
+"""文本字重：细体（100）。"""
 ULTRALIGHT = "ULTRALIGHT"
-"""A weight of text: ultralight (200)."""
+"""文本字重：超轻体（200）。"""
 LIGHT = "LIGHT"
-"""A weight of text: light (300)."""
+"""文本字重：轻体（300）。"""
 SEMILIGHT = "SEMILIGHT"
-"""A weight of text: semilight (350)."""
+"""文本字重：半轻体（350）。"""
 BOOK = "BOOK"
-"""A weight of text: book (380)."""
+"""文本字重：书体（380）。"""
 MEDIUM = "MEDIUM"
-"""A weight of text: medium (500)."""
+"""文本字重：中等（500）。"""
 SEMIBOLD = "SEMIBOLD"
-"""A weight of text: semibold (600)."""
+"""文本字重：半粗体（600）。"""
 ULTRABOLD = "ULTRABOLD"
-"""A weight of text: ultrabold (800)."""
+"""文本字重：超粗体（800）。"""
 HEAVY = "HEAVY"
-"""A weight of text: heavy (900)."""
+"""文本字重：重体（900）。"""
 ULTRAHEAVY = "ULTRAHEAVY"
-"""A weight of text: ultraheavy (950)."""
+"""文本字重：超重体（950）。"""
 DEFAULT_POINT_DENSITY_1D = 10
-"""How many points a point cloud's line gets per scene unit by default."""
+"""点云的线默认每场景单位分配的点数。"""
 DEFAULT_POINT_DENSITY_2D = 25
-"""Kept for Manim compatibility; unused."""
+"""为保持 Manim 兼容性而保留；未使用。"""
 START_X = 30
-"""Kept for Manim compatibility; unused."""
+"""为保持 Manim 兼容性而保留；未使用。"""
 START_Y = 20
-"""Kept for Manim compatibility; unused."""
+"""为保持 Manim 兼容性而保留；未使用。"""
 
 type Resampling = Literal[0, 2, 3]
-"""How an image is reconstructed from its pixels where it is drawn larger than they are,
-numbered as the Pillow library numbers its filters: 0, nearest (each pixel a square of
-its color); 2, linear; 3, cubic (Keys' cubic convolution with a = −1/2, Pillow's
-BICUBIC: smooth, and through every pixel)."""
+"""图像在绘制尺寸大于像素尺寸时从像素重建的方式，编号与 Pillow 库的滤镜编号一致：
+0，最近邻（每个像素为一个其颜色的方块）；2，线性；3，三次（Keys 的三次卷积，
+a = −1/2，即 Pillow 的 BICUBIC：平滑且经过每个像素）。"""
 RESAMPLING_ALGORITHMS: dict[str, Resampling] = {
     "nearest": 0,
     "none": 0,
@@ -272,6 +266,6 @@ RESAMPLING_ALGORITHMS: dict[str, Resampling] = {
     "bicubic": 3,
     "cubic": 3,
 }
-"""The filters an image can be reconstructed with, by name, each with its number (see
-[Resampling][manimgx.constants.Resampling]): "nearest" or "none", "bilinear" or
-"linear", "bicubic" or "cubic"."""
+"""图像重建可用的滤镜，按名称排列，各附其编号（参见
+[Resampling][manimgx.constants.Resampling]）："nearest" 或 "none"、"bilinear" 或
+"linear"、"bicubic" 或 "cubic"。"""

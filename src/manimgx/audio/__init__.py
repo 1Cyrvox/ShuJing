@@ -1,14 +1,14 @@
-"""Audio: editable sounds, timed speech, and the voices that produce it.
+"""音频：可编辑的声音、带时间标注的语音，以及产生它们的嗓音。
 
-A voice is any function from text to [`Speech`][manimgx.audio.Speech]: a sound that knows its
-words and when each is said. [`Scene.say`][manimgx.Scene.say] speaks through the scene's voice
-and plays animations during the words they belong to: `self.say("Here is [a circle].",
-m.Create(circle))` draws the circle as "a circle" is said, and the film waits for the sentence.
-What a voice says is kept (`cached`), so a scene renders again without speaking again.
+嗓音是任意从文本到 [`Speech`][manimgx.audio.Speech] 的函数：一种知道自己的词语以及每个
+词语何时被说出的声音。[`Scene.say`][manimgx.Scene.say] 通过场景的嗓音说话，并在词语所属的
+时间段内播放动画：`self.say("Here is [a circle].", m.Create(circle))` 在说到 "a circle" 时
+绘制圆，而影片会等待这句话说完。嗓音所说的话会被保留（`cached`），因此场景再次渲染时无需
+再次说话。
 
-The voices ManimGX brings are text-to-speech services', a module each: [`fal`][manimgx.audio.fal]
-(fal.ai's models, [`Fal`][manimgx.audio.fal.Fal]). Any other is a few lines away (see
-[`Voice`][manimgx.audio.Voice]).
+ManimGX 提供的嗓音来自文本转语音服务，每个服务一个模块：[`fal`][manimgx.audio.fal]
+（fal.ai 的模型，[`Fal`][manimgx.audio.fal.Fal]）。任何其他嗓音只需几行代码即可实现（参见
+[`Voice`][manimgx.audio.Voice]）。
 """
 
 from manimgx.audio.fal import Fal

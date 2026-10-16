@@ -1,11 +1,11 @@
 ---
-title: "Text"
-description: "Words in a font, paragraphs, titles, bulleted lists and code listings."
+title: "文本"
+description: "字体中的文字、段落、标题、项目符号列表和代码清单。"
 ---
 
-# Text
+# 文本
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -26,12 +26,11 @@ class TextHero(m.Scene):
         self.wait()
 ```
 
-[Text][manimgx.Text] writes words exactly as you give them, in a font: a new line (`\n`)
-starts a new line. Its size is `font_size`, 48 unless you give another. Its parts are its
-characters, so `text[0]` is the first one; `t2c` colors parts of it by their words.
+[Text][manimgx.Text] 按你给出的原样在字体中书写文字：换行符（`\n`）开始新的一行。其大小
+为 `font_size`，默认为 48，除非你指定其他值。其组成部分是它的字符，因此 `text[0]` 是第一个
+字符；`t2c` 按文字为其部分着色。
 
-A title, a bulleted list and a paragraph arrange lines of text for you, and a code listing
-highlights a program's source.
+标题、项目符号列表和段落为你排列文本行，代码清单则高亮显示程序的源代码。
 
 ::: manimgx.Text
     options:
@@ -57,9 +56,9 @@ highlights a program's source.
     options:
       heading_level: 3
 
-## Weights and slants
+## 字重与倾斜
 
-A text's `weight` is how heavy its strokes are, and its `slant` how it leans.
+文本的 `weight` 是其笔画粗细程度，`slant` 是其倾斜程度。
 
 <div class="mx-constants" markdown>
 
@@ -120,3 +119,5 @@ A text's `weight` is how heavy its strokes are, and its `slant` how it leans.
       heading_level: 3
 
 </div>
+
+::: manimgx.mobjects.text.TypstOptions

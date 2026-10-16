@@ -1,11 +1,11 @@
 ---
-title: "From Python"
-description: "Render a scene from a program: its film, with its frames, plays, sounds, sections and captions, and a window that plays it."
+title: "从 Python"
+description: "从程序渲染场景：它的影片，附带它的帧、play、声音、段落和字幕，以及播放它的窗口。"
 ---
 
-# From Python
+# 从 Python
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -20,10 +20,7 @@ class FromPythonHero(m.Scene):
         self.wait()
 ```
 
-A scene renders from Python as from the command line: `MyScene().render()` runs it and
-records its film. The film keeps the frames, the plays, the sounds, the sections and the
-captions, to write as a video or to read in a program. A window plays a film on the screen as
-it is recorded.
+场景从 Python 渲染如同从命令行渲染：`MyScene().render()` 运行它并记录它的影片。影片保留帧、play、声音、段落和字幕，以写入为视频或在程序中读取。窗口在录制时在屏幕上播放影片。
 
 ::: manimgx.Scene.render
     options:
@@ -37,7 +34,7 @@ it is recorded.
     options:
       heading_level: 2
 
-## What a film holds
+## 影片所包含的内容
 
 ::: manimgx.rendering.film.Frame
     options:

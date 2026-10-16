@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2018 3Blue1Brown LLC
 # SPDX-License-Identifier: MIT
 
-"""Ported from Manim CE 0.21 (MIT)."""
+"""移植自 Manim CE 0.21（MIT）。"""
 
 from __future__ import annotations
 
@@ -40,12 +40,12 @@ from manimgx.mobjects.shapes import ArrowTip, Dot, Line
 from manimgx.mobjects.text import MathTex
 
 type Edge[V] = tuple[V, V]
-"""An edge: the pair of its vertices, from the first to the second."""
+"""一条边：其两个顶点的有序对，从第一个到第二个。"""
 type Maker = Callable[
     ..., Mobject
 ]  # a vertex or edge class: its keywords come from the configs
-"""What makes a vertex or an edge: a class, as [Dot][manimgx.Dot] or
-[Line][manimgx.Line], called with the keywords of its config."""
+"""构造一个顶点或一条边的事物：一个类，如 [Dot][manimgx.Dot] 或
+[Line][manimgx.Line]，以其配置中的关键字调用。"""
 type Config = dict[
     str, object
 ]  # keywords for a vertex's or an edge's class (checked by it)
@@ -57,42 +57,42 @@ type NxLayout = Callable[
 def _nx_layout(
     layout: NxLayout, graph: NxGraph, **kwargs: object
 ) -> dict[Hashable, Point3D]:
-    """A networkx layout with our layout config (networkx checks the keywords)."""
+    """带有我们的布局配置的 networkx 布局（networkx 会检查关键字）。"""
     return {k: np.asarray(p, dtype=float) for k, p in layout(graph, **kwargs).items()}
 
 
 def _make(maker: Maker, config_: Config) -> Mobject:
-    """A vertex or edge from its class and its config (the class checks the keywords)."""
+    """由类及其配置构造的一个顶点或一条边（该类会检查关键字）。"""
     return maker(**config_)
 
 
 class TipConfig(TypedDict, total=False):
-    """The tip of a [DiGraph][manimgx.DiGraph]'s edge, given as `"tip_config"` in its
-    `edge_config`: for every edge, or an edge's own (see
-    [add_tip][manimgx.TipableVMobject.add_tip])."""
+    """[DiGraph][manimgx.DiGraph] 边的尖端，在其 `edge_config` 中以 `"tip_config"`
+    给出：对所有边生效，或对某条边单独生效（参见
+    [add_tip][manimgx.TipableVMobject.add_tip]）。"""
 
     tip_shape: type[ArrowTip] | None
-    """The class of the tip (default None:
-    [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip])."""
+    """尖端的类（默认 None：
+    [ArrowTriangleFilledTip][manimgx.ArrowTriangleFilledTip]）。"""
     tip_length: float | None
-    """The tip's length, in scene units (default None: the edge's default)."""
+    """尖端的长度，以场景单位计（默认 None：边的默认值）。"""
     tip_width: float | None
-    """The tip's width, in scene units, for the default filled triangle (default None:
-    its length)."""
+    """默认填充三角形尖端的宽度，以场景单位计（默认 None：
+    其长度）。"""
 
 
 class Positions[V](Protocol):
-    """Where vertices go: anything a vertex looks its point up in (a dict, a layout's result)."""
+    """顶点所在之处：任何顶点可据以查找其点的对象（一个字典、一个布局的结果）。"""
 
     def __getitem__(self, vertex: V, /) -> Point3DLike: ...
 
 
 # A layout: the networkx graph, `scale` and the layout config's keywords, to positions.
 type LayoutFunction[V] = Callable[Concatenate[NxGraph, ...], Positions[V]]
-"""A layout of one's own: a function of the graph (a NetworkX graph), called with its
-`scale` and the keywords of the layout config, that returns each vertex's position.
-Each call receives a fresh graph of the current vertices and edges. Changes to that
-graph affect only this call; keep any persistent layout state in the function itself."""
+"""自定义布局：图（一个 NetworkX 图）的函数，以其
+`scale` 和布局配置的关键字调用，返回每个顶点的位置。
+每次调用都会收到一个由当前顶点和边构成的全新图。对该图的修改仅影响本次调用；
+任何持久的布局状态应保存在函数自身之中。"""
 
 
 def _partite_layout(
@@ -214,8 +214,8 @@ def _kamada_kawai_layout(
     center: Point3DLike | None = None,
     dim: int = 2,
 ) -> dict[Hashable, np.ndarray]:
-    """networkx's Kamada–Kawai layout without scipy: the same energy from the same circular
-    start, minimized by stress majorization (monotone, deterministic) instead of L-BFGS.
+    """不依赖 scipy 的 networkx Kamada–Kawai 布局：相同的能量、相同的圆形
+    起点，通过应力主化（单调、确定性）而非 L-BFGS 进行最小化。
     """
     import networkx as nx
 
@@ -263,15 +263,13 @@ def _spectral_layout(
     dim: int = 2,
     store_pos_as: str | None = None,
 ) -> dict[Hashable, np.ndarray]:
-    """Laplacian coordinates with axes fixed by node order, including repeated eigenvalues.
+    """以节点顺序固定坐标轴的拉普拉斯坐标，包括重特征值的情况。
 
-    An eigensolver chooses arbitrary signs and arbitrary orthonormal bases of repeated
-    eigenspaces. Projecting node coordinate axes into each whole space and choosing the
-    largest remaining projection avoids magnifying a nearly zero coordinate into an axis.
-    Node order breaks numerical ties. Unresolved neighboring spaces are oriented jointly;
-    like any spectral embedding, nearly degenerate weights can make coordinates sensitive
-    to perturbations. The constant direction is removed explicitly, also for disconnected
-    graphs.
+    特征求解器会选择任意的符号以及重特征空间的任意标准正交基。将节点坐标轴
+    投影到每个整体空间中并选择剩余投影中最大的那个，可以避免将近乎为零的坐标
+    放大为一个坐标轴。节点顺序打破数值上的平局。无法解析的相邻空间被联合定向；
+    与任何谱嵌入一样，近乎退化的权重可能使坐标对扰动敏感。常数方向被显式移除，
+    对不连通图也同样如此。
     """
     import networkx as nx
 
@@ -379,9 +377,9 @@ LayoutName = Literal[
     "spring",
     "tree",
 ]
-"""The names of the layouts a graph is laid out by (see
-[GenericGraph][manimgx.mobjects.graph.GenericGraph]). The spectral layout fixes its axes by
-node order, so an eigensolver's arbitrary choice of basis does not rotate or skew a graph."""
+"""图所据以布局的布局名称（参见
+[GenericGraph][manimgx.mobjects.graph.GenericGraph]）。谱布局以节点顺序固定其坐标轴，
+因此特征求解器对基的任意选择不会使图发生旋转或剪切。"""
 
 
 def _layout(name: LayoutName) -> LayoutFunction[Hashable]:
@@ -403,8 +401,8 @@ def _layout(name: LayoutName) -> LayoutFunction[Hashable]:
 type Layout[V] = (
     LayoutName | str | Positions[V] | LayoutFunction[V]
 )  # a layout's name, checked when used
-"""Where a graph's vertices go: a layout's name, the vertices' positions (a dictionary
-from each vertex to its point), or a layout function."""
+"""图的顶点所在之处：布局的名称、顶点的位置（从每个顶点到其点的字典），
+或一个布局函数。"""
 
 
 def _is_function[V](layout: Layout[V]) -> TypeIs[LayoutFunction[V]]:
@@ -416,69 +414,68 @@ def _is_name(layout: object) -> TypeIs[LayoutName]:
 
 
 class VertexOptions[V: Hashable](TypedDict, total=False, closed=True):
-    """[add_vertices][manimgx.mobjects.graph.GenericGraph.add_vertices]' keywords, for
-    the methods that pass them on: where the new vertices go, their labels, their kind
-    and their keywords."""
+    """[add_vertices][manimgx.mobjects.graph.GenericGraph.add_vertices] 的关键字，
+    用于传递它们的方法：新顶点所在之处、其标签、其类型及其关键字。"""
 
     positions: Mapping[V, Point3DLike] | None
-    """Where new vertices go, by vertex (default None: at the graph's center)."""
+    """新顶点所在之处，按顶点指定（默认 None：位于图的中心）。"""
     labels: bool | Mapping[V, bool | Mobject]
-    """Whether each new vertex is labeled with its name, typeset as math: True for
-    all, or by vertex, True or a label of one's own (default False)."""
+    """每个新顶点是否以其名称标注，名称以数学排版：True 表示
+    全部标注，或按顶点指定，True 或自定义标签（默认 False）。"""
     label_fill_color: ParsableManimColor
-    """The color of the labels made from names (default black)."""
+    """由名称生成的标签的颜色（默认黑色）。"""
     vertex_type: Maker
-    """The class of the new vertices (default [Dot][manimgx.Dot]; a labeled one is a
-    [LabeledDot][manimgx.LabeledDot])."""
+    """新顶点的类（默认 [Dot][manimgx.Dot]；带标签的为
+    [LabeledDot][manimgx.LabeledDot]）。"""
     vertex_config: Configs | None
-    """Keywords for the new vertices, over the graph's: for all of them, and a vertex's
-    own under its name, in place of those for all (default None: none)."""
+    """新顶点的关键字，覆盖图自身的：对所有顶点生效，以及某个顶点
+    在其名称下的独有配置，取代对所有顶点的配置（默认 None：无）。"""
     vertex_mobjects: Mapping[V, Mobject] | None
-    """Mobjects to be vertices themselves, by vertex (default None: none)."""
+    """作为顶点本身的 Mobject，按顶点指定（默认 None：无）。"""
 
 
 class GraphOptions[V: Hashable](TypedDict, total=False, closed=True):
-    """A graph's keywords but its vertices and edges, for the methods that pass them on
-    ([from_networkx][manimgx.mobjects.graph.GenericGraph.from_networkx], a
-    [Polyhedron][manimgx.Polyhedron]'s `graph_config`): its labels, layout, and the
-    kinds and keywords of its vertices and edges."""
+    """图的关键字（除顶点和边外），用于传递它们的方法
+    （[from_networkx][manimgx.mobjects.graph.GenericGraph.from_networkx]、
+    [Polyhedron][manimgx.Polyhedron] 的 `graph_config`）：其标签、布局，
+    以及顶点和边的类型与关键字。"""
 
     labels: bool | Mapping[V, Mobject]
-    """Whether each vertex is labeled with its name, typeset as math, or a label for
-    each (default False)."""
+    """每个顶点是否以其名称标注，名称以数学排版，或为每个顶点指定
+    标签（默认 False）。"""
     label_fill_color: ParsableManimColor
-    """The color of the labels made from names (default black)."""
+    """由名称生成的标签的颜色（默认黑色）。"""
     layout: Layout[V]
-    """Where the vertices go: a layout's name, their positions, or a layout function
-    (default `"spring"`)."""
+    """顶点所在之处：布局的名称、其位置或一个布局函数
+    （默认 `"spring"`）。"""
     layout_scale: float | tuple[float, float, float]
-    """How far the layout reaches from the center, in scene units (default 2)."""
+    """布局从中心向外延伸的距离，以场景单位计（默认 2）。"""
     layout_config: Mapping[str, object] | None
-    """Keywords for the layout function: a `"spring"` layout's `seed`, … (default None:
-    none)."""
+    """布局函数的关键字：`"spring"` 布局的 `seed`，……（默认 None：
+    无）。"""
     vertex_type: Maker
-    """The class of the vertices (default [Dot][manimgx.Dot]; a labeled one is a
-    [LabeledDot][manimgx.LabeledDot])."""
+    """顶点的类（默认 [Dot][manimgx.Dot]；带标签的为
+    [LabeledDot][manimgx.LabeledDot]）。"""
     vertex_config: Configs | None
-    """Keywords for the vertices: for all of them, and a vertex's own under its name, in
-    place of those for all (default None: none)."""
+    """顶点的关键字：对所有顶点生效，以及某个顶点在其名称下的独有配置，取代
+    对所有顶点的配置（默认 None：无）。"""
     vertex_mobjects: Mapping[V, Mobject] | None
-    """Mobjects to be vertices themselves, by vertex (default None: none)."""
+    """作为顶点本身的 Mobject，按顶点指定（默认 None：无）。"""
     edge_type: Maker
-    """The class of the edges (default [Line][manimgx.Line])."""
+    """边的类（默认 [Line][manimgx.Line]）。"""
     partitions: Sequence[Sequence[V]] | None
-    """For the `"partite"` layout: the vertices of each column, in order (default None:
-    none)."""
+    """用于 `"partite"` 布局：每列的顶点，按顺序排列（默认 None：
+    无）。"""
     root_vertex: V | None
-    """For the `"tree"` layout: the vertex at its top (default None: none)."""
+    """用于 `"tree"` 布局：位于顶部的顶点（默认 None：无）。"""
     edge_config: Configs | None
-    """Keywords for the edges: for all of them, and an edge's own under its pair of
-    vertices, in place of those for all (default None: none)."""
+    """边的关键字：对所有边生效，以及某条边在其顶点对下的独有配置，取代
+    对所有边的配置（默认 None：无）。"""
 
 
 class Configs(Protocol):
-    """Keywords for vertices (or edges): a dictionary of keywords for all of them, and
-    of a vertex's own keywords under its name (an edge's under its pair of vertices)."""
+    """顶点（或边）的关键字：对所有顶点生效的关键字字典，以及
+    某个顶点在其名称下的独有关键字（边则在其顶点对下）。"""
 
     # any key type: a Mapping's key type is invariant
 
@@ -488,7 +485,7 @@ class Configs(Protocol):
 def _split[K: Hashable](
     configs: Configs | None, items: Iterable[K]
 ) -> tuple[Config, dict[K, Config]]:
-    """The keywords for all, and each item's own (given under the item)."""
+    """对所有项的关键字，以及每个项的独有关键字（在该项下给出）。"""
     given: dict[object, object] = dict(configs.items()) if configs is not None else {}
     names = set(items)
     shared: Config = {
@@ -500,53 +497,51 @@ def _split[K: Hashable](
 
 
 class GenericGraph[V: Hashable = Hashable](VMobject):
-    """What [Graph][manimgx.Graph] and [DiGraph][manimgx.DiGraph] have in common:
-    vertices and edges, laid out and kept together; white dots and lines unless
-    styled.
+    """[Graph][manimgx.Graph] 和 [DiGraph][manimgx.DiGraph] 的共同之处：
+    顶点和边，经布局并保持在一起；除非另行设置，默认为白色圆点和线条。
 
-    The vertices are any hashable values (numbers, strings, …): each is made a mobject,
-    a [Dot][manimgx.Dot] by default, and `graph[v]` is the mobject of vertex `v`. The
-    edges are pairs of vertices: each is made a mobject, a [Line][manimgx.Line] by
-    default, drawn behind the vertices (z-index -1), and `graph[(u, v)]` is the mobject
-    of edge `(u, v)`. An updater keeps the edges on their vertices: move a vertex (or
-    animate it) and its edges follow. Vertices and edges can be added and removed, and
-    the whole graph laid out anew.
+    顶点可以是任何可哈希的值（数字、字符串、……）：每个顶点都被构造为一个
+    mobject，默认为 [Dot][manimgx.Dot]，`graph[v]` 即顶点 `v` 的 mobject。
+    边是顶点的有序对：每条边都被构造为一个 mobject，默认为
+    [Line][manimgx.Line]，绘制在顶点之后（z-index 为 -1），`graph[(u, v)]`
+    即边 `(u, v)` 的 mobject。一个更新器使边始终连接其顶点：移动一个顶点
+    （或为其设置动画），其边随之移动。顶点和边可以被添加和移除，整张图也可以
+    重新布局。
 
-    The layout places the vertices: by a name — NetworkX's `"circular"`,
-    `"kamada_kawai"`, `"planar"`, `"shell"`, `"spectral"`, `"spiral"` and `"spring"`
-    (random unless given a `seed` in `layout_config`), or `"partite"` (in columns, by
-    `partitions`) and `"tree"` (down from `root_vertex`) — by a dictionary of positions,
-    or by a function of one's own. It spans about `layout_scale` from the center, the
-    center at the scene's origin; points of two coordinates lie in the plane z = 0.
+    布局放置顶点：通过名称——NetworkX 的 `"circular"`、
+    `"kamada_kawai"`、`"planar"`、`"shell"`、`"spectral"`、`"spiral"` 和 `"spring"`
+    （除非在 `layout_config` 中给定 `seed`，否则为随机），或 `"partite"`（按列排列，
+    由 `partitions` 指定）和 `"tree"`（从 `root_vertex` 向下）——通过位置字典，
+    或通过自定义函数。布局从中心向外延伸约 `layout_scale` 的距离，中心位于场景
+    原点；两个坐标的点位于 z = 0 平面。
 
     Args:
-        vertices: The vertices: hashable values, each a vertex's name.
-        edges: The edges, each a pair of vertices.
-        labels: Whether each vertex is labeled with its name, typeset as math (a
-            vertex that is a [Dot][manimgx.Dot] becomes a
-            [LabeledDot][manimgx.LabeledDot]); or a label for each, by vertex.
-        label_fill_color: The color of the labels made from names.
-        layout: Where the vertices go: a layout's name, their positions (a dictionary
-            from each vertex to its point), or a layout function, called with the
-            NetworkX graph, `scale` and the keywords of `layout_config`.
-        layout_scale: How far the layout reaches from the center, in scene units.
-        layout_config: Keywords for the layout function; None for none.
-        vertex_type: The class of the vertices, called with each vertex's keywords.
-        vertex_config: Keywords for the vertices: for all of them, and a vertex's own
-            under its name, in place of those for all, as in
-            `{"radius": 0.2, 3: {"color": RED}}`; None for none.
-        vertex_mobjects: Mobjects to be vertices themselves, by vertex; None for none.
-        edge_type: The class of the edges, called with each edge's ends and keywords.
-        partitions: For the `"partite"` layout: the vertices of each column, in order
-            (those of none make a last column); None for none.
-        root_vertex: For the `"tree"` layout: the vertex at its top; None for none.
-        edge_config: Keywords for the edges: for all of them, and an edge's own under
-            its pair of vertices, in place of those for all; a DiGraph's tips under
-            `"tip_config"`. None for none.
+        vertices: 顶点：可哈希的值，每个是一个顶点的名称。
+        edges: 边，每个是顶点的有序对。
+        labels: 每个顶点是否以其名称标注，名称以数学排版（作为
+            [Dot][manimgx.Dot] 的顶点会变为
+            [LabeledDot][manimgx.LabeledDot]）；或按顶点为每个顶点指定标签。
+        label_fill_color: 由名称生成的标签的颜色。
+        layout: 顶点所在之处：布局的名称、其位置（从每个顶点到其点的字典），
+            或一个布局函数，以 NetworkX 图、`scale` 和 `layout_config` 的关键字调用。
+        layout_scale: 布局从中心向外延伸的距离，以场景单位计。
+        layout_config: 布局函数的关键字；None 表示无。
+        vertex_type: 顶点的类，以每个顶点的关键字调用。
+        vertex_config: 顶点的关键字：对所有顶点生效，以及某个顶点在其名称下的
+            独有配置，取代对所有顶点的配置，如
+            `{"radius": 0.2, 3: {"color": RED}}`；None 表示无。
+        vertex_mobjects: 作为顶点本身的 Mobject，按顶点指定；None 表示无。
+        edge_type: 边的类，以每条边的两端和关键字调用。
+        partitions: 用于 `"partite"` 布局：每列的顶点，按顺序排列
+            （未指定的顶点构成最后一列）；None 表示无。
+        root_vertex: 用于 `"tree"` 布局：位于顶部的顶点；None 表示无。
+        edge_config: 边的关键字：对所有边生效，以及某条边在其顶点对下的独有配置，
+            取代对所有边的配置；DiGraph 的尖端在
+            `"tip_config"` 下指定。None 表示无。
     """
 
     edges: dict[Edge[V], Mobject]
-    """The edges' mobjects, by pair of vertices."""
+    """边的 mobject，按顶点对索引。"""
 
     def __init__(
         self,
@@ -585,7 +580,7 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         self.vertices: dict[V, Mobject] = {
             v: _make(vertex_type, vertex_configs[v]) for v in vertices
         }
-        """The vertices' mobjects, by vertex."""
+        """顶点的 mobject，按顶点索引。"""
         self.vertices.update(vertex_mobjects or {})
         self._place_vertices(
             edges,
@@ -612,15 +607,14 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         raise NotImplementedError("To be implemented in concrete subclasses")
 
     def update_edges(self, graph: Mobject) -> Self:
-        """Put each edge back on its vertices, where they are now: the updater a graph
-        runs every frame, so that its edges follow its vertices.
+        """将每条边重新放回其顶点上，按顶点当前位置：图每帧运行的更新器，
+        使其边跟随其顶点。
 
-        Each kind of graph sets its edges' ends its own way: an undirected graph's from
-        center to center, a directed graph's from outline to outline, with its tip.
-        Only edges that are lines ([Line][manimgx.Line] and its kinds) follow.
+        每种图以各自的方式设置边的两端：无向图从中心到中心，有向图从轮廓到轮廓，
+        并带有尖端。只有作为线条的边（[Line][manimgx.Line] 及其子类）会跟随。
 
         Args:
-            graph: The mobject the updater runs for (the graph); unused.
+            graph: 更新器为之运行的 mobject（该图）；未使用。
         """
         raise NotImplementedError("To be implemented in concrete subclasses")
 
@@ -722,19 +716,18 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         ]
 
     def add_vertices(self, *vertices: V, **kwargs: Unpack[VertexOptions[V]]) -> Group:
-        """Add vertices to the graph, without edges.
+        """向图中添加顶点，不添加边。
 
-        Each is made as the graph makes its vertices, with the keywords given over the
-        graph's own, and placed at its position, or at the graph's center. A vertex
-        already in the graph raises a ValueError.
+        每个顶点按图构造顶点的方式构造，使用覆盖图自身关键字的关键字，
+        并放置在其位置处，或图的中心处。图中已存在的顶点会引发 ValueError。
 
         Args:
-            *vertices: The new vertices: hashable values, each a vertex's name.
-            **kwargs: [Vertex keywords][manimgx.mobjects.graph.VertexOptions]:
-                `positions`, `labels`, `vertex_type`, `vertex_config`, ….
+            *vertices: 新顶点：可哈希的值，每个是一个顶点的名称。
+            **kwargs: [顶点关键字][manimgx.mobjects.graph.VertexOptions]：
+                `positions`、`labels`、`vertex_type`、`vertex_config`，……。
 
         Returns:
-            A new group of the new vertices' mobjects.
+            由新顶点的 mobject 构成的新组。
 
         Examples:
             ```python
@@ -778,16 +771,16 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         return Group(*to_remove)
 
     def remove_vertices(self, *vertices: V) -> Group:
-        """Remove vertices from the graph, and the edges that touch them.
+        """从图中移除顶点，以及与之相连的边。
 
-        A vertex not in the graph raises a ValueError.
+        图中不存在的顶点会引发 ValueError。
 
         Args:
-            *vertices: The vertices to remove.
+            *vertices: 要移除的顶点。
 
         Returns:
-            A new group of the removed mobjects (for each vertex, its edges, then the
-            vertex), to fade out, for instance.
+            由被移除的 mobject 构成的新组（对每个顶点，先为其边，再为顶点本身），
+            例如可用于淡出。
 
         Examples:
             ```python
@@ -826,24 +819,24 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         edge_config: Configs | None = None,
         **kwargs: Unpack[VertexOptions[V]],
     ) -> Group:
-        """Add edges to the graph, and the vertices they name that it lacks.
+        """向图中添加边，以及边所引用而图中尚缺的顶点。
 
-        The missing vertices are added first, as
-        [add_vertices][manimgx.mobjects.graph.GenericGraph.add_vertices] adds them, with
-        the vertex keywords given; each edge is then made as the graph makes its edges,
-        with the edge keywords given over the graph's own.
+        缺失的顶点先被添加，添加方式同
+        [add_vertices][manimgx.mobjects.graph.GenericGraph.add_vertices]，使用给定的
+        顶点关键字；随后每条边按图构造边的方式构造，使用覆盖图自身关键字的
+        边关键字。
 
         Args:
-            *edges: The new edges, each a pair of vertices.
-            edge_type: The class of the new edges.
-            edge_config: Keywords for the new edges, over the graph's: for all of them,
-                and an edge's own under its pair of vertices, in place of those for all;
-                None for none.
-            **kwargs: [Vertex keywords][manimgx.mobjects.graph.VertexOptions] for the
-                vertices the edges name that the graph lacks.
+            *edges: 新边，每个是顶点的有序对。
+            edge_type: 新边的类。
+            edge_config: 新边的关键字，覆盖图自身的：对所有边生效，以及某条边
+                在其顶点对下的独有配置，取代对所有边的配置；
+                None 表示无。
+            **kwargs: 边所引用而图中尚缺的顶点的
+                [顶点关键字][manimgx.mobjects.graph.VertexOptions]。
 
         Returns:
-            A new group of the new mobjects, the vertices added and then the edges.
+            由新 mobject 构成的新组，先为添加的顶点，再为边。
         """
         shared, own = _split(edge_config, edges)
         base = self.default_edge_config.copy() | shared
@@ -868,29 +861,29 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         return edge_mobject
 
     def remove_edges(self, *edges: Edge[V]) -> Group:
-        """Remove edges from the graph, keeping their vertices.
+        """从图中移除边，保留其顶点。
 
-        An edge not in the graph raises a ValueError.
+        图中不存在的边会引发 ValueError。
 
         Args:
-            *edges: The edges to remove, each a pair of vertices.
+            *edges: 要移除的边，每个是顶点的有序对。
 
         Returns:
-            A new group of the removed edges' mobjects.
+            由被移除的边的 mobject 构成的新组。
         """
         return Group(*(self._remove_edge(edge) for edge in edges))
 
     @classmethod
     def from_networkx(cls, nxgraph: NxGraph, **kwargs: Unpack[GraphOptions[V]]) -> Self:
-        """Make a graph of a [NetworkX](https://networkx.org) graph's nodes and edges.
+        """由 [NetworkX](https://networkx.org) 图的节点和边构造一个图。
 
         Args:
-            nxgraph: The NetworkX graph (a `Graph`, or a `DiGraph`).
-            **kwargs: [Graph keywords][manimgx.Graph]: `layout`,
-                `labels`, `vertex_config`, ….
+            nxgraph: NetworkX 图（一个 `Graph`，或一个 `DiGraph`）。
+            **kwargs: [图关键字][manimgx.Graph]：`layout`、
+                `labels`、`vertex_config`，……。
 
         Returns:
-            A new graph.
+            一个新的图。
 
         Examples:
             ```python
@@ -921,24 +914,23 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         partitions: Sequence[Sequence[V]] | None = None,
         root_vertex: V | None = None,
     ) -> Self:
-        """Lay the graph out anew: move each vertex to its place in a layout.
+        """对图重新布局：将每个顶点移动到其在布局中的位置。
 
-        The vertices move at once, and the edges follow them at the next frame, as the
-        graph's updater moves them. To animate the change, animate each vertex to its
-        place in a changed copy (as below): the edges follow all the way.
+        顶点一次性移动，边在下一帧跟随，由图的更新器移动。若要为变化设置动画，
+        请将每个顶点动画移动到已更改副本中的位置（如下所示）：边会全程跟随。
 
-        A layout function gets a fresh NetworkX graph of the current vertices and edges.
-        Its node, edge and graph attributes belong to that call, not to later layouts.
+        布局函数收到一个由当前顶点和边构成的全新 NetworkX 图。
+        其节点、边和图属性属于该次调用，而非后续布局。
 
         Args:
-            layout: Where the vertices go: a layout's name, their positions, or a
-                layout function (see
-                [GenericGraph][manimgx.mobjects.graph.GenericGraph]).
-            layout_scale: How far the layout reaches from the center, in scene units.
-            layout_config: Keywords for the layout function; None for none.
-            partitions: For the `"partite"` layout: the vertices of each column; None
-                for none.
-            root_vertex: For the `"tree"` layout: the vertex at its top; None for none.
+            layout: 顶点所在之处：布局的名称、其位置，或一个
+                布局函数（参见
+                [GenericGraph][manimgx.mobjects.graph.GenericGraph]）。
+            layout_scale: 布局从中心向外延伸的距离，以场景单位计。
+            layout_config: 布局函数的关键字；None 表示无。
+            partitions: 用于 `"partite"` 布局：每列的顶点；None
+                表示无。
+            root_vertex: 用于 `"tree"` 布局：位于顶部的顶点；None 表示无。
 
         Examples:
             ```python
@@ -977,8 +969,8 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         partitions: Sequence[Sequence[V]] | None = None,
         root_vertex: V | None = None,
     ) -> Self:
-        """Place vertices from the edge keys: supplied before edges are made, otherwise
-        the keys of the graph's edges. A computed layout owns its temporary topology."""
+        """由边键放置顶点：在边构造之前提供，否则使用图的边的键。
+        计算出的布局拥有其临时拓扑。"""
         config_ = dict(layout_config or {})
         if partitions is not None:
             config_.setdefault("partitions", partitions)
@@ -1009,8 +1001,8 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
         return self
 
     def _edge_ends(self, edge: Edge[V]) -> tuple[float, float]:
-        """An edge's buffer and bend, as its config sets them (CE read them from the wrong
-        dictionary, so edges lost both at the first update)."""
+        """边的缓冲和弯曲，由其配置设定（CE 从错误的
+        字典中读取，因此边在首次更新时丢失了两者）。"""
         config_ = self._edge_config.get(edge, {})
         buff, path_arc = config_.get("buff", 0), config_.get("path_arc", 0)
         return (buff if isinstance(buff, (int, float)) else 0), (
@@ -1019,12 +1011,12 @@ class GenericGraph[V: Hashable = Hashable](VMobject):
 
 
 class Graph[V: Hashable = Hashable](GenericGraph[V]):
-    """An undirected graph: vertices joined by edges, laid out automatically or by hand;
-    white dots and lines unless styled.
+    """无向图：由边连接的顶点，自动或手动布局；
+    除非另行设置，默认为白色圆点和线条。
 
-    Each edge runs from the center of one vertex to the center of the other, behind
-    them, and follows them as they move. It takes the arguments of a
-    [GenericGraph][manimgx.mobjects.graph.GenericGraph], which lists what a graph can do.
+    每条边从一个顶点的中心到另一个顶点的中心，绘制在它们之后，
+    并随其移动而跟随。它接受 [GenericGraph][manimgx.mobjects.graph.GenericGraph]
+    的参数，后者列出了图所能做的事情。
 
     Examples:
         ```python
@@ -1075,14 +1067,14 @@ class Graph[V: Hashable = Hashable](GenericGraph[V]):
 
 
 class DiGraph[V: Hashable = Hashable](GenericGraph[V]):
-    """A directed graph: vertices joined by arrows, from the first vertex of each edge
-    to the second; white dots and arrows unless styled.
+    """有向图：由箭头连接的顶点，从每条边的第一个顶点
+    指向第二个顶点；除非另行设置，默认为白色圆点和箭头。
 
-    Each edge runs from the outline of one vertex to the outline of the other and ends
-    in a tip, which the `"tip_config"` of `edge_config` shapes (see
-    [TipConfig][manimgx.mobjects.graph.TipConfig]), for every edge or an edge's own; it
-    follows its vertices as they move. It takes the arguments of a
-    [GenericGraph][manimgx.mobjects.graph.GenericGraph], which lists what a graph can do.
+    每条边从一个顶点的轮廓到另一个顶点的轮廓，末端为一个尖端，
+    由 `edge_config` 的 `"tip_config"` 塑形（参见
+    [TipConfig][manimgx.mobjects.graph.TipConfig]），对所有边或某条边单独生效；
+    它随其顶点移动而跟随。它接受 [GenericGraph][manimgx.mobjects.graph.GenericGraph]
+    的参数，后者列出了图所能做的事情。
 
     Examples:
         ```python

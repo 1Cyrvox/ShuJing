@@ -1,11 +1,11 @@
 ---
-title: "Sound"
-description: "Sounds from files or from functions of time, changed and placed in the video: with an animation, at any moment, or under the whole video."
+title: "声音"
+description: "从文件或从时间的函数生成的声音，改变并放置在视频中：与动画一起、在任意时刻、或在整个视频之下。"
 ---
 
-# Sound
+# 声音
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 import numpy as np
 
@@ -25,16 +25,11 @@ class SoundHero(m.Scene):
         self.wait()
 ```
 
-A sound is read from a file (WAV, MP3, AAC, FLAC and the other usual kinds), or made by a
-function of time. ManimGX places each sound at its moment in the video, and mixes them into
-one sound track.
+声音从文件读取（WAV、MP3、AAC、FLAC 及其他常见种类），或由时间的函数生成。ManimGX 将每个声音放置在视频中它的时刻，并将它们混入一条音轨。
 
-Give a sound to `play` with animations, and it starts with them. To start one at any moment,
-add it: the scene goes on while it plays. A sound plays to its end, or until you stop the
-clip that adding it gives back.
+将声音连同动画交给 `play`，它与它们一起开始。要在任意时刻开始一个声音，添加它：场景在它播放时继续。声音播放到其结束，或直到你停止添加它时返回的片段。
 
-A sound's methods make a changed sound: quieter or louder, faded in or out, trimmed, looped,
-faster, panned, or ducked under a voice.
+声音的方法制作改变后的声音：更轻或更响、淡入或淡出、裁剪、循环、加快、平移，或在语音下压低。
 
 ::: manimgx.Sound
     options:

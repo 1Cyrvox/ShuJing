@@ -1,11 +1,11 @@
 ---
-title: "Paths"
-description: "The curves a shape is made of, how to draw a path of your own, and how to find points along one."
+title: "路径"
+description: "构成形状的曲线、如何绘制自定义路径，以及如何沿路径查找点。"
 ---
 
-# Paths
+# 路径
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -26,20 +26,19 @@ class PathsHero(m.Scene):
         self.wait()
 ```
 
-A shape is a path: curves, each from one point to the next. A curve starts at an anchor,
-bends toward two handles, and ends at the next anchor. The stroke follows the curves, and
-the fill closes each part of the path back to its start. Circles, polygons, text and graphs
-are all paths, so all of this works on them too.
+形状即路径：由曲线组成，每条曲线从一个点到下一个点。曲线从锚点出发，弯向两个控制柄，
+最终到达下一个锚点。描边沿曲线行进，填充则将路径的每个部分闭合回其起点。圆、多边形、
+文本和图表都是路径，因此以下内容对它们同样适用。
 
-To draw a path of your own, make an empty `m.VMobject()`, then give it its points: as
-corners, as a smooth curve through them, or one line and curve at a time.
+要绘制自定义路径，创建一个空的 `m.VMobject()`，然后赋予其点：作为角点、作为穿过它们的
+平滑曲线，或逐条添加线和曲线。
 
 ::: manimgx.VMobject
     options:
       heading_level: 2
       members: false
 
-## Draw a path
+## 绘制路径
 
 ::: manimgx.VMobject.set_points_as_corners
     options:
@@ -97,7 +96,7 @@ corners, as a smooth curve through them, or one line and curve at a time.
     options:
       heading_level: 3
 
-## Smooth or sharp
+## 平滑或锐利
 
 ::: manimgx.VMobject.make_smooth
     options:
@@ -111,7 +110,7 @@ corners, as a smooth curve through them, or one line and curve at a time.
     options:
       heading_level: 3
 
-## Along a path
+## 沿路径
 
 ::: manimgx.Mobject.get_start
     options:
@@ -141,7 +140,7 @@ corners, as a smooth curve through them, or one line and curve at a time.
     options:
       heading_level: 3
 
-## Which way it runs
+## 走向
 
 ::: manimgx.VMobject.get_direction
     options:
@@ -155,7 +154,7 @@ corners, as a smooth curve through them, or one line and curve at a time.
     options:
       heading_level: 3
 
-## Its points
+## 其点
 
 ::: manimgx.Mobject.points
     options:
@@ -193,7 +192,7 @@ corners, as a smooth curve through them, or one line and curve at a time.
     options:
       heading_level: 3
 
-## Paths made from paths
+## 由路径构成的路径
 
 ::: manimgx.CubicBezier
     options:

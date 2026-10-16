@@ -1,11 +1,11 @@
 ---
-title: "Images and SVG"
-description: "Pictures from image files or arrays of pixels, and drawings read from SVG files, whose shapes are paths."
+title: "图像与 SVG"
+description: "来自图像文件或像素数组的图片，以及从 SVG 文件读取的绘图，其形状为路径。"
 ---
 
-# Images and SVG
+# 图像与 SVG
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 import numpy as np
 
@@ -23,10 +23,10 @@ class ImagesAndSvgHero(m.Scene):
         self.wait()
 ```
 
-An image is a picture on a rectangle: read from a file (PNG, JPEG and the rest), or made from
-an array of pixels. It moves, scales, turns and fades as any mobject; its pixels stay its
-own. An SVG drawing is different: its shapes become paths, each a part to color, move and
-draw in, as a shape of ManimGX's own.
+图像是位于矩形上的图片：从文件（PNG、JPEG 等）读取，或由像素数组生成。它像任何
+mobject 一样移动、缩放、旋转和淡入淡出；其像素保持自身不变。SVG 绘图则不同：其
+形状变为路径，每条路径都是一个可着色、移动和绘制的部分，作为 ManimGX 自身的
+形状。
 
 ::: manimgx.ImageMobject
     options:

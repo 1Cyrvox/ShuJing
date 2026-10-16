@@ -1,76 +1,73 @@
 ---
-title: "Reference"
-description: "Every part of a ManimGX video, from the scene to the sound, with all that each part can do."
+title: "参考"
+description: "ManimGX 视频的每个部分，从场景到声音，以及每个部分所能做的一切。"
 ---
 
-# Reference
+# 参考
 
-A video is a **scene**. It shows **mobjects** in its frame: shapes, text, formulas, graphs
-and surfaces. **Animations** change them over time, and **updaters** keep a rule at every
-frame. The **camera** decides what the frame shows, flat or in 3D. **Sound** and a **voice**
-play along. **Rendering** makes the video.
+一段视频就是一个 **场景**。它在画面中显示 **mobject**：图形、文本、公式、图表
+和曲面。**动画** 随时间改变它们，**更新器** 在每一帧保持一条规则。**相机** 决定
+画面显示什么，平面或 3D。**声音** 和 **语音** 一同播放。**渲染** 生成视频。
 
-This reference tells each part in that order, with all that it can do: [Learn](../user-guide/the-basics.md)
-teaches the same story, one idea at a time.
+本参考按此顺序讲述每个部分，以及它所能做的一切：[学习](../user-guide/the-basics.md)
+讲述同一个故事，一次一个概念。
 
 <div class="grid cards mx-cards" markdown>
 
 -   ![](film:ScenesHero)
 
-    [**Scenes**](scenes/index.md)
+    [**场景**](scenes/index.md)
 
     ---
 
-    A scene is one video: what happens, in order, and the plays and waits that pass its
-    time.
+    一个场景就是一段视频：发生的事情，按顺序排列，以及度过其时间的播放与等待。
 
 -   ![](film:MobjectsHero)
 
-    [**Mobjects**](mobjects/index.md)
+    [**Mobject**](mobjects/index.md)
 
     ---
 
-    What a video shows: shapes, text and math, graphs, 3D, and what every one of them can
-    do.
+    视频所显示的内容：图形、文本与数学、图表、3D，以及它们各自能做什么。
 
 -   ![](film:AnimationsHero)
 
-    [**Animations**](animations/index.md)
+    [**动画**](animations/index.md)
 
     ---
 
-    What changes mobjects over time: draw, write, transform, move, emphasize, in turn.
+    随时间改变 mobject 的内容：绘制、书写、变换、移动、强调、依次进行。
 
 -   ![](film:UpdatersHero)
 
-    [**Updaters**](updaters/index.md)
+    [**更新器**](updaters/index.md)
 
     ---
 
-    Rules a mobject keeps at every frame, and numbers to animate them by.
+    mobject 在每一帧保持的规则，以及用于对它们进行动画处理的数值。
 
 -   ![](film:CameraAnd3DHero)
 
-    [**Camera and 3D**](camera-and-3d/index.md)
+    [**相机与 3D**](camera-and-3d/index.md)
 
     ---
 
-    Pan and zoom, look at a 3D scene from any angle, light its surfaces.
+    平移与缩放，从任意角度观看 3D 场景，为其曲面打光。
 
 -   ![](film:SoundHero)
 
-    [**Sound**](sound/index.md)
+    [**声音**](sound/index.md)
 
     ---
 
-    Sounds with animations and under the video, and a voice that explains.
+    与动画一同播放以及位于视频下方的声音，以及用于讲解的语音。
 
 -   ![](film:RenderingHero)
 
-    [**Rendering**](rendering/index.md)
+    [**渲染**](rendering/index.md)
 
     ---
 
-    The command line, the video's size and frame rate, and rendering from Python.
+    命令行、视频的尺寸与帧率，以及从 Python 进行渲染。
 
 </div>

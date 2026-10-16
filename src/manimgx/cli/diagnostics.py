@@ -1,4 +1,4 @@
-"""Visible scene content and its layout diagnostics."""
+"""可见的场景内容及其布局诊断。"""
 
 import inspect
 from dataclasses import dataclass, field, replace
@@ -39,7 +39,7 @@ type Box = tuple[float, float, float, float]  # x0, y0, x1, y1 in scene units
 
 @dataclass(frozen=True, slots=True)
 class Thing:
-    """A text, or another drawn part, as it is on screen."""
+    """屏幕上的一个文本，或另一个绘制部分。"""
 
     name: str  # the code's name for it, or its kind
     kind: str
@@ -57,7 +57,7 @@ class Thing:
 
 
 def written_frame() -> FrameType | None:
-    """The innermost frame of the scene's own code on the stack (outside ManimGX)."""
+    """栈上场景自身代码的最内层帧（ManimGX 之外）。"""
     here = inspect.currentframe()
     frame = None if here is None else here.f_back
     while frame is not None and frame.f_code.co_filename.startswith(PACKAGE):
@@ -69,9 +69,8 @@ type Names = tuple[dict[int, str], dict[str, Mobject]]
 
 
 def names(scene: Scene, frame: FrameType | None) -> Names:
-    """The code's names for the scene's objects — its running variables, then the scene's
-    attributes, and indices into the groups they name, a few levels deep — and the groups by
-    their bare names."""
+    """代码为场景对象所取的名字——先取其运行中的变量，再取场景的属性，以及它们所命名的组中
+    若干层深度的索引——以及按其裸名命名的组。"""
     named: dict[int, str] = {}
     bare: dict[str, Mobject] = {}
 
@@ -106,7 +105,7 @@ def names(scene: Scene, frame: FrameType | None) -> Names:
 
 
 def text_of(mob: Mobject) -> str:
-    """What a text says (empty if it keeps no source)."""
+    """文本所表达的内容（若不保留来源则为空）。"""
     if isinstance(mob, manimgx.DecimalNumber):
         return f"{mob.get_value():g}"
     for attr in ("text", "tex_string", "original_text", "source"):
@@ -117,8 +116,8 @@ def text_of(mob: Mobject) -> str:
 
 
 def _paint(mob: Mobject) -> tuple[float, bool]:
-    """How much it fills (opacity), and whether its outline shows (a hairline of opacity ×
-    width below 0.02 does not)."""
+    """它的填充程度（不透明度），以及其轮廓是否可见（不透明度 × 宽度低于 0.02 的
+    细线不可见）。"""
     fill = float(np.max(np.atleast_1d(mob.get_fill_opacity())))
     stroke = float(np.max(np.atleast_1d(mob.get_stroke_opacity())))
     width = float(np.max(np.atleast_1d(mob.get_stroke_width())))
@@ -131,7 +130,7 @@ def _visible(mob: Mobject) -> bool:
 
 
 def outline(mob: Mobject) -> np.ndarray | None:
-    """A path's cubic curves as polylines (17 samples each): (curves, 17, 2)."""
+    """一条路径的三次曲线表示为折线（每条 17 个采样点）：(curves, 17, 2)。"""
     points = mob.points
     if len(points) < 4:
         return points[None, :, :2] if len(points) >= 2 else None
@@ -145,8 +144,7 @@ def outline(mob: Mobject) -> np.ndarray | None:
 
 @dataclass(frozen=True, slots=True)
 class View:
-    """What the viewer sees at a moment: the camera's frame (scene units) and the things in
-    it, in draw order."""
+    """观看者在某一时刻所见的内容：相机的画框（场景单位）以及其中的事物，按绘制顺序排列。"""
 
     frame: Box
     things: list[Thing]
@@ -154,8 +152,8 @@ class View:
 
 
 def view(scene: Scene, known: Names | None = None) -> View:
-    """What the viewer sees now. Names from the running code take precedence over `known`,
-    which preserves local names after `construct` returns."""
+    """观看者当前所见的内容。运行中代码的名字优先于 `known`，
+    后者在 `construct` 返回后保留局部名字。"""
     (x0, y0), (x1, y1) = (scene.camera.frame.get_corner(c)[:2] for c in (DL, UR))
     frame = (float(x0), float(y0), float(x1), float(y1))
     w, h = config.frame_width / 2, config.frame_height / 2
@@ -167,7 +165,7 @@ def view(scene: Scene, known: Names | None = None) -> View:
 
 
 def seen(scene: Scene, scope: Names) -> list[Thing]:
-    """What the viewer sees now, in draw order."""
+    """观看者当前所见的内容，按绘制顺序排列。"""
     named, bare = scope
     order = {id(leaf): i for i, leaf in enumerate(scene.display_list())}
     out: list[Thing] = []
@@ -314,7 +312,7 @@ def _common(a: Box, b: Box) -> Box:
 
 
 def _meet(a: Box, b: Box) -> bool:
-    """Do two boxes share a point? (A line's box has no height; it still meets a text's.)"""
+    """两个方框是否共享一个点？（一条直线的方框没有高度；它仍能与文本的方框相交。）"""
     x0, y0, x1, y1 = _common(a, b)
     return x0 <= x1 and y0 <= y1
 
@@ -324,7 +322,7 @@ def _grow(b: Box, by: float) -> Box:
 
 
 def crosses(curves: np.ndarray, box: Box) -> bool:
-    """Does any segment of these polylines pass through the box (Liang–Barsky, all at once)?"""
+    """这些折线中是否有任何一段穿过该方框（Liang–Barsky 算法，一次性全部判定）？"""
     a = curves[:, :-1].reshape(-1, 2)
     d = curves[:, 1:].reshape(-1, 2) - a
     x0, y0, x1, y1 = box
@@ -345,7 +343,7 @@ def crosses(curves: np.ndarray, box: Box) -> bool:
 
 
 def covers(curves: np.ndarray, points: np.ndarray) -> np.ndarray:
-    """Which points the region these closed polylines bound covers (even-odd rule)."""
+    """这些闭合折线所围成区域覆盖了哪些点（奇偶规则）。"""
     a = curves[:, :-1].reshape(-1, 2)
     b = curves[:, 1:].reshape(-1, 2)
     px, py = points[:, 0:1], points[:, 1:2]
@@ -378,7 +376,7 @@ def _cut(box: Box, frame: Box) -> str | None:
 
 
 def at(seen: View) -> list[Problem]:
-    """The problems a viewer sees in this view."""
+    """观看者在此视图中所看到的问题。"""
     frame, things = seen.frame, seen.things
     px_per_unit = 1080 / (frame[3] - frame[1])
     now: list[Problem] = []
@@ -459,16 +457,15 @@ def at(seen: View) -> list[Problem]:
 
 
 class Layout:
-    """A take's problems at sampled moments: each once, with the moments it appears in; the
-    problems (not the notes) numbered from 1 in the order they first appear — as the report
-    and the storyboard number them."""
+    """一次拍摄在采样时刻的问题：每个问题仅出现一次，并附带其出现的时刻；问题（非注记）
+    按首次出现的顺序从 1 开始编号——与报告和故事板中的编号方式一致。"""
 
     def __init__(self) -> None:
         self.found: dict[tuple[str, str, str | None, str | None], Problem] = {}
         self.numbers: dict[tuple[str, str, str | None, str | None], int] = {}
 
     def see(self, moment: Moment, seen: View) -> list[tuple[int, Problem]]:
-        """The problems at this moment, and their numbers (0: a note)."""
+        """此时刻的问题及其编号（0：注记）。"""
         out = []
         for problem in at(seen):
             key = problem.key()
@@ -487,7 +484,7 @@ def _label(t: Thing) -> str:
 
 
 def _when(moments: list[Moment]) -> str:
-    """When a problem is seen, and the line that played its first sample."""
+    """问题被看到的时刻，以及播放其首个采样所在的行。"""
     first, last = f"{float(moments[0][0]):g}", f"{float(moments[-1][0]):g}"
     span = f"t={first}s" if first == last else f"t={first}–{last}s"
     where = moments[0][1]
@@ -495,8 +492,8 @@ def _when(moments: list[Moment]) -> str:
 
 
 def report(layout: Layout, checked: int, similar: int = 3) -> str:
-    """A line per problem, by number; more than `similar` alike in a row (a label on each of
-    four planets) show the first and fold the rest; then the notes."""
+    """每个问题按编号占一行；连续超过 `similar` 个同类问题（例如四个行星上的标签）
+    只显示第一个，其余折叠；然后是注记。"""
     found = layout.found
     if not checked:
         return "layout: not checked (no samples)"
@@ -525,7 +522,7 @@ def report(layout: Layout, checked: int, similar: int = 3) -> str:
 
 
 def _alike(a: Problem, b: Problem) -> bool:
-    """Problems of one kind between the same two named groups."""
+    """在相同两个命名组之间属于同一种类的问题。"""
 
     def shape(p: Problem) -> tuple[object, ...]:
         other = None if p.other is None else (p.other.root, p.other.kind)

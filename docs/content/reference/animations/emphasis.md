@@ -1,11 +1,11 @@
 ---
-title: "Emphasis"
-description: "Draw the eye to a mobject: indicate it, circle it, flash a point, wiggle it, blink it."
+title: "强调"
+description: "将视线引向某个 mobject：指示它、圈住它、闪烁某个点、摆动它、眨眼它。"
 ---
 
-# Emphasis
+# 强调
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -20,8 +20,8 @@ class EmphasisHero(m.Scene):
         self.wait()
 ```
 
-These animations change a mobject for a moment and give it back as it was: they point a
-viewer's eye at it while the voice talks about it.
+这些动画短暂地改变某个 mobject，然后将其恢复原状：当语音讲解它时，它们将观众的视线
+引向它。
 
 ::: manimgx.Indicate
     options:

@@ -1,11 +1,11 @@
 ---
-title: "Value trackers"
-description: "A number you animate: it shows nothing, and updaters read it, so one animation can move many mobjects."
+title: "值跟踪器"
+description: "你动画的数字：它不显示任何内容，更新器读取它，因此一个动画可以移动多个 mobject。"
 ---
 
-# Value trackers
+# 值跟踪器
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -29,10 +29,7 @@ class ValueTrackersHero(m.Scene):
         self.wait()
 ```
 
-A value tracker holds a number and shows nothing. Animate its number with
-`tracker.animate.set_value(10)`; read it with `tracker.get_value()` in an updater, or in a
-function that [always_redraw][manimgx.always_redraw] calls. One animation of a tracker then
-moves every mobject that reads it.
+值跟踪器持有一个数字且不显示任何内容。用 `tracker.animate.set_value(10)` 动画它的数字；在更新器中，或在 [always_redraw][manimgx.always_redraw] 调用的函数中用 `tracker.get_value()` 读取它。跟踪器的一个动画随后移动每个读取它的 mobject。
 
 ::: manimgx.ValueTracker
     options:

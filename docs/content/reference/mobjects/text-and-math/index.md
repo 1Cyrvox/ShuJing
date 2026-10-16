@@ -1,11 +1,11 @@
 ---
-title: "Text and math"
-description: "Words, formulas, numbers and code, set by Typst inside ManimGX, in fonts that come with it."
+title: "文本与数学"
+description: "由 Typst 在 ManimGX 中排版的文字、公式、数字与代码，使用其内置字体。"
 ---
 
-# Text and math
+# 文本与数学
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -24,15 +24,13 @@ class TextAndMathHero(m.Scene):
         self.wait()
 ```
 
-ManimGX sets text and formulas itself, with [Typst](https://typst.app) and the fonts that
-come with it: you install no LaTeX and no fonts, and a text looks the same on every
-computer. A text is a mobject made of its glyphs, so it moves, scales, colors and animates
-as any shape does.
+ManimGX 自行排版文本与公式，使用 [Typst](https://typst.app) 及其内置字体：你无需安装
+LaTeX 和字体，且文本在每台计算机上看起来都一样。文本是由其字形组成的 mobject，因此它可以
+像任何图形一样移动、缩放、着色和制作动画。
 
-Write words with [Text][manimgx.Text], a formula in LaTeX with
-[MathTex][manimgx.MathTex], words with formulas in them with [Tex][manimgx.Tex], and Typst
-markup with [Typst][manimgx.Typst]. A number that changes is a
-[DecimalNumber][manimgx.DecimalNumber].
+用 [Text][manimgx.Text] 书写文字，用 [MathTex][manimgx.MathTex] 书写 LaTeX 公式，用
+[Tex][manimgx.Tex] 书写含公式的文字，用 [Typst][manimgx.Typst] 书写 Typst 标记。会变化的
+数字是 [DecimalNumber][manimgx.DecimalNumber]。
 
 <div class="grid cards mx-cards" markdown>
 
@@ -42,7 +40,7 @@ markup with [Typst][manimgx.Typst]. A number that changes is a
 
     ---
 
-    Words in a font, paragraphs, titles, bulleted lists and code.
+    字体中的文字、段落、标题、项目符号列表和代码。
 
 -   ![](film:MathHero)
 
@@ -50,7 +48,7 @@ markup with [Typst][manimgx.Typst]. A number that changes is a
 
     ---
 
-    Formulas in LaTeX or Typst, and their parts, to color, move and match.
+    LaTeX 或 Typst 中的公式，及其组成部分，用于着色、移动和匹配。
 
 -   ![](film:NumbersHero)
 
@@ -58,6 +56,6 @@ markup with [Typst][manimgx.Typst]. A number that changes is a
 
     ---
 
-    Numbers written with a set number of decimal places, which can change as a scene plays.
+    以设定小数位数书写的数字，可在场景播放时变化。
 
 </div>

@@ -1,11 +1,11 @@
 ---
-title: "Lines and arrows"
-description: "Lines between points, arrows that point, vectors from the origin, and the tips that end them."
+title: "线与箭头"
+description: "点之间的线、指示方向的箭头、从原点出发的向量，以及终止它们的箭头尖端。"
 ---
 
-# Lines and arrows
+# 线与箭头
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -38,12 +38,9 @@ class LinesAndArrows(m.Scene):
         self.wait()
 ```
 
-A line joins two points. An arrow is a line with a tip at its end, which shows a direction;
-a vector is an arrow from the origin. Lines, arrows and arcs can end in a tip, at either end,
-in any of the shapes at the [end of this page](#tips).
+线连接两个点。箭头是末端带有箭头尖端的线，用于指示方向；向量是从原点出发的箭头。线、箭头和弧都可以在任一端以箭头尖端结束，尖端可以是[本页末尾](#_3)列出的任何形状。
 
-An end of a line can also be a mobject: the line then runs from that mobject's edge, so that
-it joins two shapes without crossing them.
+线的一端也可以是一个 mobject：此时线从该 mobject 的边缘开始延伸，从而连接两个形状而不穿过它们。
 
 ::: manimgx.Line
     options:
@@ -77,11 +74,9 @@ it joins two shapes without crossing them.
     options:
       heading_level: 2
 
-## Tips
+## 箭头尖端
 
-A tip is a small shape at the end of a line, an arc or an arrow. Arrows make theirs; any
-other line or arc takes one with `add_tip`. `tip_shape` chooses its shape, and `tip_style`
-its style.
+箭头尖端是位于线、弧或箭头末端的一个小形状。箭头会自行创建其尖端；任何其他线或弧可通过 `add_tip` 添加一个。`tip_shape` 选择其形状，`tip_style` 选择其样式。
 
 ::: manimgx.TipableVMobject
     options:
@@ -93,7 +88,7 @@ its style.
       heading_level: 3
       inherited_members: [tip_length, normal_vector, tip_style]
 
-### Tip shapes
+### 尖端形状
 
 ::: manimgx.ArrowTriangleFilledTip
     options:
@@ -126,3 +121,7 @@ its style.
 ::: manimgx.ArrowTip
     options:
       heading_level: 4
+
+::: manimgx.mobjects.shapes.Arced
+::: manimgx.mobject.Pivot
+::: manimgx.mobjects.grid.MatrixOptions

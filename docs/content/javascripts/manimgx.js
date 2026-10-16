@@ -304,6 +304,8 @@
   // Every page, including those reached by instant navigation: its films, its math and its
   // rate function explorers and theme-aware pictures
   document$.subscribe(() => {
+    // Fix: instant navigation may not reset scroll position when navigating from bottom
+    if (!location.hash) window.scrollTo(0, 0)
     palette ??= new MutationObserver(pictures)
     palette.disconnect()
     palette.observe(document.body, { attributes: true, attributeFilter: ["data-md-color-scheme"] })

@@ -1,10 +1,8 @@
-# Updaters
+# 更新器
 
-Sometimes a mobject must follow a rule while others move: a label stays above a dot, or a
-number shows where a dot is. An updater is a function that keeps such a rule. ManimGX
-calls it at every frame.
+有时一个 mobject 必须在其他对象移动时遵循某条规则：一个标签始终位于一个点上方，或一个数字显示某个点所在的位置。更新器就是维持这类规则的函数。ManimGX 会在每一帧调用它。
 
-## Follow another mobject
+## 跟随另一个 mobject
 
 ```python
 import manimgx as m
@@ -24,14 +22,11 @@ class Follow(m.Scene):
         self.play(dot.animate.shift(3 * m.DOWN))
 ```
 
-`label.add_updater(stay_above)` makes ManimGX call `stay_above(label)` at every frame. So
-the label stays above the dot, wherever the dot goes. `label.clear_updaters()` stops it.
+`label.add_updater(stay_above)` 会让 ManimGX 在每一帧调用 `stay_above(label)`。因此无论点移动到哪里，标签都始终位于点上方。`label.clear_updaters()` 会停止这一行为。
 
-## A number that you animate
+## 你可以动画化的数字
 
-A [`ValueTracker`][manimgx.ValueTracker] holds a number. It doesn't show anything, but
-you can animate its number, and updaters can read it. So one animation can move many
-mobjects:
+[`ValueTracker`][manimgx.ValueTracker] 持有一个数字。它本身不显示任何东西，但你可以对其数字进行动画，更新器也可以读取它。因此一个动画可以带动多个 mobject：
 
 ```python
 import manimgx as m
@@ -50,13 +45,11 @@ class Counter(m.Scene):
         self.play(x.animate.set_value(10), run_time=3)
 ```
 
-`x.animate.set_value(10)` changes the number from 0 to 10, in 3 seconds.
-`x.get_value()` reads it.
+`x.animate.set_value(10)` 在 3 秒内将数字从 0 变为 10。`x.get_value()` 读取该数字。
 
-## Make a mobject again at every frame
+## 在每一帧重新生成 mobject
 
-`m.always_redraw` takes a function that makes a mobject, and makes it again at every
-frame. Here, a dot rides a graph as a tracker moves:
+`m.always_redraw` 接受一个生成 mobject 的函数，并在每一帧重新生成它。这里，当跟踪器移动时，一个点会沿图像滑动：
 
 ```python
 import manimgx as m
@@ -81,10 +74,9 @@ class Ride(m.Scene):
         self.play(x.animate.set_value(4.5), run_time=3)
 ```
 
-## Motion that goes on
+## 持续进行的运动
 
-An updater can also take `dt`: the time, in seconds, since it last ran. Use it for motion
-that goes on as time passes, in plays and in waits:
+更新器还可以接收 `dt`：自上次运行以来经过的时间，以秒为单位。可以用它实现随时间持续进行的运动，在 play 和 wait 中都有效：
 
 ```python
 import manimgx as m
@@ -102,11 +94,8 @@ class Spin(m.Scene):
         self.wait(2)
 ```
 
-`dt * m.PI` turns the square half a turn each second. Updaters that take `dt` can also
-simulate physics: the [Gallery](../gallery/index.md) has examples, such as
-[a spinning top](../gallery/heavy-top.md).
+`dt * m.PI` 让正方形每秒转半圈。接收 `dt` 的更新器还可以模拟物理：[画廊](../gallery/index.md) 中有相关示例，例如 [旋转陀螺](../gallery/heavy-top.md)。
 
-## Next
+## 下一步
 
-[Camera and 3D](camera-and-3d.md) shows how to move the camera, and how to make scenes
-in three dimensions.
+[相机与 3D](camera-and-3d.md) 展示了如何移动相机，以及如何在三维空间中制作场景。

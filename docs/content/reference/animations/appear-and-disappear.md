@@ -1,11 +1,11 @@
 ---
-title: "Appear and disappear"
-description: "Bring mobjects into the scene, drawn, written, faded or grown in, and take them out again."
+title: "出现与消失"
+description: "将 mobject 带入场景，通过绘制、书写、淡入或生长的方式，并将它们再次移出。"
 ---
 
-# Appear and disappear
+# 出现与消失
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -30,11 +30,11 @@ class AppearHero(m.Scene):
         )
 ```
 
-An animation that brings a mobject in adds it to the scene as it begins: you don't add it
-first. One that takes a mobject out removes it from the scene as it ends. Between them, a
-mobject is drawn along its paths, written as by hand, faded, or grown from a point.
+将 mobject 带入的动画会在其开始时将它添加到场景中：你无需事先添加它。将 mobject 移出
+的动画会在其结束时将它从场景中移除。在此之间，mobject 沿其路径被绘制、如手写般被书写、
+被淡入淡出，或从某点生长出来。
 
-## Draw and write
+## 绘制与书写
 
 ::: manimgx.Create
     options:
@@ -56,7 +56,7 @@ mobject is drawn along its paths, written as by hand, faded, or grown from a poi
     options:
       heading_level: 3
 
-## Fade
+## 淡入淡出
 
 ::: manimgx.FadeIn
     options:
@@ -66,7 +66,7 @@ mobject is drawn along its paths, written as by hand, faded, or grown from a poi
     options:
       heading_level: 3
 
-## Grow and shrink
+## 生长与收缩
 
 ::: manimgx.GrowFromCenter
     options:
@@ -96,7 +96,7 @@ mobject is drawn along its paths, written as by hand, faded, or grown from a poi
     options:
       heading_level: 3
 
-## Part by part
+## 逐部分
 
 ::: manimgx.ShowIncreasingSubsets
     options:
@@ -106,7 +106,7 @@ mobject is drawn along its paths, written as by hand, faded, or grown from a poi
     options:
       heading_level: 3
 
-## Type text
+## 打字文本
 
 ::: manimgx.AddTextLetterByLetter
     options:

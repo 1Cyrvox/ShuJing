@@ -15,7 +15,7 @@
   {% set image = (config.site_url | trim("/")) ~ "/" ~ card.path %}
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ config.site_name | e }}">
-  <meta property="og:locale" content="en_US">
+  <meta property="og:locale" content="zh_CN">
   <meta property="og:title" content="{{ title | e }}">
   <meta property="og:description" content="{{ description | e }}">
   {% if page and page.canonical_url %}
@@ -28,7 +28,7 @@
   <meta property="og:image:height" content="{{ card.height }}">
   <meta property="og:image:alt" content="{{ card.alt | e }}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@AcademaAI">
+  <meta name="twitter:site" content="@aipaikj">
   <meta name="twitter:title" content="{{ title | e }}">
   <meta name="twitter:description" content="{{ description | e }}">
   <meta name="twitter:image" content="{{ image | e }}">

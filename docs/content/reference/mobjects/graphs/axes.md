@@ -1,11 +1,11 @@
 ---
-title: "Axes"
-description: "Axes with coordinates of their own, their labels and numbers, and lines from them to a point."
+title: "坐标轴"
+description: "具有自身坐标系的坐标轴、其标签与数字，以及从坐标轴到某点的连线。"
 ---
 
-# Axes
+# 坐标轴
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -23,17 +23,14 @@ class AxesHero(m.Scene):
         self.wait()
 ```
 
-Axes have a range on each axis, `[start, end, step]`, and a length in the frame:
-`x_range=[-3, 3, 1]` numbers the x-axis from −3 to 3 with a tick at every unit, and
-`x_length=8` makes it 8 units long. The axes' coordinates are theirs: the point where x is 2
-and y is 4 is `axes.c2p(2, 4)`, wherever the axes are and however long.
+坐标轴的每根轴都有一个范围 `[start, end, step]` 和一个以帧为单位的长度：`x_range=[-3, 3, 1]` 将 x 轴从 −3 编号到 3，每个单位处有一个刻度；`x_length=8` 使其长度为 8 个单位。坐标轴的坐标系是其自身的：x 为 2、y 为 4 的点是 `axes.c2p(2, 4)`，无论坐标轴位于何处、有多长。
 
 ::: manimgx.Axes
     options:
       heading_level: 2
       members: [x_range, y_range, x_axis, y_axis, axes]
 
-## Coordinates
+## 坐标
 
 ::: manimgx.Axes.coords_to_point
     options:
@@ -59,7 +56,7 @@ and y is 4 is `axes.c2p(2, 4)`, wherever the axes are and however long.
     options:
       heading_level: 3
 
-## Each axis
+## 各轴
 
 ::: manimgx.Axes.get_x_axis
     options:
@@ -81,7 +78,7 @@ and y is 4 is `axes.c2p(2, 4)`, wherever the axes are and however long.
     options:
       heading_level: 3
 
-## Labels and numbers
+## 标签与数字
 
 ::: manimgx.Axes.add_coordinates
     options:
@@ -99,7 +96,7 @@ and y is 4 is `axes.c2p(2, 4)`, wherever the axes are and however long.
     options:
       heading_level: 3
 
-## Lines to a point
+## 到某点的连线
 
 ::: manimgx.Axes.get_vertical_line
     options:
@@ -113,8 +110,11 @@ and y is 4 is `axes.c2p(2, 4)`, wherever the axes are and however long.
     options:
       heading_level: 3
 
-## Axes in three dimensions
+## 三维坐标轴
 
 ::: manimgx.ThreeDAxes
     options:
       heading_level: 3
+
+::: manimgx.mobjects.plotting.AxisLine
+::: manimgx.mobjects.plotting.AxesOptions

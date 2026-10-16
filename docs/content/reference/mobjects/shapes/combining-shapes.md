@@ -1,11 +1,11 @@
 ---
-title: "Combining shapes"
-description: "New shapes from old ones: their union, their intersection, their difference, a shape with holes, and the hull around points."
+title: "组合形状"
+description: "由旧形状创建新形状：它们的并集、交集、差集、带孔洞的形状，以及围绕点的凸包。"
 ---
 
-# Combining shapes
+# 组合形状
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -35,10 +35,7 @@ class CombiningShapes(m.Scene):
         self.wait()
 ```
 
-Two shapes overlap in three regions: where only the first is, where only the second is, and
-where both are. Each of these classes makes a new path from some of those regions, styled as
-you say: the originals stay as they are. A cutout cuts holes in a shape, and a convex hull
-wraps points as a band would.
+两个形状重叠时形成三个区域：仅第一个形状所在的区域、仅第二个形状所在的区域，以及两者共同所在的区域。这些类中的每一个都从其中某些区域创建一条新路径，并按你指定的方式设置样式：原始形状保持不变。cutout（挖切）在形状中挖出孔洞，而 convex hull（凸包）如同一条带子般将点包裹起来。
 
 ::: manimgx.Union
     options:

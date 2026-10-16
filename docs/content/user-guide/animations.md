@@ -1,12 +1,10 @@
-# Animations
+# 动画
 
-An animation changes mobjects over time. [The basics](the-basics.md) showed the ones that
-show and hide mobjects. This page shows how to animate any change, how to time an
-animation, and how to play several together.
+动画随时间改变 mobject。[基础](the-basics.md)展示了用于显示和隐藏 mobject 的动画。本页展示如何为任何变化制作动画、如何设定动画的时间，以及如何同时播放多个动画。
 
-## Animate any change
+## 为任何变化制作动画
 
-Put `.animate` before a method, and `self.play` animates the change that the method makes:
+在方法前加上 `.animate`，`self.play` 就会将该方法所产生的变化制作成动画：
 
 ```python
 import manimgx as m
@@ -22,13 +20,11 @@ class Changes(m.Scene):
         self.play(square.animate.scale(0.5).move_to(m.ORIGIN))
 ```
 
-Without `.animate`, `square.shift(3 * m.RIGHT)` moves the square at once, with no
-animation. With `.animate`, the square moves there in one second. You can chain several
-changes after `.animate`, as the last line does, and they occur together.
+不加 `.animate` 时，`square.shift(3 * m.RIGHT)` 会立即移动正方形，没有动画。加上 `.animate` 时，正方形会在一秒内移动到那里。你可以在 `.animate` 之后链式连接多个变化，如最后一行所示，它们会同时发生。
 
-## Turn one mobject into another
+## 将一个 mobject 变为另一个
 
-`m.ReplacementTransform` turns one mobject into another:
+`m.ReplacementTransform` 将一个 mobject 变为另一个：
 
 ```python
 import manimgx as m
@@ -43,21 +39,17 @@ class SquareIntoCircle(m.Scene):
         self.play(circle.animate.shift(2 * m.UP))
 ```
 
-After it, `circle` is in the video, and `square` is not. `m.Transform(square, circle)`
-looks the same, but it changes `square` into the shape of the circle and keeps it in
-the video: after it, you move `square`, not `circle`.
+之后，`circle` 在视频中，而 `square` 不在。`m.Transform(square, circle)` 看起来一样，但它将 `square` 变为圆的形状并将其保留在视频中：之后，你移动的是 `square`，而不是 `circle`。
 
-## Time an animation
+## 设定动画时间
 
-Most animations take one second. To choose how long, give a `run_time`, in seconds:
+大多数动画耗时一秒。要选择时长，请给出 `run_time`，单位为秒：
 
 ```py
 self.play(m.Create(circle), run_time=3)
 ```
 
-Its `rate_func` sets how fast it goes at each moment. The default, `m.smooth`, starts
-slowly, speeds up, and ends slowly. `m.linear` keeps one speed. Choose one below to see
-how it moves:
+其 `rate_func` 设定它在每一刻的速度。默认的 `m.smooth` 开始时缓慢，然后加速，最后再缓慢结束。`m.linear` 保持匀速。在下方选择一个来查看它的运动方式：
 
 <div class="mx-rates" data-rates="smooth linear rush_into rush_from there_and_back double_smooth running_start lingering ease_in_out_sine ease_in_back ease_out_elastic ease_out_bounce"></div>
 
@@ -65,12 +57,11 @@ how it moves:
 self.play(square.animate.shift(3 * m.RIGHT), rate_func=m.linear)
 ```
 
-The [rate functions][manimgx.animation.easing] reference lists all of them.
+[速率函数][manimgx.animation.easing]参考文档列出了所有这些函数。
 
-## Play animations together
+## 同时播放动画
 
-Give `self.play` several animations, and they play at the same time. The play lasts as
-long as the longest one:
+给 `self.play` 多个动画，它们会同时播放。播放时长与最长的动画相同：
 
 ```python
 import manimgx as m
@@ -85,10 +76,9 @@ class Together(m.Scene):
         self.play(circle.animate.set_fill(m.RED, opacity=1), m.FadeOut(words))
 ```
 
-## Play animations in turn
+## 依次播放动画
 
-`m.LaggedStart` starts each animation a short time after the one before it. Its
-`lag_ratio` sets when: 0.5 starts each one when the one before it is half done.
+`m.LaggedStart` 在前一个动画之后稍晚一点启动每个动画。其 `lag_ratio` 设定何时启动：0.5 表示在前一个动画完成一半时启动下一个。
 
 ```python
 import manimgx as m
@@ -108,13 +98,10 @@ class InTurn(m.Scene):
         )
 ```
 
-`m.Succession` plays its animations one after the other, in one play. Use it when the
-steps are a part of a larger play: for example, to move a shape in three steps while a
-title is written.
+`m.Succession` 在一次播放中依次播放其动画。当各步骤是更大播放的一部分时使用它：例如，在书写标题的同时分三步移动一个形状。
 
-The [reference](../reference/animations/index.md) shows every animation.
+[参考文档](../reference/animations/index.md)展示了每种动画。
 
-## Next
+## 下一步
 
-[Text and math](text-and-math.md) shows how to write words and formulas, and how to
-animate them.
+[文本和数学](text-and-math.md)将展示如何书写文字和公式，以及如何为它们制作动画。

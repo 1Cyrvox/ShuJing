@@ -1,6 +1,6 @@
-title: "Rendering"
+title: "渲染"
 nav:
-  - Overview: index.md
+  - 概览: index.md
   - command-line.md
   - configuration.md
   - from-python.md

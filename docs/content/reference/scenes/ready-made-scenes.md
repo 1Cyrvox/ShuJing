@@ -1,11 +1,11 @@
 ---
-title: "Ready-made scenes"
-description: "Scenes made for one kind of video: vectors on a plane, linear transformations of the plane, and a zoomed inset."
+title: "现成场景"
+description: "为某一类视频而制作的场景：平面上的向量、平面的线性变换，以及放大插图。"
 ---
 
-# Ready-made scenes
+# 现成场景
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 
 
@@ -16,10 +16,7 @@ class ReadyMadeScenesHero(m.LinearTransformationScene):
         self.wait()
 ```
 
-These scenes come with what one kind of video needs. A vector scene draws vectors from the
-origin of a plane, with their labels and their coordinates. A linear transformation scene
-applies a matrix to the plane and to everything on it, in one play. A zoomed scene shows a
-magnified part of the frame, in an inset.
+这些场景自带某一类视频所需的内容。向量场景从平面的原点绘制向量，并附带它们的标签和坐标。线性变换场景在一次 play 中将矩阵应用于平面及平面上的所有内容。缩放场景在插图中显示帧的放大局部。
 
 ::: manimgx.VectorScene
     options:
@@ -36,3 +33,9 @@ magnified part of the frame, in an inset.
 ::: manimgx.scene.ZoomedCameraConfig
     options:
       heading_level: 3
+
+::: manimgx.mobjects.shapes.ArrowTipsBase
+::: manimgx.mobjects.grid.MatrixOptions
+::: manimgx.scene.LabelPlacement
+::: manimgx.scene.VectorLabelOptions
+::: manimgx.scene.UnitSquareOptions

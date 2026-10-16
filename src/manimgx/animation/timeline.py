@@ -1,7 +1,7 @@
-"""Animation time: lifecycle, exact composition windows, and speed profiles.
+"""动画时间：生命周期、精确的组合窗口与速度剖面。
 
-The scalar lifecycle phases and vector schedules use the same group layout.
-Scene chooses the instants; an animation tree evaluates what acts at each instant."""
+标量生命周期阶段与向量调度使用相同的分组布局。
+场景选择各个时刻；动画树评估在每个时刻起作用的内容。"""
 
 from __future__ import annotations
 
@@ -59,51 +59,50 @@ __all__ = [
 
 
 class _Untimed(TypedDict, total=False):
-    """Untimed's keys, open, for the keywords that add to them."""
+    """Untimed 的键，开放，用于添加到它们的关键字。"""
 
     lag_ratio: float
-    """How the parts of the mobject are staggered: each begins this fraction of its run
-    after the one before it begins (default 0: all together; 1: one after another)."""
+    """mobject 各部分如何交错：每个部分在其前一个部分开始后，经过其运行时长的该分数比例后开始
+    （默认 0：全部同时；1：一个接一个）。"""
     rate_func: RateFunc
-    """How the animation's progress runs with time: a function from [0, 1] to [0, 1]
-    (default [`smooth`][manimgx.smooth]; see
-    [rate functions][manimgx.animation.easing])."""
+    """动画进度如何随时间运行：一个从 [0, 1] 到 [0, 1] 的函数
+    （默认为 [`smooth`][manimgx.smooth]；参见
+    [rate functions][manimgx.animation.easing]）。"""
     reverse_rate_function: bool
-    """Whether to run the animation backward (default False)."""
+    """是否反向运行动画（默认 False）。"""
     name: str | None
-    """A name for the animation."""
+    """动画的名称。"""
     remover: bool
-    """Whether the mobject leaves the scene when the animation finishes
-    (default False)."""
+    """动画结束时 mobject 是否离开场景
+    （默认 False）。"""
     suspend_mobject_updating: bool
-    """Whether the mobject's updaters run beneath the animation (default True): they
-    keep acting on the mobject, and each frame shows the animation applied to the result.
-    If False, they act on the animated mobject itself."""
+    """动画期间 mobject 的更新器是否在其下运行（默认 True）：它们
+    持续作用于 mobject，每一帧显示动画应用于其结果。
+    若为 False，则它们作用于被动画的 mobject 本身。"""
     introducer: bool
-    """Whether the mobject joins the scene when the animation begins (default False);
-    otherwise the play brings it in when the play begins, if the scene lacks it."""
+    """动画开始时 mobject 是否加入场景（默认 False）；
+    否则若场景缺少它，play 在其开始时将其带入。"""
     use_override: bool
-    """Whether a mobject whose class plays another animation in place of this one
-    does so (default True)."""
+    """若某 mobject 的类用另一个动画代替此动画播放，是否如此执行
+    （默认 True）。"""
 
 
 class Untimed(_Untimed, total=False, closed=True):
-    """Every animation option but `run_time`, which [`Wait`][manimgx.Wait] takes by
-    position."""
+    """除 `run_time` 外的每个动画选项，[`Wait`][manimgx.Wait] 按位置接收它。"""
 
 
 class _AnimationOptions(_Untimed, total=False):
-    """AnimationOptions's keys, open, for the keywords that add to them."""
+    """AnimationOptions 的键，开放，用于添加到它们的关键字。"""
 
     run_time: float
-    """How long the animation plays, in seconds (default 1)."""
+    """动画播放时长，以秒为单位（默认 1）。"""
 
 
 class AnimationOptions(_AnimationOptions, total=False, closed=True):
-    """The options every animation takes, by keyword.
+    """每个动画按关键字接收的选项。
 
-    Each animation class sets its own defaults for them: [`Create`][manimgx.Create], for
-    instance, draws the parts of a mobject one after another (`lag_ratio=1`).
+    每个动画类为它们设置自己的默认值：例如 [`Create`][manimgx.Create]
+    将 mobject 的各部分一个接一个地绘制（`lag_ratio=1`）。
     """
 
 
@@ -111,16 +110,15 @@ _CASCADES: Memo[type, AnimationOptions] = Memo(1 << 12)
 
 
 def animation_defaults(cls: type[Animation]) -> AnimationOptions:
-    """The options an animation class sets by default.
+    """动画类默认设置的选项。
 
-    Each class in its hierarchy adds only what it changes (its `defaults`), the most
-    derived last.
+    其层次结构中的每个类仅添加它所更改的内容（其 `defaults`），最派生的类最后添加。
 
     Args:
-        cls: The animation class.
+        cls: 动画类。
 
     Returns:
-        Its default options.
+        其默认选项。
     """
     cached = _CASCADES.get(cls)
     if cached is None:
@@ -135,14 +133,14 @@ def animation_defaults(cls: type[Animation]) -> AnimationOptions:
 type Key = "Mobject | Callable[[Mobject], Mobject] | None"
 
 
-"""A keyframe as an animation declares it: its object as it begins (None), a function of a copy of
-that, or an object of its own (copied when the animation begins)."""
+"""动画声明的一个关键帧：其开始时的对象（None）、该对象副本的函数，
+或其自身的对象（动画开始时被复制）。"""
 
 
 def keyframe_at(steps: int, alpha: float) -> tuple[int, float]:
-    """Where an eased progress falls among `steps` keyframe intervals: the interval, and
-    how far along it. Past the ends (a rate function that overshoots, or backs up), the
-    end intervals run on: the fraction is below 0 or above 1."""
+    """一个缓急后的进度落在 `steps` 个关键帧区间中的位置：所在区间，以及
+    在其中前进了多远。越过两端时（速率函数超调或回退），
+    末端区间继续延伸：分数低于 0 或高于 1。"""
     if alpha < 0:
         return 0, alpha * steps
     if alpha > 1:
@@ -151,31 +149,30 @@ def keyframe_at(steps: int, alpha: float) -> tuple[int, float]:
 
 
 class Animation[M: Mobject = Mobject]:
-    """A change of mobjects over a stretch of scene time.
+    """mobject 在一段场景时间内的变化。
 
-    An animation plays for `run_time` seconds of the scene's time. Its progress,
-    `alpha`, goes from 0 at its start to 1 at its end, eased by its rate function (by
-    default [`smooth`][manimgx.smooth]: slow, fast, slow). The parts of its mobject (the
-    members of its family that have points) can be staggered: with a `lag_ratio`, each
-    part begins that fraction of its run after the part before it, so 0 moves them all
-    together and 1 one after another.
+    动画播放 `run_time` 秒的场景时间。其进度
+    `alpha` 从开始时的 0 到结束时的 1，由其速率函数缓急（默认为
+    [`smooth`][manimgx.smooth]：慢、快、慢）。其 mobject 的各部分（其家族中
+    有点的成员）可以交错：通过 `lag_ratio`，每个部分在其前一个部分开始后，
+    经过其运行时长的该分数比例后开始，因此 0 使它们全部同时移动，
+    1 使它们一个接一个。
 
-    [`Scene.play`][manimgx.Scene.play] plays it. An animation that brings its mobject in
-    adds it to the scene as it starts, and one that takes its mobject out removes it as
-    it ends. The mobject's own updaters keep running while it plays: each frame shows
-    the animation applied to the mobject as its updaters have it then, and when the
-    animation ends, the mobject is as its last frame showed it.
+    [`Scene.play`][manimgx.Scene.play] 播放它。带入其 mobject 的动画在开始时将其
+    加入场景，而取出其 mobject 的动画在结束时将其移除。mobject 自身的更新器在播放
+    期间持续运行：每一帧显示动画应用于更新器当时所得到的 mobject，当动画
+    结束时，mobject 即为其最后一帧所示的状态。
 
-    To make an animation of your own, make a class from it, and override
-    [`interpolate_mobject`][manimgx.Animation.interpolate_mobject]: it sets the whole
-    mobject at the animation's progress, from 0 to 1, as it is before the rate function
-    eases it, so apply `self.rate_func(alpha)` yourself. The options are attributes of
-    the same names (`self.rate_func`, `self.lag_ratio`, …). An `Animation` itself
-    changes nothing: it holds its mobject in the scene for its run time.
+    要制作自己的动画，请从它派生一个类，并重写
+    [`interpolate_mobject`][manimgx.Animation.interpolate_mobject]：它在速率函数
+    缓急之前，将整个 mobject 设置为动画的进度（从 0 到 1），因此需自行应用
+    `self.rate_func(alpha)`。各选项是同名的属性
+    （`self.rate_func`、`self.lag_ratio`、…）。`Animation` 本身
+    不改变任何内容：它将其 mobject 在场景中保持其运行时长。
 
     Args:
-        mobject: The mobject to animate; None for none, as a [`Wait`][manimgx.Wait] has.
-        **options: [Animation options][manimgx.animation.timeline.AnimationOptions].
+        mobject: 要动画的 mobject；None 表示无，如 [`Wait`][manimgx.Wait] 所具有的。
+        **options: [Animation options][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -199,14 +196,14 @@ class Animation[M: Mobject = Mobject]:
 
     _call: tuple[tuple[object, ...], dict[str, object]]
     defaults: ClassVar[AnimationOptions] = {}
-    """The options this class sets by default, only those it changes from its base
-    classes' (they cascade down the class hierarchy)."""
+    """此类默认设置的选项，仅包含其相对于基类所更改的内容
+    （它们沿类层次结构向下级联）。"""
     keys: Sequence[Key] = (None,)  # the base part-by-part hook's starting state
     _held: Sequence[Mobject] = ()  # the members whose updating it suspended (`take`)
 
     def __new__(cls, *args: object, **kwargs: object) -> Self:
-        """Construction makes the class it names (so it type-checks like any call), keeping the
-        arguments for a mobject that plays something else (`override_animation`)."""
+        """构造会创建它所命名的类（因此其类型检查如同任何调用），并为
+        播放其他内容的 mobject（`override_animation`）保留参数。"""
         animation = super().__new__(cls)
         animation._call = args, kwargs
         return animation
@@ -236,7 +233,7 @@ class Animation[M: Mobject = Mobject]:
     # read-only, so an animation of a Circle is an animation of a Mobject (M is covariant)
     @property
     def mobject(self) -> M:
-        """The mobject the animation changes."""
+        """动画所更改的 mobject。"""
         return self._mobject
 
     @property
@@ -245,10 +242,10 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def model(self) -> M | None:
-        """The mobject as its updaters have it while the animation plays.
+        """动画播放时其更新器所作用的 mobject。
 
-        A copy they run on, taken when the animation begins; None if the mobject has no
-        updaters, or they act on it directly (`suspend_mobject_updating` False).
+        它们运行于其上的副本，在动画开始时取得；若 mobject 无更新器，
+        或更新器直接作用于其上（`suspend_mobject_updating` 为 False），则为 None。
         """
         return self._model
 
@@ -258,19 +255,18 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def hidden(self) -> Sequence[Mobject]:
-        """The parts of its mobject the animation leaves out of the picture now.
+        """其 mobject 中动画当前未纳入画面的部分。
 
-        While the animation plays, the scene draws what it holds but these, with their
-        families; the parts themselves are not changed, so whatever else acts on them
-        shows once they are drawn again. Most animations hide nothing;
-        [`ShowIncreasingSubsets`][manimgx.ShowIncreasingSubsets] hides the parts it has
-        not shown yet.
+        动画播放时，场景绘制其持有的内容但排除这些部分及其家族；
+        这些部分本身不被改变，因此其他作用于它们的内容在它们再次被绘制时显现。
+        大多数动画不隐藏任何内容；
+        [`ShowIncreasingSubsets`][manimgx.ShowIncreasingSubsets] 隐藏其尚未显示的部分。
         """
         return ()
 
     @property
     def run_time(self) -> float:
-        """How long the animation plays, in seconds; never negative."""
+        """动画播放时长，以秒为单位；永不为负。"""
         return self._run_time
 
     @run_time.setter
@@ -284,7 +280,7 @@ class Animation[M: Mobject = Mobject]:
 
     @property
     def _duration(self) -> Fraction:
-        """The scene's duration; compositions retain their computed rational exactly."""
+        """场景的时长；组合保留其计算所得的有理数精确值。"""
         return clock.rational(self.run_time)
 
     @deprecated(
@@ -292,15 +288,14 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def build(self) -> Animation:
-        """Return what plays for this animation: itself, unless it stands for another.
+        """返回为此动画播放的内容：其自身，除非它代表另一个动画。
 
-        An [`.animate`][manimgx.Mobject.animate] call of a method that a mobject
-        overrides with [`override_animate`][manimgx.override_animate] stands for the
-        animation that method returns. [`Scene.play`][manimgx.Scene.play] calls it
-        before playing.
+        一个方法的 [`.animate`][manimgx.Mobject.animate] 调用，若 mobject 用
+        [`override_animate`][manimgx.override_animate] 重写了该方法，则代表
+        该方法返回的动画。[`Scene.play`][manimgx.Scene.play] 在播放前调用它。
 
         Returns:
-            The animation to play.
+            要播放的动画。
         """
         return self
 
@@ -310,14 +305,14 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def begin(self) -> None:
-        """Start the animation: derive its keyframes from the mobject as it is now, and
-        take the mobject, changing nothing.
+        """开始动画：从 mobject 当前状态导出其关键帧，并
+        接管 mobject，不改变任何内容。
 
-        [`Scene.play`][manimgx.Scene.play] calls it when the animation starts; a part of
-        a composition, when its window opens. The animation acts only when interpolated,
-        as a function of its progress: a part may begin between two frames, and its
-        first frame then shows it past progress 0, so set nothing up at progress 0.
-        Override it to set up an animation of your own, and call the base's.
+        [`Scene.play`][manimgx.Scene.play] 在动画开始时调用它；对于组合的一部分，
+        在其窗口打开时调用。动画仅在插值时起作用，
+        作为其进度的函数：一个部分可能在两帧之间开始，其
+        第一帧便显示它已越过进度 0，因此不要在进度 0 时设置任何内容。
+        重写它以设置自己的动画，并调用基类的实现。
         """
         # an animation is a function of α: one that set itself up at α = 0
         # (`if alpha == 0:`) would depend on where a play's frames fall
@@ -329,12 +324,12 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def take(self) -> None:
-        """Take the mobject as it is now, changing nothing.
+        """接管 mobject 当前状态，不改变任何内容。
 
-        If the mobject has updaters, the animation takes a copy for them to run on (its
-        model), and the mobject's own updating is suspended while the animation plays
-        (unless `suspend_mobject_updating` is False). So animations that begin together
-        all begin from the world as it was before any of them acted. `begin` calls it.
+        若 mobject 有更新器，动画为其取一个副本供其运行（其
+        model），并在动画播放期间挂起 mobject 自身的更新
+        （除非 `suspend_mobject_updating` 为 False）。因此同时开始的动画
+        全部从它们中任何一个起作用之前的世界状态开始。`begin` 调用它。
         """
         if _updating(
             self.mobject
@@ -356,13 +351,13 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def derive(self, source: Mobject) -> None:
-        """Derive the animation's keyframes from `source` as it is now, and align the
-        mobject with every one of them.
+        """从 `source` 当前状态导出动画的关键帧，并将
+        mobject 与每一个关键帧对齐。
 
-        `begin` calls it on the mobject, and `rederive` on its model.
+        `begin` 在 mobject 上调用它，`rederive` 在其 model 上调用它。
 
         Args:
-            source: The mobject, or its model.
+            source: mobject，或其 model。
         """
         own = [
             (
@@ -384,17 +379,17 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def finish(self) -> None:
-        """End the animation: show progress 1, and resume the updaters it suspended
-        (those suspended before it began stay so).
+        """结束动画：显示进度 1，并恢复其挂起的更新器
+        （在其开始前已挂起的保持挂起）。
 
-        [`Scene.play`][manimgx.Scene.play] calls it at the animation's end; a part of a
-        composition, when its window closes.
+        [`Scene.play`][manimgx.Scene.play] 在动画结束时调用它；对于组合的一部分，
+        在其窗口关闭时调用。
         """
         self.interpolate(1)
         self._release()
 
     def _release(self) -> None:
-        """Resume the updating it suspended when it began."""
+        """恢复其在开始时挂起的更新。"""
         if self.suspend_mobject_updating:
             for member in self._held:
                 member.resume_updating(recursive=False)
@@ -404,13 +399,13 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def clean_up_from_scene(self, scene: Scene) -> None:
-        """Leave the scene as the animation leaves it: a remover takes its mobject out.
+        """动画离开场景时如其所离：remover 将其 mobject 移出。
 
-        [`Scene.play`][manimgx.Scene.play] calls it after `finish`; a part of a
-        composition, when its window closes.
+        [`Scene.play`][manimgx.Scene.play] 在 `finish` 之后调用它；对于组合的一部分，
+        在其窗口关闭时调用。
 
         Args:
-            scene: The scene the animation played in.
+            scene: 动画所播放的场景。
         """
         if self.is_remover():
             scene.remove(*_held(self.mobject))
@@ -425,11 +420,11 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def get_all_families_zipped(self) -> Iterable[tuple[Mobject, ...]]:
-        """Return the parts of the animation's mobjects, matched up.
+        """返回动画各 mobject 的部分，已配对匹配。
 
         Returns:
-            For each part with points of the mobject, a tuple of it and the same part of
-            each of the animation's keyframes.
+            对于 mobject 中每个有点的部分，返回一个由它和动画每个关键帧中
+            相同部分组成的元组。
         """
         families = [
             m.family_members_with_points() for m in (self.mobject, *self.frames)
@@ -449,15 +444,15 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def advance(self, t: Fraction) -> None:
-        """Bring the mobject's updaters to scene time `t`, on its model.
+        """将 mobject 的更新器带到场景时间 `t`，作用于其 model。
 
-        Then it derives what the animation shows from the model again (`rederive`). The
-        scene calls it at every instant it computes while the animation plays, before
-        `interpolate`. At the end of the play, before `finish`, time alone brings the
-        model there: the per-frame updaters then run once, on the mobject itself.
+        然后它从 model 再次导出动画所显示的内容（`rederive`）。
+        场景在动画播放期间计算的每个时刻调用它，在
+        `interpolate` 之前。在播放结束时，在 `finish` 之前，时间本身将
+        model 带到那里：逐帧更新器随后在 mobject 自身上运行一次。
 
         Args:
-            t: The scene time, in seconds, as an exact fraction.
+            t: 场景时间，以秒为单位，作为精确分数。
         """
         if self.model is not None:
             self.model.advance(t)
@@ -468,10 +463,10 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def rederive(self) -> None:
-        """Derive the animation's keyframes again, from the mobject's model as it is now.
+        """从 mobject 的 model 当前状态再次导出动画的关键帧。
 
-        The mobject then shows the model, and the animation acts on it: an animation acts
-        on the mobject as its updaters have it at that frame. `advance` calls it.
+        mobject 随后显示 model，动画作用于其上：动画作用于
+        更新器在该帧所得到的 mobject。`advance` 调用它。
         """
         model = self.model
         if model is None:
@@ -485,27 +480,26 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def interpolate(self, alpha: float) -> None:
-        """Show the animation at a progress.
+        """在某一进度显示动画。
 
-        [`Scene.play`][manimgx.Scene.play] calls it at every frame; it hands the work to
-        `interpolate_mobject`.
+        [`Scene.play`][manimgx.Scene.play] 在每一帧调用它；它将工作交给
+        `interpolate_mobject`。
 
         Args:
-            alpha: The animation's progress, from 0 at its start to 1 at its end, not
-                yet eased by the rate function.
+            alpha: 动画的进度，从开始时的 0 到结束时的 1，尚未
+                被速率函数缓急。
         """
         self.interpolate_mobject(alpha)
 
     def interpolate_mobject(self, alpha: float) -> None:
-        """Set the whole mobject at a progress of the animation.
+        """在动画的某一进度设置整个 mobject。
 
-        By default, it sets each part at its own progress (`get_sub_alpha`: staggered by
-        `lag_ratio`, eased by the rate function) through `interpolate_keyframes`.
-        Override it to set the whole mobject at once, and apply `self.rate_func(alpha)`
-        yourself.
+        默认情况下，它通过 `interpolate_keyframes` 将每个部分设置为其自身的进度
+        （`get_sub_alpha`：由 `lag_ratio` 交错，由速率函数缓急）。
+        重写它以一次性设置整个 mobject，并自行应用 `self.rate_func(alpha)`。
 
         Args:
-            alpha: The animation's progress, from 0 to 1, not yet eased.
+            alpha: 动画的进度，从 0 到 1，尚未缓急。
         """
         families = list(self.get_all_families_zipped())
         for i, (submobject, *keys) in enumerate(families):
@@ -520,16 +514,16 @@ class Animation[M: Mobject = Mobject]:
     def interpolate_keyframes(
         self, submobject: Mobject, keys: Sequence[Mobject], alpha: float
     ) -> None:
-        """Set one part of the mobject at its progress through its keyframes.
+        """在其关键帧的某一进度设置 mobject 的一个部分。
 
-        The keyframes are the states of the part the animation passes through, in order.
-        By default the only one is the part's starting state, and this calls
-        `interpolate_submobject`.
+        关键帧是动画所经过的该部分的各状态，按顺序排列。
+        默认情况下唯一的一个是该部分的起始状态，此方法调用
+        `interpolate_submobject`。
 
         Args:
-            submobject: The part of the mobject to set.
-            keys: The same part of each keyframe.
-            alpha: The part's progress, staggered and eased.
+            submobject: 要设置的 mobject 部分。
+            keys: 每个关键帧中相同的部分。
+            alpha: 该部分的进度，已交错且已缓急。
         """
         # with one keyframe (a start state) this is CE's `interpolate_submobject`, the
         # hook custom animations override
@@ -542,16 +536,16 @@ class Animation[M: Mobject = Mobject]:
     def interpolate_submobject(
         self, submobject: Mobject, starting_submobject: Mobject, alpha: float
     ) -> None:
-        """Set one part of the mobject at its own progress; the base does nothing.
+        """在其自身进度设置 mobject 的一个部分；基类不做任何事。
 
-        The hook to override for an animation that acts part by part:
-        `interpolate_mobject` calls it for each part with points, at every frame.
+        对于逐部分起作用的动画，这是要重写的钩子：
+        `interpolate_mobject` 在每一帧为每个有点的部分调用它。
 
         Args:
-            submobject: The part of the mobject to set.
-            starting_submobject: The same part as it was when the animation began.
-            alpha: The part's progress, from 0 to 1: staggered by `lag_ratio` and eased
-                by the rate function.
+            submobject: 要设置的 mobject 部分。
+            starting_submobject: 动画开始时相同部分的状态。
+            alpha: 该部分的进度，从 0 到 1：由 `lag_ratio` 交错并由
+                速率函数缓急。
         """
 
     @deprecated(
@@ -559,21 +553,21 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def get_sub_alpha(self, alpha: float, index: int, num_submobjects: int) -> float:
-        """Return a part's progress at a progress of the animation.
+        """返回动画某一进度下某部分的进度。
 
-        The parts are staggered by `lag_ratio`: each has a window of the animation's
-        progress, the first opening at 0 and the last closing at 1, and runs through it
-        (held at 0 before it, at 1 after it), eased by the rate function (run backward
-        with `reverse_rate_function`). A part's window closes exactly: its progress there
-        is 1, and a finished animation is exactly its end.
+        各部分由 `lag_ratio` 交错：每个部分拥有动画进度的一个窗口，
+        第一个在 0 打开，最后一个在 1 关闭，并贯穿其窗口
+        （在其之前保持 0，在其之后保持 1），由速率函数缓急（以
+        `reverse_rate_function` 反向运行）。部分的窗口精确关闭：其在此处的进度
+        为 1，完成的动画恰为其结束。
 
         Args:
-            alpha: The animation's progress, from 0 to 1.
-            index: The part's position among the parts, from 0.
-            num_submobjects: How many parts there are.
+            alpha: 动画的进度，从 0 到 1。
+            index: 该部分在各部分中的位置，从 0 开始。
+            num_submobjects: 部分总数。
 
         Returns:
-            The part's progress, eased.
+            该部分的进度，已缓急。
         """
         lag = self.lag_ratio
         opens = index * lag
@@ -591,10 +585,10 @@ class Animation[M: Mobject = Mobject]:
     # ── CE accessors ──────────────────────────────────────────────────────
     @deprecated("get_run_time() is run_time: use it", category=None)
     def get_run_time(self) -> float:
-        """How long the animation plays.
+        """动画播放时长。
 
         Returns:
-            Its run time, in seconds.
+            其运行时长，以秒为单位。
         """
         return self.run_time
 
@@ -603,7 +597,7 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def is_remover(self) -> bool:
-        """Whether the mobject leaves the scene when the animation finishes."""
+        """动画结束时 mobject 是否离开场景。"""
         return self.remover
 
     @deprecated(
@@ -611,12 +605,12 @@ class Animation[M: Mobject = Mobject]:
         category=None,
     )
     def is_introducer(self) -> bool:
-        """Whether the mobject joins the scene when the animation begins."""
+        """动画开始时 mobject 是否加入场景。"""
         return self.introducer
 
 
 def _lacks(mob: Mobject, members: list[Mobject]) -> bool:
-    """Do a scene's members lack a mobject with anything to draw or to run?"""
+    """场景的成员是否缺少一个有可绘制内容或可运行内容的 mobject？"""
     return mob not in members and any(
         m.has_points() or m.updaters for m in mob.get_family()
     )
@@ -626,16 +620,16 @@ _GATHERED: weakref.WeakSet[Mobject] = weakref.WeakSet()
 
 
 def _gathered(*mobjects: Mobject) -> Group:
-    """A group an animation makes of the mobjects it is given, to act on them as one: no
-    scene holds it (`_held`)."""
+    """动画由所给 mobject 构成的组，将其作为整体作用：无
+    场景持有它（`_held`）。"""
     group = Group(*mobjects)
     _GATHERED.add(group)
     return group
 
 
 def _held(mob: Mobject) -> list[Mobject]:
-    """What a scene holds of a mobject an animation acts on: the mobject, or the members
-    of a group the animation gathered them in, each where it is or by itself."""
+    """场景所持有的、动画作用的 mobject 的内容：该 mobject，或动画将它们
+    聚集的组的各成员，各自在其位置或单独存在。"""
     return list(mob.submobjects) if mob in _GATHERED else [mob]
 
 
@@ -644,14 +638,14 @@ def _updating(mob: Mobject) -> bool:
 
 
 def _flatten(items: Iterable[object]) -> list[object]:
-    """Flatten nested iterables of animations into one list: a mobject, an animation or
-    a string is one item, not an iterable to flatten.
+    """将动画的嵌套可迭代对象展平为一个列表：一个 mobject、一个动画或
+    一个字符串是单个项，而非要展平的可迭代对象。
 
     Args:
-        items: The items, nested in lists, tuples or other iterables.
+        items: 各项，嵌套于列表、元组或其他可迭代对象中。
 
     Returns:
-        The items, in order.
+        各项，按顺序排列。
     """
     out: list[object] = []
     for item in items:
@@ -668,16 +662,16 @@ def _flatten(items: Iterable[object]) -> list[object]:
 
 
 def prepare(anim: object) -> Animation:
-    """Return what plays for an animation: as built, or what its mobject plays instead.
+    """返回为动画播放的内容：已构建的，或其 mobject 改为播放的内容。
 
-    The animation is built first (`build`); a mobject may play another animation in its
-    place (see `override_animation`).
+    动画首先被构建（`build`）；mobject 可能在其位置播放另一个动画
+    （参见 `override_animation`）。
 
     Args:
-        anim: The animation; anything else raises a TypeError.
+        anim: 动画；其他任何内容引发 TypeError。
 
     Returns:
-        The animation to play.
+        要播放的动画。
     """
     if not isinstance(anim, Animation):
         raise TypeError(f"Object {anim} cannot be converted to an animation")
@@ -693,21 +687,20 @@ def prepare(anim: object) -> Animation:
 
 
 class Wait(Animation[Mobject]):
-    """Let the scene's time run on, animating nothing.
+    """让场景的时间继续流逝，不动画任何内容。
 
-    The scene's updaters and its mobjects' keep running through it;
-    [`Scene.wait`][manimgx.Scene.wait] plays one. Played alone, it can end early, at
-    `stop_condition`, or freeze the frame; in a composition, it only takes up its time.
+    场景的更新器及其 mobject 的更新器在其中持续运行；
+    [`Scene.wait`][manimgx.Scene.wait] 播放一个。单独播放时，它可以提前结束，于
+    `stop_condition` 处，或冻结帧；在组合中，它仅占用其时间。
 
     Args:
-        run_time: How long it lasts, in seconds.
-        stop_condition: A function checked at every frame: the wait ends at the first
-            frame at which it returns True. None: it lasts its whole run time.
-        frozen_frame: Whether time stands still: one frame is held, and the updaters do
-            not run, then go on as if no time had passed. It cannot be combined with a
-            `stop_condition` (a ValueError).
-        **kwargs: The other [animation options][manimgx.animation.timeline.AnimationOptions]
-            (all but `run_time`).
+        run_time: 持续时长，以秒为单位。
+        stop_condition: 每一帧检查的函数：等待在它返回 True 的第一帧结束。None：持续其整个运行时长。
+        frozen_frame: 时间是否静止：保持一帧，更新器不
+            运行，随后如同没有时间流逝般继续。它不能与
+            `stop_condition` 组合使用（引发 ValueError）。
+        **kwargs: 其他 [animation options][manimgx.animation.timeline.AnimationOptions]
+            （除 `run_time` 外的全部）。
 
     Examples:
         ```python
@@ -748,14 +741,14 @@ class Wait(Animation[Mobject]):
 
 
 class Add(Animation[Mobject]):
-    """Add mobjects to the scene at a moment of a composition.
+    """在组合的某一时刻将 mobject 加入场景。
 
-    It adds its mobjects when it begins and, by default, takes no time: in a
-    [`Succession`][manimgx.Succession], they appear when the animations before it have
-    finished. With a `run_time`, it holds that long after adding them.
+    它在开始时加入其 mobject，默认不占用时间：在
+    [`Succession`][manimgx.Succession] 中，它们在其之前的动画完成时出现。
+    给定 `run_time` 时，它在加入它们后保持那么久。
 
     Args:
-        *mobjects: The mobjects to add; several are added as one group.
+        *mobjects: 要添加的 mobject；多个作为一个组添加。
 
     Examples:
         ```python
@@ -792,7 +785,7 @@ class Add(Animation[Mobject]):
 prepare_animation = prepare
 
 
-"""The same as `prepare`: what plays for an animation."""
+"""与 `prepare` 相同：为动画播放的内容。"""
 
 
 DEFAULT_LAGGED_START_LAG_RATIO: float = 0.05
@@ -808,8 +801,8 @@ _PHASES: tuple[Phase, ...] = ("run", "begin", "fresh")
 
 
 class Window(NamedTuple):
-    """A part of an animation that acts itself, with where its window opens and closes in
-    the whole's progress (None: with the whole), and its path (see `windows`)."""
+    """动画的一个部分，其自身起作用，及其窗口在整体的进度中打开和关闭的位置
+    （None：与整体一致），及其路径（参见 `windows`）。"""
 
     part: Animation
     opens: Fraction
@@ -820,26 +813,26 @@ class Window(NamedTuple):
 type Route = dict[int, "Route | None"]
 
 
-"""The parts of a group an instant concerns: each by its index, with the route into it if it
-is a group (None: a part that acts itself)."""
+"""一个时刻所涉及的组的各部分：每个按其索引，若其为组则带有进入它的路由
+（None：自身起作用的部分）。"""
 
 
 type Placed = tuple[float, float, bool, Fraction, Fraction]
 
 
-"""A part's window in a time: its ends, whether it closes before its group's end, and its
-ends exactly."""
+"""一个部分在某一时间中的窗口：其两端、是否在其组的结束之前关闭，以及
+其精确的两端。"""
 
 
 def warp(rate_func: RateFunc, alpha: np.ndarray) -> np.ndarray:
-    """Apply a rate function to several progresses at once.
+    """一次将速率函数应用于多个进度。
 
     Args:
-        rate_func: The rate function.
-        alpha: The progresses; NaN for a part that has not begun, which stays so.
+        rate_func: 速率函数。
+        alpha: 各进度；NaN 表示尚未开始的部分，保持如此。
 
     Returns:
-        The eased progresses.
+        缓急后的各进度。
     """
     # the scalar function itself, so a frame computed alone gets the same bits
     return np.fromiter(
@@ -848,16 +841,16 @@ def warp(rate_func: RateFunc, alpha: np.ndarray) -> np.ndarray:
 
 
 def stagger(time: np.ndarray, start: float, end: float) -> np.ndarray:
-    """Return a part's progress through its window at several times of its group.
+    """返回一个部分在其组多个时刻下贯穿其窗口的进度。
 
     Args:
-        time: The group's times, as fractions of its run.
-        start: Where the part's window opens, as a fraction of the group's run.
-        end: Where it closes.
+        time: 组的各时刻，作为其运行的分数。
+        start: 部分窗口打开的位置，作为组运行的分数。
+        end: 窗口关闭的位置。
 
     Returns:
-        The part's progress at each time; NaN (not begun) before its window, and held
-        at 1 after it.
+        该部分在每个时刻的进度；在其窗口之前为 NaN（尚未开始），之后
+        保持为 1。
     """
     if end <= start:
         return np.where(time < start, np.nan, 1.0)
@@ -865,8 +858,8 @@ def stagger(time: np.ndarray, start: float, end: float) -> np.ndarray:
 
 
 def _through(time: float, start: float, end: float) -> float:
-    """A begun part's progress through its window at a time of its group: held at 0
-    before it (the group's time came back), at 1 after it."""
+    """已开始部分在其组某一时刻下贯穿其窗口的进度：在其之前保持 0
+    （组的时间回退了），在其之后保持 1。"""
     if end <= start:
         return 1.0 if time >= end else 0.0
     return min(max((time - start) / (end - start), 0.0), 1.0)
@@ -875,16 +868,15 @@ def _through(time: float, start: float, end: float) -> float:
 def schedule(
     anim: Animation, alpha: np.ndarray
 ) -> Iterator[tuple[Animation, np.ndarray, np.ndarray]]:
-    """Find every animation under `anim` that acts on its mobjects itself.
+    """找出 `anim` 之下每个自身作用于其 mobject 的动画。
 
     Args:
-        anim: The animation, a composition or not.
-        alpha: Progresses of `anim`.
+        anim: 动画，组合或非组合。
+        alpha: `anim` 的各进度。
 
     Yields:
-        Each such animation, with its progress at each of those of `anim` (NaN before its
-        window opens), and whether its window has closed there: it has finished, and left
-        the scene as it leaves it.
+        每个此类动画，及其在 `anim` 各进度下的进度（在其窗口打开之前为 NaN），
+        以及其窗口是否已在此处关闭：它已完成，并按其离开方式离开场景。
     """
     for node, progress, closed in walk(anim, alpha):
         if not isinstance(node, AnimationGroup):
@@ -898,18 +890,18 @@ def walk(
     end: Fraction = Fraction(1),
     closed: np.ndarray | None = None,
 ) -> Iterator[tuple[Animation, np.ndarray, np.ndarray]]:
-    """Every animation under `anim`, itself first, as `AnimationGroup.interpolate` plays it.
+    """`anim` 之下的每个动画，其自身优先，按 `AnimationGroup.interpolate` 播放它的顺序。
 
     Args:
-        anim: The animation.
-        time: The times it is given.
-        start: Where its window opens in that time.
-        end: Where it closes.
-        closed: Where it has closed; None for nowhere.
+        anim: 动画。
+        time: 给定它的各时刻。
+        start: 其窗口在该时间中打开的位置。
+        end: 其窗口关闭的位置。
+        closed: 已关闭的位置；None 表示无处。
 
     Yields:
-        Each animation, with its progress at each time (NaN before its window), and
-        whether its window has closed there.
+        每个动画，及其在每个时刻的进度（在其窗口之前为 NaN），以及
+        其窗口是否已在此处关闭。
     """
     closed = np.zeros(len(time), bool) if closed is None else closed
     progress = stagger(time, float(start), float(end))
@@ -922,18 +914,17 @@ def walk(
 
 
 def windows(anim: Animation) -> list[Window]:
-    """Every animation under `anim` that acts on its mobjects itself, with where, in `anim`'s
-    progress, its window opens and closes: exact where the groups above it keep linear
-    time; otherwise the first progress at which a group's eased time reaches the window, as
-    `interpolate` finds it. A scene computes these instants, so that a part begins and
-    finishes at its window, whatever the frame rate.
+    """`anim` 之下每个自身作用于其 mobject 的动画，及其在 `anim` 的进度中
+    窗口打开和关闭的位置：在其上方的组保持线性时间处为精确；否则为组的缓急时间
+    到达窗口的第一个进度，由 `interpolate` 找到。场景计算这些时刻，使得一个部分
+    在其窗口处开始和结束，无论帧率如何。
 
     Args:
-        anim: The animation, a composition or not.
+        anim: 动画，组合或非组合。
 
     Returns:
-        Each such animation, where it opens, where it closes (None: with `anim`), and its
-        path from `anim` (the indices of the parts that hold it).
+        每个此类动画，其打开位置、关闭位置（None：与 `anim` 一致），以及
+        其从 `anim` 出发的路径（持有它的各部分的索引）。
     """
     found: list[Window] = []
 
@@ -991,7 +982,7 @@ def windows(anim: Animation) -> list[Window]:
 
 
 def route(paths: Iterable[tuple[int, ...]]) -> Route:
-    """The route to some parts of a group, from their paths (see `windows`)."""
+    """从某些部分的路径得到通往它们的路由（参见 `windows`）。"""
     out: Route = {}
     for path in paths:
         at = out
@@ -1005,7 +996,7 @@ def route(paths: Iterable[tuple[int, ...]]) -> Route:
 
 
 def _nested(anim: Animation) -> TypeIs[AnimationGroup]:
-    """Is it a group whose parts are laid out in the time given it (as `_at` plays them)?"""
+    """它是否为一个其各部分在给定时间内布局的组（如 `_at` 播放它们）？"""
     return (
         isinstance(anim, AnimationGroup)
         and type(anim).interpolate is AnimationGroup.interpolate
@@ -1013,31 +1004,30 @@ def _nested(anim: Animation) -> TypeIs[AnimationGroup]:
 
 
 class AnimationGroup(Animation):
-    """Play animations together, each in its own window of the group's time.
+    """一起播放多个动画，每个在组时间的自己的窗口中。
 
-    The parts are laid out in time: each begins when the part before it has played
-    `lag_ratio` of its run time (all together with the default 0, one after another at
-    1, overlapping in between), and plays for its own run time. The group lasts until
-    its last part ends, unless given a `run_time`, which stretches or squeezes the whole
-    layout to fit. Its rate function (by default `linear`) warps the group's time, and
-    each part still eases its own window with its own.
+    各部分在时间中布局：每个部分在其前一个部分播放了
+    `lag_ratio` 的运行时长后开始（默认 0 全部同时，1 一个接一个，
+    介于其间则重叠），并播放其自身的运行时长。组持续到其
+    最后一个部分结束，除非给定 `run_time`，它会将整个
+    布局拉伸或压缩以适应。其速率函数（默认 `linear`）扭曲组的时间，而
+    每个部分仍以其自身的速率函数缓急其自己的窗口。
 
-    A part begins when its window opens, taking its mobjects as they are then (and
-    bringing its mobject into the scene, if it introduces it), and finishes when its
-    window closes, whatever else is still playing, leaving the scene as it leaves it (a
-    remover's mobject leaves it). A part whose window ends with the group's finishes with
-    the group, where the group's rate function ends its time. Before its window a part has
-    touched nothing; after it, what it did stays done. The group itself is not a mobject
-    of the scene: it adds nothing of its own. [`Scene.play`][manimgx.Scene.play] plays
-    several animations as such a group.
+    一个部分在其窗口打开时开始，按其 mobject 当时的状态接管它们（并
+    在其引入时将其 mobject 带入场景），在其窗口关闭时完成，无论其他
+    仍在播放什么，按其离开方式离开场景（remover 的 mobject 离开它）。一个其窗口
+    与组的结束一同结束的部分与组一同完成，在组的速率函数结束其时间之处。
+    在其窗口之前部分未触及任何内容；在其之后，其所做的保持完成。组本身不是场景的
+    mobject：它不添加自己的任何内容。[`Scene.play`][manimgx.Scene.play] 将
+    多个动画作为这样的组播放。
 
     Args:
-        *animations: The animations, or iterables of them.
-        group: The mobject the group animates; by default, a group of its parts'
-            mobjects, but those that parts introduce.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions]:
-            `lag_ratio` lays the parts out, `run_time` fits the whole, `rate_func` warps
-            its time, and `remover` makes every part a remover.
+        *animations: 各动画，或它们的可迭代对象。
+        group: 组所动画的 mobject；默认为其各部分的
+            mobject 的组，但那些部分引入的除外。
+        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions]：
+            `lag_ratio` 布局各部分，`run_time` 适应整体，`rate_func` 扭曲
+            其时间，`remover` 使每个部分成为 remover。
 
     Examples:
         ```python
@@ -1095,9 +1085,9 @@ class AnimationGroup(Animation):
         self._placed: tuple[tuple[object, ...], list[Placed]] = ((), [])
 
     def _laid_out(self) -> tuple[Fraction, list[Placed]]:
-        """(where the last part ends, each part's window in the group's own time), from the
-        lag and the parts' run times as they are now (a play's options set them after the
-        group is made), fixed while it plays."""
+        """（最后一个部分结束的位置、每个部分在组自身时间中的窗口），从
+        交错量和各部分当前的运行时长得出（play 的选项在组
+        创建后设置它们），在播放期间固定。"""
         if self._playing:
             return self._layout[1], self._layout[2]
         lengths = tuple(anim._duration for anim in self.animations)
@@ -1115,9 +1105,9 @@ class AnimationGroup(Animation):
         return self._layout[1], self._layout[2]
 
     def _in(self, start: Fraction, end: Fraction) -> list[Placed]:
-        """Each part's window in a time in which the group's own is [start, end]: exact (so
-        a group laid out in place is its parts, to the bit), with its ends as floats and
-        whether it closes before the group's end."""
+        """每个部分在组自身窗口为 [start, end] 的时间中的窗口：精确（因此
+        就地布局的组即为其各部分，逐位一致），其两端为浮点数，以及
+        是否在组的结束之前关闭。"""
         if start == 0 and end == 1:
             return self._laid_out()[1]
         key = (self._layout[0], start, end)
@@ -1131,9 +1121,8 @@ class AnimationGroup(Animation):
         return self._placed[1]
 
     def _spans_in(self, start: Fraction, end: Fraction) -> tuple[bool, list[Placed]]:
-        """(whether the group eases its time, its parts' windows in the time they are laid
-        out in), where its own window is [start, end] in the time it is given: linear, that
-        time; otherwise its own, eased."""
+        """（组是否缓急其时间、各部分在它们所布局的时间中的窗口），其中其自身窗口
+        在给定时间中为 [start, end]：线性时为该时间；否则为其自身的缓急时间。"""
         if self.rate_func is linear:
             return False, self._in(start, end)
         return True, self._in(_0, _1)
@@ -1141,20 +1130,20 @@ class AnimationGroup(Animation):
     @property
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def max_end_time(self) -> float:
-        """Where the last part ends, in seconds: the group's own run time."""
+        """最后一个部分结束的位置，以秒为单位：组自身的运行时长。"""
         return float(self._laid_out()[0])
 
     @property
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def hidden(self) -> Sequence[Mobject]:
-        """What its parts leave out of the picture now (a part hides nothing until it
-        begins, nor once it has ended)."""
+        """其各部分当前未纳入画面的内容（一个部分在其开始之前不隐藏任何内容，
+        结束之后也不隐藏）。"""
         return [m for anim in self.animations for m in anim.hidden]
 
     @property
     def run_time(self) -> float:
-        """How long the group plays, in seconds: the run time it was given, else where its
-        last part ends."""
+        """组播放时长，以秒为单位：给定的运行时长，否则为其
+        最后一个部分结束的位置。"""
         return self.max_end_time if self._given is None else float(self._given)
 
     @run_time.setter
@@ -1200,7 +1189,7 @@ class AnimationGroup(Animation):
         self.animations[i].begin()
 
     def _end(self, i: int) -> None:
-        """Part i's window has closed: it finishes, and leaves the scene as it leaves it."""
+        """部分 i 的窗口已关闭：它完成，并按其离开方式离开场景。"""
         self.done.add(i)
         self.animations[i].finish()
         if self.scene is not None:
@@ -1208,13 +1197,12 @@ class AnimationGroup(Animation):
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def begin_all(self) -> None:
-        """Begin every part at once, for a play the scene computes ahead of time.
+        """一次开始所有部分，用于场景提前计算的 play。
 
-        In such a play no part's mobjects change before its window opens, so each part
-        takes what it would take then. Beginning changes no look (a tween acts only when
-        interpolated; aligning a mobject with its keyframes restructures it invisibly), so
-        each mobject shows its state from before the play until its window opens. The
-        scene calls it.
+        在这样的 play 中，任何部分的 mobject 在其窗口打开之前都不改变，因此每个部分
+        接管它当时会接管的内容。开始不改变外观（tween 仅在插值时起作用；将 mobject
+        与其关键帧对齐是不可见地重构它），因此
+        每个 mobject 在其窗口打开之前显示 play 之前的状态。场景调用它。
         """
         for i, anim in enumerate(self.animations):
             if i not in self.begun:
@@ -1234,12 +1222,11 @@ class AnimationGroup(Animation):
         phase: Phase,
         only: Route | None = None,
     ) -> None:
-        """The group at a time it is given, in which its window is [start, end], in one of
-        an instant's phases (in order, each over the whole tree): "run", the parts running
-        are brought to it (and those whose windows close, closed); "begin", those whose
-        windows open begin, taking the world as it is then (so those beginning together
-        all find it as it was); "fresh", those are brought to it. `only`: the parts an
-        instant concerns, the others left as they are; None for all."""
+        """组在给定时刻的状态，其中其窗口为 [start, end]，处于一个时刻的
+        某个阶段（按顺序，每个遍历整个树）："run"，将运行中的部分带到该时刻
+        （并关闭那些窗口关闭的）；"begin"，那些窗口打开的开始，接管当时的世界
+        （因此同时开始的全部发现它如其所是）；"fresh"，将那些带到该时刻。`only`：时刻
+        所涉及的部分，其他保持原样；None 表示全部。"""
         eased, spans = self._spans_in(start, end)
         time = (
             self.rate_func(_through(given, float(start), float(end)))
@@ -1271,9 +1258,8 @@ class AnimationGroup(Animation):
             self._fresh.clear()
 
     def _step(self, alpha: float, only: Route | None = None) -> Callable[[], None]:
-        """An instant of the group, as a scene computes it: the parts running (of `only`, if
-        given) are brought to it now; the returned function begins the parts whose windows
-        open, once the world is at that instant."""
+        """组的一个时刻，由场景计算：运行中的部分（若给定 `only`，则其中的）
+        现在被带到该时刻；返回的函数在世界到达该时刻后开始窗口打开的部分。"""
         self._at(alpha, _0, _1, "run", only)
 
         def opening() -> None:
@@ -1317,17 +1303,16 @@ class AnimationGroup(Animation):
 
 
 class Succession(AnimationGroup):
-    """Play animations one after another.
+    """一个接一个地播放动画。
 
-    An [`AnimationGroup`][manimgx.AnimationGroup] whose `lag_ratio` is 1: each part
-    begins when the one before it ends, from the state it left.
+    一个 `lag_ratio` 为 1 的 [`AnimationGroup`][manimgx.AnimationGroup]：每个部分
+    在其前一个结束时开始，从前一个留下的状态继续。
 
     Args:
-        *animations: The animations, in order, or iterables of them.
-        group: The mobject the group animates; by default, a group of its parts'
-            mobjects, but those that parts introduce.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions] for
-            the whole.
+        *animations: 各动画，按顺序，或它们的可迭代对象。
+        group: 组所动画的 mobject；默认为其各部分的
+            mobject 的组，但那些部分引入的除外。
+        **kwargs: 用于整体的 [Animation options][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -1353,18 +1338,16 @@ class Succession(AnimationGroup):
 
 
 class LaggedStart(AnimationGroup):
-    """Play animations one shortly after another, overlapping.
+    """一个接一个稍后播放动画，相互重叠。
 
-    An [`AnimationGroup`][manimgx.AnimationGroup] whose `lag_ratio` is small (0.05 by
-    default): each part begins when the one before it has played that fraction of its
-    run time.
+    一个 `lag_ratio` 较小（默认 0.05）的 [`AnimationGroup`][manimgx.AnimationGroup]：
+    每个部分在其前一个播放了该分数比例的运行时长后开始。
 
     Args:
-        *animations: The animations, in order, or iterables of them.
-        group: The mobject the group animates; by default, a group of its parts'
-            mobjects, but those that parts introduce.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions] for
-            the whole.
+        *animations: 各动画，按顺序，或它们的可迭代对象。
+        group: 组所动画的 mobject；默认为其各部分的
+            mobject 的组，但那些部分引入的除外。
+        **kwargs: 用于整体的 [Animation options][manimgx.animation.timeline.AnimationOptions]。
 
     Examples:
         ```python
@@ -1388,21 +1371,21 @@ class LaggedStart(AnimationGroup):
 
 
 class LaggedStartMap(LaggedStart):
-    """Play an animation on each submobject of a mobject, one shortly after another.
+    """在 mobject 的每个子对象上播放动画，一个接一个稍后开始。
 
-    Each submobject's animation is `animation_class(*arg_creator(submobject), **kwargs)`
-    (by default, `animation_class(submobject, **kwargs)`), and they play as a
-    [`LaggedStart`][manimgx.LaggedStart]. `run_time` (2 seconds by default) and
-    `lag_ratio` time the whole; every other option goes to each animation.
+    每个子对象的动画为 `animation_class(*arg_creator(submobject), **kwargs)`
+    （默认为 `animation_class(submobject, **kwargs)`），它们作为
+    [`LaggedStart`][manimgx.LaggedStart] 播放。`run_time`（默认 2 秒）和
+    `lag_ratio` 为整体计时；其他所有选项传给每个动画。
 
     Args:
-        animation_class: The animation to play on each submobject: a class, or any
-            function returning an animation.
-        mobject: The mobject whose submobjects are animated.
-        arg_creator: A function from a submobject to the animation's positional
-            arguments; None for the submobject alone.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions]:
-            `run_time` and `lag_ratio` for the whole, the others for each animation.
+        animation_class: 在每个子对象上播放的动画：一个类，或任何
+            返回动画的函数。
+        mobject: 其子对象被动画的 mobject。
+        arg_creator: 从子对象到动画位置参数的函数；None 表示
+            仅子对象本身。
+        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions]：
+            `run_time` 和 `lag_ratio` 用于整体，其他用于每个动画。
 
     Examples:
         ```python
@@ -1440,34 +1423,30 @@ class LaggedStartMap(LaggedStart):
 
 
 class ChangeSpeed(AnimationGroup):
-    """Play an animation faster or slower along the way: at speeds that change as it
-    plays.
+    """沿途中更快或更慢地播放动画：速度随播放而变化。
 
-    `speedinfo` gives speeds at points of the animation's progress: `{0.5: 2}` plays it
-    at its own speed at the start, speeding up to twice as fast at its middle, and twice
-    as fast from there on. Between two points the speed changes steadily (at a constant
-    acceleration, in the scene's time), so the stretch from progress `a` to `b`, at
-    speeds `v` and `w`, takes `(b - a) · 2 / (v + w)` of the animation's run time; the
-    play lasts as long as its stretches take. Unless given, the speed at the start is 1
-    and the speed at the end the last point's.
+    `speedinfo` 给出动画进度各点处的速度：`{0.5: 2}` 在开始时以自身速度播放，
+    加速到中间时两倍快，此后保持两倍快。两点之间速度稳定变化（在场景时间中
+    以恒定加速度），因此从进度 `a` 到 `b` 的区段，在速度 `v` 和 `w` 下，
+    占用动画运行时长的 `(b - a) · 2 / (v + w)`；播放持续其各区段占用时间之和。除非给定，
+    起始速度为 1，结束速度为最后一个点的速度。
 
-    With `affects_speed_updaters`, the updaters added with
-    [`ChangeSpeed.add_updater`][manimgx.ChangeSpeed.add_updater] run at the same speeds
-    while it plays, so that whatever they move keeps pace with the animation.
+    借助 `affects_speed_updaters`，用
+    [`ChangeSpeed.add_updater`][manimgx.ChangeSpeed.add_updater] 添加的更新器在播放时
+    以相同速度运行，使得它们所移动的内容与动画保持同步。
 
-    The speeds change only the animation's timing: it keeps its own rate function (and
-    its parts' stagger), so at a speed of 1 throughout it is the animation itself.
+    速度仅改变动画的计时：它保留自身的速率函数（及
+    其各部分的交错），因此全程速度为 1 时即为动画本身。
 
     Args:
-        anim: The animation to play.
-        speedinfo: Speeds at points of the animation's progress, from 0 to 1: a speed of
-            2 plays it twice as fast, 0.5 half as fast.
-        affects_speed_updaters: Whether the updaters added with
-            `ChangeSpeed.add_updater` follow the speeds while it plays.
-        **kwargs: [Animation options][manimgx.animation.timeline.AnimationOptions] for
-            the whole: its `rate_func` (by default `linear`) eases the play's time before
-            the speeds warp it. Its run time is what the speeds make it: a `run_time`
-            given here is ignored.
+        anim: 要播放的动画。
+        speedinfo: 动画进度各点处的速度，从 0 到 1：速度
+            2 表示两倍快播放，0.5 表示一半快。
+        affects_speed_updaters: 用 `ChangeSpeed.add_updater` 添加的更新器
+            是否在播放时跟随速度。
+        **kwargs: 用于整体的 [Animation options][manimgx.animation.timeline.AnimationOptions]：
+            其 `rate_func`（默认 `linear`）在速度扭曲之前缓急播放的时间。其运行时长
+            由速度决定：此处给定的 `run_time` 被忽略。
 
     Examples:
         ```python
@@ -1520,23 +1499,22 @@ class ChangeSpeed(AnimationGroup):
         self._given = duration
 
     def _rate(self, t: float) -> float:
-        """Its rate function: the wrapped animation's progress at the rate function given
-        (a method, so that a copy reads its own stretches)."""
+        """其速率函数：所给速率函数下被包裹动画的进度
+        （一个方法，使得副本读取自身的区段）。"""
         return self.progress(self._before(t))
 
     @deprecated("Manim CE's machinery: ManimGX calls it itself", category=None)
     def progress(self, t: float) -> float:
-        """The animation's progress at a time of the play.
+        """播放某一时刻下动画的进度。
 
-        Within each stretch between two points of `speedinfo`, it is the distance
-        covered by a speed that goes steadily from one point's to the other's.
+        在 `speedinfo` 两点之间的每个区段内，它是由从一点速度到另一点速度
+        稳定变化的速度所覆盖的距离。
 
         Args:
-            t: The play's time, as a fraction of its run time, eased by its rate
-                function.
+            t: 播放的时间，作为其运行时长的分数，已由速率函数缓急。
 
         Returns:
-            The animation's progress, from 0 to 1.
+            动画的进度，从 0 到 1。
         """
         if t >= 1:
             return 1.0
@@ -1556,26 +1534,24 @@ class ChangeSpeed(AnimationGroup):
         index: int | None = None,
         call_updater: bool = False,
     ) -> None:
-        """Add an updater to a mobject whose time follows the speed of any `ChangeSpeed`
-        playing.
+        """向 mobject 添加更新器，其时间跟随任何正在播放的 `ChangeSpeed` 的速度。
 
-        A time-based updater added this way is handed, as `dt`, the time of a clock that
-        runs with the scene's, except while a `ChangeSpeed` with
-        `affects_speed_updaters` plays: then it runs at that `ChangeSpeed`'s speeds (its
-        `speedinfo`, whatever its rate function eases), and while several play at once,
-        at the speeds of the one that began last. The clock never runs backward. It
-        keeps its kind: a [flow][manimgx.mobject.flow] stays a flow, and any other
-        time-based updater still steps on the simulation clock. A per-frame updater has
-        no time, and is added as it is.
+        以此方式添加的基于时间的更新器，作为 `dt` 接收一个时钟的时间，该时钟与
+        场景时钟一同运行，除非带有 `affects_speed_updaters` 的 `ChangeSpeed` 正在播放：
+        此时它以该 `ChangeSpeed` 的速度运行（其
+        `speedinfo`，无论其速率函数如何缓急），当多个同时播放时，以最后开始的那个的
+        速度运行。该时钟绝不反向运行。它保持其种类：一个 [flow][manimgx.mobject.flow]
+        仍是 flow，任何其他基于时间的更新器仍在模拟时钟上步进。逐帧更新器无时间，
+        按原样添加。
 
         Args:
-            mobject: The mobject to add it to.
-            update_function: The updater: a function of the mobject, or of the mobject
-                and `dt` (see [`add_updater`][manimgx.Mobject.add_updater]).
-            index: Where it goes among the mobject's updaters, which run in order; None
-                for last.
-            call_updater: Whether to run it once right away; a time-based one is handed
-                a `dt` of 0.
+            mobject: 要添加到的 mobject。
+            update_function: 更新器：mobject 的函数，或 mobject 和
+                `dt` 的函数（参见 [`add_updater`][manimgx.Mobject.add_updater]）。
+            index: 其在 mobject 更新器中的位置，更新器按顺序运行；None
+                表示最后。
+            call_updater: 是否立即运行一次；基于时间的更新器接收
+                `dt` 为 0。
         """
         if not _per_frame(update_function):
             on_clock = _OnClock(update_function, clock.speed)
@@ -1593,7 +1569,7 @@ class ChangeSpeed(AnimationGroup):
 
 
 class _OnClock:
-    """A time-based updater that lives on another clock than scene time."""
+    """一个生活在场景时间以外时钟上的基于时间的更新器。"""
 
     def __init__(
         self, function: Callable[[Mobject, float], object], on: clock.Clock

@@ -1,11 +1,11 @@
 ---
-title: "Graphs"
-description: "Axes, number lines and planes with coordinates of their own, the graphs of functions and data on them, and vector fields."
+title: "图形"
+description: "具有自身坐标系的坐标轴、数轴和平面，其上的函数图像与数据，以及向量场。"
 ---
 
-# Graphs { #manimgx.mobjects.plotting }
+# 图形 { #manimgx.mobjects.plotting }
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 import numpy as np
 
@@ -27,72 +27,66 @@ class GraphsHero(m.Scene):
         self.wait()
 ```
 
-Axes are a mobject with coordinates of their own. A point on axes is where its numbers are,
-not where the frame's are: [c2p][manimgx.Axes.coords_to_point] turns the axes' coordinates
-into a point of the frame, to place anything on a graph. The axes draw graphs in their own
-coordinates too: the graph of a function, a curve, the area under a graph, its slope.
+坐标轴是具有自身坐标系的 mobject。坐标轴上的一个点位于其数字所在之处，而非帧的坐标所在之处：[c2p][manimgx.Axes.coords_to_point] 将坐标轴的坐标转换为帧上的一个点，以便在图像上放置任何对象。坐标轴也以自身的坐标系绘制图像：函数的图像、曲线、图像下方的面积及其斜率。
 
-A number line is one axis. A number plane is axes with a grid, which fills the frame unless
-you size it. A vector field draws a direction at every point of the plane.
+数轴是单根坐标轴。数平面是带有网格的坐标轴，除非你指定其尺寸，否则它会填满帧。向量场在平面的每一点处绘制一个方向。
 
 <div class="grid cards mx-cards" markdown>
 
 -   ![](film:AxesHero)
 
-    [**Axes**](axes.md)
+    [**坐标轴**](axes.md)
 
     ---
 
-    Axes, their coordinates, their labels and numbers, and lines to a point.
+    坐标轴、其坐标系、其标签与数字，以及到某点的连线。
 
 -   ![](film:PlottingHero)
 
-    [**Plotting**](plotting.md)
+    [**绘图**](plotting.md)
 
     ---
 
-    The graph of a function on axes: its label, the area under it, its slope, its
-    derivative.
+    坐标轴上函数的图像：其标签、下方的面积、其斜率及其导数。
 
 -   ![](film:NumberLinesHero)
 
-    [**Number lines**](number-lines.md)
+    [**数轴**](number-lines.md)
 
     ---
 
-    One axis: ticks, numbers and labels, on an even or a logarithmic scale.
+    单根坐标轴：刻度、数字和标签，采用均匀刻度或对数刻度。
 
 -   ![](film:PlanesHero)
 
-    [**Planes**](planes.md)
+    [**平面**](planes.md)
 
     ---
 
-    Grids of coordinates: the number plane, the complex plane, the polar plane.
+    坐标网格：数平面、复平面、极坐标平面。
 
 -   ![](film:CurvesHero)
 
-    [**Curves**](curves.md)
+    [**曲线**](curves.md)
 
     ---
 
-    Graphs of functions, parametric curves and implicit curves, in the frame's own
-    coordinates.
+    函数图像、参数曲线和隐式曲线，使用帧自身的坐标系。
 
 -   ![](film:ChartsHero)
 
-    [**Charts**](charts.md)
+    [**图表**](charts.md)
 
     ---
 
-    Bar charts, and the sample spaces of probability.
+    柱状图，以及概率的样本空间。
 
 -   ![](film:VectorFieldsHero)
 
-    [**Vector fields**](vector-fields.md)
+    [**向量场**](vector-fields.md)
 
     ---
 
-    A vector at every point: arrows, stream lines, and mobjects the field carries.
+    每一点处的向量：箭头、流线，以及场携带的 mobject。
 
 </div>

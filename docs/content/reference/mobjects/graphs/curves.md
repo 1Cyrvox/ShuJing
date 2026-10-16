@@ -1,11 +1,11 @@
 ---
-title: "Curves"
-description: "The graph of a function, a parametric curve and an implicit curve, in the frame's own coordinates."
+title: "曲线"
+description: "函数图像、参数曲线和隐式曲线，使用帧自身的坐标系。"
 ---
 
-# Curves
+# 曲线
 
-```python fold title="The film's code"
+```python fold title="影片代码"
 import manimgx as m
 import numpy as np
 
@@ -27,9 +27,7 @@ class CurvesHero(m.Scene):
         self.wait()
 ```
 
-These curves are drawn in the frame's own coordinates: the graph of `sin` passes through
-the point `[0, 0, 0]` of the frame. To draw a graph on axes, in their coordinates, use
-[axes.plot][manimgx.Axes.plot], which makes one of these for you.
+这些曲线绘制在帧自身的坐标系中：`sin` 的图像经过帧的 `[0, 0, 0]` 点。若要在坐标轴上以其坐标系绘制图像，请使用 [axes.plot][manimgx.Axes.plot]，它会为你创建其中之一。
 
 ::: manimgx.FunctionGraph
     options:

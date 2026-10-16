@@ -1,6 +1,6 @@
-title: "Animations"
+title: "动画"
 nav:
-  - Overview: index.md
+  - 概览: index.md
   - animate.md
   - rate-functions.md
   - appear-and-disappear.md

@@ -1,20 +1,17 @@
-# Rendering and sharing
+# 渲染与分享
 
-The `manimgx` command makes the video of a scene. It also plays the scene in a window,
-checks it for problems, and presents it as slides:
+`manimgx` 命令用于生成场景的视频。它还能在窗口中播放场景、检查问题，并将其以幻灯片形式呈现：
 
-| Command | What it does |
+| 命令 | 功能 |
 | --- | --- |
-| `manimgx render scene.py` | Makes the video, an MP4 file. |
-| `manimgx preview scene.py` | Plays the scene in a window, and plays it again each time that you save. |
-| `manimgx inspect scene.py` | Writes a storyboard, lists the timeline, and checks 2D layouts. |
-| `manimgx present scene.py` | Makes the video, and shows it as slides in your browser. |
+| `manimgx render scene.py` | 生成视频，一个 MP4 文件。 |
+| `manimgx preview scene.py` | 在窗口中播放场景，并在你每次保存时重新播放。 |
+| `manimgx inspect scene.py` | 生成故事板、列出时间线，并检查 2D 布局。 |
+| `manimgx present scene.py` | 生成视频，并在浏览器中以幻灯片形式展示。 |
 
-Each command writes its files next to the scene's file. If the file has several scenes,
-give the scene's name after the file: `manimgx render scene.py Intro`. The
-[command line reference](../reference/rendering/command-line.md) shows all the options.
+每条命令都会把其输出文件写在场景文件旁边。如果文件中包含多个场景，可在文件后给出场景名称：`manimgx render scene.py Intro`。[命令行参考](../reference/rendering/command-line.md) 列出了所有选项。
 
-## Render
+## 渲染
 
 ```console
 $ manimgx render square_to_circle.py
@@ -23,17 +20,13 @@ storyboard: SquareToCircle.storyboard.png
 layout: no problems in 3 samples
 ```
 
-The video is named after the scene. It is 1920 × 1080 pixels, at 60 frames each second,
-with the scene's sound. `-o` gives it a different name. For a quick draft, make it
-smaller: `-r 1280x720 --fps 30`.
+视频以场景命名。它的分辨率为 1920 × 1080 像素，每秒 60 帧，并带有场景的声音。`-o` 可为其指定不同名称。若要快速生成草稿，可缩小尺寸：`-r 1280x720 --fps 30`。
 
-`render` also writes a storyboard, with the picture at the end of each play that
-changes it, and the captions of a voice, as subtitles (`.srt`).
+`render` 还会生成一份故事板，包含每次改变画面的 play 结束时的画面，以及语音的字幕（`.srt`）。
 
-### Settings
+### 设置
 
-Set the video's settings on `m.config`, after the import: its size in pixels,
-`pixel_width` and `pixel_height`; its `frame_rate`; and its `background_color`:
+在 `import` 之后通过 `m.config` 设置视频参数：以像素为单位的尺寸 `pixel_width` 和 `pixel_height`；帧率 `frame_rate`；以及背景色 `background_color`：
 
 ```python
 import manimgx as m
@@ -49,53 +42,41 @@ class OnWhite(m.Scene):
         self.play(m.Create(circle), m.Write(label))
 ```
 
-On the command line, `-r` and `--fps` set the size and the frame rate over the file's.
+在命令行中，`-r` 和 `--fps` 会覆盖文件中的尺寸和帧率设置。
 
-### Tall videos
+### 竖屏视频
 
-For Shorts, Reels and TikTok, make the video tall: 1080 × 1920. Give the size to the
-command:
+针对 Shorts、Reels 和 TikTok，可制作竖屏视频：1080 × 1920。将尺寸传给命令：
 
 ```sh
 manimgx render scene.py -r 1080x1920
 ```
 
-Or, to make every video of the file tall, put this line after `import manimgx as m`:
+或者，要让该文件中的每个视频都为竖屏，可在 `import manimgx as m` 之后加入这一行：
 
 ```py
 m.config.pixel_width, m.config.pixel_height = 1080, 1920
 ```
 
-A tall frame is 8 units wide and about 14.2 units high: the wide frame, turned. Both have
-the same square of 8 by 8 units in their middle, so a scene that stays in that square is
-the same in both. [Positions](positions.md#the-frame) shows the two frames. A square
-video, `-r 1080x1080`, is that square alone.
+竖屏取景框宽 8 个单位、高约 14.2 个单位：即横屏取景框旋转后的版本。两者中间都有相同的 8 × 8 单位正方形，因此停留在该正方形内的场景在两种取景框中表现一致。[位置](positions.md#_2) 展示了这两种取景框。正方形视频 `-r 1080x1080` 则仅包含该正方形。
 
-### From Python
+### 从 Python 中渲染
 
-A scene can make its own video: `SquareToCircle().render("square_to_circle.mp4")`
-returns its [`Film`][manimgx.Film] and writes the video. Without a path, it runs the
-scene quickly, without drawing it, for example in a test.
+场景可以自行生成视频：`SquareToCircle().render("square_to_circle.mp4")` 会返回其 [`Film`][manimgx.Film] 并写入视频。若不指定路径，它会快速运行场景而不绘制画面，例如用于测试。
 
-## Preview
+## 预览
 
-`manimgx preview scene.py` plays the scene in a window. Each time that you save the file,
-the window plays the new version, from the same moment. If the new version has an error,
-the window shows the error.
+`manimgx preview scene.py` 在窗口中播放场景。每次保存文件时，窗口会从同一时刻起播放新版本。如果新版本有错误，窗口会显示该错误。
 
-The window's keys are a video player's: Space plays and pauses, ← and → go back and
-forward 5 seconds, and ? shows all the keys. Its timeline shows each play of the scene,
-named by its line of code, or each section, if the scene has sections.
+窗口的按键与视频播放器相同：空格键播放和暂停，← 和 → 前后跳转 5 秒，? 显示所有按键。其时间线显示场景的每一次 play，按其代码行命名；若场景有分段，则按每一段显示。
 
-## Inspect
+## 检查
 
-`manimgx inspect scene.py` writes a storyboard and lists each play with its time and
-line of code. It runs the scene without encoding video and draws only the pictures it
-inspects: by default, the end of each play or wait. In 2D scenes it checks for:
+`manimgx inspect scene.py` 会生成故事板，并列出每次 play 的时间与代码行。它在运行场景时不编码视频，只绘制需要检查的画面：默认是每次 play 或 wait 的结束时刻。在 2D 场景中，它会检查：
 
-- a mobject that the frame cuts off;
-- texts that cover each other, a line through a text, or a fill over it;
-- text too small to read.
+- 被取景框裁掉的 mobject；
+- 互相覆盖的文字、穿过文字的线条或覆盖文字的填充；
+- 过小而无法阅读的文字。
 
 ```console
 $ manimgx inspect crowded.py
@@ -108,31 +89,21 @@ layout: 2 problems
   [2] t=3s (crowded.py:9)  title (Text 'A title much too long for the…') and note (Text 'a note'): texts overlap
 ```
 
-Each problem names the mobjects as your code names them, such as `title`. The
-storyboard outlines and numbers each problem in red. Layout problems give exit code 1;
-notes, such as a graph continuing off screen, do not. 3D scenes get the pictures and
-timeline, with layout checks marked as skipped.
+每个问题都按你代码中的命名方式给出 mobject 名称，例如 `title`。故事板会用红色勾勒并编号每个问题。布局问题会返回退出码 1；而提示（例如图像延伸到屏幕外）则不会。3D 场景会得到画面和时间线，布局检查标记为已跳过。
 
-To inspect specific moments, including during an animation:
+要检查特定时刻，包括动画进行中的时刻：
 
 ```sh
 manimgx inspect scene.py -t 1.5,8,end
 ```
 
-Each time selects the frame a video player shows then; `end` selects the last frame.
-The same layout checks apply to those pictures. Repeat `-t` or separate times with
-commas. Without `end`, the scene stops after the play containing the last requested
-frame, which keeps inspection focused even in a long video.
+每个时刻选取视频播放器在该时刻显示的帧；`end` 选取最后一帧。相同的布局检查会应用于这些画面。可重复 `-t` 或用逗号分隔多个时刻。若不使用 `end`，场景会在包含最后一个所请求帧的 play 之后停止，这样即使在长视频中也能让检查保持聚焦。
 
-Pictures go in chronological order to `<Scene>.storyboard.png`, six per sheet, then
-`<Scene>.storyboard-2.png`, and so on. Use `-o detail.png` to choose the name. Default
-inspection leaves out consecutive identical pictures; explicit times keep every
-requested picture. Checks cover the sampled moments, not every frame of the video.
+画面按时间顺序写入 `<Scene>.storyboard.png`，每页六张，然后是 `<Scene>.storyboard-2.png`，依此类推。可用 `-o detail.png` 指定名称。默认检查会省略连续相同的画面；显式指定时刻则保留每一个所请求的画面。检查覆盖的是被采样的时刻，而非视频的每一帧。
 
-## Present
+## 演示
 
-A video can be a talk: it plays to the end of a slide, and waits until you continue.
-`self.next_section()` starts a new slide:
+视频可以是一场演讲：它播放到某张幻灯片末尾，然后等待你继续。`self.next_section()` 开始一张新幻灯片：
 
 ```python
 import manimgx as m
@@ -156,18 +127,11 @@ class Talk(m.Scene):
         self.play(m.Transform(wave, total))
 ```
 
-`manimgx present talk.py` makes the video, writes a web page next to it, and opens the
-page in your browser. → or a click goes to the next slide, ← goes back, F shows the full
-screen, and Shift+P opens the presenter view, with your notes, the next slide and a
-timer. To share the talk,
-send the page and the video together. `--pdf` also writes a handout, with a page for each
-slide.
+`manimgx present talk.py` 会生成视频、在其旁边写出一个网页，并在浏览器中打开该页面。→ 或单击进入下一张幻灯片，← 返回上一张，F 全屏显示，Shift+P 打开演讲者视图，其中包含你的备注、下一张幻灯片和一个计时器。要分享演讲，请把网页和视频一起发送。`--pdf` 还会输出一份讲义，每张幻灯片对应一页。
 
-## Embed in a web page
+## 嵌入网页
 
-ManimGX runs in a web page, with no server: the page makes the video from your scene,
-and plays it. Install the npm package `manimgx`, import it in your page's script
-through your bundler, and put a scene in a `<manimgx-player>`:
+ManimGX 可以在网页中运行，无需服务器：页面直接根据你的场景生成并播放视频。安装 npm 包 `manimgx`，通过你的打包工具将其引入页面脚本，并把场景放入一个 `<manimgx-player>` 中：
 
 ```html
 <script type="module">
@@ -179,16 +143,12 @@ through your bundler, and put a scene in a `<manimgx-player>`:
     import manimgx as m
 
     class Euler(m.Scene):
-        def construct(self):
-            circle = m.Circle(color=m.BLUE, fill_opacity=0.5)
-            formula = m.MathTex(r"e^{i\pi} + 1 = 0").next_to(circle, m.DOWN)
-            self.play(m.Create(circle), m.Write(formula))
+      def construct(self):
+          circle = m.Circle(color=m.BLUE, fill_opacity=0.5)
+          formula = m.MathTex(r"e^{i\pi} + 1 = 0").next_to(circle, m.DOWN)
+          self.play(m.Create(circle), m.Write(formula))
   </script>
 </manimgx-player>
 ```
 
-The player has the keys of the preview window. The first video on a page downloads
-Python ([Pyodide](https://pyodide.org)) and ManimGX, about 26 MB; the browser keeps them
-for later. It needs WebGPU: Chrome and Edge 113 or later, or Safari 26. Two things don't
-work in the browser yet: shapes made from other shapes, such as `Union`, and Chinese,
-Japanese and Korean text.
+播放器具有与预览窗口相同的按键。页面上的第一个视频会下载 Python（[Pyodide](https://pyodide.org)）和 ManimGX，约 26 MB；浏览器会将其保留以备后用。它需要 WebGPU：Chrome 和 Edge 113 及以上版本，或 Safari 26。目前有两件事在浏览器中尚不可用：由其他形状构造的形状（例如 `Union`），以及中文、日文和韩文文字。

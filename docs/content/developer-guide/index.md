@@ -1,52 +1,43 @@
-# Setup
+# 环境搭建
 
-This guide is for working on ManimGX itself: its Python package, its Rust engine, its
-TypeScript browser package, its tests and these docs. It explains how the project works and
-how to work on it. How to propose a
-change (issues, pull requests, the use of AI) is in the
-[contributing guide](https://github.com/academa-labs/manimgx/blob/main/.github/CONTRIBUTING.md).
+本指南用于开发 ManimGX 本身：其 Python 包、Rust 引擎、TypeScript 浏览器包、测试以及本文档。它说明了项目的工作方式以及如何参与开发。如何提出
+变更（issue、pull request、AI 的使用）请见
+[贡献指南](https://github.com/1Cyrvox/ShuJing/blob/main/.github/CONTRIBUTING.md)。
 
-This page takes a machine to a clone of ManimGX that builds, checks, tests and serves the
-docs.
+本页面将引导一台机器完成 ManimGX 的克隆，使其能够构建、检查、测试并服务
+文档。
 
-## Prerequisites
+## 前置条件
 
-ManimGX is a Python package with an engine written in Rust. You need four tools; building
-and testing it needs nothing else from your system: the engine builds x264 (with NASM, the
-assembler x264's x86-64 code is written for), FFmpeg's audio decoders and libopus from their
-sources, which its build fetches the first time (with `curl` and `tar`, which macOS, Linux and
-Windows have), and the tests read and write video with PyAV, which brings FFmpeg's libraries in
-its wheels.
+ManimGX 是一个 Python 包，其引擎用 Rust 编写。你需要四个工具；构建和
+测试它不需要系统提供其他任何东西：引擎从源码构建 x264（包含 NASM，即
+x264 的 x86-64 代码所用的汇编器）、FFmpeg 的音频解码器和 libopus，其构建过程会在首次运行时获取这些源码（使用 `curl` 和 `tar`，macOS、Linux 和
+Windows 均自带），而测试使用 PyAV 读写视频，PyAV 在其 wheel 中自带 FFmpeg 的库。
 
-- **[`uv`](https://docs.astral.sh/uv/getting-started/installation/)**: the project
-  manager. It installs Python (3.13 or 3.14), every dependency, and ManimGX itself,
-  compiling its engine.
-- **[`just`](https://just.systems/man/en/packages.html)**: the command runner. The
-  development tasks are recipes in the
-  [`justfile`](https://github.com/academa-labs/manimgx/blob/main/justfile).
-- **[Rust](https://www.rust-lang.org/tools/install)**, the stable toolchain, through
-  `rustup`, with the C toolchain it links with (`rustup` says which: the Xcode Command Line
-  Tools on macOS, `build-essential` on Debian or Ubuntu, Visual Studio's C++ build tools on
-  Windows): it compiles the engine, and x264's, FFmpeg's and libopus's C.
-- **[`bun`](https://bun.sh)**: it installs the browser package's locked tools, bundles its
-  TypeScript sources, and runs its tests. It also builds the web page of the corpus's review
-  panel (see [Testing](testing.md#the-review-panel)).
+- **[`uv`](https://docs.astral.sh/uv/getting-started/installation/)**：项目
+  管理器。它安装 Python（3.13 或 3.14）、所有依赖项以及 ManimGX 本身，
+  并编译其引擎。
+- **[`just`](https://just.systems/man/en/packages.html)**：命令运行器。开发任务是
+  [`justfile`](https://github.com/1Cyrvox/ShuJing/blob/main/justfile) 中的配方。
+- **[Rust](https://www.rust-lang.org/tools/install)**，稳定工具链，通过
+  `rustup` 安装，连同其链接所需的 C 工具链（`rustup` 会说明具体需要哪个：macOS 上是 Xcode Command Line
+  Tools，Debian 或 Ubuntu 上是 `build-essential`，Windows 上是 Visual Studio 的 C++ 构建工具）：它编译引擎以及 x264、FFmpeg 和 libopus 的 C 代码。
+- **[`bun`](https://bun.sh)**：它安装浏览器包的锁定工具，打包其
+  TypeScript 源码，并运行其测试。它还构建语料库评审面板的网页（见
+  [测试](testing.md#_15)）。
 
-### A GPU
+### GPU
 
-The engine draws with [wgpu](https://wgpu.rs): through Metal on macOS, Direct3D 12 on
-Windows (WARP, on the CPU, where there is no GPU), and Vulkan on Linux. It takes the
-high-performance adapter, which must blend float32 render targets (a view adds its coverage
-in one) and support float32 depth with stencil (`depth32float-stencil8`). The reversed-Z
-projection needs floating-point depth to distinguish distant surfaces. An adapter missing
-either capability is rejected; Linux then tries the bundled lavapipe. If no suitable adapter
-is available, rendering reports the missing capability. The browser requires the same two
-WebGPU capabilities.
+引擎使用 [wgpu](https://wgpu.rs) 绘图：在 macOS 上通过 Metal，在
+Windows 上通过 Direct3D 12（在没有 GPU 时使用 WARP，在 CPU 上运行），在 Linux 上通过 Vulkan。它选用
+高性能适配器，该适配器必须能混合 float32 渲染目标（视图在其中累加其覆盖范围）并支持带模板的 float32 深度（`depth32float-stencil8`）。反转 Z
+投影需要浮点深度来区分远处的表面。缺少任一能力的适配器会被拒绝；Linux 随后会尝试使用内置的 lavapipe。如果没有合适的适配器，渲染时会报告缺少的能力。浏览器需要同样的两个
+WebGPU 能力。
 
-On Linux without a GPU driver, Mesa's lavapipe draws on the CPU. The Linux wheels bundle it
-(`scripts/release/build_lavapipe.sh` builds it, and the engine loads it itself: see
-[The engine](engine.md#drawing)); an engine built from source, as here, draws with the
-system's, which the workflows' Linux jobs install:
+在没有 GPU 驱动程序的 Linux 上，Mesa 的 lavapipe 在 CPU 上绘图。Linux wheel 内置了它
+（`scripts/release/build_lavapipe.sh` 负责构建，引擎会自行加载：见
+[引擎](engine.md#_4)）；而从源码构建的引擎（如本文所述）则使用
+系统的 lavapipe，工作流的 Linux 作业会安装它：
 
 ```sh
 sudo apt-get install libvulkan1 mesa-vulkan-drivers
@@ -54,32 +45,31 @@ sudo apt-get install libvulkan1 mesa-vulkan-drivers
 
 ### Manim Community Edition
 
-The integration corpus retains reviewed Manim Community Edition renders for comparison. Regular tests compare the latest stable release and current ManimGX on the same host and do not need CE; before the first release, they check rendering and export. Local review movies can be restored from a backup and verified against their committed checksums, or regenerated with `just corpus render`. Changed pixels require a new review. Rendering a new or changed scene with CE needs its dependency group: `uv sync --group ce` (`just sync` leaves it out again). Its bindings to Cairo and Pango build from source where they have no wheels (pycairo on macOS and Linux, ManimPango on Linux), so that needs those libraries: `brew install cairo pkg-config` on macOS, `apt-get install libcairo2-dev libpango1.0-dev pkg-config` on Debian or Ubuntu.
+集成语料库保留了经过评审的 Manim Community Edition 渲染结果用于比较。常规测试在同一主机上比较最新的稳定发行版和当前的 ManimGX，不需要 CE；在首次发布之前，它们会检查渲染和导出。本地评审影片可以从备份中恢复并根据其已提交的校验和进行验证，也可以用 `just corpus render` 重新生成。像素发生变化需要重新评审。用 CE 渲染新的或已变更的场景需要其依赖组：`uv sync --group ce`（`just sync` 会再次将其排除）。它与 Cairo 和 Pango 的绑定在没有 wheel 的平台上会从源码构建（macOS 和 Linux 上的 pycairo，Linux 上的 ManimPango），因此需要这些库：macOS 上用 `brew install cairo pkg-config`，Debian 或 Ubuntu 上用 `apt-get install libcairo2-dev libpango1.0-dev pkg-config`。
 
-## Setting up the development environment
+## 搭建开发环境
 
-1. Clone the repository and enter it:
+1. 克隆仓库并进入其中：
 
     ```sh
-    git clone https://github.com/academa-labs/manimgx.git
+    git clone https://github.com/1Cyrvox/ShuJing.git
     cd manimgx
     ```
 
-2. Make the environment:
+2. 创建环境：
 
     ```sh
     just sync
     ```
 
-    uv creates `./.venv`: Python, manimgx installed in editable mode with its engine
-    compiled, the development tools and the docs' tools. The first sync compiles the engine
-    and its dependencies (Typst, wgpu, x264), which takes a while. After that, `uv run`
-    rebuilds the engine by itself whenever its Rust sources, shaders or manifests change,
-    so there is no separate build step (see
-    [Project management](project-management.md#rebuilding-the-engine)).
-    Bun installs the browser package's development tools from `browser/bun.lock`.
+    uv 会创建 `./.venv`：包含 Python、以可编辑模式安装的 manimgx（其引擎已编译）、
+    开发工具和文档工具。首次同步会编译引擎
+    及其依赖项（Typst、wgpu、x264），这需要一些时间。此后，每当其 Rust 源码、着色器或清单发生变化时，`uv run`
+    都会自行重建引擎，因此没有单独的构建步骤（见
+    [项目管理](project-management.md#_10)）。
+    Bun 从 `browser/bun.lock` 安装浏览器包的开发工具。
 
-3. Check that it works:
+3. 检查是否正常工作：
 
     ```sh
     just check
@@ -87,84 +77,82 @@ The integration corpus retains reviewed Manim Community Edition renders for comp
     just test tests/integration/test_time.py
     ```
 
-    `just check` runs every check the repository has (see
-    [Project management](project-management.md#pre-commit-configyaml-and-just-check)).
-    The tests in `test_time.py` render scenes, so they use the GPU. `just test` alone runs
-    the whole suite, which renders every case of the integration corpus and takes much
-    longer (see [Testing](testing.md)).
+    `just check` 运行仓库中的所有检查（见
+    [项目管理](project-management.md#pre-commit-configyaml-just-check)）。
+    `test_time.py` 中的测试会渲染场景，因此会使用 GPU。单独运行 `just test` 会
+    运行整个测试套件，它会渲染集成语料库的每个案例，耗时
+    更长（见 [测试](testing.md)）。
 
-4. Select the environment's interpreter in your editor. In Visual Studio Code: press
-   ++ctrl+shift+p++ (++cmd+shift+p++ on macOS), run **Python: Select Interpreter**, and
-   pick the one in `./.venv`. The engine's crates are a workspace,
-   [`rust/`](https://github.com/academa-labs/manimgx/tree/main/rust): point rust-analyzer at `rust/Cargo.toml` if your editor
-   does not find it.
+4. 在编辑器中选择该环境的解释器。在 Visual Studio Code 中：按
+   ++ctrl+shift+p++（macOS 上为 ++cmd+shift+p++），运行 **Python: Select Interpreter**，并
+   选择 `./.venv` 中的解释器。引擎的 crate 是一个工作区，
+   [`rust/`](https://github.com/1Cyrvox/ShuJing/tree/main/rust)：如果编辑器找不到，请将 rust-analyzer 指向 `rust/Cargo.toml`。
 
-## Commands
+## 命令
 
-`just` lists the recipes, in four groups. The GitHub workflows run these same recipes, so a
-task does the same on your machine as in CI. The recipes that run the project's tools run
-them with `uv run --frozen`: in the environment, at the versions `uv.lock` pins, taking the
-lockfile as it is. Run anything else the same way (`uv run --frozen python …`).
+`just` 列出配方，分为四组。GitHub 工作流运行这些相同的配方，因此
+任务在你的机器上和在 CI 中的执行方式相同。运行项目工具的配方会
+使用 `uv run --frozen` 来运行它们：在环境中，以 `uv.lock` 锁定的版本运行，保持
+lockfile 原样。其他命令也以同样方式运行（`uv run --frozen python …`）。
 
-### Development
+### 开发
 
-- `just sync`: make `.venv` with everything `uv.lock` pins, build the engine into it, and
-  install the browser package's locked development tools.
-- `just lock`: update `uv.lock` after a change to `pyproject.toml`'s dependencies.
-- `just upgrade`: move `uv.lock` and `Cargo.lock` to the newest versions the manifests
-  allow.
-- `just licenses`: write the wheels' third-party notice
-  (`LICENSE-THIRD-PARTY`) after `Cargo.lock` changes, checking that
-  ManimGX's `license` covers it.
-- `just format`: apply ruff's fixes and format the Python with ruff (the Python in the
-  Markdown too), and the browser package with Prettier.
-- `just format-file <path>`: apply ruff's fixes and format with ruff, in one file or folder.
-- `just check`: every check of `.pre-commit-config.yaml`, on every file. It must pass.
-- `just check-typescript`: check the browser package's types and formatting.
+- `just sync`：创建 `.venv`，包含 `uv.lock` 锁定的所有内容，将引擎构建到其中，并
+  安装浏览器包锁定的开发工具。
+- `just lock`：在 `pyproject.toml` 的依赖项变更后更新 `uv.lock`。
+- `just upgrade`：将 `uv.lock` 和 `Cargo.lock` 移动到清单允许的
+  最新版本。
+- `just licenses`：在 `Cargo.lock` 变更后写入 wheel 的第三方声明
+  （`LICENSE-THIRD-PARTY`），检查
+  ManimGX 的 `license` 是否涵盖它。
+- `just format`：应用 ruff 的修复并用 ruff 格式化 Python（包括 Markdown 中的
+  Python），以及用 Prettier 格式化浏览器包。
+- `just format-file <path>`：在单个文件或文件夹中应用 ruff 的修复并用 ruff 格式化。
+- `just check`：对每个文件执行 `.pre-commit-config.yaml` 中的所有检查。必须通过。
+- `just check-typescript`：检查浏览器包的类型和格式。
 
-### Testing
+### 测试
 
-- `just test [args]`: the suite, in parallel; `args` go to pytest, as in
-  `just test tests/integration/test_time.py -x`.
-- `just test-rust`: the Rust workspace's core and native-library tests, without embedding Python.
-- `just check-rust-web`: compile-check the browser engine.
-- `just test-rust-web`: the engine's browser tests, using wasm-bindgen-test-runner and a
-  browser driver.
-- `just test-typescript`: build and test the browser package, including its compiled worker
-  and public declarations.
-- `just test-coverage [args]`: the same, measuring coverage (see
-  [Testing](testing.md#coverage)).
-- `just combine-coverage <folder>`: one report from the coverage of several runs, as CI
-  makes it.
-- `just bench [REF] [args]`: the timed benchmarks, this checkout against REF's ManimGX, main
-  unless named (see [Testing](testing.md#benchmarks)).
-- `just corpus <command>`: render, compare and review the integration corpus.
-- `just review`: the corpus's review panel, at <http://127.0.0.1:8000>.
+- `just test [args]`：并行运行测试套件；`args` 传递给 pytest，例如
+  `just test tests/integration/test_time.py -x`。
+- `just test-rust`：Rust 工作区的核心和原生库测试，不嵌入 Python。
+- `just check-rust-web`：编译检查浏览器引擎。
+- `just test-rust-web`：引擎的浏览器测试，使用 wasm-bindgen-test-runner 和
+  浏览器驱动。
+- `just test-typescript`：构建并测试浏览器包，包括其编译后的 worker
+  和公开声明。
+- `just test-coverage [args]`：同上，但会测量覆盖率（见
+  [测试](testing.md#_16)）。
+- `just combine-coverage <folder>`：将多次运行的覆盖率合并为一份报告，如同 CI
+  所做的那样。
+- `just bench [REF] [args]`：计时基准测试，将当前检出版本与 REF 的 ManimGX 进行比较，未指定时默认为 main
+  （见 [测试](testing.md#_17)）。
+- `just corpus <command>`：渲染、比较和评审集成语料库。
+- `just review`：语料库的评审面板，地址为 <http://127.0.0.1:8000>。
 
-### Docs
+### 文档
 
-- `just serve-docs`: the docs site at <http://localhost:8000>, rebuilt as its pages change.
-- `just build-docs`: the docs site, into `docs/site/`, as it is deployed.
-- `just render-docs [args]`: render missing or changed example films.
-- `just build-docs-pages`: build the pages from completed films.
+- `just serve-docs`：文档站点位于 <http://localhost:8000>，随页面变更而重建。
+- `just build-docs`：将文档站点构建到 `docs/site/`，即部署时的形态。
+- `just render-docs [args]`：渲染缺失或已变更的示例影片。
+- `just build-docs-pages`：从已完成的影片构建页面。
 
-See [Documentation](documentation.md#local-preview).
+见 [文档](documentation.md#_10)。
 
-### Release
+### 发布
 
-- `just build-wheel`: this machine's wheel, into `dist/`, tested on every supported Python.
-- `just build-sdist`: the source distribution, into `dist/`.
-- `just create-executable`: this machine's executable, into `dist/`, from its wheel there.
-- `just build-docker-image <version>`: the Docker image of a version published on PyPI.
-- `just release-notes <version>`: a version's section of the changelog.
-- `just release`: tag the version in `pyproject.toml` and push the tag; the Release
-  workflow publishes it.
+- `just build-wheel`：本机的 wheel，输出到 `dist/`，在每个受支持的 Python 上测试。
+- `just build-sdist`：源码发行版，输出到 `dist/`。
+- `just create-executable`：本机的可执行文件，输出到 `dist/`，由其中的 wheel 生成。
+- `just build-docker-image <version>`：基于 PyPI 上发布的某个版本构建 Docker 镜像。
+- `just release-notes <version>`：变更日志中某个版本的章节。
+- `just release`：在 `pyproject.toml` 中为版本打标签并推送标签；Release
+  工作流会将其发布。
 
-See [Project management](project-management.md#releases).
+见 [项目管理](project-management.md#_11)。
 
-### By hand
+### 手动操作
 
-`cargo clippy`, run in `rust/`, checks the lints `rust/engine/Cargo.toml` sets for the
-engine. It has no recipe and no workflow runs it. The LaTeX command-spec tests are part of
-`just test-rust`; run `cargo test --locked -p mitex-spec-gen` in `rust/` to check only those
-(see [The engine](engine.md#typesetting)).
+在 `rust/` 中运行的 `cargo clippy` 会检查 `rust/engine/Cargo.toml` 为引擎设置的 lint。它没有配方，也没有工作流运行它。LaTeX 命令规格测试是
+`just test-rust` 的一部分；在 `rust/` 中运行 `cargo test --locked -p mitex-spec-gen` 可以仅检查这些
+测试（见 [引擎](engine.md#_9)）。
