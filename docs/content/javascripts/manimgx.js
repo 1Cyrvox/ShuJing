@@ -257,49 +257,6 @@
     run()
   }
 
-  // The footer's newsletter field (overrides/partials/academa.html). Its address goes to
-  // academa.ai's door as JSON. A signup is shown immediately; a refusal or network failure
-  // restores the same field, with its address intact. Every page has a footer of its own,
-  // so the field's form is found when it is submitted
-  document.addEventListener("submit", async event => {
-    const form = event.target
-    if (!(form instanceof HTMLFormElement) || !form.matches(".mx-footer__subscribe")) return
-    event.preventDefault()
-    const answer = form.parentElement.querySelector(".mx-footer__answer")
-    const button = form.querySelector("button")
-    button.disabled = true
-    form.remove()
-    answer.classList.add("mx-footer__answer--joined")
-    answer.textContent = "You are on the list."
-    let reply = null
-    let accepted = false
-    try {
-      const response = await fetch(form.action, {
-        method: "POST",
-        credentials: "omit", // the door reads no session
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: form.elements.email.value }),
-      })
-      reply = await response.json()
-      accepted = response.ok && reply?.success === true
-    } catch {
-      // the door unreachable, or an answer this page may not read
-    }
-    if (!accepted) {
-      answer.classList.remove("mx-footer__answer--joined")
-      answer.textContent =
-        typeof reply?.error === "string" ? reply.error : "Something went wrong. Please try again."
-      button.disabled = false
-      answer.before(form)
-    }
-  })
-  // a refusal is about what was typed: typing again clears it
-  document.addEventListener("input", event => {
-    const field = event.target
-    if (field instanceof HTMLInputElement && field.closest(".mx-footer__subscribe")) {
-      field.form.parentElement.querySelector(".mx-footer__answer").textContent = ""
-    }
-  })
 
   // Every page, including those reached by instant navigation: its films, its math and its
   // rate function explorers and theme-aware pictures
