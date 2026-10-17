@@ -33,4 +33,65 @@
   <meta name="twitter:description" content="{{ description | e }}">
   <meta name="twitter:image" content="{{ image | e }}">
   <meta name="twitter:image:alt" content="{{ card.alt | e }}">
+  {% if homepage %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "数境 ShuJing",
+    "alternateName": "ShuJing",
+    "description": "数学动画引擎，让数学可视化触手可及。基于 ManimGX，支持 Python 编程式数学动画创作。",
+    "url": "https://www.wlazn.cn/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Windows 10/11, macOS, Linux",
+    "softwareVersion": "0.1.0",
+    "inLanguage": "zh-CN",
+    "author": {
+      "@type": "Organization",
+      "name": "爱派未来科技",
+      "url": "https://www.wlazn.cn/"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "爱派未来科技",
+      "url": "https://www.wlazn.cn/"
+    },
+    "license": "https://github.com/1Cyrvox/ShuJing/blob/main/LICENSE",
+    "codeRepository": "https://github.com/1Cyrvox/ShuJing",
+    "downloadUrl": "https://github.com/1Cyrvox/ShuJing/releases",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "CNY"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "ratingCount": "1",
+      "bestRating": "5",
+      "worstRating": "1"
+    }
+  }
+  </script>
+  {% else %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "{{ title | e }}",
+    "description": "{{ description | e }}",
+    "inLanguage": "zh-CN",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "数境 ShuJing",
+      "url": "https://www.wlazn.cn/"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "爱派未来科技",
+      "url": "https://www.wlazn.cn/"
+    }
+  }
+  </script>
+  {% endif %}
 {% endblock %}
