@@ -170,7 +170,7 @@ class Example:
         """Its film's name: the scene's, and a digest of its code and shared render inputs."""
         code = textwrap.dedent(self.code).strip() + "\n"
         digest = hashlib.sha256(
-            f"{render_context()}\n{FORMAT}\n{code}".encode()
+            f"{FORMAT}\n{code}".encode()
         ).hexdigest()[:20]
         return f"{self.scene}-{digest}"
 
