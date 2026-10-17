@@ -22,8 +22,7 @@ def get_all_code_blocks():
     blocks_found = []
     
     for page in sorted(PAGES.rglob("*.md")):
-        if page.is_relative_to(PAGES / "gallery"):
-            continue
+
         text = page.read_text(encoding="utf-8")
         for match in FENCE.finditer(text):
             code = textwrap.dedent(match.group("code"))
@@ -63,10 +62,26 @@ def main():
     
     missing = []
     found = 0
+    mp4_fixed = 0
     for path, example in all_blocks:
         stem = example.stem
         webp = FILMS / f"{stem}.webp"
-        if webp.exists():
+        mp4 = FILMS / f"{stem}.mp4"
+        if webp.exists() and mp4.exists():
+            found += 1
+            continue
+        if webp.exists() and not mp4.exists():
+            scene_films = find_scene_films(example.scene)
+            mp4_sources = [f for f in scene_films if f.suffix == ".mp4"]
+            if mp4_sources:
+                src_mp4 = mp4_sources[0]
+                shutil.copy2(src_mp4, FILMS / f"{stem}.mp4")
+                mp4_fixed += 1
+                old_stem = src_mp4.stem
+                for ext in [".svg", "-light.svg"]:
+                    src_ext = FILMS / f"{old_stem}{ext}"
+                    if src_ext.exists() and not (FILMS / f"{stem}{ext}").exists():
+                        shutil.copy2(src_ext, FILMS / f"{stem}{ext}")
             found += 1
             continue
         
