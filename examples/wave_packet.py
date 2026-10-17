@@ -1,27 +1,26 @@
-"""A quantum particle tunnels through a wall.
+"""量子粒子穿过一堵墙。
 
-A free particle is a wave packet ψ(x, t). Drawn in 3D as the curve (x, Re ψ, Im ψ) it is a
-corkscrew: its radius is |ψ| and its twist is the phase, whose crests move at half the packet's
-speed. The packet meets a barrier higher than its energy, a wall a classical particle could never
-cross, and splits: part reflects and part tunnels through. The Schrödinger equation
-iψₜ = −½ψₓₓ + Vψ is solved as it plays, by split-step Fourier. The transmitted probability,
-integrated from ψ, matches the square barrier's T = [1 + V₀² sinh²(κa) / 4E(V₀ − E)]⁻¹, averaged
-over the packet's momenta.
+自由粒子是一个波包 ψ(x, t)。在三维中画为曲线 (x, Re ψ, Im ψ) 时它是一个
+螺旋：其半径为 |ψ|，其扭转为相位，波峰以波包速度之半移动。波包遇到
+高于其能量的势垒，一堵经典粒子永远无法越过的墙，并分裂：部分反射，
+部分隧穿。薛定谔方程 iψₜ = −½ψₓₓ + Vψ 在播放时求解，用分步傅里叶法。
+透射概率由 ψ 积分而得，与方势垒的
+T = [1 + V₀² sinh²(κa) / 4E(V₀ − E)]⁻¹ 吻合，并在波包的动量上取平均。
 """
 
 import numpy as np
 
 import manimgx as m
 
-N, LENGTH = 4096, 320.0  # the grid (periodic; far wider than the view)
+N, LENGTH = 4096, 320.0  # 网格（周期性；远宽于视野）
 DX = LENGTH / N
-K0, SIGMA, X0 = 1.5, 5.0, -24.0  # the packet: momentum, width, start (ħ = m = 1)
-V0 = 1.8  # the barrier's height, above the packet's energy K0²/2 = 1.125
-WIDTH = 10 * DX  # the barrier's width, ten grid cells (0.78)
+K0, SIGMA, X0 = 1.5, 5.0, -24.0  # 波包：动量、宽度、起点（ħ = m = 1）
+V0 = 1.8  # 势垒高度，高于波包能量 K0²/2 = 1.125
+WIDTH = 10 * DX  # 势垒宽度，十个网格格胞（0.78）
 DT = 0.02
-SHOWN = 36.0  # the view: |x| ≤ SHOWN
-X_SCALE = 0.17  # screen units per unit of x
-AMP = 3.4  # screen units per unit of |ψ|
+SHOWN = 36.0  # 视野：|x| ≤ SHOWN
+X_SCALE = 0.17  # 每 x 单位对应的屏幕单位
+AMP = 3.4  # 每 |ψ| 单位对应的屏幕单位
 
 
 class Packet:
@@ -36,8 +35,8 @@ class Packet:
         self.t = 0.0
 
     def advance(self, until: float) -> None:
-        """Split-step Fourier: half a step of the potential, a full step of the kinetic energy
-        (exact in Fourier space), half a step of the potential."""
+        """分步傅里叶：半步势能、一步动能
+        （在傅里叶空间中精确）、半步势能。"""
         while self.t < until - 1e-9:
             dt = min(DT, until - self.t)
             half = np.exp(-0.5j * self.potential * dt)
@@ -50,8 +49,8 @@ class Packet:
 
 
 def transmission_theory() -> float:
-    """The square barrier's transmission T(k), averaged over the packet's momentum distribution
-    |φ(k)|² ∝ exp(−2σ²(k − k₀)²) (complex κ covers the few momenta above the barrier).
+    """方势垒的透射 T(k)，在波包的动量分布
+    |φ(k)|² ∝ exp(−2σ²(k − k₀)²) 上取平均（复数 κ 覆盖少数高于势垒的动量）。
     """
     k = np.linspace(K0 - 2.5 / SIGMA, K0 + 2.5 / SIGMA, 2000)
     weight = np.exp(-2 * SIGMA**2 * (k - K0) ** 2)
@@ -64,7 +63,7 @@ def transmission_theory() -> float:
 def tube(
     points: np.ndarray, radius: float, sides: int = 8
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Vertices and triangles of a lit tube along a 3D polyline (parallel-transport frames)."""
+    """沿三维折线的光照管的顶点与三角形（平行移动标架）。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True)
     seed = np.cross(tangent[0], [0.3, 0.5, 0.8])
@@ -93,7 +92,7 @@ def tube(
 
 
 def phase_colors(psi: np.ndarray, sides: int) -> np.ndarray:
-    """Per-vertex colors: hue from the phase, fading to grey where |ψ| is negligible."""
+    """逐顶点颜色：色相来自相位，在 |ψ| 可忽略处渐变为灰色。"""
     hue = np.angle(psi) / m.TAU
     k = np.arange(3)[None, :]
     rgb = 0.55 + 0.45 * np.cos(m.TAU * (hue[:, None] - k / 3))
@@ -106,7 +105,7 @@ def phase_colors(psi: np.ndarray, sides: int) -> np.ndarray:
 class WavePacket(m.ThreeDScene):
     def construct(self) -> None:
         packet = Packet()
-        clock = m.ValueTracker(0.0)  # the model time shown
+        clock = m.ValueTracker(0.0)  # 所示的模型时间
         view = np.flatnonzero(np.abs(packet.x) <= SHOWN)[::2]
 
         def curve() -> np.ndarray:
@@ -136,7 +135,7 @@ class WavePacket(m.ThreeDScene):
         wall.set_fill(m.RED_C, opacity=0.28).set_stroke(width=0)
         wall.move_to([X_SCALE * WIDTH / 2, 0, 0])
 
-        # HUD: the textbook picture: the barrier V(x), the energy E and |ψ|² sitting on it
+        # HUD：教科书图景：势垒 V(x)、能量 E 及其上的 |ψ|²
         plot = m.Axes(
             x_range=(-SHOWN, SHOWN, 12),
             y_range=(0, 3.2, 0.8),
@@ -154,7 +153,7 @@ class WavePacket(m.ThreeDScene):
             fill_color=m.RED_C,
             fill_opacity=0.85,
         )
-        energy = float(K0**2 / 2 + 1 / (8 * SIGMA**2))  # ⟨E⟩ of the Gaussian packet
+        energy = float(K0**2 / 2 + 1 / (8 * SIGMA**2))  # 高斯波包的 ⟨E⟩
         level = m.DashedLine(
             plot.c2p(-SHOWN, energy), plot.c2p(SHOWN, energy), stroke_width=1.5
         ).set_color(m.GREY_B)
@@ -174,7 +173,7 @@ class WavePacket(m.ThreeDScene):
 
         cloud = m.always_redraw(density)
 
-        # HUD: the probabilities, integrated from ψ, and the theory
+        # HUD：由 ψ 积分的概率，以及理论值
         left, right = packet.x < 0, packet.x >= WIDTH
         reflected = m.DecimalNumber(1, num_decimal_places=3, font_size=30)
         reflected.add_updater(lambda d: d.set_value(packet.probability(left)))
@@ -219,14 +218,14 @@ class WavePacket(m.ThreeDScene):
             frame_center=np.array([0.0, 0.0, -0.75]),
         )
         self.add(axis, wall, spiral)
-        # the free packet: the corkscrew turns as it goes; its crests lag behind the packet
+        # 自由波包：螺旋随行进而转动；波峰滞后于波包
         self.play(
             clock.animate.set_value(10.0),
             self.camera.theta_tracker.animate.set_value(-62 * m.DEGREES),
             run_time=6,
             rate_func=m.linear,
         )
-        # it meets the wall: part of it comes back, part of it comes through
+        # 遇到墙：部分返回，部分穿过
         self.play(
             clock.animate.set_value(24.0),
             self.camera.theta_tracker.animate.set_value(-94 * m.DEGREES),

@@ -1,25 +1,25 @@
-"""Circles on circles draw π.
+"""圆上叠圆画出 π。
 
-Any closed curve is a sum of circular motions. Let z(t) be a point of the complex plane that
-goes once around the curve as t runs from 0 to 1; then z(t) = Σ cₙ e^{2πint}. Each term is an
-arrow of length |cₙ| that turns n times while the curve is traced once: put the arrows tip to
-tail, and the last tip runs along the curve. Each cₙ is measured from the curve itself,
-cₙ = ∫ z(t) e^{−2πint} dt, here from the outline of the letter π. With 101 arrows the drawing
-can't be told from the letter (3Blue1Brown, "But what is a Fourier series?", 2019).
+任何闭合曲线都是圆周运动的叠加。设 z(t) 为复平面上的一点，
+当 t 从 0 变到 1 时绕曲线一周；则 z(t) = Σ cₙ e^{2πint}。每一项是
+长度为 |cₙ| 的箭头，在曲线被描绘一次时转动 n 圈：将箭头首尾相接，
+最后一个箭头的尖端便沿曲线移动。每个 cₙ 由曲线本身测得，
+cₙ = ∫ z(t) e^{−2πint} dt，此处取自字母 π 的轮廓。用 101 个箭头时，
+绘制结果与字母无法区分（3Blue1Brown，"But what is a Fourier series?"，2019）。
 """
 
 import numpy as np
 
 import manimgx as m
 
-TERMS = 50  # the frequencies −TERMS … TERMS
-PERIOD = 10.0  # seconds the arrows take to draw the curve once
-SAMPLES = 4096  # points along the outline, evenly spaced
-WALL = 5.0  # the README wall's 5 seconds start here
+TERMS = 50  # 频率 −TERMS … TERMS
+PERIOD = 10.0  # 箭头描绘曲线一次所需的秒数
+SAMPLES = 4096  # 沿轮廓均匀分布的点数
+WALL = 5.0  # README 墙的 5 秒从此处开始
 
 
 def outline(glyph: m.Mobject) -> np.ndarray:
-    """`SAMPLES` points evenly spaced along a closed outline, as complex numbers."""
+    """沿闭合轮廓均匀分布的 `SAMPLES` 个点，以复数表示。"""
     curves = glyph.points.reshape(-1, 4, 3)[:, :, :2]
     s = np.linspace(0, 1, 64, endpoint=False)[None, :, None]
     p0, p1, p2, p3 = (curves[:, k][:, None] for k in range(4))
@@ -38,7 +38,7 @@ def outline(glyph: m.Mobject) -> np.ndarray:
 
 
 def coefficients(z: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """The frequencies 0, 1, −1, 2, −2, … and their coefficients cₙ, by the discrete transform."""
+    """频率 0, 1, −1, 2, −2, … 及其系数 cₙ，由离散变换求得。"""
     spectrum = np.fft.fft(z) / len(z)
     order = [0] + [n for k in range(1, TERMS + 1) for n in (k, -k)]
     frequencies = np.array(order)
@@ -55,14 +55,14 @@ class FourierPi(m.Scene):
         letter = m.MathTex(r"\pi").scale_to_fit_height(5.0).move_to(0.55 * m.UP)
         glyph = letter.family_members_with_points()[0]
         frequencies, c = coefficients(outline(glyph))
-        clock = m.ValueTracker(0.0)  # laps of the curve
+        clock = m.ValueTracker(0.0)  # 曲线的圈数
 
         def tips(t: float) -> np.ndarray:
-            """The chain's joints after t laps: its start, then each arrow's tip."""
+            """t 圈后链条的各关节：起点，然后每个箭头的尖端。"""
             turns = c * np.exp(m.TAU * 1j * frequencies * t)
             return np.concatenate([[0], np.cumsum(turns)])
 
-        # each arrow keeps its shape (|cₙ| doesn't change) and only turns and moves
+        # 每个箭头保持其形状（|cₙ| 不变）只转动和平移
         arrows = m.VGroup()
         circles = m.VGroup()
         bases: list[list[np.ndarray]] = []
@@ -93,7 +93,7 @@ class FourierPi(m.Scene):
             for k, (arrow, circle, shape) in enumerate(
                 zip(arrows, circles, bases, strict=True)
             ):
-                start, end = joints[k + 1], joints[k + 2]  # joint 1 is the fixed c₀
+                start, end = joints[k + 1], joints[k + 2]  # 关节 1 是固定的 c₀
                 turn = np.angle(end - start)
                 rotation = np.array(
                     [
@@ -145,18 +145,18 @@ class FourierPi(m.Scene):
         self.add(chain, pen)
         self.play(clock.animate.set_value(1.0), run_time=PERIOD, rate_func=m.linear)
 
-        # a second lap, close up: the camera follows the pen
+        # 第二圈，拉近：摄像机跟随笔尖
         clock.add_updater(lambda tracker, dt: tracker.increment_value(dt / PERIOD))
         close = m.ValueTracker(0.0)
         frame = self.camera.frame
-        self.add(frame)  # a mobject's updaters run while it is in the scene
+        self.add(frame)  # mobject 的更新器在其处于场景中时运行
 
         def follow(view: m.Mobject) -> None:
             zoom = 1 / (1 - 0.78 * close.get_value())
             view.scale_to_fit_height(8 / zoom).move_to(
                 close.get_value() * pen.get_center()
             )
-            # strokes are as wide on screen at every zoom
+            # 线宽在每次缩放时在屏幕上保持一致
             drawn.set_stroke(width=5 / zoom)
             circles.set_stroke(width=1.5 / zoom)
             for arrow in arrows:

@@ -1,21 +1,21 @@
-"""Sine and cosine are a circle turning.
+"""正弦与余弦即旋转的圆周。
 
-Turn a radius of the unit circle by an angle θ. Its tip is (cos θ, sin θ): cos θ is how far it
-reaches across, sin θ how high it rises, the two legs of a right triangle whose hypotenuse is
-the radius. Carry the height to the right as θ grows and it draws the sine wave; the reach
-draws the cosine, the same wave a quarter turn ahead. And since the legs and the radius make a
-right triangle, sin²θ + cos²θ = 1 at every angle.
+将单位圆的一条半径转动角度 θ。其端点为 (cos θ, sin θ)：cos θ 是它横向
+到达的距离，sin θ 是它升起的高度，二者是一个以半径为斜边的直角三角形的
+两条直角边。随着 θ 增长将高度向右搬运，便画出正弦波；到达距离
+画出余弦，即同一波形超前四分之一转。由于两直角边与半径构成
+直角三角形，在每个角度都有 sin²θ + cos²θ = 1。
 """
 
 import numpy as np
 
 import manimgx as m
 
-WALL = 3.0  # the README wall's 5 seconds start here
-CENTER = np.array([-4.55, 0.35, 0.0])  # the circle's
+WALL = 3.0  # README 影片墙的 5 秒从此开始
+CENTER = np.array([-4.55, 0.35, 0.0])  # 圆的
 RADIUS = 1.45
-ORIGIN = np.array([-2.35, 0.35, 0.0])  # where θ = 0 on the waves' axis
-LENGTH = 9.0  # the waves' axis, one turn long
+ORIGIN = np.array([-2.35, 0.35, 0.0])  # 波形轴上 θ = 0 的位置
+LENGTH = 9.0  # 波形轴，一个完整转的长度
 SINE, COSINE = m.YELLOW, m.GREEN
 
 
@@ -95,7 +95,7 @@ class UnitCircle(m.Scene):
         dot = m.always_redraw(lambda: m.Dot(tip(), radius=0.09, color=m.WHITE))
 
         def angle() -> float:
-            """θ, from 0 to a whole turn, then on into the next turn from 0 again."""
+            """θ，从 0 到一整转，而后从 0 再次进入下一转。"""
             a = theta.get_value()
             return max(a if a <= m.TAU + 1e-9 else a - m.TAU, 1e-4)
 
@@ -168,7 +168,7 @@ class UnitCircle(m.Scene):
         self.add(sine, cosine, carry)
         self.play(theta.animate.set_value(m.TAU), run_time=10, rate_func=m.linear)
 
-        names = m.VGroup(  # by each wave's first peak
+        names = m.VGroup(  # 在每个波的第一个峰处
             m.MathTex(r"\sin\theta", font_size=48, color=SINE).next_to(
                 on_wave(np.pi / 2, 1), m.UP, buff=0.25
             ),
@@ -182,7 +182,7 @@ class UnitCircle(m.Scene):
         identity.set_color_by_tex(r"\sin^2", SINE).set_color_by_tex(r"\cos^2", COSINE)
         identity.move_to(CENTER + 2.75 * m.DOWN)
         for traced in (sine, cosine):
-            traced.clear_updaters()  # the waves stay as one turn drew them
+            traced.clear_updaters()  # 波形保持一整转所绘的样子
         self.play(
             m.FadeIn(names), m.FadeOut(carry, sine_head, cosine_head), run_time=0.8
         )

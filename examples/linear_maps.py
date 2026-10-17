@@ -1,10 +1,9 @@
-"""A matrix is where the plane goes.
+"""矩阵即平面所到之处。
 
-A 2 × 2 matrix's two columns say where the arrows î and ĵ land. Every point is so much î plus
-so much ĵ, so they say where everything lands: grid lines stay straight, parallel and evenly
-spaced. The square on î and ĵ becomes a parallelogram whose area is the determinant, the
-factor by which every area grows. At 0 the plane flattens onto a line; below 0 it turns over
-(3Blue1Brown, "Essence of linear algebra", 2016).
+一个 2 × 2 矩阵的两列说明了箭头 î 和 ĵ 的落点。每个点都是若干 î 加若干 ĵ，因此它们
+决定了所有点的落点：网格线保持笔直、平行且等距。î 和 ĵ 上的正方形变为一个平行四边形，
+其面积即行列式，也就是每个面积放大的因子。行列式为 0 时平面压扁成一条直线；小于 0 时
+平面翻转（3Blue1Brown，"Essence of linear algebra"，2016）。
 """
 
 from collections.abc import Callable
@@ -13,8 +12,8 @@ import numpy as np
 
 import manimgx as m
 
-WALL = 5.0  # the README wall's 5 seconds start here
-EXTENT = 12  # the moving grid's lines run from −EXTENT to EXTENT
+WALL = 5.0  # README 墙的 5 秒从此处开始
+EXTENT = 12  # 移动网格的线从 −EXTENT 延伸至 EXTENT
 I_HAT, J_HAT, AREA = m.GREEN, m.RED, m.YELLOW
 
 
@@ -23,12 +22,12 @@ def rotation(angle: float) -> np.ndarray:
 
 
 def straight(a: np.ndarray, b: np.ndarray) -> Callable[[float], np.ndarray]:
-    """From matrix a to matrix b, each entry moving at a steady rate."""
+    """从矩阵 a 到矩阵 b，每个元素以匀速移动。"""
     return lambda t: (1 - t) * a + t * b
 
 
 def turning(a: np.ndarray, angle: float) -> Callable[[float], np.ndarray]:
-    """From matrix a, turning the plane by `angle` (a rotation stays a rotation throughout)."""
+    """从矩阵 a 起，将平面旋转 `angle`（旋转始终保持为旋转）。"""
     return lambda t: rotation(t * angle) @ a
 
 
@@ -93,7 +92,7 @@ class LinearMaps(m.Scene):
         j_label = m.MathTex(r"\hat{\jmath}", color=J_HAT, font_size=56)
 
         matrix = m.DecimalMatrix(
-            [[-8.8, -8.8], [-8.8, -8.8]],  # the widest entries, which size the brackets
+            [[-8.8, -8.8], [-8.8, -8.8]],  # 最宽的元素，用于确定括号尺寸
             element_to_mobject_config={"num_decimal_places": 1},
             h_buff=1.6,
         ).scale(1.1)
@@ -109,7 +108,7 @@ class LinearMaps(m.Scene):
         )
         panel.arrange(m.DOWN, buff=0.4, aligned_edge=m.LEFT).to_corner(m.UL, buff=0.4)
         det_place = det_value.get_left()
-        slots = [entry.get_right() for entry in entries]  # numbers align on their right
+        slots = [entry.get_right() for entry in entries]  # 数字按右端对齐
 
         grid = [(part, part.points.copy()) for part in (*lines, *axes)]
 
@@ -138,7 +137,7 @@ class LinearMaps(m.Scene):
             for entry, value, slot in zip(
                 entries, matrix_now.flatten(), slots, strict=True
             ):
-                entry.set_value(value + 0.0)  # no −0.0
+                entry.set_value(value + 0.0)  # 避免出现 −0.0
                 entry.move_to(slot, aligned_edge=m.RIGHT)
             det_value.set_value(np.linalg.det(matrix_now))
             det_value.move_to(det_place, aligned_edge=m.LEFT)

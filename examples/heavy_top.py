@@ -1,12 +1,12 @@
-"""The dance of a spinning top: it does not fall, it precesses and nods.
+"""旋转陀螺的舞蹈：它不倒下，而是进动和章动。
 
-A symmetric top pinned at its tip, L = ½I₁(θ̇² + φ̇² sin²θ) + ½I₃(ψ̇ + φ̇ cos θ)² − Mgl cos θ.
-Its spin p_ψ = I₃ω₃, its vertical angular momentum p_φ and its energy are conserved, so θ
-moves in the effective potential V(θ) = (p_φ − p_ψ cos θ)²/(2I₁ sin²θ) + Mgl cos θ and nods
-between two turning points, while φ̇ = (p_φ − p_ψ cos θ)/(I₁ sin²θ) carries it around. Three
-identical tops tilted 32° and spun alike are let go at rest, pushed backward and pushed
-forward: the tip of each axis writes cusps, loops or waves on a glass sphere between its
-two bounding circles. Integrated with RK4; moments computed from the drawn top.
+一个对称陀螺固定在尖端，L = ½I₁(θ̇² + φ̇² sin²θ) + ½I₃(ψ̇ + φ̇ cos θ)² − Mgl cos θ。
+其自旋 p_ψ = I₃ω₃、竖直角动量 p_φ 和能量守恒，因此 θ
+在有效势 V(θ) = (p_φ − p_ψ cos θ)²/(2I₁ sin²θ) + Mgl cos θ 中运动，在
+两个转折点之间章动，而 φ̇ = (p_φ − p_ψ cos θ)/(I₁ sin²θ) 带它环绕。三个
+相同的陀螺倾斜 32° 并以相同方式旋转，分别静止释放、向后推和向前推：
+每个轴的尖端在两个边界圆之间的玻璃球面上画出尖点、环或波浪。
+用 RK4 积分；转动惯量由所绘陀螺计算。
 """
 
 import numpy as np
@@ -15,9 +15,9 @@ import manimgx as m
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """摄像机在其轨道角处的坐标轴，以行向量表示：右、上、朝向观察者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 轴的旋转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -25,43 +25,43 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 轴旋转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
-TILT = 32 * m.DEGREES  # every top starts here, θ̇ = 0
-SPIN = 2.2 * m.TAU  # ω₃, rad/s
-MGL = 4.979  # gravity × height of the center of mass, per unit mass: tuned so the top
-# let go at rest draws exactly four cusps a turn (and the one pushed back five loops)
-PUSHES = (0.0, -1.362, 0.4)  # initial φ̇ in units of the steady precession rate
+TILT = 32 * m.DEGREES  # 每个陀螺从此处开始，θ̇ = 0
+SPIN = 2.2 * m.TAU  # ω₃，弧度/秒
+MGL = 4.979  # 重力 × 质心高度，每单位质量：调谐使静止释放的陀螺
+# 每转恰好画四个尖点（向后推的那个画五个环）
+PUSHES = (0.0, -1.362, 0.4)  # 初始 φ̇，以稳态进动速率为单位
 RATE, SUBSTEPS, DURATION = 60, 10, 31.0
 CONE_H, CONE_R, DISK_Z, DISK_R, DISK_T = 0.75, 0.32, 0.9, 0.95, 0.22
-PEN, SPINDLE_R, KNOB_R = 1.8, 0.05, 0.08  # the spindle's knob writes on the glass
-GLASS_R, SKIRT = 1.9, 0.62  # a bell jar: a glass dome over the tip and a short wall
+PEN, SPINDLE_R, KNOB_R = 1.8, 0.05, 0.08  # 心轴的旋钮在玻璃上书写
+GLASS_R, SKIRT = 1.9, 0.62  # 钟形罩：尖端上的玻璃穹顶和短壁
 GOLD, CORAL, TEAL = "#f4c95d", "#ef6f6c", "#2ec4b6"
 
 
 def moments() -> tuple[float, float]:
-    """I₁ (about a transverse axis through the tip) and I₃ (about the spin axis), per unit
-    density: a cone from the tip, a disk and a spindle."""
+    """I₁（关于过尖端的横轴）和 I₃（关于自旋轴），每单位
+    密度：从尖端起的锥、一个盘和一根心轴。"""
     cone = np.pi * CONE_R**2 * CONE_H / 3
     disk = np.pi * DISK_R**2 * DISK_T
     spindle = np.pi * SPINDLE_R**2 * (PEN - DISK_Z)
     knob = 4 / 3 * np.pi * KNOB_R**3
     i3 = 0.3 * cone * CONE_R**2 + 0.5 * disk * DISK_R**2 + 0.5 * spindle * SPINDLE_R**2
     i3 += 0.4 * knob * KNOB_R**2
-    i1 = cone * (3 / 20 * CONE_R**2 + 3 / 5 * CONE_H**2)  # a cone about its apex
+    i1 = cone * (3 / 20 * CONE_R**2 + 3 / 5 * CONE_H**2)  # 锥关于其顶点
     i1 += disk * ((3 * DISK_R**2 + DISK_T**2) / 12 + DISK_Z**2)
     mid, length = (PEN + DISK_Z) / 2, PEN - DISK_Z
     i1 += spindle * ((3 * SPINDLE_R**2 + length**2) / 12 + mid**2)
     i1 += knob * (0.4 * KNOB_R**2 + PEN**2)
-    mass = cone + disk + spindle + knob  # MGL = gravity × mass × height: one parameter
+    mass = cone + disk + spindle + knob  # MGL = 重力 × 质量 × 高度：一个参数
     return i1 / mass, i3 / mass
 
 
 def simulate(i1: float, i3: float, push: float) -> tuple[np.ndarray, np.ndarray]:
-    """Euler angles (θ, φ, ψ) at RATE samples a second after the release, and the effective
-    potential's parameter p_φ, for a top let go at TILT with φ̇ = push."""
+    """释放后每秒 RATE 个采样点处的欧拉角 (θ, φ, ψ)，以及
+    有效势的参数 p_φ，对应于以 TILT 倾角释放、φ̇ = push 的陀螺。"""
     p_psi = i3 * SPIN
     p_phi = i1 * push * np.sin(TILT) ** 2 + p_psi * np.cos(TILT)
 
@@ -86,13 +86,13 @@ def simulate(i1: float, i3: float, push: float) -> tuple[np.ndarray, np.ndarray]
 
 
 def steady_rate(i1: float, i3: float) -> float:
-    """The slow steady precession at TILT: I₁ cos θ φ̇² − p_ψ φ̇ + Mgl = 0."""
+    """TILT 处的慢稳态进动：I₁ cos θ φ̇² − p_ψ φ̇ + Mgl = 0。"""
     a, b = i1 * np.cos(TILT), i3 * SPIN
     return (b - np.sqrt(b * b - 4 * a * MGL)) / (2 * a)
 
 
 def euler(th: float, ph: float, ps: float) -> np.ndarray:
-    """Body → world for Euler angles z-x-z: R = Rz(φ) Rx(θ) Rz(ψ)."""
+    """欧拉角 z-x-z 的本体 → 世界变换：R = Rz(φ) Rx(θ) Rz(ψ)。"""
 
     def rz(a: float) -> np.ndarray:
         return np.array(
@@ -103,18 +103,18 @@ def euler(th: float, ph: float, ps: float) -> np.ndarray:
     return rz(ph) @ np.array([[1, 0, 0], [0, c, -s], [0, s, c]]) @ rz(ps)
 
 
-# ── smooth lit parts ────────────────────────────────────────────────────────────────────
+# ── 光滑光照部件 ────────────────────────────────────────────────────────────────────
 
 
 def revolve(profile: np.ndarray, sides: int = 48) -> np.ndarray:
-    """An (rows, sides + 1, 3) grid: profile rows (r, z) swept around the z axis."""
+    """(rows, side + 1, 3) 网格：轮廓行 (r, z) 绕 z 轴旋转。"""
     a = np.linspace(0, m.TAU, sides + 1)
     r, z = profile[:, :1], profile[:, 1:]
     return np.stack([r * np.cos(a), r * np.sin(a), z + 0 * a], -1)
 
 
 def surface(grid: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Vertices and triangles of an (rows + 1, cols + 1, 3) grid of points."""
+    """(rows + 1, cols + 1, 3) 点网格的顶点和三角形。"""
     rows, cols = grid.shape[0] - 1, grid.shape[1] - 1
     i, j = np.meshgrid(np.arange(rows), np.arange(cols), indexing="ij")
     a = (i * (cols + 1) + j).ravel()
@@ -124,7 +124,7 @@ def surface(grid: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 def tube(points: np.ndarray, radius: float, sides: int = 6) -> np.ndarray:
-    """A grid around a polyline (parallel-transport frames), for `surface`."""
+    """绕折线的网格（平行传输标架），供 `surface` 使用。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True)
     normals = [np.cross(tangent[0], [0.3, 0.5, 0.8])]
@@ -147,8 +147,8 @@ def lit(grid: np.ndarray, color: str) -> m.MeshMobject:
 
 
 def top_parts() -> list[m.MeshMobject]:
-    """The top along +z from its tip: a cone, a navy disk with one cream wedge (so the
-    spin shows), a spindle and its knob, the pen."""
+    """陀螺沿 +z 从尖端起：锥、带一个奶白色楔形的深蓝色盘（使
+    自旋可见）、心轴及其旋钮、笔尖。"""
     bevel = arc(0.05, 4, -np.pi / 2, 0) + [DISK_R - 0.05, DISK_Z - DISK_T / 2 + 0.05]
     rim = np.vstack([bevel, (bevel * [1, -1] + [0, 2 * DISK_Z])[::-1]])
     disk = revolve(np.vstack([[0, rim[0, 1]], rim, [0, rim[-1, 1]]]), 96)
@@ -165,9 +165,9 @@ def top_parts() -> list[m.MeshMobject]:
 
 
 class Jar(m.Group):
-    """A glass jar and all it holds — its stand, the circles where θ turns, the pen's trace,
-    the top: a mesh a part, each shown with its points and colors of the moment (what shows
-    through the glass is the engine's to composite). Part 0 is the glass."""
+    """玻璃罩及其所容纳的一切——其支架、θ 转折处的圆、笔尖轨迹、
+    陀螺：一个网格一个部件，每个以其此刻的顶点和颜色显示（透过
+    玻璃所见由引擎合成）。部件 0 是玻璃。"""
 
     def __init__(self, parts: list[tuple[np.ndarray, np.ndarray, np.ndarray]]) -> None:
         self.base = [verts for verts, _, _ in parts]
@@ -187,7 +187,7 @@ def rgba(color: str, alpha: float) -> np.ndarray:
 
 
 def project(camera: m.Camera, point: np.ndarray) -> np.ndarray:
-    """Where a 3D point lands on the screen, in frame coordinates (for HUD labels)."""
+    """3D 点在屏幕上的落点，以帧坐标表示（用于 HUD 标签）。"""
     turn = camera_axes(camera.get_phi(), camera.get_theta(), camera.get_gamma())
     p = turn @ (point - camera.frame_center)
     depth = 1 - p[2] / camera.get_focal_distance()
@@ -195,7 +195,7 @@ def project(camera: m.Camera, point: np.ndarray) -> np.ndarray:
 
 
 def axis_of(angles: np.ndarray) -> np.ndarray:
-    """The unit spin axis for Euler angles (θ, φ, …): (sin θ sin φ, −sin θ cos φ, cos θ)."""
+    """欧拉角 (θ, φ, …) 的单位自旋轴：(sin θ sin φ, −sin θ cos φ, cos θ)。"""
     th, ph = angles[..., 0], angles[..., 1]
     return np.stack([np.sin(th) * np.sin(ph), -np.sin(th) * np.cos(ph), np.cos(th)], -1)
 
@@ -214,23 +214,23 @@ class HeavyTop(m.ThreeDScene):
         spots = [np.array([x, 0.0, 0.0]) for x in (-4.7, 0.0, 4.7)]
         releases = [0.8, 13.6, 13.6]
         colors = [GOLD, CORAL, TEAL]
-        facing = -90 * m.DEGREES  # each top first leans to the left
+        facing = -90 * m.DEGREES  # 每个陀螺先向左倾斜
         motions = [simulate(i1, i3, k * steady) for k in PUSHES]
         clock = [0.0]
 
         def angles(k: int) -> np.ndarray:
-            """(θ, φ, ψ) of top k now: spinning in place until it is let go."""
+            """此刻陀螺 k 的 (θ, φ, ψ)：释放前原地自旋。"""
             after = clock[0] - releases[k]
             if after < 0:
                 return np.array([TILT, facing, SPIN * clock[0]])
             th, ph, ps = motions[k][0][min(round(after * RATE), len(motions[k][0]) - 1)]
             return np.array([th, ph + facing, ps + SPIN * releases[k]])
 
-        # each top under a bell jar, its pen writing on the glass between the two circles
-        # where θ turns
+        # 每个陀螺在钟形罩下，其笔尖在两个圆之间的玻璃上书写
+        # θ 转折处
         pieces = top_parts()
         body = np.vstack([p.points for p in pieces])
-        cuts = np.cumsum([len(p.points) for p in pieces])[:-1]  # body → its pieces
+        cuts = np.cumsum([len(p.points) for p in pieces])[:-1]  # 本体 → 其部件
         dome = np.vstack([[[GLASS_R, -SKIRT]], arc(GLASS_R, 24, 0, np.pi / 2)])
         glass, glass_tris = surface(revolve(dome, 72))
         rim, floor = GLASS_R + 0.12, -SKIRT
@@ -242,7 +242,7 @@ class HeavyTop(m.ThreeDScene):
         for k, spot in enumerate(spots):
             path = motions[k][0][: round((DURATION - releases[k]) * RATE)]
             turned = np.unwrap(path[:, 1])
-            cycles.append(np.argmax(np.abs(turned) >= m.TAU) / RATE)  # one precession
+            cycles.append(np.argmax(np.abs(turned) >= m.TAU) / RATE)  # 一次进动
             parts = [(glass + spot, glass_tris, rgba("#9ec9ff", 0.09))]
             parts.append((*surface(revolve(stand, 72) + spot), rgba("#07080b", 1.0)))
             for bound in (path[:, 0].min(), path[:, 0].max()):
@@ -264,7 +264,7 @@ class HeavyTop(m.ThreeDScene):
             colors = [np.array(c) for c in jar.tint]
             trace = colors[-len(top) - 1]
             age = clock[0] - ages[k]
-            live = (age >= 0) & (age < cycles[k])  # the last full turn of the pen
+            live = (age >= 0) & (age < cycles[k])  # 笔尖的最后一次完整转动
             trace[:, :3] *= 1 - 0.55 * np.clip(age / cycles[k], 0, 1)[:, None]
             trace[:, 3] = live
             for circle in colors[2:4]:
@@ -283,7 +283,7 @@ class HeavyTop(m.ThreeDScene):
         driver = m.Mobject().add_updater(advance)
         self.add(driver, jars[0])
 
-        # heads-up display: the effective potential of the first top, and θ in its well
+        # 平视显示器：第一个陀螺的有效势，以及 θ 在其势阱中
         p_phi, p_psi = motions[0][1]
 
         def potential(th: float) -> float:
@@ -371,7 +371,7 @@ class HeavyTop(m.ThreeDScene):
                 0,
                 -GLASS_R - 0.12,
                 -SKIRT - 0.1,
-            ]  # the plate's near edge
+            ]  # 底板的近边
             pair = m.VGroup(word, note).arrange(m.DOWN, buff=0.12)
             pair.add_updater(
                 lambda mob, at=front: mob.move_to(
@@ -383,7 +383,7 @@ class HeavyTop(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, *hud)
         self.remove(*hud)
 
-        # 0–10 s: one top, nodding between the turning points of its effective potential
+        # 0–10 秒：一个陀螺，在其有效势的转折点之间章动
         self.play(m.FadeIn(subtitle), run_time=1.2)
         self.play(*[m.FadeIn(mob) for mob in frame], run_time=1)
         self.play(m.Create(curve), m.FadeIn(energy), m.FadeIn(rider), run_time=1.2)
@@ -391,7 +391,7 @@ class HeavyTop(m.ThreeDScene):
         self.play(*turning, rings.animate.set_value(1.0), run_time=1)
         self.wait(10.4 - self.time)
 
-        # 10–13 s: two more tops, let go with a push
+        # 10–13 秒：再来两个陀螺，带推力释放
         self.play(*[m.FadeOut(mob) for mob in plot], run_time=0.8)
         self.add(jars[1], jars[2])
         self.move_camera(
@@ -406,13 +406,13 @@ class HeavyTop(m.ThreeDScene):
         self.play(
             m.FadeOut(subtitle), m.FadeIn(subtitle2), m.FadeIn(captions), run_time=1.2
         )
-        # 14–30 s: cusps, loops and waves, then all three from higher up
+        # 14–30 秒：尖点、环和波浪，然后从更高处看三个陀螺
         self.wait(20.8 - self.time)
         self.stop_ambient_camera_rotation()
         self.move_camera(phi=40 * m.DEGREES, theta=-90 * m.DEGREES, run_time=3)
         self.wait(26.4 - self.time)
         self.play(m.FadeIn(closing, shift=0.15 * m.UP), run_time=1.2)
-        self.wait(30.5 - self.time)  # ends as all three tops lean away from us
+        self.wait(30.5 - self.time)  # 结束时三个陀螺都向我们倾斜远离
 
 
 if __name__ == "__main__":

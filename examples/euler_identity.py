@@ -1,29 +1,28 @@
-"""e^{iπ} = −1, as a walk.
+"""e^{iπ} = −1，作为一次行走。
 
-The exponential is a sum: eˣ = 1 + x + x²/2! + x³/3! + ⋯. Put x = iπ and draw the terms as
-arrows, tip to tail. Each term is the last one times iπ/n, and multiplying by i turns an arrow a
-quarter turn, so the walk turns a quarter turn at every step; the arrows grow while π/n > 1,
-then n! wins and they shrink, and the walk spirals in on a single point: −1. Put x = it instead:
-as t changes the walk reshapes, and its end runs around the unit circle, at angle t from 1, so
-e^{it} = cos t + i sin t. Halfway round, at t = π, it is −1: e^{iπ} + 1 = 0.
+指数函数是一个和：eˣ = 1 + x + x²/2! + x³/3! + ⋯。令 x = iπ，将各项画成箭头，首尾相接。
+每一项是上一项乘以 iπ/n，而乘以 i 使箭头转四分之一圈，因此行走每一步转四分之一圈；当 π/n > 1 时
+箭头增长，随后 n! 占上风而箭头缩减，行走螺旋收敛于单一点：−1。改令 x = it：随着 t 变化，行走
+重塑形状，其端点沿单位圆运行，距 1 的角度为 t，故 e^{it} = cos t + i sin t。走到一半，即 t = π 时，
+它为 −1：e^{iπ} + 1 = 0。
 """
 
 import numpy as np
 
 import manimgx as m
 
-UNIT = 1.0  # scene units per unit of the complex plane
-ZERO = np.array([-1.3, -0.45, 0.0])  # where 0 is on screen
-TERMS = 20  # enough for |t| ≤ π: the next term is below 10⁻⁷
+UNIT = 1.0  # 每单位复平面对应的场景单位数
+ZERO = np.array([-1.3, -0.45, 0.0])  # 0 在屏幕上的位置
+TERMS = 20  # 足够用于 |t| ≤ π：下一项低于 10⁻⁷
 COLORS = m.color_gradient(
     [m.BLUE, m.TEAL, m.GREEN, m.YELLOW, m.GOLD, m.RED, m.MAROON, m.PURPLE], 10
 )
-COLUMN = 4.35  # the x of the formulas' column
+COLUMN = 4.35  # 公式列的 x 坐标
 WALL = 11.25
 
 
 def terms(x: complex, count: int = TERMS) -> np.ndarray:
-    """The terms xⁿ/n! of the exponential series, n = 0 … count − 1: each the last times x/n."""
+    """指数级数的各项 xⁿ/n!，n = 0 … count − 1：每一项为上一项乘以 x/n。"""
     out = np.empty(count, dtype=complex)
     out[0] = 1.0
     for n in range(1, count):
@@ -32,12 +31,12 @@ def terms(x: complex, count: int = TERMS) -> np.ndarray:
 
 
 def point(z: complex) -> np.ndarray:
-    """Where the complex number z is on screen."""
+    """复数 z 在屏幕上的位置。"""
     return ZERO + UNIT * np.array([z.real, z.imag, 0.0])
 
 
 def color(n: float) -> m.ManimColor:
-    """The color of term n (between two terms, a blend of theirs)."""
+    """第 n 项的颜色（在两项之间，为两者的混合）。"""
     k = min(int(n), len(COLORS) - 1)
     following = COLORS[min(k + 1, len(COLORS) - 1)]
     return m.interpolate_color(COLORS[k], following, n - int(n))
@@ -55,7 +54,7 @@ def term_arrow(start: complex, end: complex, n: float) -> m.Arrow:
 
 
 def walk(x: complex) -> m.VGroup:
-    """The terms of e^x as arrows tip to tail, leaving out those too short to see."""
+    """e^x 的各项作为首尾相接的箭头，省略那些太短而看不见的。"""
     sums = np.concatenate([[0], np.cumsum(terms(x))])
     return m.VGroup(
         *(
@@ -67,8 +66,8 @@ def walk(x: complex) -> m.VGroup:
 
 
 def next_term(arrow: m.Arrow, n: int, x: complex) -> m.UpdateFromAlphaFunc:
-    """Turn a copy of term n − 1 into term n: its tail slides to the walk's end while it turns
-    and stretches by x/n, continuously (by the powers (x/n)^α, α from 0 to 1)."""
+    """将第 n − 1 项的副本变为第 n 项：其尾部滑到行走的末端，同时转动并按 x/n 拉伸，
+    连续地进行（通过幂 (x/n)^α，α 从 0 到 1）。"""
     values = terms(x, n + 1)
     tail_from = complex(np.sum(values[: n - 1]))
 
@@ -102,7 +101,7 @@ class EulerIdentity(m.Scene):
         self.play(m.Create(plane, lag_ratio=0.1), m.Write(series), run_time=1.2)
         self.play(m.FadeIn(x_is), run_time=0.5)
 
-        # the walk for x = iπ, term by term: each a quarter turn from the last
+        # x = iπ 时的行走，逐项进行：每一项相对于上一项转四分之一圈
         x = 1j * np.pi
         values = terms(x)
         sums = np.concatenate([[0], np.cumsum(values)])
@@ -116,7 +115,7 @@ class EulerIdentity(m.Scene):
         labels = m.VGroup()
         for n, name in enumerate(names):
             direction = values[n] / abs(values[n])
-            outward = np.array([direction.imag, -direction.real, 0.0])  # its right side
+            outward = np.array([direction.imag, -direction.real, 0.0])  # 其右侧
             middle = point((sums[n] + sums[n + 1]) / 2)
             label = m.MathTex(name, font_size=44, color=COLORS[n])
             labels.add(label.next_to(middle, outward, buff=0.2))
@@ -134,7 +133,7 @@ class EulerIdentity(m.Scene):
         rest = walk(x)[12:]
         self.add(rest)
 
-        total = complex(sums[-1])  # the whole sum: −1, to the last digit drawn
+        total = complex(sums[-1])  # 整个和：−1，精确到最后一位绘制的数字
         end = m.Dot(point(total), radius=0.09, color=m.WHITE)
         sign = "-" if total.real < 0 else "+"
         end_label = m.MathTex(
@@ -144,7 +143,7 @@ class EulerIdentity(m.Scene):
         self.play(m.FadeIn(end, scale=0.5), m.Write(end_label), run_time=0.8)
         self.wait(0.6)
 
-        # let the exponent vary: the walk for x = it, as t runs once round and back
+        # 让指数变化：x = it 时的行走，当 t 跑一圈再回来
         t = m.ValueTracker(np.pi)
         x_it = m.MathTex(r"{{x}} = {{i t}}", font_size=56).move_to(x_is)
         t_value = m.DecimalNumber(np.pi, num_decimal_places=2, font_size=56)
@@ -173,7 +172,7 @@ class EulerIdentity(m.Scene):
             m.Write(circle_law, run_time=1.5),
         )
 
-        # halfway round
+        # 走到一半
         minus_one = end_label.copy()
         self.play(m.FadeIn(minus_one), run_time=0.5)
         identity = m.MathTex(r"{{ e^{i\pi} }} {{=}} {{-}}{{1}}", font_size=80)

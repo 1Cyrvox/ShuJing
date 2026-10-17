@@ -1,12 +1,12 @@
-"""Fireflies fall into step: spontaneous synchrony past a critical coupling (Kuramoto 1975).
+"""萤火虫步入同步：超过临界耦合后的自发同步（Kuramoto 1975）。
 
-2000 fireflies flash whenever their phase θᵢ passes 0. Each has its own rhythm ωᵢ, drawn from a
-Lorentzian of width γ, and each is nudged toward the swarm's average rhythm:
-θ̇ᵢ = ωᵢ + K r sin(ψ − θᵢ), where r e^{iψ} = (1/N) Σ e^{iθⱼ} (drawn as the arrow in the HUD).
-Below K_c = 2γ nothing happens: r is only finite-size noise, ~1/√N. Past it, a locked cluster
-forms and grows, and r follows the exact result for a Lorentzian, r = √(1 − K_c/K) (Kuramoto
-1984). Fireflies are placed by rhythm (slow on the left, fast on the right), so the locked
-middle of the forest flashes as one wave while the extremes keep their own time.
+2000 只萤火虫在相位 θᵢ 过 0 时闪烁。每只有自己的节律 ωᵢ，取自
+宽度为 γ 的洛伦兹分布，每只被群体的平均节律所牵引：
+θ̇ᵢ = ωᵢ + K r sin(ψ − θᵢ)，其中 r e^{iψ} = (1/N) Σ e^{iθⱼ}（画为 HUD 中的箭头）。
+在 K_c = 2γ 以下什么也不发生：r 仅为有限尺寸噪声，~1/√N。超过它，
+锁相簇形成并增长，r 遵循洛伦兹分布的精确结果 r = √(1 − K_c/K)（Kuramoto
+1984）。萤火虫按节律排列（慢的在左边，快的在右边），因此森林
+锁相的中间部分作为一个波闪烁，而两端保持各自的节律。
 """
 
 import numpy as np
@@ -14,16 +14,16 @@ import numpy as np
 import manimgx as m
 
 N = 2000
-OMEGA0 = 2 * np.pi * 0.75  # the swarm's median rhythm: a flash every 1.33 s
-GAMMA = OMEGA0 / 1.5  # half-width of the Lorentzian of rhythms
-KC = 2 * GAMMA  # the critical coupling
-STOPS = ["#ff8a3d", "#ffc94d", "#e2ff6a", "#8dff8a", "#46f0d2"]  # slow → fast rhythm
+OMEGA0 = 2 * np.pi * 0.75  # 群体的中位节律：每 1.33 秒闪一次
+GAMMA = OMEGA0 / 1.5  # 洛伦兹节律分布的半宽
+KC = 2 * GAMMA  # 临界耦合
+STOPS = ["#ff8a3d", "#ffc94d", "#e2ff6a", "#8dff8a", "#46f0d2"]  # 慢 → 快节律
 GOLD = "#ffd166"
 BACKGROUND = "#03060d"
 
 
 def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
-    """RGBA rows for values in [0, 1], interpolated through color stops."""
+    """[0, 1] 区间值的 RGBA 行，通过色标插值。"""
     rgb = np.array([m.ManimColor(s).to_rgb() for s in stops])
     x = np.clip(values, 0, 1) * (len(stops) - 1)
     i = np.minimum(x.astype(int), len(stops) - 2)
@@ -39,21 +39,21 @@ def ease(x: float) -> float:
 
 
 def coupling(t: float) -> float:
-    """K / K_c against film time: slowly through the transition, then strong."""
+    """K / K_c 随影片时间的变化：缓慢通过转变区，然后增强。"""
     return (
         0.9 * ease((t - 1.5) / 4.5) + 0.7 * ease((t - 6) / 9) + 1.4 * ease((t - 15) / 7)
     )
 
 
 def order(theta: np.ndarray) -> complex:
-    """The order parameter r e^{iψ} = mean of e^{iθ}."""
+    """序参量 r e^{iψ} = e^{iθ} 的均值。"""
     return complex(np.exp(1j * theta).mean())
 
 
 def tube(
     points: np.ndarray, radius: float, sides: int = 12
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Vertices and triangles of a lit tube along a polyline (parallel-transport frames)."""
+    """沿折线的光照管道的顶点和三角形（平行传输标架）。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True)
     seed = np.cross(tangent[0], [0.3, 0.5, 0.8])
@@ -91,16 +91,16 @@ class KuramotoFireflies(m.ThreeDScene):
     def construct(self) -> None:
         self.camera.background_color = BACKGROUND
         self.set_camera_orientation(phi=78 * m.DEGREES, theta=-100 * m.DEGREES)
-        self.camera.light_source.move_to([-6.0, 30.0, 12.0])  # moonlight from behind
+        self.camera.light_source.move_to([-6.0, 30.0, 12.0])  # 来自后方的月光
         rng = np.random.default_rng(7)
 
-        # rhythms: the Lorentzian's quantiles, so the sample is as Lorentzian as it can be
+        # 节律：洛伦兹分布的分位数，使样本尽可能服从洛伦兹分布
         rank = (np.arange(N) + 0.5) / N
         omega = OMEGA0 + GAMMA * np.tan(np.pi * (rank - 0.5))
         theta = rng.uniform(0, m.TAU, N)
         paint = colormap(rank, STOPS)
 
-        # the forest: fireflies placed by rhythm across it, scattered in depth and height
+        # 森林：萤火虫按节律分布在其中，在深度和高度上散布
         home = np.stack(
             [
                 13.0 * (rank - 0.5) + 0.7 * rng.standard_normal(N),
@@ -143,7 +143,7 @@ class KuramotoFireflies(m.ThreeDScene):
         driver = m.Mobject().add_updater(advance)
 
         def flash() -> np.ndarray:
-            """Brightness: a short flash as the phase passes 0."""
+            """亮度：相位过 0 时的短暂闪烁。"""
             return np.exp(5.0 * (np.cos(state["theta"]) - 1))
 
         cores = cloud(home, paint, 5)
@@ -168,7 +168,7 @@ class KuramotoFireflies(m.ThreeDScene):
         cores.add_updater(shine)
         self.add(driver, *trunks, cores, glows, halos)
 
-        # HUD, left: the phases on a circle (flash at the top) and the arrow r e^{iψ}
+        # HUD，左侧：圆上的相位（顶部闪烁）和箭头 r e^{iψ}
         at = np.array([-5.35, -2.35, 0.0])
         radius = 1.05
         panel_l = m.RoundedRectangle(
@@ -181,17 +181,17 @@ class KuramotoFireflies(m.ThreeDScene):
         spot = m.Line(
             at + [0, radius - 0.12, 0], at + [0, radius + 0.12, 0], stroke_width=3
         ).set_stroke(m.WHITE)
-        lane = radius * (0.82 + 0.18 * rank)  # slow rhythms inside, fast outside
+        lane = radius * (0.82 + 0.18 * rank)  # 慢节律在内，快节律在外
 
         def on_circle(th: np.ndarray, r: np.ndarray) -> np.ndarray:
-            angle = np.pi / 2 - th  # phase 0 at the top, advancing clockwise
+            angle = np.pi / 2 - th  # 相位 0 在顶部，顺时针推进
             flat = np.stack([r * np.cos(angle), r * np.sin(angle), 0 * r], axis=1)
             return flat + at
 
         dots = cloud(on_circle(theta, lane), paint, 4)
         arrow_line = m.Line(at, at + [0.01, 0, 0], stroke_width=4, stroke_color=m.WHITE)
         arrow_tip = m.Dot(at, radius=0.05, color=m.WHITE)
-        # a ×10 magnifier at the centre, so the arrow shows while r is still only noise
+        # 中心处的 ×10 放大器，使箭头在 r 仍仅为噪声时可见
         noise_ring = m.DashedVMobject(
             m.Circle(radius=10 * radius / np.sqrt(N), stroke_width=1.5), num_dashes=20
         ).move_to(at)
@@ -210,7 +210,7 @@ class KuramotoFireflies(m.ThreeDScene):
             tip = on_circle(np.array([np.angle(z)]), np.array([radius * abs(z)]))[0]
             arrow_line.put_start_and_end_on(at, tip + [1e-4, 0, 0])
             arrow_tip.move_to(tip)
-            near = min(1.0, max(0.0, (0.1 - abs(z)) / 0.04))  # gone once r is real
+            near = min(1.0, max(0.0, (0.1 - abs(z)) / 0.04))  # r 变为真实值后消失
             reach = min(10 * abs(z), 0.8)
             zoomed = on_circle(np.array([np.angle(z)]), np.array([radius * reach]))[0]
             zoom_arrow.put_start_and_end_on(at, zoomed + [1e-4, 0, 0])
@@ -222,7 +222,7 @@ class KuramotoFireflies(m.ThreeDScene):
         z_label = m.MathTex(r"r e^{i\psi} = \langle e^{i\theta} \rangle", font_size=26)
         z_label.next_to(ring, m.UP, buff=0.22)
 
-        # HUD, right: r against K, measured, and the exact Lorentzian result
+        # HUD，右侧：r 对 K，实测值和精确的洛伦兹结果
         plot = m.Axes(
             x_range=[0, 3.2, 1],
             y_range=[0, 1, 0.5],
@@ -265,7 +265,7 @@ class KuramotoFireflies(m.ThreeDScene):
 
         measured.add_updater(record)
 
-        # the legend: each firefly's own rhythm, which also sets where it sits
+        # 图例：每只萤火虫的自身节律，也决定其位置
         legend_bar = m.Rectangle(width=3.0, height=0.1, stroke_width=0, fill_opacity=1)
         legend_bar.set_fill(color=STOPS, opacity=1).set_sheen_direction(m.RIGHT)
         legend_bar.move_to([-0.55, -3.62, 0])
@@ -288,7 +288,7 @@ class KuramotoFireflies(m.ThreeDScene):
         backing.set_fill(BACKGROUND, opacity=0.8).set_stroke(m.GREY_D)
         legend = m.VGroup(backing.move_to(legend), *legend)
 
-        # readouts and titles
+        # 读数和标题
         title = m.Text("Fireflies fall into step", font_size=36).to_corner(m.UL)
         subtitle = m.Text(
             f"{N} flashing oscillators, each nudged toward the swarm's rhythm",
@@ -309,7 +309,7 @@ class KuramotoFireflies(m.ThreeDScene):
         readout.next_to(law, m.DOWN, buff=0.2).align_to(law, m.RIGHT)
         readout.set_opacity(0.0)
 
-        shown = m.ValueTracker(0.0)  # the readouts' opacity (live numbers can't FadeIn)
+        shown = m.ValueTracker(0.0)  # 读数的不透明度（实时数字无法 FadeIn）
 
         def read(mob: m.Mobject) -> None:
             k_value.set_value(coupling(clock[0]))
@@ -344,7 +344,7 @@ class KuramotoFireflies(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, subtitle, *hud, *later)
         self.remove(*later)
 
-        # 0–7 s: coupling too weak: every firefly keeps its own time, r is noise
+        # 0–7 秒：耦合太弱：每只萤火虫保持各自节律，r 为噪声
         self.begin_ambient_camera_rotation(rate=0.012)
         self.wait(1.0)
         self.play(
@@ -354,27 +354,15 @@ class KuramotoFireflies(m.ThreeDScene):
         self.play(m.Create(noise), m.FadeIn(noise_label), run_time=1)
         self.wait(1.5)
         self.play(m.FadeIn(kc_tick), run_time=1)
-        # 7–16 s: past K_c a cluster locks and grows along the exact curve
+        # 7–16 秒：超过 K_c 后簇锁定并沿精确曲线增长
         self.wait(5)
         self.play(m.FadeIn(theory_label), run_time=1)
         self.wait(2.5)
-        # 16–25 s: strong coupling: into the forest as it flashes as one
-        self.move_camera(zoom=1.3, phi=82 * m.DEGREES, run_time=6)
-        self.wait(3)
-        closing = m.MathTex(
-            r"\text{Past } K_c = 2\gamma\text{, the swarm keeps one time.}",
-            font_size=30,
-        ).next_to(title, m.DOWN, aligned_edge=m.LEFT, buff=0.15)
-        self.add_fixed_in_frame_mobjects(closing)
-        self.remove(closing)
-        self.play(
-            m.FadeOut(subtitle, shift=0.12 * m.UP),
-            m.FadeIn(closing, shift=0.12 * m.UP),
-            run_time=1.2,
-        )
-        # hold, and end as the swarm flashes: when the average phase ψ comes round to 0
+        # 16–25 秒：强耦合：进入森林，群体作为一个波闪烁
+        self.wait(5)
+        # 保持，并在群体闪烁时结束：当平均相位 ψ 回到 0 时
         self.wait(2.8)
-        for _ in range(90):  # at most one flash period
+        for _ in range(90):  # 最多一个闪烁周期
             if -0.1 < np.angle(order(state["theta"])) <= 0:
                 break
             self.wait(1 / 60)

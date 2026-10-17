@@ -1,24 +1,23 @@
-"""The quadratic formula, by completing a square.
+"""求根公式，通过配方法推导。
 
-ax² + bx + c = 0 is solved by making its left side a perfect square. Divide by a and move the
-constant across: x² + (b/a)x is then the area of a square of side x and a rectangle b/a by x.
-Cut the rectangle in two and fold one half under the square, and the shape is a square of side
-x + b/2a missing one small corner, (b/2a)². Add that corner to both sides; the left side is now
-(x + b/2a)², and a square root and a subtraction later, x = (−b ± √(b² − 4ac))/2a. Each term
-keeps its color as it moves: the algebra is the picture.
+ax² + bx + c = 0 通过将其左边配成完全平方来求解。两边除以 a 并将常数项移到右边：x² + (b/a)x
+即为边长 x 的正方形面积与 b/a 乘 x 的矩形面积之和。将矩形一分为二，把一半折到正方形下方，
+所得形状是边长 x + b/2a 的正方形缺一个小角 (b/2a)²。将这个小角补到两边；左边成为
+(x + b/2a)²，再经开方与移项，x = (−b ± √(b² − 4ac))/2a。每一项在移动中保持其颜色：代数
+即是图形。
 """
 
 import numpy as np
 
 import manimgx as m
 
-WALL = 9.6  # the README wall's 5 seconds start here
-SIZE = 60  # the equations' font size
-X, HALF = 2.4, 0.8  # the picture's x and b/2a, in screen units
+WALL = 9.6  # README 墙的 5 秒从此处开始
+SIZE = 60  # 等式的字号
+X, HALF = 2.4, 0.8  # 图形中的 x 和 b/2a，以屏幕单位计
 SQUARE, STRIP, CORNER = m.BLUE, m.TEAL, m.YELLOW
 COLORS = {"x2": SQUARE, "bx": STRIP, "sq": CORNER, "sq2": CORNER}
 
-Terms = list[tuple[str, str]]  # (key, LaTeX): a key names a term across the equations
+Terms = list[tuple[str, str]]  # (键, LaTeX)：键在各等式间标识同一项
 
 E1: Terms = [("x2", "a x^2"), ("p1", "+"), ("bx", "b x"), ("p2", "+"), ("c", "c"),
              ("eq", "="), ("zero", "0")]  # fmt: skip
@@ -37,7 +36,7 @@ E7: Terms = [("x", "x"), ("eq", "="), ("sol", r"\frac{-b \pm \sqrt{b^2 - 4ac} }{
 
 
 class Equation(m.MathTex):
-    """An equation whose terms are named, so that a step can say which becomes which."""
+    """一个各项已命名的等式，使每一步能指明哪项变为哪项。"""
 
     def __init__(self, terms: Terms, font_size: float = SIZE) -> None:
         super().__init__(
@@ -71,9 +70,8 @@ class QuadraticFormula(m.Scene):
         path_arc: float = 0,
         run_time: float = 1.6,
     ) -> None:
-        """Turn `before` into `after`. Symbols that appear in both fly to their new places
-        and the rest fade; or, given `come_from`, each term moves to the term of the same key,
-        and a term it names is drawn out of a copy of that mobject."""
+        """将 `before` 变为 `after`。两者共有的符号飞至新位置，其余淡出；或当给定 `come_from`
+        时，每一项移动到同键项，而它所指名的项从一个该 mobject 的副本中绘出。"""
         if come_from is None:
             self.play(
                 m.TransformMatchingShapes(before, after, path_arc=path_arc),
@@ -113,7 +111,7 @@ class QuadraticFormula(m.Scene):
         self.step(e2, e3, path_arc=-0.5 * np.pi)
         self.wait(0.3)
 
-        # the picture: x² + (b/a)x as areas, built from the terms
+        # 图形：将 x² + (b/a)x 表示为面积，由各项构建
         left, ceiling = -(X + HALF) / 2, 0.75
         square = rectangle(left, ceiling, X, X, SQUARE)
         strip = rectangle(left + X, ceiling, 2 * HALF, X, STRIP)
@@ -133,7 +131,7 @@ class QuadraticFormula(m.Scene):
             *(m.FadeIn(label) for label in (x_top, x_left, b_over_a)), run_time=0.7
         )
 
-        # cut the strip in two and fold one half under the square
+        # 将长条一分为二，把一半折到正方形下方
         kept = rectangle(left + X, ceiling, HALF, X, STRIP)
         folded = rectangle(left + X + HALF, ceiling, HALF, X, STRIP)
         self.remove(strip)
@@ -154,11 +152,11 @@ class QuadraticFormula(m.Scene):
         self.play(m.Create(outline), run_time=0.6)
         self.play(m.FadeIn(corner), m.FadeOut(outline), run_time=0.5)
 
-        # add the corner to both sides
+        # 将小角加到两边
         self.step(e3, e4, come_from={"sq": corner, "sq2": corner}, run_time=1.8)
         self.wait(0.5)
 
-        # the left side is a square
+        # 左边是一个完全平方
         whole = m.Square(side_length=X + HALF, stroke_color=m.WHITE, stroke_width=6)
         whole.move_to([left + (X + HALF) / 2, ceiling - (X + HALF) / 2, 0])
         brace = m.Brace(whole, m.RIGHT, buff=0.15)
@@ -171,7 +169,7 @@ class QuadraticFormula(m.Scene):
         )
         self.wait(0.8)
 
-        # a square root, and x alone
+        # 开方，并解出 x
         picture = m.VGroup(
             square, kept, folded, corner, whole, brace, brace_label,
             x_top, x_left, half_top, half_left,

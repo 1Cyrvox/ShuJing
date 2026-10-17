@@ -1,13 +1,13 @@
-"""The Game of Life in spacetime: stack the generations and gliders become staircases.
+"""时空中的生命游戏：将各代堆叠，滑翔机便成了阶梯。
 
-Conway's Game of Life: a live cell survives with two or three live neighbours, a dead one comes
-alive with exactly three. Bill Gosper's glider gun (1970) is a pattern that fires a glider every
-30 generations — the first proof that a finite pattern can grow forever. Stack each generation
-on top of the one before, so height is time, and every cell becomes a column that lasts as long
-as the cell does: the gun is a tower that repeats every 30 layers, the blocks that hold it in
-place are pillars, and each glider is a staircase leaning away at one cell per four generations
-in each direction — the speed of light of this universe is one cell per generation; gliders
-travel at a quarter of it, diagonally.
+康威生命游戏：活细胞在有两个或三个活邻居时存活，死细胞在
+恰好三个活邻居时诞生。比尔·高斯珀的滑翔机枪（1970）是一个
+每 30 代发射一个滑翔机的图样——首个有限图样可无限增长的证明。将每一代
+堆叠在前一代之上，高度即时间，每个细胞成为持续其存活时长的
+柱体：枪是每 30 层重复一次的塔，固定它的方块是
+支柱，每个滑翔机是在每个方向上每四代偏移一格的阶梯——
+这个宇宙的光速是每代一格；滑翔机以光速的四分之一
+对角行进。
 """
 
 import numpy as np
@@ -52,12 +52,12 @@ GUN = [
     (3, 36),
     (4, 36),
 ]
-SIZE = 64  # the board
+SIZE = 64  # 棋盘
 GENERATIONS = 126
-CELL = 0.105  # a cell's side on screen
-LAYER = 0.042  # the height of one generation
+CELL = 0.105  # 屏幕上单元格的边长
+LAYER = 0.042  # 一代的高度
 STOPS = ["#9d4edd", "#4361ee", "#4cc9f0", "#80ffdb", "#ffd166", "#ff7b54"]
-FOCUS = np.array([-0.2, 1.05, 0.0])  # the middle of the action: the gun and its gliders
+FOCUS = np.array([-0.2, 1.05, 0.0])  # 动作中心：枪及其滑翔机
 
 
 def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
@@ -71,7 +71,7 @@ def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
 
 
 def history() -> np.ndarray:
-    """Every generation of the gun on the board: (GENERATIONS, SIZE, SIZE) booleans."""
+    """枪在棋盘上的每一代：(GENERATIONS, SIZE, SIZE) 布尔值。"""
     board = np.zeros((SIZE, SIZE), bool)
     for r, c in GUN:
         board[r + 3, c + 2] = True
@@ -90,7 +90,7 @@ def history() -> np.ndarray:
 
 
 def runs(frames: np.ndarray) -> np.ndarray:
-    """Every stretch of generations a cell stays alive: rows (row, column, first, last)."""
+    """每个细胞持续存活的各代区间：行 (行, 列, 起始代, 终止代)。"""
     alive = np.pad(frames, ((1, 1), (0, 0), (0, 0)))
     starts = np.argwhere(alive[1:-1] & ~alive[:-2])
     ends = np.argwhere(alive[1:-1] & ~alive[2:])
@@ -99,7 +99,7 @@ def runs(frames: np.ndarray) -> np.ndarray:
     return np.column_stack([starts[:, 1], starts[:, 2], starts[:, 0], ends[:, 0]])
 
 
-# the six faces of a unit box, as corner indices (bit 0: x, bit 1: y, bit 2: z), outward
+# 单位立方体的六个面，以角点索引表示（位 0：x，位 1：y，位 2：z），外向
 BOX_FACES = np.array(
     [[0, 2, 3, 1], [4, 5, 7, 6], [0, 1, 5, 4], [2, 6, 7, 3], [0, 4, 6, 2], [1, 3, 7, 5]]
 )
@@ -108,8 +108,8 @@ BOX_FACES = np.array(
 def columns(
     spans: np.ndarray, now: float, depth: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """The columns alive between generations now − depth and now, the oldest shown at height 0:
-    vertices, triangles, colors (by generation)."""
+    """在 now − depth 代到 now 代之间存活的柱体，最老的显示在高度 0 处：
+    顶点、三角形、颜色（按代着色）。"""
     first = np.maximum(spans[:, 2], now - depth)
     last = np.minimum(spans[:, 3] + 1, now + 1)
     keep = last > first
@@ -146,7 +146,7 @@ class LifeSpacetime(m.ThreeDScene):
         now = m.ValueTracker(0.0)
         depth = m.ValueTracker(
             0.0
-        )  # how many past generations stand below the present one
+        )  # 当代之下保留多少过去的代
         stack = m.MeshMobject(*columns(spans, 0.0, 0.0)[:2], shade_in_3d=True)
 
         def rebuild(mob: m.Mobject) -> None:
@@ -181,7 +181,7 @@ class LifeSpacetime(m.ThreeDScene):
         )
         self.add_fixed_in_frame_mobjects(title, subtitle, counter)
 
-        # 0–6 s: from above: the gun, one generation at a time
+        # 0–6 秒：从上方看：枪，逐代展示
         self.set_camera_orientation(
             phi=0,
             theta=-90 * m.DEGREES,
@@ -192,7 +192,7 @@ class LifeSpacetime(m.ThreeDScene):
         self.add(board, stack)
         self.play(now.animate.set_value(34), run_time=5.5, rate_func=m.linear)
 
-        # 6–11 s: keep every generation, each one on top of the last: height is time
+        # 6–11 秒：保留每一代，每代堆在前一代之上：高度即时间
         up = (
             m.Text("height = time", font_size=26)
             .set_color(m.YELLOW)
@@ -215,7 +215,7 @@ class LifeSpacetime(m.ThreeDScene):
             rate_func=m.linear,
         )
 
-        # 11–24 s: the tower grows; gliders lean away as staircases
+        # 11–24 秒：塔增长；滑翔机以阶梯形式倾斜远离
         self.begin_ambient_camera_rotation(rate=0.12)
         self.play(
             now.animate.set_value(GENERATIONS - 1),
@@ -226,7 +226,7 @@ class LifeSpacetime(m.ThreeDScene):
             rate_func=m.linear,
         )
 
-        # 24–30 s: the poster
+        # 24–30 秒：结语画面
         closing = m.Text(
             "each glider climbs one cell every four generations: c/4", font_size=26
         ).to_edge(m.DOWN, buff=0.35)

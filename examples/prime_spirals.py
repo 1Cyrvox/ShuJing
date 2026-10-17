@@ -1,26 +1,24 @@
-"""Primes in polar coordinates: spirals, then rays.
+"""极坐标下的素数：先是螺旋，后是射线。
 
-Put every whole number n at distance n from the center and at angle n radians, and light up
-the primes. Close in, the numbers wind round in six arms: 6 radians is just short of a full
-turn, so n, n + 6, n + 12, … lie on a slowly turning arm, and the primes past 3 sit on only two
-of the six (6k ± 1). Farther out, 44 radians is very nearly 7 turns, so the arms become 44
-spirals, of which the primes use the 20 whose numbers share no factor with 44. Out past a
-hundred thousand, 710 radians is 113 turns to within 6·10⁻⁵ radians, and the spirals
-straighten into 710 rays; the primes fill the 280 that share no factor with 710, and do not
-favor any of them (Dirichlet).
+将每个整数 n 置于距中心 n 处、角度为 n 弧度的位置，并点亮其中的素数。近处，数字绕成
+六条臂：6 弧度恰好不足一整圈，因此 n、n + 6、n + 12、…… 位于一条缓慢旋转的臂上，而
+3 以后的素数仅落在六条臂中的两条（6k ± 1）上。更远处，44 弧度非常接近 7 圈，于是臂
+变成 44 条螺旋，素数只使用其中与 44 互素的 20 条。再往外超过十万处，710 弧度等于 113
+圈，误差在 6·10⁻⁵ 弧度以内，螺旋遂展直为 710 条射线；素数填满其中与 710 互素的 280
+条，且不偏向任何一条（Dirichlet）。
 """
 
 import numpy as np
 
 import manimgx as m
 
-DISK = 3.85  # the radius of the view, in scene units
-LAST = 1_000_000  # the largest number drawn
+DISK = 3.85  # 视图的半径，以场景单位计
+LAST = 1_000_000  # 绘制的最大数字
 WALL = 15.3
 
 
 def sieve(n: int) -> np.ndarray:
-    """is_prime[k] for k = 0 … n (Eratosthenes)."""
+    """k = 0 … n 的 is_prime[k]（Eratosthenes 筛法）。"""
     is_prime = np.ones(n + 1, dtype=bool)
     is_prime[:2] = False
     for k in range(2, int(n**0.5) + 1):
@@ -30,18 +28,18 @@ def sieve(n: int) -> np.ndarray:
 
 
 def polar(n: np.ndarray) -> np.ndarray:
-    """The points (n cos n, n sin n), as rows."""
+    """点 (n cos n, n sin n)，以行向量形式。"""
     return np.stack([n * np.cos(n), n * np.sin(n), np.zeros_like(n)], 1)
 
 
 def coprime_count(n: int) -> int:
-    """How many residues mod n share no factor with n (Euler's φ)."""
+    """模 n 的剩余类中与 n 互素的个数（Euler φ 函数）。"""
     return int(np.sum(np.gcd(np.arange(n), n) == 1))
 
 
 def zoom_curve(keys: list[tuple[float, float]]) -> tuple[np.ndarray, np.ndarray]:
-    """log10 of the view's radius against time, through the keys (time, radius): a monotone
-    cubic (Fritsch–Carlson), so the zoom changes speed smoothly and never turns back."""
+    """视图半径的 log10 随时间变化的曲线，经过各关键点 (时间, 半径)：一条单调
+    三次曲线（Fritsch–Carlson），使缩放速度平滑变化且绝不回退。"""
     t = np.array([k[0] for k in keys])
     y = np.log10([k[1] for k in keys])
     secant = np.diff(y) / np.diff(t)
@@ -49,7 +47,7 @@ def zoom_curve(keys: list[tuple[float, float]]) -> tuple[np.ndarray, np.ndarray]
     inner = secant[:-1] * secant[1:] > 0
     slope[1:-1][inner] = 2 / (
         1 / secant[:-1][inner] + 1 / secant[1:][inner]
-    )  # harmonic mean
+    )  # 调和平均
     times = np.linspace(t[0], t[-1], 2000)
     i = np.clip(np.searchsorted(t, times, side="right") - 1, 0, len(t) - 2)
     h = t[i + 1] - t[i]
@@ -77,7 +75,7 @@ class PrimeSpirals(m.Scene):
         wholes = numbers[:20_000]
         whole_points = polar(wholes)
 
-        # the zoom: the radius of the view, in numbers, against the time on `clock`
+        # 缩放：视图以数字计的半径，随 `clock` 上的时间变化
         times, log_radius = zoom_curve(
             [
                 (0.0, 16),
@@ -97,12 +95,12 @@ class PrimeSpirals(m.Scene):
 
         def dot_size() -> (
             float
-        ):  # dots shrink a little as they multiply, never with the zoom
+        ):  # 点随数量增多而略微缩小，不随缩放变化
             return float(
                 np.interp(np.log10(radius()), [1.2, 2.2, 3.6, 6], [14, 8, 4.4, 2.0])
             )
 
-        arm_mix = m.ValueTracker(0.0)  # 0: wholes grey; 1: colored by n mod 6
+        arm_mix = m.ValueTracker(0.0)  # 0：整数灰色；1：按 n mod 6 着色
         wholes_shown = m.ValueTracker(0.0)
         primes_shown = m.ValueTracker(0.0)
         grey = np.array(WHOLE_COLOR.to_rgba())
@@ -115,7 +113,7 @@ class PrimeSpirals(m.Scene):
             r = radius()
             count = int(np.searchsorted(wholes, r, side="right"))
             if wholes_shown.get_value() <= 0:
-                count = 0  # gone for good
+                count = 0  # 永久消失
             mix = arm_mix.get_value()
             rgba = (1 - mix) * grey + mix * arm_rgba[:count]
             rgba[:, 3] = (0.5 + 0.3 * mix) * wholes_shown.get_value()
@@ -132,10 +130,10 @@ class PrimeSpirals(m.Scene):
             cloud.points = prime_points[:count] * (DISK / r)
             cloud.paint = cloud.paint.but(fill=rgba, stroke_width=dot_size())
 
-        # the six arms of the whole numbers: n ≡ k (mod 6), from the center out
+        # 整数的六条臂：n ≡ k (mod 6)，从中心向外
         arm_reach = m.ValueTracker(
             0.0
-        )  # how far out they are drawn, as a part of the view
+        )  # 它们绘制到多远，以视图比例计
         arm_opacity = m.ValueTracker(0.0)
         arm_numbers = [
             np.concatenate([[0.0], np.arange(k, 400, 6.0)]) for k in range(6)
@@ -162,7 +160,7 @@ class PrimeSpirals(m.Scene):
         place_wholes(whole_cloud)
         place_primes(prime_cloud)
 
-        # the first primes, named
+        # 前几个素数，标注名称
         names = m.VGroup()
         for p in primes[primes < 15]:
             name = m.MathTex(f"{int(p)}", font_size=40, color=PRIME_COLOR)
@@ -178,7 +176,7 @@ class PrimeSpirals(m.Scene):
         place_names(names)
         rule = m.MathTex(r"(r, \theta) = (n, n)", font_size=48).to_corner(m.UL)
 
-        # how far out the view reaches, to two digits
+        # 视图延伸多远，保留两位有效数字
         bound_label = m.MathTex(r"n \le", font_size=48)
         bound_label.move_to(np.array([3.6, -3.45, 0.0]))
         bound = m.DecimalNumber(
@@ -196,7 +194,7 @@ class PrimeSpirals(m.Scene):
         bound.add_updater(show_bound)
 
         def moment(turns_of: int, what: str) -> m.VGroup:
-            """The label of a moment: why n wraps round nearly whole, and what follows."""
+            """某一时刻的标注：n 为何近乎整圈环绕，以及随之而来的结论。"""
             turns = round(turns_of / (2 * np.pi))
             used = coprime_count(turns_of)
             times_two_pi = rf"{turns} \cdot 2\pi" if turns > 1 else r"2\pi"
@@ -213,8 +211,8 @@ class PrimeSpirals(m.Scene):
         rays = moment(710, "rays")
 
         def advance(to: float, *animations: m.Animation) -> None:
-            """Run the zoom's clock on to `to`, playing the animations meanwhile (each in its own
-            time: the play lasts as long as the clock runs)."""
+            """将缩放的时钟推进到 `to`，同时播放各动画（各自有独立的时间：播放持续
+            与时钟运行等长的时间）。"""
             ticking = clock.animate(run_time=to - clock.get_value(), rate_func=m.linear)
             self.play(ticking.set_value(to), *animations)
 

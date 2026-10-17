@@ -1,13 +1,11 @@
-"""Circle or square? Kokichi Sugihara's ambiguous cylinder, built from two projections.
+"""圆还是方？杉原厚司的歧义柱体，由两个投影构建而成。
 
-Looked at from 40° above, the tube's rim is a perfect circle; its reflection in the mirror behind
-it — the same tube seen from the back — is a square. Turn it around and they swap. The trick:
-seen from the front, a rim point (x, y, z) sits at height v_f = y sin α + z cos α on the screen;
-seen from the back it sits at v_b = −y sin α + z cos α. Ask for a circle in front
-(x, v_f) = (cos t, sin t) and a rounded square behind (x, v_b) = (cos t, ±(1 − |cos t|⁶)^⅙), and
-solve: y = (v_f − v_b)/(2 sin α), z = (v_f + v_b)/(2 cos α). The walls are vertical, so from
-both sides they look like the sides of a cylinder. From anywhere else it is a wavy tube with a
-bow-tie footprint (Sugihara, 2016).
+从上方 40° 角看去，管子的边缘是一个完美的圆；它在身后镜子中的反射——即从背面看到的同一
+根管子——是一个正方形。将其旋转半圈，两者互换。其诀窍在于：从正面看，边缘上的一个点
+(x, y, z) 在屏幕上的高度为 v_f = y sin α + z cos α；从背面看则为 v_b = −y sin α + z cos α。
+要求正面呈圆形 (x, v_f) = (cos t, sin t)，背面呈圆角正方形 (x, v_b) = (cos t, ±(1 − |cos t|⁶)^⅙)，
+并求解：y = (v_f − v_b)/(2 sin α)，z = (v_f + v_b)/(2 cos α)。壁面是竖直的，因此从两侧看
+都像柱体的侧面。从其他任何角度看，它都是一根带有蝶形足迹的波浪管（Sugihara, 2016）。
 """
 
 import math
@@ -16,15 +14,15 @@ import numpy as np
 
 import manimgx as m
 
-ALPHA = 40 * m.DEGREES  # the elevation of both views
+ALPHA = 40 * m.DEGREES  # 两个视角的仰角
 SQUARENESS = 6.0
-WALL = 1.1  # wall height
-MIRROR_Y = 2.6  # the mirror is the plane y = MIRROR_Y
+WALL = 1.1  # 壁高
+MIRROR_Y = 2.6  # 镜子是平面 y = MIRROR_Y
 SAMPLES = 480
 
 
 def rim() -> np.ndarray:
-    """The rim, unturned: (SAMPLES + 1, 3)."""
+    """未旋转时的边缘：(SAMPLES + 1, 3)。"""
     t = np.linspace(0, m.TAU, SAMPLES + 1)
     front = np.sin(t)
     back = np.sign(np.sin(t)) * (1 - np.abs(np.cos(t)) ** SQUARENESS) ** (
@@ -36,7 +34,7 @@ def rim() -> np.ndarray:
 
 
 def turned(points: np.ndarray, turn: float) -> np.ndarray:
-    """The points, turned about the vertical axis by `turn`."""
+    """这些点绕竖直轴旋转 `turn` 角度后的结果。"""
     c, s = np.cos(turn), np.sin(turn)
     return points @ np.array([[c, s, 0], [-s, c, 0], [0, 0, 1]])
 
@@ -46,12 +44,12 @@ def mirrored(points: np.ndarray) -> np.ndarray:
 
 
 def wall(top: np.ndarray) -> np.ndarray:
-    """A vertical wall hanging WALL below the rim: the rim's points, then its foot's."""
+    """从边缘向下悬挂 WALL 高度的竖直壁：先边缘的点，再其底部的点。"""
     return np.concatenate([top, top - np.array([0, 0, WALL])])
 
 
 def wall_triangles(n: int) -> np.ndarray:
-    """The wall's triangles, below a rim of n points: a strip of quads."""
+    """壁面的三角形，在 n 个点的边缘下方：一排四边形。"""
     i = np.arange(n - 1)
     return np.concatenate(
         [np.stack([i, i + 1, n + i + 1], 1), np.stack([i, n + i + 1, n + i], 1)]
@@ -59,14 +57,13 @@ def wall_triangles(n: int) -> np.ndarray:
 
 
 def tube(points: np.ndarray, radius: float, sides: int = 10) -> np.ndarray:
-    """A lit tube along a closed polyline (parallel-transport frames): a ring of
-    `sides` vertices around each point."""
+    """沿闭合折线（平行移动标架）的带光照管体：每个点周围一圈 `sides` 个顶点。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True)
     seed = np.cross(tangent[0], [0.3, 0.5, 0.8])
     x, y, z = (seed / np.linalg.norm(seed)).tolist()
     normals = [(x, y, z)]
-    # point by point, in floats: numpy's overhead would dwarf the work on 3-vectors
+    # 逐点处理，使用浮点数：numpy 的开销会使 3 维向量的计算相形见绌
     for tx, ty, tz in tangent[1:].tolist():
         d = x * tx + y * ty + z * tz
         x, y, z = x - d * tx, y - d * ty, z - d * tz
@@ -83,7 +80,7 @@ def tube(points: np.ndarray, radius: float, sides: int = 10) -> np.ndarray:
 
 
 def tube_triangles(n: int, sides: int = 10) -> np.ndarray:
-    """The tube's triangles, along a polyline of n points: quads between the rings."""
+    """管体的三角形，沿 n 个点的折线：各圈之间的四边形。"""
     i = np.arange(n - 1)[:, None]
     j = np.arange(sides)[None, :]
     k = (j + 1) % sides
@@ -127,7 +124,7 @@ class SugiharaCylinder(m.ThreeDScene):
             )
             shown = turn.get_value()
 
-            # only a turn moves the parts: between turns they keep their points
+            # 只有旋转会移动各部件：旋转之间它们保持各自的点不变
             def follow(parts: m.Mobject) -> None:
                 nonlocal shown
                 if turn.get_value() != shown:
@@ -154,7 +151,7 @@ class SugiharaCylinder(m.ThreeDScene):
             shade_in_3d=True,
         )
 
-        # the magic view: 40° above, nearly orthographic
+        # 魔术视角：上方 40°，近似正交投影
         self.set_camera_orientation(
             phi=90 * m.DEGREES - ALPHA,
             theta=-90 * m.DEGREES,
@@ -202,10 +199,10 @@ class SugiharaCylinder(m.ThreeDScene):
             self.camera.zoom_tracker.animate.set_value(0.94),
             run_time=3,
         )
-        # 3–10 s: turn the tube half a turn: circle ↔ square
+        # 3–10 秒：将管子旋转半圈：圆 ↔ 方
         self.play(turn.animate.set_value(np.pi), run_time=6, rate_func=m.smooth)
         self.wait(1)
-        # 10–18 s: leave the magic view: the truth
+        # 10–18 秒：离开魔术视角：真相
         self.play(m.FadeOut(in_front), m.FadeOut(behind), run_time=0.5)
         self.move_camera(
             phi=62 * m.DEGREES,
@@ -216,7 +213,7 @@ class SugiharaCylinder(m.ThreeDScene):
             run_time=3.5,
         )
         self.play(m.FadeIn(truth), turn.animate.set_value(2 * np.pi), run_time=4)
-        # 18–22 s: from straight above: the footprint is a lens
+        # 18–22 秒：从正上方看：足迹是一个透镜形
         self.move_camera(
             phi=6 * m.DEGREES,
             theta=-90 * m.DEGREES,
@@ -225,7 +222,7 @@ class SugiharaCylinder(m.ThreeDScene):
             run_time=3.5,
         )
         self.play(m.FadeOut(truth), run_time=0.5)
-        # 22–30 s: back to the magic view, and how it is made
+        # 22–30 秒：回到魔术视角，及其构造原理
         self.move_camera(
             phi=90 * m.DEGREES - ALPHA,
             theta=-90 * m.DEGREES,

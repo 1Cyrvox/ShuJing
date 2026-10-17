@@ -1,21 +1,20 @@
-"""Why the Taylor series of 1/(1 + x²) gives up at |x| = 1.
+"""为何 1/(1 + x²) 的泰勒级数在 |x| = 1 处失效。
 
-On the real line f(x) = 1/(1 + x²) is as smooth as a function can be, yet its Taylor series
-1 − x² + x⁴ − x⁶ + ⋯ explodes as soon as |x| > 1. The reason is off the line: in the complex
-plane f(z) = 1/(1 + z²) has poles at z = ±i, and a power series converges exactly in the largest
-disk around its center that avoids every singularity. Seen from the side, the bell curve is a
-slice of the landscape |f(z)|, colored by arg f(z); the disk |z| < 1 runs into the two towers. Move
-the center to a and the radius becomes the distance to ±i, √(1 + a²).
+在实轴上 f(x) = 1/(1 + x²) 是一个函数所能达到的最光滑程度，然而其泰勒级数
+1 − x² + x⁴ − x⁶ + ⋯ 一旦 |x| > 1 便发散。原因不在实轴上：在复平面中
+f(z) = 1/(1 + z²) 在 z = ±i 处有极点，而幂级数恰在其中心周围避开所有奇点的最大圆盘内收敛。
+从侧面看，钟形曲线是地貌 |f(z)| 的一个切片，按 arg f(z) 着色；圆盘 |z| < 1 撞上两座塔。
+将中心移至 a，半径便成为到 ±i 的距离 √(1 + a²)。
 """
 
 import numpy as np
 
 import manimgx as m
 
-UNIT = 1.45  # screen units per unit of x, y and |f|
+UNIT = 1.45  # 每单位 x、y 和 |f| 对应的屏幕单位
 X_RANGE = (-2.4, 2.4)
 Y_RANGE = (-1.9, 1.9)
-CLIP = 2.3  # |f| is cut off here (the poles go to infinity)
+CLIP = 2.3  # |f| 在此处截断（极点趋于无穷）
 
 
 def f(z: np.ndarray) -> np.ndarray:
@@ -23,11 +22,11 @@ def f(z: np.ndarray) -> np.ndarray:
 
 
 def domain_colors(z: np.ndarray) -> np.ndarray:
-    """RGBA rows: hue from arg f(z), a little brighter where |f| is large."""
+    """RGBA 行：色相来自 arg f(z)，|f| 较大处略亮。"""
     w = f(z)
     hue = (np.angle(w) / m.TAU) % 1.0
     k = np.arange(3)[None, :]
-    rgb = 0.5 + 0.5 * np.cos(m.TAU * (hue[:, None] - k / 3))  # a smooth hue wheel
+    rgb = 0.5 + 0.5 * np.cos(m.TAU * (hue[:, None] - k / 3))  # 平滑的色相轮
     light = np.clip(0.55 + 0.25 * np.tanh(np.log(np.abs(w) + 1e-9)), 0, 1)
     rows = np.ones((len(z), 4))
     rows[:, :3] = 0.25 + 0.75 * rgb * light[:, None]
@@ -39,8 +38,8 @@ def partial_sum(x: np.ndarray, terms: int) -> np.ndarray:
 
 
 def grid_mesh(nu: int, nv: int, fill_color: str = "#ffffff") -> m.MeshMobject:
-    """A smooth lit mesh over an (nu + 1) × (nv + 1) grid of vertices (vertex i·(nv + 1) + j),
-    each cell two triangles; its points are set by whoever shapes it."""
+    """在 (nu + 1) × (nv + 1) 顶点网格上的光滑带光照网格（顶点编号 i·(nv + 1) + j），
+    每个单元两个三角形；其点由塑造它的调用方设置。"""
     idx = np.arange((nu + 1) * (nv + 1)).reshape(nu + 1, nv + 1)
     a, b, c, d = idx[:-1, :-1], idx[1:, :-1], idx[1:, 1:], idx[:-1, 1:]
     cells = np.stack([np.stack([a, b, c], -1), np.stack([a, c, d], -1)], 2)
@@ -53,9 +52,9 @@ def grid_mesh(nu: int, nv: int, fill_color: str = "#ffffff") -> m.MeshMobject:
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """相机在其轨道角度下的各轴，以行表示：右方、上方和朝向观察者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 轴的旋转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -63,13 +62,13 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 轴旋转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
 def billboard(label: m.Mobject, camera: m.Camera, shown: m.ValueTracker) -> m.Mobject:
-    """Keep `label` where it is, turned every frame to face the camera, at opacity `shown` (fade it
-    by animating `shown`: a FadeIn would fight the turning)."""
+    """将 `label` 保持在原位，每帧旋转以面向相机，不透明度为 `shown`（通过动画化 `shown` 来淡入：
+    FadeIn 会与旋转冲突）。"""
     anchor = label.get_center()
     parts = [
         (part, part.points - anchor) for part in label.family_members_with_points()
@@ -88,7 +87,7 @@ def billboard(label: m.Mobject, camera: m.Camera, shown: m.ValueTracker) -> m.Mo
 
 class TaylorPoles(m.ThreeDScene):
     def construct(self) -> None:
-        # the side view: the x–z plane seen face on, nearly orthographic (a 2D plot)
+        # 侧视图：x–z 平面正视，近似正交投影（二维图）
         self.set_camera_orientation(
             phi=90 * m.DEGREES,
             theta=-90 * m.DEGREES,
@@ -163,7 +162,7 @@ class TaylorPoles(m.ThreeDScene):
 
         self.add(real_axis, height_axis, ticks, tick_labels)
         self.play(m.Create(bell), m.FadeIn(series), run_time=2)
-        # 2–9 s: partial sums hug the curve inside (−1, 1) and fly off outside
+        # 2–9 秒：部分和在 (−1, 1) 内贴合曲线，在外部飞散
         partial = graph(partial_sum(xs, 1), xs, m.YELLOW, 3.5)
         self.play(m.FadeIn(partial), m.FadeIn(terms_row), m.Create(edges), run_time=1)
         for terms in range(2, 13):
@@ -172,7 +171,7 @@ class TaylorPoles(m.ThreeDScene):
                 m.Transform(partial, graph(partial_sum(xs, terms), xs, m.YELLOW, 3.5)),
                 run_time=0.5,
             )
-        # 9–13 s: tilt the camera: the real line lies in the complex plane
+        # 9–13 秒：倾斜相机：实轴位于复平面中
         plane = m.NumberPlane(
             x_range=(*X_RANGE, 0.5),
             y_range=(*Y_RANGE, 0.5),
@@ -199,18 +198,18 @@ class TaylorPoles(m.ThreeDScene):
             run_time=3,
         )
 
-        # 13–19 s: the landscape |f(z)| rises, colored by arg f
-        nu, nv = 241, 191  # odd: no grid point lands exactly on a pole
+        # 13–19 秒：地貌 |f(z)| 升起，按 arg f 着色
+        nu, nv = 241, 191  # 奇数：无网格点恰好落在极点上
         xg = np.linspace(*X_RANGE, nu + 1)
         yg = np.linspace(*Y_RANGE, nv + 1)
         zz = xg[:, None] + 1j * yg[None, :]
         height = np.minimum(np.abs(f(zz)), CLIP)
         base_colors = domain_colors(zz.ravel())
         rise = m.ValueTracker(0.0)
-        center = m.ValueTracker(0.0)  # the center of the expansion
+        center = m.ValueTracker(0.0)  # 展开的中心
         spotlight = m.ValueTracker(
             0.0
-        )  # 0: all lit; 1: only the disk of convergence lit
+        )  # 0: 全部照亮；1: 仅收敛圆盘照亮
         land = grid_mesh(nu, nv)
 
         def lift(mob: m.Mobject) -> None:
@@ -260,7 +259,7 @@ class TaylorPoles(m.ThreeDScene):
             run_time=2,
         )
 
-        # 19–30 s: the disk of convergence, drawn on the landscape, and moving its center
+        # 19–30 秒：收敛圆盘绘于地貌之上，并移动其中心
         def on_surface(z: np.ndarray, lift_by: float = 0.03) -> np.ndarray:
             h = np.minimum(np.abs(f(z)), CLIP) + lift_by
             return UNIT * np.stack([z.real, z.imag, h], 1)
@@ -298,7 +297,7 @@ class TaylorPoles(m.ThreeDScene):
         ).arrange(m.DOWN, aligned_edge=m.LEFT)
         readout.next_to(complex_series, m.DOWN, aligned_edge=m.LEFT, buff=0.35)
         center_value.add_updater(lambda d: d.set_value(center.get_value()))
-        # measured: the distance from the center to the nearest pole
+        # 实测值：从中心到最近极点的距离
         radius_value.add_updater(
             lambda d: d.set_value(
                 float(min(abs(center.get_value() - p) for p in (1j, -1j)))

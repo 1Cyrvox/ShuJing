@@ -1,12 +1,11 @@
-"""How a neural network untangles two spirals.
+"""神经网络如何解开两条螺旋。
 
-No straight line separates two interleaved spirals, and no smooth deformation of the plane can pull
-them apart: in 2D one arm would have to pass through the other. A small residual network lifts
-the plane into 3D instead. Each of its four layers nudges every point, h ↦ h + V tanh(Uh + c), and
-training pays for how far points move, so the network learns the cheapest way to untangle. Here
-that means raising one arm above the other, until one flat plane cuts the two colors apart (after
-Olah, "Neural Networks, Manifolds, and Topology", 2014). Carried back through the layers, that
-flat cut becomes the winding boundary between the arms in the input plane.
+没有直线能分开两条交错的螺旋，平面的任何光滑形变也无法将它们拉开：在二维中一条臂必然
+穿过另一条。一个小型残差网络转而将平面提升到三维。其四层中的每一层轻推每个点，
+h ↦ h + V tanh(Uh + c)，训练为点移动的距离付出代价，因此网络学会以最低代价解开螺旋。
+此处这意味着将一条臂抬到另一条之上，直到一个平面将两种颜色切开（仿自 Olah，
+"Neural Networks, Manifolds, and Topology"，2014）。经各层映射回输入平面后，该平面切
+口变为两臂之间蜿蜒的边界。
 """
 
 from dataclasses import dataclass
@@ -16,15 +15,15 @@ import numpy as np
 import manimgx as m
 
 LAYERS, HIDDEN = 4, 16
-TURNS = 1.25  # of each spiral
-ENERGY = 0.3  # the price of moving points: small, direct moves win
+TURNS = 1.25  # 每条螺旋的圈数
+ENERGY = 0.3  # 移动点的代价：小而直接的移动胜出
 SEED = 0
-SCALE = 2.4  # screen units per unit of the network's space
+SCALE = 2.4  # 每网络空间单位对应的屏幕单位
 COLORS = ["#ff9f1c", "#2ec4b6"]
 
 
 def two_spirals(count: int, rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
-    """Two interleaved spirals of TURNS turns in the unit disk, and their labels (0, 1)."""
+    """单位圆盘内 TURNS 圈的两条交错螺旋，及其标签 (0, 1)。"""
     turn = np.sqrt(rng.uniform(0.04, 1, count)) * TURNS * m.TAU
     arm = np.stack([np.cos(turn), np.sin(turn)], 1) * (turn / (TURNS * m.TAU))[:, None]
     arm += 0.02 * rng.normal(size=arm.shape)
@@ -33,15 +32,15 @@ def two_spirals(count: int, rng: np.random.Generator) -> tuple[np.ndarray, np.nd
 
 @dataclass
 class Network:
-    u: list[np.ndarray]  # (HIDDEN, 3) per layer
+    u: list[np.ndarray]  # 每层 (HIDDEN, 3)
     c: list[np.ndarray]  # (HIDDEN,)
     v: list[np.ndarray]  # (3, HIDDEN)
-    w: np.ndarray  # the classifier's normal
-    b: np.ndarray  # and offset, shape (1,)
+    w: np.ndarray  # 分类器的法向量
+    b: np.ndarray  # 及偏移，形状 (1,)
 
     def run(self, x: np.ndarray) -> tuple[list[np.ndarray], list[np.ndarray]]:
-        """The points at every stage (the input in the plane z = 0, then after each layer) and
-        each layer's hidden activations."""
+        """每个阶段的点（输入位于 z = 0 平面，然后是各层之后）以及
+        各层的隐藏激活值。"""
         h = np.column_stack([x, np.zeros(len(x))])
         stages, hidden = [h], []
         for u, c, v in zip(self.u, self.c, self.v):
@@ -61,8 +60,8 @@ class Network:
 def train(
     x: np.ndarray, y: np.ndarray, rng: np.random.Generator, steps: int = 6000
 ) -> Network:
-    """Logistic loss plus ENERGY × the mean squared move of each layer; full-batch Adam, with
-    backpropagation written out."""
+    """逻辑损失加上 ENERGY × 各层均方移动量；全批量 Adam，反向传播
+    手动展开。"""
     net = Network(
         [0.5 * rng.normal(size=(HIDDEN, 3)) for _ in range(LAYERS)],
         [0.5 * rng.normal(size=HIDDEN) for _ in range(LAYERS)],
@@ -77,12 +76,12 @@ def train(
     for step in range(1, steps + 1):
         stages, hidden = net.run(x)
         prob = 1 / (1 + np.exp(-(stages[-1] @ net.w + net.b[0])))
-        g = (prob - y) / n  # d loss / d logit
+        g = (prob - y) / n  # 损失对 logit 的导数
         grad_u: list[np.ndarray] = [np.zeros(0)] * LAYERS
         grad_c: list[np.ndarray] = [np.zeros(0)] * LAYERS
         grad_v: list[np.ndarray] = [np.zeros(0)] * LAYERS
         grad_w, grad_b = stages[-1].T @ g, np.array([g.sum()])
-        back = np.outer(g, net.w)  # d loss / d h, from the top down
+        back = np.outer(g, net.w)  # 损失对 h 的导数，自顶向下
         for k in reversed(range(LAYERS)):
             move = hidden[k] @ net.v[k].T
             through = back + 2 * ENERGY * move / n
@@ -91,7 +90,7 @@ def train(
             grad_u[k], grad_c[k] = pre.T @ stages[k], pre.sum(0)
             back = (
                 back + pre @ net.u[k]
-            )  # h passes through each layer unchanged, plus its move
+            )  # h 穿过每层时保持不变，再加上其移动量
         for i, (p, grad) in enumerate(
             zip(params, [*grad_u, *grad_c, *grad_v, grad_w, grad_b])
         ):
@@ -106,8 +105,8 @@ def train(
 
 
 def boundary(net: Network, size: float = 1.15, n: int = 240) -> np.ndarray:
-    """The network's decision boundary in the input plane (logit = 0), by marching squares:
-    segments as (count, 2, 2)."""
+    """网络在输入平面上的决策边界（logit = 0），通过移动正方法求得：
+    线段以 (count, 2, 2) 形式返回。"""
     s = np.linspace(-size, size, n)
     gx, gy = np.meshgrid(s, s, indexing="ij")
     f = net.logit(np.column_stack([gx.ravel(), gy.ravel()])).reshape(n, n)
@@ -139,7 +138,7 @@ class NeuralUntangle(m.ThreeDScene):
         x, y = two_spirals(300, rng)
         net = train(x, y, rng)
         accuracy = float(np.mean((net.logit(x) > 0) == (y == 1)))
-        # 0: the input plane; k: after layer k (in between: a blend of the two)
+        # 0：输入平面；k：第 k 层之后（其间为两者的混合）
         stage = m.ValueTracker(0.0)
 
         def at(stages: list[np.ndarray]) -> np.ndarray:
@@ -148,8 +147,8 @@ class NeuralUntangle(m.ThreeDScene):
             f = s - k
             return SCALE * ((1 - f) * stages[k] + f * stages[k + 1])
 
-        # the grid of the input plane, and the data, carried through every layer
-        # (the grid's lines are cut off at radius 1.2: far from the data the layers are wild)
+        # 输入平面的网格与数据，经每层映射传递
+        # （网格线在半径 1.2 处截断：远离数据处各层行为剧烈）
         grid_inputs = []
         for t in np.linspace(-1.1, 1.1, 13):
             half = np.sqrt(1.2**2 - t**2)
@@ -186,7 +185,7 @@ class NeuralUntangle(m.ThreeDScene):
 
         data.add_updater(carry)
 
-        # the classifier: a plane in the last layer's space, w·h + b = 0
+        # 分类器：最后一层空间中的一个平面，w·h + b = 0
         normal = net.w / np.linalg.norm(net.w)
         foot = -net.b[0] * net.w / float(net.w @ net.w)
         u = np.cross(normal, [0.3, 0.5, 0.8])
@@ -203,7 +202,7 @@ class NeuralUntangle(m.ThreeDScene):
             fill_opacity=0.18,
             shade_in_3d=True,
         )
-        # the boundary it cuts: a curve on the sheet, drawn back to the input plane at the end
+        # 它所切的边界：曲面上的一条曲线，最终绘回输入平面
         pieces = boundary(net)
         piece_stages = net.stages(pieces.reshape(-1, 2))
         edge = m.VMobject(stroke_color=m.WHITE, stroke_width=3.5, shade_in_3d=True)
@@ -219,7 +218,7 @@ class NeuralUntangle(m.ThreeDScene):
         trace_edge(edge)
         edge.add_updater(trace_edge)
 
-        # HUD
+        # 平视显示
         title = m.Text("How a network untangles two spirals", font_size=38).to_corner(
             m.UL
         )

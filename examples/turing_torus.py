@@ -1,22 +1,21 @@
-"""Turing patterns growing on a torus.
+"""环面上生长的图灵斑图。
 
-Two chemicals react and diffuse over the surface of a doughnut (the Gray–Scott model):
-u̇ = D_u Δu − uv² + F(1 − u),  v̇ = D_v Δv + uv² − (F + k)v, with D_u = 2 D_v. The Laplacian Δ is
-the torus's own (Laplace–Beltrami) operator,
+两种化学物质在甜甜圈表面上反应并扩散（Gray–Scott 模型）：
+u̇ = D_u Δu − uv² + F(1 − u),  v̇ = D_v Δv + uv² − (F + k)v, 其中 D_u = 2 D_v。拉普拉斯算子 Δ 是
+环面自身的（Laplace–Beltrami）算子，
 Δf = f_φφ/ρ² + (1/(ρ r²)) ∂_θ(ρ f_θ),  ρ = R + r cos θ,
-so spots come out round on the curved surface — smaller on the inside of the hole than they
-would be on a flat map. From a few seeds, spots grow and divide until they tile the torus; then
-F and k are changed and the same equations grow a labyrinth instead. Alan Turing (1952): diffusion,
-which should smooth everything out, can create pattern.
+因此斑点在弯曲表面上呈圆形——在孔内侧比在平面地图上更小。从少量种子开始，
+斑点生长并分裂，直到铺满整个环面；然后改变 F 和 k，同样的方程生长出
+迷宫图案。Alan Turing（1952）：扩散——本应使一切变得平滑——却能创造斑图。
 """
 
 import numpy as np
 
 import manimgx as m
 
-R, r = 2.0, 0.95  # the torus's radii (screen units)
-NU, NV = 288, 128  # the simulation grid: around the ring, around the tube
-CELL = 0.045  # the classic Gray–Scott unit cell, in screen units
+R, r = 2.0, 0.95  # 环面的半径（屏幕单位）
+NU, NV = 288, 128  # 模拟网格：环绕大圆，环绕管
+CELL = 0.045  # 经典 Gray–Scott 单元格，以屏幕单位计
 D_U, D_V = 0.16 * CELL**2, 0.08 * CELL**2
 DT = 0.5
 PHASES = {"spots": (0.0367, 0.0649), "labyrinth": (0.0545, 0.062)}
@@ -34,7 +33,7 @@ def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
 
 
 class GrayScott:
-    """The two concentrations on the torus's (φ, θ) grid, stepped by explicit Euler."""
+    """环面 (φ, θ) 网格上的两种浓度，以显式欧拉法推进。"""
 
     def __init__(self, rng: np.random.Generator) -> None:
         theta = np.linspace(0, m.TAU, NV, endpoint=False)
@@ -42,10 +41,10 @@ class GrayScott:
         self.rho = (R + r * np.cos(theta))[None, :]
         self.rho_half = (R + r * np.cos(theta + self.dtheta / 2))[
             None, :
-        ]  # ρ between cells
+        ]  # 单元格之间的 ρ
         self.u = np.ones((NU, NV))
         self.v = np.zeros((NU, NV))
-        for _ in range(7):  # a few seeds
+        for _ in range(7):  # 少量种子
             i, j = rng.integers(0, NU), rng.integers(0, NV)
             rows, cols = np.arange(i - 3, i + 3) % NU, np.arange(j - 3, j + 3) % NV
             self.u[np.ix_(rows, cols)] = 0.5
@@ -59,7 +58,7 @@ class GrayScott:
         ) ** 2
         flux = self.rho_half * (
             np.roll(f, -1, 1) - f
-        )  # conservative: ρ f_θ between cells
+        )  # 守恒形式：单元格之间的 ρ f_θ
         around_tube = (flux - np.roll(flux, 1, 1)) / (r * r * self.dtheta**2 * self.rho)
         return along_ring + around_tube
 
@@ -75,7 +74,7 @@ class GrayScott:
 
 
 def torus_points(bump: np.ndarray) -> np.ndarray:
-    """Vertices of the torus, pushed out along the normal by `bump` (grid-shaped)."""
+    """环面的顶点，沿法线方向被 `bump`（网格形状）向外推。"""
     phi = np.linspace(0, m.TAU, NU, endpoint=False)[:, None]
     theta = np.linspace(0, m.TAU, NV, endpoint=False)[None, :]
     tube = r + bump
@@ -86,7 +85,7 @@ def torus_points(bump: np.ndarray) -> np.ndarray:
 
 
 def torus_triangles() -> np.ndarray:
-    """A welded periodic grid: every vertex shared, so the surface has no seam."""
+    """焊接的周期网格：每个顶点共享，因此表面无接缝。"""
     i, j = np.meshgrid(np.arange(NU), np.arange(NV), indexing="ij")
     a = i * NV + j
     b = ((i + 1) % NU) * NV + j
@@ -100,7 +99,7 @@ def torus_triangles() -> np.ndarray:
 class TuringTorus(m.ThreeDScene):
     def construct(self) -> None:
         chem = GrayScott(np.random.default_rng(1952))
-        speed = {"steps": 16}  # simulation steps per tick of the 60 Hz simulation clock
+        speed = {"steps": 16}  # 每个 60 Hz 模拟时钟刻度的模拟步数
         surface = m.MeshMobject(
             torus_points(np.zeros((NU, NV))),
             torus_triangles(),
@@ -160,7 +159,7 @@ class TuringTorus(m.ThreeDScene):
         )
         self.begin_ambient_camera_rotation(rate=0.1)
         self.add(surface)
-        # 0–16 s: seeds grow into spots that divide until they tile the torus
+        # 0–16 秒：种子长成斑点，斑点分裂直至铺满环面
         self.play(m.FadeIn(equations), m.FadeIn(knobs), run_time=2)
         self.wait(6)
         self.move_camera(
@@ -170,9 +169,9 @@ class TuringTorus(m.ThreeDScene):
             run_time=4,
         )
         self.wait(3.5)
-        # 16–27 s: new F and k: the same equations grow a labyrinth
+        # 16–27 秒：新的 F 和 k：同样的方程生长出迷宫
         chem.feed, chem.kill = PHASES["labyrinth"]
-        speed["steps"] = 5  # slower: watch the spots stretch into worms
+        speed["steps"] = 5  # 放慢速度：观察斑点拉伸成蠕虫状
         self.play(m.Indicate(knobs, color=m.YELLOW, scale_factor=1.1), run_time=1.2)
         self.move_camera(
             phi=66 * m.DEGREES, zoom=1.05, frame_center=np.zeros(3), run_time=5

@@ -1,15 +1,15 @@
-"""A kaleidoscope on the sphere: three mirrors make 120 tiles, and one point makes the solids.
+"""球面上的万花筒：三面镜子生成 120 块瓦片，一个点生成多面体。
 
-Three mirrors (great circles) meet at the corners of a spherical triangle with angles 36°, 60°
-and 90°: the Schwarz triangle (2, 3, 5). Reflect it in its mirrors, and the images in theirs,
-breadth first: a tile turns over like a card at each reflection, so after an even number it shows
-the triangle's own handedness (gold) and after an odd number its mirror image (blue). The waves
-cover the sphere with exactly 120 tiles, the last one fifteen reflections away, opposite the
-first. The count is forced by the angles: a spherical triangle's area is its angle excess
-(Girard, 1629), 36° + 60° + 90° − 180° = π/30, and 120 × π/30 = 4π. Put a point in the triangle
-and reflect it too: its images are the corners of a solid (Wythoff's construction) — at the
-triangle's corners the icosahedron, icosidodecahedron and dodecahedron, on its sides the
-truncated ones, inside it the truncated icosidodecahedron, one corner per tile.
+三面镜子（大圆）在一个角为 36°、60° 和 90° 的球面三角形角顶相交：
+施瓦茨三角形 (2, 3, 5)。在它的镜子中反射，再在所得镜像的镜子中反射，
+广度优先：每反射一次瓦片如卡片般翻转，因此偶数次反射后显示
+三角形自身的旋向性（金色），奇数次后显示其镜像（蓝色）。波
+用恰好 120 块瓦片覆盖球面，最后一块距第一块十五次反射之远，在
+其对侧。瓦片数由角度决定：球面三角形的面积等于其角盈
+（吉拉德，1629），36° + 60° + 90° − 180° = π/30，而 120 × π/30 = 4π。在三角形中
+放一个点并同样反射：其镜像是一个多面体的顶点（Wythoff 构造）——在
+三角形角顶处为正二十面体、截半二十面体和正十二面体，在边上为
+截角多面体，在内部为截角截半二十面体，每块瓦片一个顶点。
 """
 
 from collections.abc import Callable
@@ -21,12 +21,12 @@ import manimgx as m
 
 PHI = (1 + 5**0.5) / 2
 RADIUS = 2.55
-GRID = 8  # each tile is three GRID × GRID patches
-WAVE = 0.68  # seconds per wave of reflections
+GRID = 8  # 每块瓦片是三个 GRID × GRID 面片
+WAVE = 0.68  # 每波反射的秒数
 GOLD, BLUE, SEA, SILVER, PIN = "#e8ae45", "#2b5ea7", "#0b1320", "#eef2f8", "#ff5d73"
 CAMERA_PHI, CAMERA_THETA = 70 * m.DEGREES, -60 * m.DEGREES
 
-Mesh = tuple[np.ndarray, np.ndarray]  # vertices, triangles
+Mesh = tuple[np.ndarray, np.ndarray]  # 顶点，三角形
 
 
 def unit(v: np.ndarray) -> np.ndarray:
@@ -34,14 +34,14 @@ def unit(v: np.ndarray) -> np.ndarray:
 
 
 def sight(phi: float, theta: float) -> np.ndarray:
-    """The unit vector toward a camera at polar angle phi and azimuth theta."""
+    """朝向极角 phi、方位角 theta 处的摄像机的单位向量。"""
     return np.array(
         [np.sin(phi) * np.cos(theta), np.sin(phi) * np.sin(theta), np.cos(phi)]
     )
 
 
 def rotation_taking(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-    """The rotation about a × b taking the unit vector a to the unit vector b (Rodrigues)."""
+    """绕 a × b 将单位向量 a 转到单位向量 b 的旋转（罗德里格斯公式）。"""
     axis = np.cross(a, b)
     k = axis / np.linalg.norm(axis)
     cross = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
@@ -63,7 +63,7 @@ def rgba(color: str) -> np.ndarray:
 
 
 def globe(nu: int, nv: int) -> np.ndarray:
-    """An (nu + 1) × (nv + 1) grid of points on the unit sphere (longitude × colatitude)."""
+    """单位球面上 (nu + 1) × (nv + 1) 个点的网格（经度 × 余纬度）。"""
     u, v = np.meshgrid(
         np.linspace(0, m.TAU, nu + 1), np.linspace(0, m.PI, nv + 1), indexing="ij"
     )
@@ -72,7 +72,7 @@ def globe(nu: int, nv: int) -> np.ndarray:
 
 
 def grid_triangles(nu: int, nv: int) -> np.ndarray:
-    """Triangles of an (nu + 1) × (nv + 1) grid of vertices, two per cell."""
+    """(nu + 1) × (nv + 1) 顶点网格的三角形，每个单元格两个。"""
     i, j = np.meshgrid(np.arange(nu), np.arange(nv), indexing="ij")
     a = i * (nv + 1) + j
     b, c, d = a + nv + 1, a + nv + 2, a + 1
@@ -81,17 +81,17 @@ def grid_triangles(nu: int, nv: int) -> np.ndarray:
     )
 
 
-# ── the kaleidoscope ─────────────────────────────────────────────────────────────────────────
+# ── 万花筒 ─────────────────────────────────────────────────────────────────────────
 
-# The fundamental triangle: a vertex of an icosahedron (ten tiles will meet there), the center of
-# a face next to it (six) and the middle of an edge between them (four), turned to the camera.
+# 基本三角形：正二十面体的一个顶点（十块瓦片在此交汇）、与之
+# 相邻的一个面的中心（六块）和它们之间一条边的中点（四块），转向摄像机。
 _ICO = unit(np.array([[0, 1, PHI], [PHI, 0, 2 * PHI + 1], [0, 0, 1.0]]))
 _FACING = sight(CAMERA_PHI - 0.15, CAMERA_THETA + 0.45)
 CORNERS = _ICO @ rotation_taking(unit(_ICO.sum(axis=0)), _FACING).T
 
 
 def mirror(k: int) -> np.ndarray:
-    """The mirror opposite corner k: its unit normal, pointing into the triangle."""
+    """与角 k 相对的镜面：其单位法向量，指向三角形内部。"""
     n = unit(np.cross(CORNERS[(k + 1) % 3], CORNERS[(k + 2) % 3]))
     return n if n @ CORNERS[k] > 0 else -n
 
@@ -100,15 +100,15 @@ MIRRORS = np.array([mirror(k) for k in range(3)])
 
 
 def corner_angle(k: int) -> float:
-    """The triangle's angle at corner k, in degrees, between the great arcs leaving it."""
+    """三角形在角 k 处的角度，以度计，为离开该角的两大圆弧之间的夹角。"""
     c = CORNERS[k]
     arms = [unit(CORNERS[j] - (CORNERS[j] @ c) * c) for j in range(3) if j != k]
     return float(np.degrees(np.arccos(arms[0] @ arms[1])))
 
 
 def reflections() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Every product of the three reflections, found breadth first: the matrices, how many
-    reflections each needs, and the one each is first reached from (and by which mirror).
+    """三个反射的所有乘积，广度优先搜索：矩阵、每个所需
+    反射次数，以及每个最先从哪个元素达到（及经哪面镜子）。
     """
     flips = [np.eye(3) - 2 * np.outer(n, n) for n in MIRRORS]
     elements, length, parent, via = [np.eye(3)], [0], [-1], [-1]
@@ -138,8 +138,8 @@ TRIANGLES = (
 
 
 def pieces(p: np.ndarray) -> np.ndarray:
-    """The triangle cut in three by the perpendiculars from a point p to the mirrors: piece k is
-    the quad (corner k, foot on one mirror through it, p, foot on the other)."""
+    """三角形被点 p 到各镜面的垂线分为三块：第 k 块是
+    四边形（角 k、过该角的一面镜上的垂足、p、另一面镜上的垂足）。"""
     quads = []
     for k in range(3):
         a, b = MIRRORS[(k + 1) % 3], MIRRORS[(k + 2) % 3]
@@ -148,7 +148,7 @@ def pieces(p: np.ndarray) -> np.ndarray:
 
 
 def patches(quads: np.ndarray) -> np.ndarray:
-    """(3, (GRID + 1)², 3) points on the unit sphere: each quad as a bilinear grid, pushed out."""
+    """单位球面上的 (3, (GRID + 1)², 3) 个点：每个四边形作为双线性网格，再推到球面上。"""
     s = np.linspace(0, 1, GRID + 1)
     u, v = (x.ravel()[None, :, None] for x in np.meshgrid(s, s, indexing="ij"))
     a, b, c, d = (quads[:, i, None, :] for i in range(4))
@@ -156,19 +156,19 @@ def patches(quads: np.ndarray) -> np.ndarray:
 
 
 def fold(points: np.ndarray, normals: np.ndarray, t: np.ndarray) -> np.ndarray:
-    """Turn tiles (g, v, 3) over their mirrors (normals (g, 3), on the tiles' side) like cards
-    over an edge: at t = 1 each is its own mirror image."""
+    """将瓦片 (g, v, 3) 绕其镜面（法向量 (g, 3)，在瓦片一侧）如卡片
+    绕边般翻转：t = 1 时每个为其自身镜像。"""
     d = np.einsum("gvi,gi->gv", points, normals)[..., None]
     foot = points - d * normals[:, None, :]
     angle = np.pi * t[:, None, None]
     return foot + d * (np.cos(angle) * normals[:, None, :] + np.sin(angle) * unit(foot))
 
 
-# ── where the point sits: at the corners, on two sides where all edges are equal, in the middle
+# ── 点的位置：在角顶、在所有边等长的两条边上、在中间
 
 
 def balance(a: np.ndarray, b: np.ndarray, i: int, j: int) -> float:
-    """Where on the arc a → b the point is equally far from mirrors i and j (bisection)."""
+    """弧 a → b 上点距镜面 i 和 j 等远处位置（二分法）。"""
 
     def gap(t: float) -> float:
         return float((MIRRORS[i] - MIRRORS[j]) @ slerp(a, b, t))
@@ -180,7 +180,7 @@ def balance(a: np.ndarray, b: np.ndarray, i: int, j: int) -> float:
     return (lo + hi) / 2
 
 
-# the middle: equally far from all three mirrors
+# 中间：距三面镜子等远
 INCENTER = unit(np.linalg.solve(MIRRORS, np.ones(3)))
 STOPS = [CORNERS[0], CORNERS[2], CORNERS[1], INCENTER]
 SOLIDS = [
@@ -194,25 +194,25 @@ SOLIDS = [
 
 
 def wythoff(s: float) -> np.ndarray:
-    """The point, s of the way along the stops (corner 36° → 90° → 60° → the middle)."""
+    """点，沿停靠点行进比例 s 处（36° 角 → 90° 角 → 60° 角 → 中间）。"""
     k = min(int(s), len(STOPS) - 2)
     return slerp(STOPS[k], STOPS[k + 1], s - k)
 
 
-# ── what is drawn ────────────────────────────────────────────────────────────────────────────
+# ── 所绘内容 ────────────────────────────────────────────────────────────────────────────
 
 
 def mirror_circles(samples: int = 240) -> tuple[np.ndarray, np.ndarray]:
-    """The 15 mirrors: great circles starting where a reflection first crosses each (the
-    triangle's own three first), and the wave of that first crossing."""
+    """15 面镜子：大圆从反射首次越过各镜面处起始（三角形
+    自身的三面最先），以及该首次越过的波次。"""
     circles, first, seen = [], [], []
-    for g in range(1, TILES):  # breadth first: first crossings come first
+    for g in range(1, TILES):  # 广度优先：首次越过先出现
         normal = ELEMENTS[PARENT[g]] @ MIRRORS[VIA[g]]
         if any(abs(normal @ n) > 1 - 1e-9 for n in seen):
             continue
         seen.append(normal)
         edge = ELEMENTS[PARENT[g]] @ np.delete(CORNERS, VIA[g], axis=0).T
-        start = unit(edge.sum(axis=1))  # the middle of the edge the tile turns over
+        start = unit(edge.sum(axis=1))  # 瓦片翻转所绕边的中点
         s = np.linspace(0, m.TAU, samples, endpoint=False)[:, None]
         circles.append(np.cos(s) * start + np.sin(s) * np.cross(normal, start))
         first.append(LENGTH[g])
@@ -220,8 +220,8 @@ def mirror_circles(samples: int = 240) -> tuple[np.ndarray, np.ndarray]:
 
 
 def tube_rings(curves: np.ndarray, sides: int = 8) -> Mesh:
-    """Unit rings (k, n, sides, 3) around closed curves (k, n, 3) on a sphere, and the
-    triangles (k, n, 2·sides, 3) of tubes through them."""
+    """球面上闭合曲线 (k, n, 3) 周围的单位环 (k, n, sides, 3)，以及
+    穿过它们的管道的三角形 (k, n, 2·sides, 3)。"""
     k, n, _ = curves.shape
     tangent = unit(np.roll(curves, -1, 1) - np.roll(curves, 1, 1))
     side = np.cross(tangent, unit(curves))
@@ -236,26 +236,26 @@ def tube_rings(curves: np.ndarray, sides: int = 8) -> Mesh:
 
 
 class Kaleidoscope:
-    """Everything drawn on and in the sphere, from a handful of trackers."""
+    """球面上和球内所绘的一切，由少数几个跟踪器驱动。"""
 
     def __init__(self) -> None:
-        self.shown = m.ValueTracker(0.3)  # the first tile grows in
-        self.drawn = m.ValueTracker(0.0)  # its three mirrors are drawn round the sphere
-        # tiles k reflections away turn over during wave k (0 < wave − (k − 1) < 1)
+        self.shown = m.ValueTracker(0.3)  # 第一块瓦片长入
+        self.drawn = m.ValueTracker(0.0)  # 其三面镜子绕球面绘出
+        # 距 k 次反射远的瓦片在第 k 波中翻转（0 < 波 − (k − 1) < 1）
         self.wave = m.ValueTracker(0.0)
         self.flat = m.ValueTracker(
             0.0
-        )  # 0: tiles on the sphere; 1: pieces flat, a solid
-        self.path = m.ValueTracker(0.0)  # where the point sits (see `wythoff`)
-        self.pins = m.ValueTracker(0.0)  # size of the point's images
-        self.cage = m.ValueTracker(1.0)  # thickness of the mirrors (0: gone)
-        self.frame = m.ValueTracker(0.0)  # thickness of the solid's edges
+        )  # 0：瓦片在球面上；1：面片平铺，一个多面体
+        self.path = m.ValueTracker(0.0)  # 点的位置（见 `wythoff`）
+        self.pins = m.ValueTracker(0.0)  # 点的镜像的大小
+        self.cage = m.ValueTracker(1.0)  # 镜子的粗细（0：消失）
+        self.frame = m.ValueTracker(0.0)  # 多面体棱的粗细
         self.circles, self.first = mirror_circles()
         self.rings, self.tube_tris = tube_rings(self.circles)
         self.ball = globe(10, 6), grid_triangles(10, 6)
-        # gold: the triangle's own handedness (even reflections); blue: mirrored (odd)
+        # 金色：三角形自身的旋向性（偶数次反射）；蓝色：镜像（奇数次）
         self.hand = np.where((LENGTH % 2 == 0)[:, None], rgba(GOLD), rgba(BLUE))
-        # the mirror each tile turns over as it lands (tile 0 lies there from the start)
+        # 每块瓦片落地时翻转所绕的镜面（瓦片 0 从一开始就在那里）
         self.normals = np.array(
             [ELEMENTS[PARENT[g]] @ MIRRORS[VIA[g]] for g in range(TILES)]
         )
@@ -264,18 +264,18 @@ class Kaleidoscope:
         return wythoff(self.path.get_value())
 
     def tiles(self) -> tuple[np.ndarray, np.ndarray]:
-        """Points and colors of all tiles: landed, turning over, or hidden inside the sphere."""
+        """所有瓦片的顶点和颜色：已落地、正在翻转或隐藏在球内。"""
         p = self.point()
         base = patches(pieces(p))
         flat = self.flat.get_value()
         if (
             flat > 0
-        ):  # each piece slides along its rays onto the plane through p square to
-            # its corner: together, the flat faces of the solid
+        ):  # 每个面片沿其射线滑到过 p 且垂直于
+            # 其角顶的平面上：合在一起即多面体的平展面
             scale = (CORNERS @ p)[:, None] / np.einsum("kvi,ki->kv", base, CORNERS)
             base = base * (1 + flat * (scale - 1))[..., None]
         landed = np.einsum("gij,kvj->gkvi", ELEMENTS, base).reshape(TILES, PER_TILE, 3)
-        if self.shown.get_value() < 1:  # the first tile grows from its middle
+        if self.shown.get_value() < 1:  # 第一块瓦片从其中心长出
             centre = unit(CORNERS.sum(axis=0))
             landed[0] = unit(centre + self.shown.get_value() * (landed[0] - centre))
         progress = np.clip(self.wave.get_value() - (LENGTH - 1), 0, 1)
@@ -292,7 +292,7 @@ class Kaleidoscope:
         return RADIUS * points.reshape(-1, 3), np.repeat(colors, PER_TILE, axis=0)
 
     def mirrors(self) -> Mesh:
-        """The mirrors drawn so far: each grows both ways round from where it is first crossed."""
+        """迄今绘出的镜面：每面从首次越过处向两侧生长。"""
         reach = np.clip((self.wave.get_value() - (self.first - 1)) / 1.5, 0, 1)
         reach[:3] = self.drawn.get_value()
         n = self.circles.shape[1]
@@ -304,8 +304,8 @@ class Kaleidoscope:
         )
 
     def edges(self) -> Mesh:
-        """The solid's edges, as thin tubes: from each image of the point straight to the
-        mirrors beside it (half the edge to its reflection there)."""
+        """多面体的棱，以细管表示：从点的每个镜像直通
+        其旁镜面（到该处反射的棱的一半）。"""
         p = self.point()
         feet = p - (MIRRORS @ p)[:, None] * MIRRORS
         starts = np.repeat(ELEMENTS @ p, 3, axis=0)
@@ -324,7 +324,7 @@ class Kaleidoscope:
         return verts.reshape(-1, 3), tris.reshape(-1, 3)
 
     def images(self) -> Mesh:
-        """Small balls at the point's images: the corners of the solid."""
+        """点的镜像处的小球：多面体的顶点。"""
         verts, tris = self.ball
         centres = RADIUS * ELEMENTS @ self.point()
         size = 0.055 * self.pins.get_value() + 1e-4
@@ -332,14 +332,13 @@ class Kaleidoscope:
         return balls, (tris[None] + len(verts) * np.arange(TILES)[:, None, None])
 
     def corners(self) -> int:
-        """How many distinct images the point has: 120 over how many reflections fix it."""
+        """点有多少个不同镜像：120 除以固定它的反射个数。"""
         p = self.point()
         return TILES // int((np.linalg.norm(ELEMENTS @ p - p, axis=1) < 1e-6).sum())
 
 
 def follow(mob: m.MeshMobject, shape: Callable[[], Mesh]) -> m.MeshMobject:
-    """Give the mesh its shape every frame (points with triangles: triangles alone are not
-    redrawn)."""
+    """每帧赋予网格其形状（顶点配三角形：仅三角形不会重绘）。"""
 
     def update(mob: m.MeshMobject) -> None:
         verts, tris = shape()
@@ -357,18 +356,18 @@ def blank(color: str) -> m.MeshMobject:
 
 
 def spin_rate(t: float) -> float:
-    """The camera's turning speed (rad/s): quicker while the waves run round the sphere."""
+    """摄像机的转速（弧度/秒）：波绕球面行进时更快。"""
     rise = smooth01(np.array((t - 0.8) / 2.0))
     fall = smooth01(np.array((t - 10.4) / 3.0))
     return float(0.07 + 0.15 * rise * (1 - fall))
 
 
-# ── heads-up display ─────────────────────────────────────────────────────────────────────────
+# ── 平视显示器 ─────────────────────────────────────────────────────────────────────────
 
 
 def wave_chart(k: Kaleidoscope) -> tuple[m.Mobject, m.VGroup]:
-    """Bars: how many tiles are first reached after 0, 1, …, 15 reflections (gold even, blue
-    odd), growing with the waves; and its labels, with the running count of tiles."""
+    """条形图：0、1、…、15 次反射后首次达到的瓦片数（偶数金色，奇数
+    蓝色），随波增长；及其标签，带瓦片运行计数。"""
     counts = np.bincount(LENGTH)
     pitch, base = 0.21, np.array([-6.7, -3.15, 0])
 
@@ -401,8 +400,8 @@ def wave_chart(k: Kaleidoscope) -> tuple[m.Mobject, m.VGroup]:
 def wythoff_panel(
     k: Kaleidoscope, angles: list[float]
 ) -> tuple[m.VGroup, list[m.Text]]:
-    """The triangle, flattened (gnomonic), with the point in it and the perpendiculars from it
-    (the solid's edges within the tile); the count of corners; the solids' names."""
+    """三角形平展（gnomonic 投影），其中有点及从它到各镜面的垂线
+    （瓦片内多面体的棱）；角点计数；多面体名称。"""
     centre = unit(CORNERS.sum(axis=0))
     across = unit(
         CORNERS[1] - CORNERS[0] - ((CORNERS[1] - CORNERS[0]) @ centre) * centre
@@ -454,7 +453,7 @@ def wythoff_panel(
     return panel, names
 
 
-# ── the scene ────────────────────────────────────────────────────────────────────────────────
+# ── 场景 ────────────────────────────────────────────────────────────────────────────────
 
 
 class KaleidoscopeSphere(m.ThreeDScene):
@@ -467,7 +466,7 @@ class KaleidoscopeSphere(m.ThreeDScene):
             tracker.increment_value(spin_rate(clock[0]) * dt)
 
         def keep_light(mob: m.Mobject) -> None:
-            """The light turns with the camera: up and to its left, 80° off the view."""
+            """光源随摄像机转动：在其左侧上方，偏离视线 80°。"""
             theta = self.camera.get_theta()
             toward = sight(self.camera.get_phi(), theta)
             right = np.array([-np.sin(theta), np.cos(theta), 0.0])
@@ -479,7 +478,7 @@ class KaleidoscopeSphere(m.ThreeDScene):
         self.add(self.camera.theta_tracker, self.camera.light_source)
 
         k = Kaleidoscope()
-        # the dark sphere under the tiles sinks inside the solid as they lie flat
+        # 瓦片下方的暗球在瓦片平铺时沉入多面体内部
         ground = globe(96, 48)
         sea = m.MeshMobject(
             ground, grid_triangles(96, 48), shade_in_3d=True, fill_color=SEA
@@ -500,7 +499,7 @@ class KaleidoscopeSphere(m.ThreeDScene):
         tiles.add_updater(paint_tiles)
         glass, edges = follow(blank(SILVER), k.mirrors), follow(blank(SILVER), k.edges)
         pins = follow(blank(SILVER), k.images)
-        # the point itself in red; its images in white
+        # 点本身为红色；其镜像为白色
         pin_rows = np.repeat(rgba(SILVER)[None], TILES * len(k.ball[0]), axis=0)
         pin_rows[: len(k.ball[0])] = rgba(PIN)
 
@@ -509,7 +508,7 @@ class KaleidoscopeSphere(m.ThreeDScene):
 
         pins.add_updater(paint_pins)
 
-        # heads-up display: every number measured from the geometry drawn
+        # 平视显示器：所有数字均从所绘几何中测得
         angles = [corner_angle(i) for i in range(3)]
         title = m.Text("A kaleidoscope on the sphere", font_size=38).to_corner(m.UL)
         subtitle = m.Text(
@@ -550,7 +549,7 @@ class KaleidoscopeSphere(m.ThreeDScene):
         def squish(a: float, b: float) -> Callable[[float], float]:
             return m.squish_rate_func(m.smooth, a, b)
 
-        # 0–1.6 s: the first tile, and its three mirrors drawn round the sphere
+        # 0–1.6 秒：第一块瓦片，及其三面镜子绕球面绘出
         self.play(
             k.shown.animate.set_value(1.0),
             k.drawn.animate(rate_func=squish(0.25, 1.0)).set_value(1.0),
@@ -558,16 +557,16 @@ class KaleidoscopeSphere(m.ThreeDScene):
             m.FadeIn(chart_labels),
             run_time=1.6,
         )
-        # 1.6–11.8 s: fifteen waves of reflections, each tile turned over from one landed before
+        # 1.6–11.8 秒：十五波反射，每块瓦片从先前落地的一块翻转而来
         self.play(
             k.wave.animate.set_value(15.0), run_time=15 * WAVE, rate_func=m.linear
         )
-        # 11.8–14.6 s: why 120
+        # 11.8–14.6 秒：为何是 120
         self.play(m.FadeIn(area, shift=0.2 * m.DOWN), run_time=0.7)
         self.wait(0.6)
         self.play(m.FadeIn(whole, shift=0.2 * m.DOWN), run_time=0.7)
         self.wait(0.8)
-        # 14.6–17.1 s: a point in the triangle; the tiles lie flat into the icosahedron
+        # 14.6–17.1 秒：三角形中一个点；瓦片平铺成正二十面体
         self.play(
             k.flat.animate.set_value(1.0),
             k.pins.animate.set_value(1.0),
@@ -579,7 +578,7 @@ class KaleidoscopeSphere(m.ThreeDScene):
             run_time=2.0,
         )
         self.wait(0.5)
-        # 17.1–26.35 s: the point slides along the triangle's sides, then into it
+        # 17.1–26.35 秒：点沿三角形的边滑动，然后进入内部
         for i in range(1, len(SOLIDS)):
             self.play(
                 k.path.animate.set_value(SOLIDS[i][0]),

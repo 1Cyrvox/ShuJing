@@ -1,12 +1,11 @@
-"""Outrunning light: a charge in water leaves a cone of blue light behind it.
+"""跑得比光快：水中的电荷在其后方留下一锥蓝光。
 
-Light in water travels at c/n (n = 1.33). Every point a charge passes sends out a wavelet growing
-at c/n: below β = 1/n they nest; above it they pile up on a cone, the optical sonic boom, and
-light leaves along its normal at the Cherenkov angle cos θ = 1/(nβ) (Cherenkov 1934; Frank & Tamm
-1937), 41° in water as β → 1. On screen θ is fitted to the drawn wavefronts at three speeds;
-photons leave the track at θ, as bright as Frank–Tamm says (∝ sin²θ). When the charge slows below
-c/n the light goes out, and the shell already emitted lands on a wall of photomultipliers as a
-ring: how Super-Kamiokande sees a muon.
+光在水中以 c/n 传播（n = 1.33）。电荷经过的每个点发出一个以 c/n 增长的子波：当 β < 1/n 时
+它们层层嵌套；当 β > 1/n 时它们堆积成一个锥面，即光学音爆，光沿其法线以 Cherenkov 角
+cos θ = 1/(nβ) 离开（Cherenkov 1934；Frank & Tamm 1937），在水中当 β → 1 时为 41°。
+屏幕上的 θ 在三个速度下拟合到所绘波前；光子以 θ 角离开径迹，亮度如 Frank–Tamm 所述
+（∝ sin²θ）。当电荷减速到 c/n 以下时光熄灭，已发射的光壳落在一面光电倍增管墙上
+形成一个环：这就是 Super-Kamiokande 看到一个 μ 子的方式。
 """
 
 from collections.abc import Callable
@@ -16,21 +15,21 @@ import numpy as np
 import manimgx as m
 
 N_WATER = 1.33
-WAVE = 1.15  # c/n: how fast every wavelet grows (scene units per second)
+WAVE = 1.15  # c/n：每个子波的增长速度（每秒场景单位数）
 LIGHT = N_WATER * WAVE  # c
-LIFE = 2.8  # seconds a wavelet is drawn behind the charge
-# photons are absorbed at this age (the water's attenuation, shortened)
+LIFE = 2.8  # 子波在电荷后方绘制的秒数
+# 光子在此年龄被吸收（水的衰减，已缩短）
 PHOTON_LIFE = 3.5
 TICK = 1 / 60
-RING_EVERY = 6  # simulation ticks between drawn wavelets (0.1 s)
-# photons leave every tick at these azimuths: each azimuth traces one line of the cone
+RING_EVERY = 6  # 绘制子波之间的模拟刻度数（0.1 秒）
+# 光子每个刻度在这些方位角离开：每个方位角描出锥面的一条线
 AZIMUTHS = 96
 PHOTON_CAP = AZIMUTHS * 220
-APEX_X = 2.0  # where the charge sits on screen while the camera follows it
-FIT_AGES = (0.15, 0.8)  # the envelope is fitted to the wavelets just behind the charge
+APEX_X = 2.0  # 相机跟随电荷时电荷在屏幕上的位置
+FIT_AGES = (0.15, 0.8)  # 包络面拟合到电荷正后方的子波
 PMT_PITCH = 0.15
 PMT_RADIUS = 3.4
-BRAKE = 2.4  # the charge starts to slow down this far before the wall
+BRAKE = 2.4  # 电荷在距墙此距离处开始减速
 WATER = "#020a17"
 RING_BLUE = "#8fd3ff"
 CHERENKOV = ["#ffffff", "#9ddcff", "#3fa9ff", "#1f5fd6"]
@@ -38,7 +37,7 @@ HIT_TIME = ["#fff3b0", "#ffb347", "#ff5e62", "#c84bff", "#4b6bff"]
 
 
 def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
-    """(n, 4) RGBA rows for values in [0, 1], interpolated through color stops."""
+    """[0, 1] 范围内值的 (n, 4) RGBA 行，通过颜色站点插值。"""
     rgb = np.array([m.ManimColor(s).to_rgb() for s in stops])
     x = np.clip(values, 0, 1) * (len(stops) - 1)
     i = np.minimum(x.astype(int), len(stops) - 2)
@@ -55,8 +54,8 @@ def cloud(count: int, size: float) -> m.PMobject:
 
 
 class Tank:
-    """The charge, its wavelets and its photons, in the lab frame; the camera follows the charge
-    (`shift` is the lab x drawn at the screen's x = 0) until `follow` is animated to 0.
+    """电荷、其子波和其光子，在实验室参考系中；相机跟随电荷
+    （`shift` 是绘制在屏幕 x = 0 处的实验室 x）直到 `follow` 被动画化为 0。
     """
 
     def __init__(self, beta: m.ValueTracker, follow: m.ValueTracker) -> None:
@@ -65,21 +64,21 @@ class Tank:
         self.time = 0.0
         self.ticks = 0
         self.x = 0.0
-        self.speed = beta.get_value()  # measured: distance per tick over c
+        self.speed = beta.get_value()  # 测量得到：每刻度距离除以 c
         self.shift = -APEX_X
         self.wall = np.inf
-        self.brake_time = np.inf  # when the charge began to slow down
+        self.brake_time = np.inf  # 电荷开始减速的时刻
         rings = int(LIFE / (RING_EVERY * TICK)) + 2
         self.ring_x = np.zeros(rings)
         self.ring_t = np.full(rings, -np.inf)
-        self.photon_x = np.zeros(PHOTON_CAP)  # emission point on the track
+        self.photon_x = np.zeros(PHOTON_CAP)  # 径迹上的发射点
         self.photon_dir = np.zeros((PHOTON_CAP, 3))
         self.photon_t = np.full(PHOTON_CAP, -np.inf)
-        # brightness per photon: Frank–Tamm, ∝ sin²θ per unit length
+        # 每个光子的亮度：Frank–Tamm，∝ sin²θ 每单位长度
         self.photon_w = np.zeros(PHOTON_CAP)
         self.alive = np.zeros(PHOTON_CAP, bool)
         self.next_photon = 0
-        # the wall's photomultipliers: a square grid of tubes inside a disc, facing the track
+        # 墙的光电倍增管：圆盘内的方形网格管阵，面向径迹
         g = np.arange(-PMT_RADIUS, PMT_RADIUS + 1e-9, PMT_PITCH)
         yy, zz = np.meshgrid(g, g, indexing="ij")
         self.pmt_side = len(g)
@@ -89,7 +88,7 @@ class Tank:
         self.pmt_charge = np.zeros(len(self.pmt_yz))
         self.pmt_first = np.full(len(self.pmt_yz), np.inf)
 
-    # ── the simulation: one 60 Hz tick ──────────────────────────────────────────────────────
+    # ── 模拟：一个 60 Hz 刻度 ──────────────────────────────────────────────────────
     def step(self, dt: float) -> None:
         if dt <= 0:
             return
@@ -103,16 +102,16 @@ class Tank:
         self.time += dt
         self.ticks += 1
         if beta > 0.3 and self.ticks % RING_EVERY == 0:
-            k = int(np.argmin(self.ring_t))  # reuse the oldest slot
+            k = int(np.argmin(self.ring_t))  # 复用最旧的槽位
             self.ring_x[k], self.ring_t[k] = self.x, self.time
-        if N_WATER * beta > 1:  # faster than light in water: it shines
+        if N_WATER * beta > 1:  # 比水中光快：它发光
             self.emit(beta)
         self.alive &= self.time - self.photon_t < PHOTON_LIFE
         self.absorb()
         self.pmt_flash *= np.exp(-dt / 0.35)
 
     def emit(self, beta: float) -> None:
-        """Photons leave the track at the Cherenkov angle, all around it."""
+        """光子以 Cherenkov 角离开径迹，环绕四周。"""
         cos_t = 1 / (N_WATER * beta)
         sin2 = 1 - cos_t**2
         count = AZIMUTHS
@@ -129,14 +128,14 @@ class Tank:
         self.alive[idx] = True
 
     def photons(self) -> np.ndarray:
-        """Lab positions of all photon slots."""
+        """所有光子槽位的实验室位置。"""
         age = self.time - self.photon_t
         pos = WAVE * np.where(np.isfinite(age), age, 0)[:, None] * self.photon_dir
         pos[:, 0] += self.photon_x
         return pos
 
     def absorb(self) -> None:
-        """Photons crossing the wall plane this tick are caught by the nearest tube."""
+        """本刻度穿越墙平面的光子被最近的管子捕获。"""
         if not np.isfinite(self.wall):
             return
         pos = self.photons()
@@ -144,7 +143,7 @@ class Tank:
         if not crossed.any():
             return
         idx = np.nonzero(crossed)[0]
-        # where each photon met the plane
+        # 每个光子与平面相遇的位置
         age = (self.wall - self.photon_x[idx]) / (WAVE * self.photon_dir[idx, 0])
         yz = WAVE * age[:, None] * self.photon_dir[idx, 1:]
         cell = np.round((yz + PMT_RADIUS) / PMT_PITCH).astype(int)
@@ -155,11 +154,11 @@ class Tank:
         self.pmt_first[tube] = np.minimum(self.pmt_first[tube], self.time)
         self.alive[idx] = False
 
-    # ── the measurement ─────────────────────────────────────────────────────────────────────
+    # ── 测量 ─────────────────────────────────────────────────────────────────────
     def fitted_angle(self) -> float | None:
-        """θ fitted to the drawn wavefronts: the least-squares line through the charge touching
-        the wavelets emitted 0.15–0.8 s ago; the light leaves along its normal. None while the
-        charge is still inside its own wavelets: then there is no cone."""
+        """拟合到所绘波前的 θ：过电荷、与 0.15–0.8 秒前发射的子波相切的
+        最小二乘直线；光沿其法线离开。当电荷仍在自身子波内时
+        返回 None：此时没有锥面。"""
         age = self.time - self.ring_t
         chosen = (age > FIT_AGES[0]) & (age < FIT_AGES[1])
         if chosen.sum() < 3:
@@ -169,7 +168,7 @@ class Tank:
         s = radius / behind
         if np.any(s >= 1):
             return None
-        # the point where the line from the charge touches each wavefront (charge at origin)
+        # 从电荷出发的直线与每个波前相切的点（电荷在原点）
         tx = -behind + radius * s
         ty = radius * np.sqrt(1 - s * s)
         alpha = np.arctan(-(tx * ty).sum() / (tx * tx).sum())
@@ -181,21 +180,21 @@ class CherenkovCone(m.ThreeDScene):
         self.camera.background_color = WATER
         self.set_camera_orientation(phi=0, theta=-90 * m.DEGREES, zoom=0.92)
         beta = m.ValueTracker(0.60)
-        follow = m.ValueTracker(1.0)  # 1: the camera rides with the charge
-        glow = m.ValueTracker(0.0)  # the photons' visibility
+        follow = m.ValueTracker(1.0)  # 1：相机随电荷同行
+        glow = m.ValueTracker(0.0)  # 光子的可见度
         rings_on = m.ValueTracker(1.0)
         fit_on = m.ValueTracker(0.0)
         track_on = m.ValueTracker(1.0)
         wall_on = m.ValueTracker(0.0)
         charge_on = m.ValueTracker(1.0)
         tank = Tank(beta, follow)
-        for _ in range(int(LIFE / TICK)):  # start with a full train of wavelets
+        for _ in range(int(LIFE / TICK)):  # 以一整列子波开始
             tank.step(TICK)
 
         def here(lab_x: float) -> np.ndarray:
             return np.array([lab_x - tank.shift, 0.0, 0.0])
 
-        # ── wavelets: one circle per slot of the ring buffer ────────────────────────────────
+        # ── 子波：环形缓冲区每个槽位一个圆 ────────────────────────────────
         template = m.Circle(radius=1).points.copy()
         circles = [
             m.Circle(radius=1, stroke_width=1.7, color=RING_BLUE) for _ in tank.ring_t
@@ -214,17 +213,17 @@ class CherenkovCone(m.ThreeDScene):
 
         rings.add_updater(draw_rings)
 
-        # ── photons on the cone ──────────────────────────────────────────────────────────────
+        # ── 锥面上的光子 ──────────────────────────────────────────────────────────────
         photons = cloud(PHOTON_CAP, 2.6)
-        photon_halo = cloud(PHOTON_CAP, 8.0)  # a soft bloom around every photon
+        photon_halo = cloud(PHOTON_CAP, 8.0)  # 每个光子周围的柔和光晕
 
         def draw_photons(mob: m.Mobject) -> None:
             pos = tank.photons()
             pos[:, 0] -= tank.shift
             age = np.nan_to_num((tank.time - tank.photon_t) / PHOTON_LIFE, posinf=1)
             rows = colormap(age, CHERENKOV)
-            # brighter bands (photons emitted together) slide down the cone: each is where one
-            # wavelet touches it
+            # 更亮的带（一起发射的光子）沿锥面滑下：每条带是一个
+            # 子波与锥面相切之处
             emitted = np.where(tank.alive, tank.photon_t, 0)
             pulse = 0.65 + 0.35 * np.cos(2 * np.pi * 2.5 * emitted)
             fade = np.clip((1 - age) / 0.3, 0, 1) * tank.photon_w * pulse
@@ -236,7 +235,7 @@ class CherenkovCone(m.ThreeDScene):
 
         photons.add_updater(draw_photons)
 
-        # ── water specks: they show the motion ──────────────────────────────────────────────
+        # ── 水中微粒：它们显示运动 ──────────────────────────────────────────────
         rng = np.random.default_rng(3)
         speck_lab = rng.uniform([-12, -4.5, -4.5], [12, 4.5, 4.5], (420, 3))
         specks = cloud(len(speck_lab), 1.8)
@@ -251,7 +250,7 @@ class CherenkovCone(m.ThreeDScene):
 
         specks.add_updater(draw_specks)
 
-        # ── the charge, its halo and its track ──────────────────────────────────────────────
+        # ── 电荷、其光晕及其径迹 ──────────────────────────────────────────────
         charge = m.Dot3D(radius=0.07, color=m.WHITE)
         halos = [cloud(1, w) for w in (12, 24, 44)]
         track = m.VMobject(stroke_color=m.WHITE, stroke_width=1.5)
@@ -271,7 +270,7 @@ class CherenkovCone(m.ThreeDScene):
 
         charge.add_updater(draw_charge)
 
-        # ── the fitted envelope, a light ray and its angle ──────────────────────────────────
+        # ── 拟合包络面、一条光线及其角度 ──────────────────────────────────────────
         def fit_marks() -> m.VGroup:
             theta = tank.fitted_angle()
             show = fit_on.get_value()
@@ -292,7 +291,7 @@ class CherenkovCone(m.ThreeDScene):
                     for sign in (1, -1)
                 ]
             )
-            # a ray from 2.6 behind the charge to the envelope, normal to it
+            # 一条从电荷后方 2.6 处到包络面的光线，垂直于包络面
             back = 2.6
             source = apex - np.array([back, 0, 0])
             foot = apex + back * np.cos(alpha) * np.array(
@@ -317,7 +316,7 @@ class CherenkovCone(m.ThreeDScene):
 
         fit = m.always_redraw(fit_marks)
 
-        # ── the wall of photomultipliers ─────────────────────────────────────────────────────
+        # ── 光电倍增管墙 ─────────────────────────────────────────────────────────────
         inside = tank.pmt_inside
         pmts = cloud(int(inside.sum()), 8.0)
 
@@ -328,10 +327,10 @@ class CherenkovCone(m.ThreeDScene):
             on = wall_on.get_value()
             first = tank.pmt_first[inside]
             hit = np.isfinite(first)
-            # color by arrival time, across the half second in which the ring lands
+            # 按到达时间着色，跨越光环落下的那半秒
             start = tank.brake_time + 2.55 if np.isfinite(tank.brake_time) else 0.0
             timed = colormap(np.where(hit, (first - start) / 0.55, 0), HIT_TIME)
-            caught = tank.pmt_charge[inside]  # photons caught, Frank–Tamm weighted
+            caught = tank.pmt_charge[inside]  # 捕获的光子，按 Frank–Tamm 加权
             light = np.clip(caught / 4.0, 0, 1)[:, None]
             flash = np.clip(tank.pmt_flash[inside] / 2.0, 0, 1)[:, None]
             rows = np.tile([0.3, 0.36, 0.45, 0.0], (len(yz), 1))
@@ -346,7 +345,7 @@ class CherenkovCone(m.ThreeDScene):
         driver = m.ValueTracker(0)
         driver.add_updater(lambda _, dt: tank.step(dt))
 
-        # ── heads-up display ─────────────────────────────────────────────────────────────────
+        # ── 平视显示器 ─────────────────────────────────────────────────────────────────
         title = m.Text("Outrunning light", font_size=38).to_corner(m.UL)
         subtitle = m.Text(
             "a charge moving faster than light does in water", font_size=22
@@ -403,7 +402,7 @@ class CherenkovCone(m.ThreeDScene):
             lambda t: t.set_opacity(0 if N_WATER * tank.speed > 1 else 1)
         )
 
-        # θ(β): the law, the threshold, the live fit and the measured points
+        # θ(β)：定律、阈值、实时拟合和测量点
         axes = m.Axes(
             x_range=[0.6, 1.0, 0.1],
             y_range=[0, 45, 15],
@@ -448,7 +447,7 @@ class CherenkovCone(m.ThreeDScene):
         live.add_updater(track_live)
         plot = m.VGroup(axes, curve, cut, labels)
 
-        # translucent points hide what is drawn after them behind them: add those last
+        # 半透明点将其后绘制的内容遮挡在后面：最后添加这些
         self.add(driver, specks, track, rings, pmts, charge, fit)
         self.add(photons, photon_halo, *halos)
         readouts = m.VGroup(rows, no_cone, no_angle, live)
@@ -456,7 +455,7 @@ class CherenkovCone(m.ThreeDScene):
         self.remove(title, subtitle, law_block, readouts, plot)
 
         def stamp() -> None:
-            """Put the fitted angle at this speed on the plot."""
+            """将此速度下的拟合角放到图上。"""
             theta = tank.fitted_angle()
             if theta is None:
                 return
@@ -468,11 +467,11 @@ class CherenkovCone(m.ThreeDScene):
             self.remove(dot, ring)
             self.play(m.FadeIn(dot, scale=2), m.FadeIn(ring, scale=0.4), run_time=0.4)
 
-        # 0–3 s: below the threshold the wavelets nest inside each other
+        # 0–3 秒：低于阈值时子波层层嵌套
         self.play(m.Write(title), m.FadeIn(subtitle), run_time=1.5)
         self.play(m.FadeIn(law_block), m.FadeIn(readouts), m.FadeIn(plot), run_time=1.2)
         self.wait(0.3)
-        # 3–12 s: faster, through the threshold; the cone is fitted at three speeds
+        # 3–12 秒：加速，穿过阈值；在三个速度下拟合锥面
         self.play(beta.animate.set_value(0.80), run_time=1.8)
         self.play(fit_on.animate.set_value(1), run_time=0.8)
         self.wait(0.6)
@@ -483,7 +482,7 @@ class CherenkovCone(m.ThreeDScene):
         self.play(beta.animate.set_value(0.99), run_time=1.2)
         self.wait(0.9)
         stamp()
-        # 12–18 s: the cone in 3D, lit by its photons
+        # 12–18 秒：三维中的锥面，由其光子照亮
         self.move_camera(
             phi=64 * m.DEGREES,
             theta=-118 * m.DEGREES,
@@ -504,15 +503,15 @@ class CherenkovCone(m.ThreeDScene):
             self.camera.phi_tracker.animate.set_value(70 * m.DEGREES),
             run_time=orbit,
         )
-        # 20–23 s: the charge slows below c/n: the cone closes and goes dark; the camera lets
-        # it go and turns to the wall, where the light already emitted lands as a ring
+        # 20–23 秒：电荷减速到 c/n 以下：锥面闭合并变暗；相机
+        # 放手并转向墙，已发射的光在那里落成一个环
         swing = 2.6
-        wall_x = tank.wall - tank.shift - 0.15  # where it stops once the camera does
+        wall_x = tank.wall - tank.shift - 0.15  # 相机停止后它停在哪里
 
         def within(
             seconds: float, rate: Callable[[float], float] = m.smooth
         ) -> Callable[[float], float]:
-            """A rate function that completes in the first `seconds` of the swing."""
+            """一个在摆动的前 `seconds` 内完成的速率函数。"""
             return lambda t: rate(min(1.0, t * swing / seconds))
 
         self.move_camera(

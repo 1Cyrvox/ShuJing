@@ -1,13 +1,13 @@
-"""The hilltops where spacecraft park: Lagrange points on the rotating Earth–Moon landscape.
+"""航天器停靠的山顶：旋转地月系中的拉格朗日点。
 
-In the frame turning with the Earth and the Moon, a small body feels gravity and the centrifugal
-force as one landscape, the effective potential Ω = −(1−μ)/r₁ − μ/r₂ − ½(x² + y²) (μ = 0.0121,
-the Earth–Moon mass ratio). It has five flat spots: three saddles L1, L2, L3 on the axis and two
-hilltops, L4 and L5, 60° ahead of and behind the Moon. A ball on a hilltop should roll off — but
-in a turning frame the Coriolis force (ẍ − 2ẏ = −∂Ω/∂x, ÿ + 2ẋ = −∂Ω/∂y) bends every slide into a
-loop, and a probe released near L4 circles it forever on a "tadpole" orbit, while one released
-at the L1 saddle falls away. The height is drawn log-compressed so that the flat spots are
-visible; the Jacobi constant C = −2Ω − v², measured along the orbit, stays fixed.
+在与地球和月球共同旋转的参考系中，一个小天体感受到引力与离心力
+合成的单一势面，有效势 Ω = −(1−μ)/r₁ − μ/r₂ − ½(x² + y²)（μ = 0.0121，
+地月质量比）。它有五个平点：轴上三个鞍点 L1、L2、L3 和两个
+山顶 L4、L5，分别位于月球前方和后方 60° 处。山顶上的球应该滚下——但
+在旋转参考系中，科里奥利力（ẍ − 2ẏ = −∂Ω/∂x，ÿ + 2ẋ = −∂Ω/∂y）将每次滑动
+弯成回路，在 L4 附近释放的探测器永远绕其做"蝌蚪"轨道运行，而在
+L1 鞍点释放的探测器则坠落离去。高度以对数压缩绘制，使平点
+可见；沿轨道测量的雅可比常数 C = −2Ω − v² 保持不变。
 """
 
 import numpy as np
@@ -15,7 +15,7 @@ import numpy as np
 import manimgx as m
 
 MU = 0.0121
-SIZE = 2.35  # screen units per unit of distance
+SIZE = 2.35  # 屏幕单位每距离单位
 L4 = np.array([0.5 - MU, np.sqrt(3) / 2])
 
 
@@ -26,7 +26,7 @@ def potential(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 
 def slope(x: float, y: float) -> tuple[float, float]:
-    """∂Ω/∂x, ∂Ω/∂y."""
+    """∂Ω/∂x, ∂Ω/∂y。"""
     r1 = np.hypot(x + MU, y) ** 3
     r2 = np.hypot(x - 1 + MU, y) ** 3
     gx = (1 - MU) * (x + MU) / r1 + MU * (x - 1 + MU) / r2 - x
@@ -38,13 +38,13 @@ TOP = float(potential(np.array(L4[0]), np.array(L4[1])))
 
 
 def height(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """The landscape as drawn: 0 at the hilltops L4 and L5, log-compressed below, floored."""
+    """绘制出的地貌：山顶 L4 和 L5 处为 0，下方对数压缩，设下限。"""
     below = np.maximum(TOP - potential(x, y), 0)
     return np.maximum(-0.55 * np.log1p(below / 0.004), -4.2)
 
 
 def collinear_points() -> list[float]:
-    """x of L1, L2, L3: where the slope along the axis vanishes (bisection)."""
+    """L1、L2、L3 的 x 坐标：轴上斜率为零处（二分法）。"""
 
     def root(a: float, b: float) -> float:
         for _ in range(100):
@@ -59,7 +59,7 @@ def collinear_points() -> list[float]:
 
 
 def orbit(start: np.ndarray, span: float, steps: int) -> np.ndarray:
-    """(x, y, vx, vy) along the rotating-frame equations of motion, RK4."""
+    """旋转参考系运动方程的 (x, y, vx, vy) 轨迹，RK4。"""
 
     def rate(s: np.ndarray) -> np.ndarray:
         gx, gy = slope(s[0], s[1])
@@ -93,8 +93,8 @@ def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
 
 
 def grid_mesh(nu: int, nv: int, fill_color: str = "#ffffff") -> m.MeshMobject:
-    """A smooth lit mesh over an (nu + 1) × (nv + 1) grid of vertices (vertex i·(nv + 1) + j),
-    each cell two triangles; its points are set by whoever shapes it."""
+    """在 (nu + 1) × (nv + 1) 顶点网格上的光滑光照网格（顶点 i·(nv + 1) + j），
+    每个单元格两个三角形；其顶点由塑造它的调用方设置。"""
     idx = np.arange((nu + 1) * (nv + 1)).reshape(nu + 1, nv + 1)
     a, b, c, d = idx[:-1, :-1], idx[1:, :-1], idx[1:, 1:], idx[:-1, 1:]
     cells = np.stack([np.stack([a, b, c], -1), np.stack([a, c, d], -1)], 2)
@@ -107,9 +107,9 @@ def grid_mesh(nu: int, nv: int, fill_color: str = "#ffffff") -> m.MeshMobject:
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """摄像机在其轨道角处的坐标轴，以行向量表示：右、上、朝向观察者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 轴的旋转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -117,13 +117,13 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 轴旋转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
 def billboard(label: m.Mobject, camera: m.Camera, shown: m.ValueTracker) -> m.Mobject:
-    """Keep `label` where it is, turned every frame to face the camera, at opacity `shown` (fade it
-    by animating `shown`: a FadeIn would fight the turning)."""
+    """将 `label` 保持在原位，每帧转向摄像机，不透明度为 `shown`（通过
+    动画 `shown` 来淡入淡出：FadeIn 会与转动冲突）。"""
     anchor = label.get_center()
     parts = [
         (part, part.points - anchor) for part in label.family_members_with_points()
@@ -142,7 +142,7 @@ def billboard(label: m.Mobject, camera: m.Camera, shown: m.ValueTracker) -> m.Mo
 
 class LagrangePoints(m.ThreeDScene):
     def construct(self) -> None:
-        # the landscape on a polar grid around the barycenter
+        # 绕重心极坐标网格上的地貌
         radial = np.linspace(0.04, 1.62, 230) ** 1.0
         angular = np.linspace(0, m.TAU, 361)
         rr, aa = np.meshgrid(radial, angular, indexing="ij")
@@ -165,7 +165,7 @@ class LagrangePoints(m.ThreeDScene):
         rise(land)
         land.add_updater(rise)
 
-        # the five Lagrange points
+        # 五个拉格朗日点
         l1, l2, l3 = collinear_points()
         spots = {
             "L1": (l1, 0.0),
@@ -189,7 +189,7 @@ class LagrangePoints(m.ThreeDScene):
         for label, shown in zip(labels, labels_shown, strict=True):
             billboard(label, self.camera, shown)
 
-        # two probes, released at rest: near the L4 hilltop, and at the L1 saddle
+        # 两个静止释放的探测器：一个在 L4 山顶附近，一个在 L1 鞍点
         span, steps = 62.0, 6200
         tadpole = orbit(np.array([L4[0] + 0.02, L4[1], 0.0, 0.0]), span, steps)
         falling = orbit(np.array([l1 - 0.004, 0.0, 0.0, 0.0]), 10.0, 1000)
@@ -242,7 +242,7 @@ class LagrangePoints(m.ThreeDScene):
             "L4 is a hilltop; the Coriolis force keeps the probe on it.", font_size=26
         )
         closing.to_edge(m.DOWN, buff=0.35)
-        for text in (title, subtitle, c_row, closing):  # readable over the landscape
+        for text in (title, subtitle, c_row, closing):  # 在地貌上清晰可读
             text.add_background_rectangle(color=m.BLACK, opacity=0.85, buff=0.08)
         self.add_fixed_in_frame_mobjects(title, subtitle, c_row, closing)
         self.remove(c_row, closing)
@@ -254,7 +254,7 @@ class LagrangePoints(m.ThreeDScene):
             frame_center=np.array([0.3, 0.4, -1.2]),
         )
         self.add(land)
-        # 0–4 s: the landscape rises out of the plane (the camera drifting round, slowly)
+        # 0–4 秒：地貌从平面升起（摄像机缓慢环绕）
         self.play(
             grown.animate.set_value(1.0),
             self.camera.theta_tracker.animate(rate_func=m.linear).set_value(
@@ -262,7 +262,7 @@ class LagrangePoints(m.ThreeDScene):
             ),
             run_time=3.5,
         )
-        # 4–9 s: the five flat spots
+        # 4–9 秒：五个平点
         self.add(labels)
         self.play(
             m.LaggedStart(
@@ -277,7 +277,7 @@ class LagrangePoints(m.ThreeDScene):
             ),
             run_time=3.5,
         )
-        # 9–25 s: release two probes at rest; follow the one near L4 up close
+        # 9–25 秒：静止释放两个探测器；近距离跟随 L4 附近的那个
         self.add(tad_trail, tad_dot, fall_trail, fall_dot)
         self.play(m.FadeIn(c_row), run_time=0.5)
         self.move_camera(
@@ -303,7 +303,7 @@ class LagrangePoints(m.ThreeDScene):
             run_time=10,
             rate_func=m.linear,
         )
-        # 26–30 s: step back: why it stays
+        # 26–30 秒：退后：为何它不离开
         self.move_camera(
             phi=52 * m.DEGREES,
             theta=20 * m.DEGREES,

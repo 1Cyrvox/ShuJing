@@ -1,11 +1,10 @@
-"""Where √z lives: two sheets — and log z, an endless staircase.
+"""√z 的栖身之所：两张叶——以及 log z，一座无尽的螺旋阶梯。
 
-Walk once around 0 and √z comes back negated: √(r e^{iθ}) = √r e^{iθ/2}, and θ → θ + 2π flips
-e^{iθ/2}. Walk around twice and it returns. So √z is not a function on the plane but on a
-surface with two sheets over it (Riemann, 1851): here the height is Re √z and the color is the
-angle of √z, and the walker's value — measured from the surface it stands on — flips sign after
-one loop and comes back after two. The same plane grid then bends into log z = ln r + iθ, whose
-height Im log z climbs 2π with every loop: an infinite spiral staircase.
+绕 0 走一圈，√z 便带着负号归来：√(r e^{iθ}) = √r e^{iθ/2}，而 θ → θ + 2π 使 e^{iθ/2} 反号。
+绕两圈则恢复原值。因此 √z 并非平面上的函数，而是覆于其上的双叶曲面上的函数（Riemann,
+1851）：此处高度为 Re √z，颜色为 √z 的辐角，而行走者的值——从其所站立的曲面上读取——绕一
+圈后反号，绕两圈后复原。同一平面网格随后弯成 log z = ln r + iθ，其高度 Im log z 每绕一圈
+攀升 2π：一座无限的螺旋阶梯。
 """
 
 import numpy as np
@@ -13,14 +12,14 @@ import numpy as np
 import manimgx as m
 
 R_MAX = 2.5
-TURNS = 2  # the grid covers θ ∈ [0, 4π): both sheets of √z, two floors of log z
+TURNS = 2  # 网格覆盖 θ ∈ [0, 4π)：√z 的两张叶，log z 的两层
 NR, NT = 40, 360
-WALK = 1.8  # the walker's |z|
-FLOOR = 1.6  # the staircase rises this much per turn (on screen)
+WALK = 1.8  # 行走者的 |z|
+FLOOR = 1.6  # 阶梯每圈上升的高度（屏幕上）
 
 
 def lifted(r: np.ndarray, theta: np.ndarray, blend: float) -> np.ndarray:
-    """The surface: height Re √z (blend 0) bending into Im log z (blend 1), over z = r e^{iθ}."""
+    """曲面：高度为 Re √z（blend 为 0）弯转为 Im log z（blend 为 1），覆于 z = r e^{iθ} 之上。"""
     root = np.sqrt(r) * np.cos(theta / 2)
     stairs = FLOOR * (theta / m.TAU - TURNS / 2)
     return np.stack(
@@ -29,8 +28,7 @@ def lifted(r: np.ndarray, theta: np.ndarray, blend: float) -> np.ndarray:
 
 
 def hues(theta: np.ndarray, r: np.ndarray) -> np.ndarray:
-    """Color by the angle of the lifted point (θ/2 for √z: once around the rainbow over two
-    turns), with soft rings in |z| for texture."""
+    """按提升点的辐角着色（√z 为 θ/2：两圈绕彩虹一周），辅以 |z| 中的柔和环纹作为纹理。"""
     hue = (theta / (TURNS * m.TAU)) % 1.0
     k = np.arange(3)[None, :]
     rgb = 0.5 + 0.5 * np.cos(m.TAU * (hue[:, None] - k / 3))
@@ -43,7 +41,7 @@ def hues(theta: np.ndarray, r: np.ndarray) -> np.ndarray:
 def tube(
     points: np.ndarray, radius: float, sides: int = 10
 ) -> tuple[np.ndarray, np.ndarray]:
-    """A lit tube along a polyline (parallel-transport frames)."""
+    """沿折线的带光照管体（平行移动标架）。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True) + 1e-12
     seed = np.cross(tangent[0], [0.3, 0.5, 0.8])
@@ -72,8 +70,8 @@ def tube(
 
 
 def grid_mesh(nu: int, nv: int, fill_color: str = "#ffffff") -> m.MeshMobject:
-    """A smooth lit mesh over an (nu + 1) × (nv + 1) grid of vertices (vertex i·(nv + 1) + j),
-    each cell two triangles; its points are set by whoever shapes it."""
+    """在 (nu + 1) × (nv + 1) 顶点网格上的光滑带光照网格（顶点编号 i·(nv + 1) + j），
+    每个单元两个三角形；其点由塑造它的调用方设置。"""
     idx = np.arange((nu + 1) * (nv + 1)).reshape(nu + 1, nv + 1)
     a, b, c, d = idx[:-1, :-1], idx[1:, :-1], idx[1:, 1:], idx[:-1, 1:]
     cells = np.stack([np.stack([a, b, c], -1), np.stack([a, c, d], -1)], 2)
@@ -102,7 +100,7 @@ class RiemannSurfaces(m.ThreeDScene):
         bend(sheet)
         sheet.add_updater(bend)
 
-        # the walker goes around 0 at |z| = WALK; its path on the surface is a glowing tube
+        # 行走者以 |z| = WALK 绕 0 行走；其在曲面上的路径是一条发光管
         angle = m.ValueTracker(0.0)
         walker = m.Dot3D(radius=0.09, color=m.WHITE)
 
@@ -131,7 +129,7 @@ class RiemannSurfaces(m.ThreeDScene):
 
         path.add_updater(trace)
 
-        # the walker's value, read from where it stands (√z, then log z)
+        # 行走者的值，从其所站位置读取（√z，而后 log z）
         title = m.Text("Where √z lives", font_size=40).to_corner(m.UL)
         subtitle = m.Text(
             "height: Re √z   ·   color: the angle of √z", font_size=22
@@ -179,7 +177,7 @@ class RiemannSurfaces(m.ThreeDScene):
         self.wait(1.5)
         self.add(path, walker)
         self.play(m.FadeIn(hud), m.FadeIn(walker), run_time=1)
-        # one loop: the walker ends on the other sheet, and √z has flipped sign
+        # 绕一圈：行走者到达另一叶，√z 已反号
         self.play(angle.animate.set_value(m.TAU), run_time=5, rate_func=m.linear)
         flipped = (
             m.Text("one loop: √z → −√z", font_size=26)
@@ -189,7 +187,7 @@ class RiemannSurfaces(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(flipped)
         self.remove(flipped)
         self.play(m.FadeIn(flipped), run_time=0.8)
-        # a second loop brings it home
+        # 第二圈将其带回原处
         self.play(
             angle.animate.set_value(2 * m.TAU - 0.02), run_time=5, rate_func=m.linear
         )
@@ -201,7 +199,7 @@ class RiemannSurfaces(m.ThreeDScene):
         self.play(m.Transform(flipped, home), run_time=0.8)
         self.wait(0.6)
 
-        # log z: the same grid bends into an endless staircase
+        # log z：同一网格弯转为一座无尽的阶梯
         log_title = m.Text("…and log z, an endless staircase", font_size=40).to_corner(
             m.UL
         )

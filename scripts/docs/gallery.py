@@ -119,8 +119,8 @@ def index(intro: str, groups: list[tuple[str, list[Film]]]) -> str:
         for title, films in groups
     ]
     return (
-        front(title="Gallery", description=intro, hide=["navigation", "toc"])
-        + f"# Gallery\n\n{intro}\n\n"
+        front(title="画廊", description=intro, hide=["navigation", "toc"])
+        + f"# 画廊\n\n{intro}\n\n"
         + "\n".join(sections)
     )
 

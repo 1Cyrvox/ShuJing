@@ -1,12 +1,12 @@
-"""The Hopf fibration: the 3-sphere is made of circles, one over each point of the 2-sphere.
+"""霍普夫纤维化：三维球面由圆构成，二维球面上每一点上方一个圆。
 
-The Hopf map h(z1, z2) = (2 z1 z̄2, |z1|² − |z2|²) sends the unit 3-sphere in C² onto the 2-sphere,
-and the points sent to p = (θ, φ) form a great circle: (cos(θ/2) e^{iξ}, sin(θ/2) e^{i(ξ − φ)}).
-Stereographic projection P(x) = (x1, x2, x3)/(1 − x4) keeps circles circles. A point on the small
-sphere (lower left) lights up its circle; a point sweeping a latitude sweeps out a torus of
-Villarceau circles; four latitudes nest four tori around the circle over the north pole, and the
-circle over the south pole runs through infinity as the vertical axis. Every two circles link once:
-the Gauss linking integral of every drawn pair is measured, not assumed.
+霍普夫映射 h(z1, z2) = (2 z1 z̄2, |z1|² − |z2|²) 将 C² 中的单位三维球面映到二维球面，
+被映到 p = (θ, φ) 的点构成一个大圆：(cos(θ/2) e^{iξ}, sin(θ/2) e^{i(ξ − φ)})。
+球极投影 P(x) = (x1, x2, x3)/(1 − x4) 保持圆仍为圆。小球（左下角）
+上一个点亮其圆周；扫过一条纬线的点扫出一个维拉索圆环面；
+四条纬线在北极上方的圆周围嵌套四个环面，而
+南极上方的圆穿过无穷远成为竖直轴。每两个圆恰好链接一次：
+每对所绘圆的高斯环绕积分是测量得到的，而非假设的。
 """
 
 from collections.abc import Callable
@@ -17,9 +17,9 @@ import manimgx as m
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """摄像机在其轨道角处的坐标轴，以行向量表示：右、上、朝向观察者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 轴的旋转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -27,26 +27,26 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 轴旋转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
-S = 0.8  # scale of the projected picture
-LATITUDES = np.radians([30.0, 60.0, 90.0, 120.0])  # polar angles of the four tori
+S = 0.8  # 投影图的比例
+LATITUDES = np.radians([30.0, 60.0, 90.0, 120.0])  # 四个环面的极角
 COLORS = ["#ffc94a", "#ff8a3d", "#f0506e", "#6f8cff"]
-PER_TORUS = 16  # circles per torus
-RING, SIDES, TUBE = 128, 8, 0.032  # points per circle, tube sides, tube radius
-BALL = 0.9  # radius of the base sphere, pinned to the lower left of the screen
+PER_TORUS = 16  # 每个环面的圆数
+RING, SIDES, TUBE = 128, 8, 0.032  # 每个圆的点数、管侧数、管半径
+BALL = 0.9  # 基球的半径，固定在屏幕左下角
 BALL_AT = np.array([-5.25, -2.3])
 
 
-# ── the fibration ──────────────────────────────────────────────────────────────────────────────
+# ── 纤维化 ──────────────────────────────────────────────────────────────────────────────
 
 
 def hopf_circle(
     theta: float | np.ndarray, phi: float | np.ndarray, xi: np.ndarray
 ) -> np.ndarray:
-    """The projected points ξ of the circle over the base point (θ, φ) (arrays broadcast)."""
+    """基点 (θ, φ) 上方圆周的投影点 ξ（数组广播）。"""
     z1 = np.cos(theta / 2) * np.exp(1j * xi)
     z2 = np.sin(theta / 2) * np.exp(1j * (xi - phi))
     x = np.stack([z1.real, z1.imag, z2.real, z2.imag], -1)
@@ -54,12 +54,12 @@ def hopf_circle(
 
 
 def fibre(theta: float, phi: float) -> np.ndarray:
-    """Three points of the projected circle over the base point (θ, φ)."""
+    """基点 (θ, φ) 上方投影圆的三个点。"""
     return hopf_circle(theta, phi, np.array([0.0, 2 * np.pi / 3, 4 * np.pi / 3]))
 
 
 def circle(three: np.ndarray, n: int = RING) -> np.ndarray:
-    """n evenly spaced points of the circle through three points, from the first one on."""
+    """过三点的圆上 n 个均匀分布的点，从第一个点起。"""
     a, b, c = three
     ab, ac = b - a, c - a
     normal = np.cross(ab, ac)
@@ -76,8 +76,8 @@ def circle(three: np.ndarray, n: int = RING) -> np.ndarray:
 def ring_tubes(
     curves: np.ndarray, radius: float = TUBE
 ) -> tuple[np.ndarray, np.ndarray]:
-    """A lit tube around each closed planar curve in (count, n, 3): vertices, and triangles
-    shaped (count, n, 2·SIDES, 3) so each curve can be revealed segment by segment."""
+    """(count, n, 3) 中每条闭合平面曲线周围的光照管：顶点，以及
+    形状为 (count, n, 2·SIDES, 3) 的三角形，使每条曲线可逐段揭示。"""
     count, n, _ = curves.shape
     tangent = np.roll(curves, -1, 1) - np.roll(curves, 1, 1)
     tangent /= np.linalg.norm(tangent, axis=-1, keepdims=True)
@@ -103,10 +103,10 @@ def ring_tubes(
 
 
 def linking(a: np.ndarray, b: np.ndarray, edges: int | None = None) -> np.ndarray:
-    """Gauss linking integrals of closed polygons a (k, n, 3) with the polygon b (n', 3), or
-    with its first `edges` edges only: (1/4π) ∮∮ (r_a − r_b)·(dr_a × dr_b)/|r_a − r_b|³, summed
-    exactly over pairs of edges as the signed solid angles of the quadrilaterals they span
-    (Klenin & Langowski 2000). For two closed polygons it is their linking number."""
+    """闭合多边形 a (k, n, 3) 与多边形 b (n', 3) 的高斯环绕积分，或
+    仅取其前 `edges` 条边：(1/4π) ∮∮ (r_a − r_b)·(dr_a × dr_b)/|r_a − r_b|³，在
+    边对上精确求和，作为它们所张四边形的带符号立体角
+    （Klenin & Langowski 2000）。对于两个闭合多边形，即为其环绕数。"""
 
     def unit(v: np.ndarray) -> np.ndarray:
         return v / np.linalg.norm(v, axis=-1, keepdims=True)
@@ -125,7 +125,7 @@ def linking(a: np.ndarray, b: np.ndarray, edges: int | None = None) -> np.ndarra
 
 
 def live(number: m.DecimalNumber, value: Callable[[], float]) -> m.DecimalNumber:
-    """Keep a number showing value(), re-typesetting it only when its digits change."""
+    """使一个数字显示 value()，仅在其数字变化时重新排版。"""
 
     def update(d: m.DecimalNumber) -> None:
         v, places = value(), d.num_decimal_places
@@ -137,7 +137,7 @@ def live(number: m.DecimalNumber, value: Callable[[], float]) -> m.DecimalNumber
 
 
 def beads(centers: np.ndarray, radius: float) -> tuple[np.ndarray, np.ndarray]:
-    """Vertices and triangles of small lit spheres at the given centers (one mesh)."""
+    """给定中心处小光照球的顶点和三角形（一个网格）。"""
     lon, lat = np.meshgrid(
         np.linspace(0, m.TAU, 9)[:-1], np.linspace(0, np.pi, 6), indexing="ij"
     )
@@ -156,7 +156,7 @@ def beads(centers: np.ndarray, radius: float) -> tuple[np.ndarray, np.ndarray]:
     return verts, (tris[None] + offsets).reshape(-1, 3)
 
 
-# ── the scene ──────────────────────────────────────────────────────────────────────────────────
+# ── 场景 ──────────────────────────────────────────────────────────────────────────────────
 
 
 def base_point(theta: float, phi: float) -> np.ndarray:
@@ -172,8 +172,8 @@ def parametric_mesh(
     resolution: tuple[int, int],
     fill_color: str,
 ) -> m.MeshMobject:
-    """A smooth lit mesh of func over a (u, v) grid: vertex i·(nv + 1) + j is at (u_i, v_j),
-    each cell two triangles."""
+    """func 在 (u, v) 网格上的光滑光照网格：顶点 i·(nv + 1) + j 位于 (u_i, v_j)，
+    每个单元格两个三角形。"""
     nu, nv = resolution
     us, vs = np.linspace(*u_range, nu + 1), np.linspace(*v_range, nv + 1)
     points = np.array([[func(u, v) for v in vs] for u in us], dtype=float)
@@ -189,15 +189,15 @@ def parametric_mesh(
 
 
 class Torus:
-    """The circles over one latitude, all computed up front and laid down as a point sweeps
-    past them (its own circle, moving with it, is the brush)."""
+    """一条纬线上方的所有圆，预先算好，随着点扫过
+    它们而逐一铺下（其自身的圆随其移动，是画笔）。"""
 
     def __init__(self, theta: float, color: str) -> None:
         self.theta, self.color = theta, color
         self.phis = np.arange(PER_TORUS) * m.TAU / PER_TORUS
         self.curves = np.stack([circle(fibre(theta, phi)) for phi in self.phis])
         self.verts, self.tris = ring_tubes(self.curves)
-        self.sweep = m.ValueTracker(-1.0)  # the sweeping point's φ (negative: not yet)
+        self.sweep = m.ValueTracker(-1.0)  # 扫描点的 φ（负值：尚未开始）
         self.count = 0
         self.mob = m.MeshMobject(
             self.verts, self.tris[:0].reshape(-1, 3), shade_in_3d=True
@@ -212,7 +212,7 @@ class Torus:
         laid = self.laid()
         if laid.sum() != self.count:
             self.count = int(laid.sum())
-            # points are assigned too: a change of triangles alone is not redrawn
+            # 顶点也被赋值：仅改变三角形不会重绘
             mob.points, mob.triangles = self.verts, self.tris[laid].reshape(-1, 3)
 
 
@@ -225,26 +225,26 @@ class HopfFibration(m.ThreeDScene):
         ball_size = m.ValueTracker(0.0)
 
         def pinned(p: np.ndarray) -> np.ndarray:
-            """World position of the point p of the unit base sphere, which sits at a fixed
-            spot of the screen but keeps the world's orientation (it turns as the camera
-            orbits, like everything else)."""
+            """单位基球上点 p 的世界位置，基球固定在屏幕上的
+            一个位置但保持世界朝向（随摄像机
+            轨道转动，与一切 else 相同）。"""
             axes = camera_axes(cam.get_phi(), cam.get_theta(), cam.get_gamma())
             at = BALL_AT / cam.get_zoom()
             size = BALL * ball_size.get_value()
             return cam.frame_center + at[0] * axes[0] + at[1] * axes[1] + size * p
 
         def dot(where: Callable[[], np.ndarray], color: str, radius: float) -> m.Dot3D:
-            """A point on the base sphere; where() is its unit vector (0: hidden inside)."""
+            """基球上的一个点；where() 是其单位向量（0：隐藏在内部）。"""
             d = m.Dot3D(radius=radius, color=color)
             d.add_updater(lambda d: d.move_to(pinned(1.01 * where())))
             return d
 
-        # the base sphere S²
+        # 基球 S²
         ball = parametric_mesh(base_point, (0, np.pi), (0, m.TAU), (24, 48), "#1d2436")
         unit = ball.points.copy()
         ball.add_updater(lambda mob: mob.set_points(pinned(unit)))
 
-        # the four tori, and a dot under every circle laid down
+        # 四个环面，以及每个铺下的圆下方的一个点
         tori = [Torus(th, c) for th, c in zip(LATITUDES, COLORS)]
         trail = [
             dot(
@@ -256,8 +256,8 @@ class HopfFibration(m.ThreeDScene):
             for k in range(PER_TORUS)
         ]
 
-        # moving points (θ, φ, how much of its circle is drawn): one per latitude, whose
-        # circles are the brushes, and the north pole, whose circle is the core of every torus
+        # 移动点（θ, φ, 已绘圆的比例）：每条纬度一个，其
+        # 圆是画笔，以及北极，其圆是每个环面的核心
         points = [
             (m.ValueTracker(th), m.ValueTracker(0.0), m.ValueTracker(0.0))
             for th in [*LATITUDES, 0.0]
@@ -288,7 +288,7 @@ class HopfFibration(m.ThreeDScene):
         (a_theta, a_phi, a_drawn), (b_theta, b_phi, b_drawn) = points[1], points[3]
         b_phi.set_value(np.radians(110))
 
-        # the circle over the south pole runs through infinity: the axis, grown both ways
+        # 南极上方的圆穿过无穷远：轴线，双向生长
         axis_length = m.ValueTracker(0.0)
         axis = parametric_mesh(
             lambda u, z: np.array(
@@ -308,7 +308,7 @@ class HopfFibration(m.ThreeDScene):
         def axis_scale() -> np.ndarray:
             grown = (
                 axis_length.get_value()
-            )  # 0 → 1: thickens at once, lengthens steadily
+            )  # 0 → 1：立即变粗，稳步变长
             return np.array([min(1.0, 4 * grown), min(1.0, 4 * grown), 3.1 * grown])
 
         axis.add_updater(lambda mob: mob.set_points(spindle * axis_scale()))
@@ -318,7 +318,7 @@ class HopfFibration(m.ThreeDScene):
             0.065,
         )
 
-        # beads riding the circles: the circle action (z1, z2) ↦ e^{is}(z1, z2), a rotation of S³
+        # 沿圆骑行的珠子：圆作用 (z1, z2) ↦ e^{is}(z1, z2)，S³ 的旋转
         base = np.array([(t.theta, phi) for t in tori for phi in t.phis] + [(0.0, 0.0)])
         per_circle = 6
         bead_theta, bead_phi = (np.repeat(base[:, k], per_circle) for k in (0, 1))
@@ -343,7 +343,7 @@ class HopfFibration(m.ThreeDScene):
         )
         bead_mob.add_updater(lambda mob: mob.set_points(bead_mesh()[0]))
 
-        # heads-up display
+        # 平视显示器
         title = m.Text("The fibration", font_size=38).to_corner(m.UL)
         subtitle = m.Text(
             "S³ is made of circles, one over each point of S²", font_size=22
@@ -362,7 +362,7 @@ class HopfFibration(m.ThreeDScene):
         base_label.move_to([BALL_AT[0] + 1.2, BALL_AT[1] + 0.9, 0])
 
         def two_circles() -> float:
-            """The Gauss integral of A's circle with the part of B's circle drawn so far."""
+            """A 的圆与 B 的圆已绘部分的高斯积分。"""
             a = circle(fibre(a_theta.get_value(), a_phi.get_value()), RING // 2)
             b = circle(fibre(b_theta.get_value(), b_phi.get_value()), RING // 2)
             return float(linking(a[None], b, int(b_drawn.get_value() * RING // 2))[0])
@@ -374,7 +374,7 @@ class HopfFibration(m.ThreeDScene):
         )
         link_row.arrange(m.RIGHT, buff=0.2).to_corner(m.DR)
 
-        # every pair of the 65 circles drawn in the end, measured once (on every other vertex)
+        # 最终绘制的 65 个圆的每对，测量一次（每隔一个顶点）
         drawn = np.concatenate(
             [t.curves for t in tori] + [circle(fibre(0.0, 0.0))[None]]
         )
@@ -399,18 +399,18 @@ class HopfFibration(m.ThreeDScene):
         self.add(ball, *(t.mob for t in tori), axis, bead_mob, *trail, *brushes[1])
         self.begin_ambient_camera_rotation(rate=0.06)
 
-        # 0–1.8 s: one point, one circle
+        # 0–1.8 秒：一个点，一个圆
         self.play(
             ball_size.animate(run_time=0.6).set_value(1.0),
             a_drawn.animate(run_time=1.8).set_value(1.0),
             m.FadeIn(base_label, run_time=0.6),
             m.FadeIn(hopf, run_time=1.2),
         )
-        # 1.8–3.8 s: a second point, a second circle: the integral grows to 1 as it closes
+        # 1.8–3.8 秒：第二个点，第二个圆：积分随其闭合增长到 1
         self.add(*brushes[3])
         self.play(m.FadeIn(link_row), run_time=0.4)
         self.play(b_drawn.animate.set_value(1.0), run_time=1.6, rate_func=m.linear)
-        # 3.8–7 s: the second point wanders; its circle stays linked, and the integral says so
+        # 3.8–7 秒：第二个点游走；其圆保持链接，积分证实之
         self.play(
             b_theta.animate.set_value(np.radians(70)),
             b_phi.animate.set_value(np.radians(250)),
@@ -421,7 +421,7 @@ class HopfFibration(m.ThreeDScene):
             b_phi.animate.set_value(m.TAU),
             run_time=1.6,
         )
-        # 7–11 s: B sweeps its latitude, leaving circles behind: a torus
+        # 7–11 秒：B 扫过其纬度，留下圆：一个环面
         b_phi.set_value(0.0)
         self.play(
             b_phi.animate.set_value(m.TAU),
@@ -430,7 +430,7 @@ class HopfFibration(m.ThreeDScene):
             rate_func=m.linear,
         )
         self.remove(*brushes[3])
-        # 11–15.6 s: three more points sweep three more latitudes at once: nested tori
+        # 11–15.6 秒：另外三个点同时扫过另外三条纬度：嵌套环面
         self.add(*brushes[0], *brushes[2])
         self.play(*(points[k][2].animate.set_value(1.0) for k in (0, 2)), run_time=0.6)
         self.play(
@@ -440,14 +440,14 @@ class HopfFibration(m.ThreeDScene):
             rate_func=m.linear,
         )
         self.remove(*brushes[0], *brushes[1], *brushes[2])
-        # 15.6–17.2 s: the circles over the poles: the core, and a line through infinity
+        # 15.6–17.2 秒：两极上方的圆：核心，和一条穿过无穷远的直线
         self.add(*brushes[4], south)
         self.play(
             points[4][2].animate.set_value(1.0),
             axis_length.animate.set_value(1.0),
             run_time=1.6,
         )
-        # 17.2–30 s: every pair measured; the beads ride their circles; the closing line
+        # 17.2–30 秒：每对测量；珠子沿圆骑行；结语行
         flow.add_updater(lambda v, dt: v.increment_value(m.TAU / 7 * dt))
         self.add(flow)
         self.play(

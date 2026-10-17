@@ -1,29 +1,29 @@
-"""Leapfrogging smoke rings: two vortex rings take turns passing through each other.
+"""蛙跳烟环：两个涡环轮流穿过对方。
 
-Two identical smoke rings travel one behind the other. The front ring's flow squeezes the rear
-ring and pulls it forward: it shrinks, speeds up and slips through the front ring, which the rear
-ring's flow pushes wider and slower. Then the roles swap, again and again (Helmholtz, 1858).
+两个相同的烟环一前一后行进。前环的流动挤压后环
+并将其拉向前方：它缩小、加速并穿过前环，而前环被后环
+的流动推得更宽更慢。然后角色互换，如此反复（亥姆霍兹，1858）。
 
-Each ring is a circular vortex filament with a smoothed core. Its velocity field is exact:
-complete elliptic integrals, computed by the arithmetic–geometric mean. The two rings and 12,000
-smoke particles are all carried by the same field. Kelvin's impulse, proportional to r₁² + r₂², is
-conserved, so when one ring shrinks the other must grow.
+每个环是一个具有光滑核的圆形涡丝。其速度场是精确的：
+完全椭圆积分，由算术–几何均值计算。两个环和 12000 个
+烟粒子都由同一场携带。开尔文冲量正比于 r₁² + r₂²，保持
+守恒，因此当一个环缩小时另一个必增大。
 """
 
 import numpy as np
 
 import manimgx as m
 
-GAMMA = 1.0  # circulation of each ring
-CORE = 0.1  # smoothing length of the cores
-TIME_SCALE = 0.8  # model time per second of video
-SCALE = 1.75  # screen units per model unit (the rings start with radius 1)
-SMOKE = 9000  # particles per ring
+GAMMA = 1.0  # 每个环的环量
+CORE = 0.1  # 核的光滑长度
+TIME_SCALE = 0.8  # 每秒视频对应的模型时间
+SCALE = 1.75  # 每模型单位对应的屏幕单位（环初始半径为 1）
+SMOKE = 9000  # 每环粒子数
 COLORS = ["#ff9f1c", "#3ddbd9"]
 
 
 def elliptic(k2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """The complete elliptic integrals K and E of parameter k², by the arithmetic–geometric mean."""
+    """参数 k² 的完全椭圆积分 K 和 E，由算术–几何均值计算。"""
     a, b = np.ones_like(k2), np.sqrt(1 - k2)
     total, weight = 0.5 * k2, 0.5
     for _ in range(7):
@@ -37,8 +37,8 @@ def elliptic(k2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 def induced(
     r: np.ndarray, z: np.ndarray, ring_r: float, ring_z: float
 ) -> tuple[np.ndarray, np.ndarray]:
-    """The velocity (u_r, u_z) at meridional points (r, z) of a vortex ring of radius ring_r at
-    height ring_z, its core smoothed over CORE."""
+    """半径为 ring_r、高度为 ring_z 的涡环在子午点 (r, z) 处的速度 (u_r, u_z)，
+    其核在 CORE 上光滑化。"""
     dz = z - ring_z
     far = dz**2 + (r + ring_r) ** 2 + CORE**2
     near = dz**2 + (r - ring_r) ** 2 + CORE**2
@@ -50,8 +50,8 @@ def induced(
 
 
 class Flow:
-    """The two rings (entries 0 and 1) and the smoke, as meridional points (r, z), all carried by
-    the rings' field; each smoke particle also keeps its angle around the axis."""
+    """两个环（条目 0 和 1）与烟雾，作为子午点 (r, z)，均由
+    环的场携带；每个烟粒子还保留其绕轴的角度。"""
 
     def __init__(self) -> None:
         rng = np.random.default_rng(3)
@@ -64,7 +64,7 @@ class Flow:
         self.z = np.concatenate([ring_z, ring_z[owner] + spread * np.sin(swirl)])
         self.angle = rng.uniform(0, m.TAU, 2 * SMOKE)
         self.owner = owner
-        self.swirl = swirl  # where around its core each particle started
+        self.swirl = swirl  # 每个粒子在其核周围的起始位置
         self.t = 0.0
 
     def velocity(self, r: np.ndarray, z: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -75,7 +75,7 @@ class Flow:
         return u_r, u_z
 
     def step(self, dt: float) -> None:
-        """One RK4 step for rings and smoke together."""
+        """环与烟雾共同的一个 RK4 步。"""
         r, z = self.r, self.z
         k1 = self.velocity(r, z)
         k2 = self.velocity(r + dt / 2 * k1[0], z + dt / 2 * k1[1])
@@ -89,7 +89,7 @@ class Flow:
         return float(self.z[:2].mean())
 
     def smoke_points(self) -> np.ndarray:
-        """The smoke on screen, in the frame moving with the pair (the axis along x)."""
+        """屏幕上的烟雾，在随该对环移动的参考系中（轴沿 x 方向）。"""
         r, z = self.r[2:], self.z[2:] - self.middle()
         return SCALE * np.column_stack(
             [z, r * np.cos(self.angle), r * np.sin(self.angle)]
@@ -108,7 +108,7 @@ class VortexRings(m.ThreeDScene):
 
         rgba = np.ones((2 * SMOKE, 4))
         rgba[:, :3] = np.array([m.ManimColor(c).to_rgb() for c in COLORS])[flow.owner]
-        # bands of denser smoke, so the rolling around each core shows
+        # 更浓的烟带，以显示绕每个核的滚动
         rgba[:, 3] = np.where(np.cos(3 * flow.swirl) > 0, 0.55, 0.22)
         smoke = m.PMobject(stroke_width=3.6)
         smoke.add_points(flow.smoke_points(), rgbas=rgba)
@@ -117,7 +117,7 @@ class VortexRings(m.ThreeDScene):
             mob.points = flow.smoke_points()
 
         smoke.add_updater(carry)
-        # a floor that scrolls back as the pair moves forward
+        # 随一对环前进而向后滚动的地板
         floor = m.VGroup(
             *[
                 m.Line([-9, y, -2.4], [9, y, -2.4], stroke_width=1.2, color=m.GREY_D)
@@ -138,7 +138,7 @@ class VortexRings(m.ThreeDScene):
 
         rungs.add_updater(scroll)
 
-        # HUD: Kelvin's impulse as a bar split between the rings: the split moves, the total stays
+        # HUD：开尔文冲量作为两环之间的分割条：分割移动，总量不变
         title = m.Text("Leapfrogging smoke rings", font_size=38).to_corner(m.UL)
         subtitle = m.Text(
             "two vortex rings take turns passing through each other (Helmholtz, 1858)",
@@ -198,7 +198,7 @@ class VortexRings(m.ThreeDScene):
         self.play(m.FadeIn(frame), m.FadeIn(caption), run_time=1)
         self.add(bar)
         self.wait(6)
-        # swing round to look along the axis: one ring through the other
+        # 转到沿轴方向看：一个环穿过另一个
         self.move_camera(phi=72 * m.DEGREES, theta=-162 * m.DEGREES, run_time=6)
         self.wait(4)
         self.move_camera(phi=66 * m.DEGREES, theta=-100 * m.DEGREES, run_time=5)

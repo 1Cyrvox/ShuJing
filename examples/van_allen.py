@@ -1,13 +1,12 @@
-"""A magnetic bottle around the Earth: how the Van Allen belts trap particles.
+"""环绕地球的磁瓶：范艾伦辐射带如何俘获粒子。
 
-A charged particle in the Earth's dipole field does three things at once. It gyrates around a
-field line. It slides along the line toward a pole until the growing field turns it back: its
-magnetic moment μ = m v⊥²/2B stays constant while its speed cannot change, so it runs out of
-parallel speed exactly where B = B_eq / sin²α (α: its pitch angle at the equator) — and bounces
-to the other hemisphere and back. And it drifts slowly around the planet: protons west, electrons
-east. The drift paints a doughnut-shaped shell, a radiation belt. Particles whose pitch angle is
-too small (the loss cone) reach the atmosphere before they can turn, and rain down near the poles.
-The motion is integrated exactly (Boris pusher); the time scales are stretched for visibility.
+带电粒子在地球的偶极场中同时做三件事。它绕一条磁力线回旋。它沿
+磁力线滑向一极，直到增强的场使其折返：其磁矩 μ = m v⊥²/2B 保持不变，
+而其速率不能改变，因此它在 B = B_eq / sin²α（α：其在赤道处的投掷角）
+处恰好耗尽平行速率——并弹跳到另一半球再返回。它还缓慢绕行星漂移：
+质子向西，电子向东。漂移描绘出一个甜甜圈形的外壳，即一条辐射带。
+投掷角过小（损失锥）的粒子在折返之前便到达大气层，在极区附近如雨倾泻。
+运动被精确积分（Boris 推进器）；时间尺度为便于观察而拉伸。
 """
 
 import functools
@@ -17,17 +16,17 @@ import numpy as np
 
 import manimgx as m
 
-K = 1500.0  # the dipole's strength, charge-to-mass ratio folded in: gyrofrequency K / r³ at the equator
-SPEED = 5.0  # every particle's speed, Earth radii per second
-DT = 1 / 540  # integration step: 9 steps per tick of the 60 Hz simulation clock
+K = 1500.0  # 偶极强度，荷质比已并入：赤道处回旋频率 K / r³
+SPEED = 5.0  # 每个粒子的速率，地球半径/秒
+DT = 1 / 540  # 积分步长：每个 60 Hz 模拟时钟刻度 9 步
 STEPS = 9
-MOMENT = np.array([0.0, 0.0, -1.0])  # the Earth's dipole points south
-PITCH = 30.0  # the first proton's equatorial pitch angle, degrees
+MOMENT = np.array([0.0, 0.0, -1.0])  # 地球偶极指向南方
+PITCH = 30.0  # 第一个质子的赤道投掷角，度
 ORANGE, CYAN = np.array([1.0, 0.68, 0.25]), np.array([0.35, 0.85, 1.0])
 
 
 def field(x: np.ndarray, sign: np.ndarray) -> np.ndarray:
-    """(charge sign) × the dipole field at points x (rows): each particle's rotation vector Ω."""
+    """（电荷符号）× 点 x（行）处的偶极场：每个粒子的旋转向量 Ω。"""
     r2 = (x * x).sum(-1, keepdims=True)
     r = np.sqrt(r2)
     rhat = x / r
@@ -35,22 +34,22 @@ def field(x: np.ndarray, sign: np.ndarray) -> np.ndarray:
 
 
 def field_at(x: float, y: float, z: float, qk: float) -> tuple[float, float, float]:
-    """`field` at one point for charge sign × K = qk, in plain floats and operation for
-    operation (so to the bit): numpy's per-call overhead would dwarf the arithmetic of three
-    numbers."""
+    """单点处 `field`，电荷符号 × K = qk，以纯浮点逐运算
+    （精确到位）：numpy 的每次调用开销将淹没三个
+    数的算术。"""
     r2 = x * x + y * y + z * z
     r = math.sqrt(r2)
     x, y, z = x / r, y / r, z / r
-    c = -3 * z  # 3 (r̂ · m), with m = MOMENT = −ẑ
+    c = -3 * z  # 3 (r̂ · m)，其中 m = MOMENT = −ẑ
     d = r2 * r
     return qk * (c * x) / d, qk * (c * y) / d, qk * (c * z + 1) / d
 
 
 def boris(particles: list[list[float]]) -> None:
-    """A step of DT in a pure magnetic field (the Boris rotation: speed is conserved exactly),
-    split so that no particle turns more than 0.25 rad per substep — near the planet, where
-    the field is hundreds of times stronger, the gyration stays resolved. Each particle is
-    [x, y, z, vx, vy, vz, sign × K], stepped in place."""
+    """纯磁场中一步 DT（Boris 旋转：速率精确守恒），
+    拆分使每个粒子每子步转动不超过 0.25 弧度——在行星附近，
+    场强数百倍之处，回旋保持可分辨。每个粒子为
+    [x, y, z, vx, vy, vz, sign × K]，就地推进。"""
     omegas = [field_at(p[0], p[1], p[2], p[6]) for p in particles]
     fastest = math.sqrt(max(a * a + b * b + c * c for a, b, c in omegas))
     parts = max(1, math.ceil(fastest * DT / 0.25))
@@ -58,12 +57,12 @@ def boris(particles: list[list[float]]) -> None:
     for p, (o0, o1, o2) in zip(particles, omegas, strict=True):
         x0, x1, x2, v0, v1, v2, qk = p
         for part in range(parts):
-            if part:  # the first substep's field is the one just measured
+            if part:  # 第一个子步的场是刚测得的那个
                 o0, o1, o2 = field_at(x0, x1, x2, qk)
             t0, t1, t2 = 0.5 * h * o0, 0.5 * h * o1, 0.5 * h * o2
             q = 1 + (t0 * t0 + t1 * t1 + t2 * t2)
             s0, s1, s2 = 2 * t0 / q, 2 * t1 / q, 2 * t2 / q
-            u0 = v0 + (v1 * t2 - v2 * t1)  # u = v + v × t, then v += u × s
+            u0 = v0 + (v1 * t2 - v2 * t1)  # u = v + v × t，而后 v += u × s
             u1 = v1 + (v2 * t0 - v0 * t2)
             u2 = v2 + (v0 * t1 - v1 * t0)
             v0 += u1 * s2 - u2 * s1
@@ -78,8 +77,8 @@ def boris(particles: list[list[float]]) -> None:
 def fly(
     x: np.ndarray, v: np.ndarray, sign: np.ndarray, steps: int, every: int
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """`steps` Boris steps of the particles (rows): their final positions and velocities, and
-    both after every `every`-th step from the first (a row per particle per sample)."""
+    """粒子的 `steps` 步 Boris 推进（行）：其最终位置与速度，
+    以及从第一步起每隔 `every` 步的二者（每个粒子每个采样一行）。"""
     particles = [
         [*p, *u, s * K]
         for p, u, s in zip(x.tolist(), v.tolist(), sign.tolist(), strict=True)
@@ -94,7 +93,7 @@ def fly(
 
 
 def guiding_center(x: np.ndarray, v: np.ndarray, sign: np.ndarray) -> np.ndarray:
-    """The center of each particle's gyration: x + (v × Ω) / Ω²."""
+    """每个粒子回旋的中心：x + (v × Ω) / Ω²。"""
     omega = field(x, sign)
     return x + np.cross(v, omega) / (omega * omega).sum(-1, keepdims=True)
 
@@ -106,8 +105,8 @@ def launch(
     sign: np.ndarray,
     speed: np.ndarray | float = SPEED,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Particles whose gyration centers sit at the equator of the field line L, with the given
-    equatorial pitch angles (the field is vertical there)."""
+    """回旋中心位于磁力线 L 赤道处的粒子，具有给定
+    的赤道投掷角（场在那里是竖直的）。"""
     center = np.stack([L * np.cos(azimuth), L * np.sin(azimuth), np.zeros_like(L)], 1)
     around = np.stack([-np.sin(azimuth), np.cos(azimuth), np.zeros_like(L)], 1)
     direction = np.sin(pitch)[:, None] * around + np.cos(pitch)[:, None] * np.array(
@@ -118,7 +117,7 @@ def launch(
 
 
 def field_line(L: float, azimuth: float, count: int = 160) -> np.ndarray:
-    """The dipole field line r = L cos²λ in the meridian at `azimuth`, above the surface."""
+    """`azimuth` 子午面中的偶极磁力线 r = L cos²λ，在地表之上。"""
     top = np.arccos(np.sqrt(1 / L))
     lat = np.linspace(-top, top, count)
     r = L * np.cos(lat) ** 2
@@ -135,13 +134,13 @@ def field_line(L: float, azimuth: float, count: int = 160) -> np.ndarray:
 def tube(
     points: np.ndarray, radius: np.ndarray, sides: int = 8
 ) -> tuple[np.ndarray, np.ndarray]:
-    """A tube along a polyline with a radius per point (parallel-transport frames)."""
+    """沿折线的管，每个点一个半径（平行移动标架）。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True) + 1e-12
     seed = np.cross(tangent[0], [0.3, 0.5, 0.8])
     n0, n1, n2 = (seed / np.linalg.norm(seed)).tolist()
     normals = [n0, n1, n2]
-    for t0, t1, t2 in tangent[1:].tolist():  # plain floats: one short step per point
+    for t0, t1, t2 in tangent[1:].tolist():  # 纯浮点：每个点一步短步
         d = n0 * t0 + n1 * t1 + n2 * t2
         n0, n1, n2 = n0 - d * t0, n1 - d * t1, n2 - d * t2
         norm = math.sqrt(n0 * n0 + n1 * n1 + n2 * n2) + 1e-12
@@ -159,8 +158,8 @@ def tube(
 
 @functools.lru_cache(maxsize=1)
 def tube_triangles(rings: int, sides: int) -> np.ndarray:
-    """A tube's triangles, two per side between neighboring rings: the same for every tube
-    of its size (kept, read-only, while a trail's length holds)."""
+    """管的三角形，相邻环之间每边两个：对每个同尺寸的管
+    相同（在轨迹长度不变期间保持只读）。"""
     i = np.arange(rings - 1)[:, None]
     j = np.arange(sides)[None, :]
     k = (j + 1) % sides
@@ -177,8 +176,8 @@ def tube_triangles(rings: int, sides: int) -> np.ndarray:
 
 @functools.lru_cache(maxsize=1)
 def trail_look(samples: int) -> tuple[np.ndarray, np.ndarray]:
-    """A trail's radius per sample and color per vertex, fading toward its oldest end: the
-    same for every trail of its length (kept while the length holds)."""
+    """轨迹每个采样的半径和每个顶点的颜色，向最老端渐隐：
+    对每个同长度的轨迹相同（长度不变期间保持）。"""
     fade = np.linspace(0, 1, samples)
     rows = np.ones((samples * 8, 4))
     rows[:, :3] = ORANGE
@@ -187,7 +186,7 @@ def trail_look(samples: int) -> tuple[np.ndarray, np.ndarray]:
 
 
 def globe_colors(points: np.ndarray) -> np.ndarray:
-    """A deep-blue planet, a little lighter toward the equator."""
+    """深蓝色行星，向赤道略浅。"""
     z = points[:, 2] / np.linalg.norm(points, axis=1)
     rows = np.ones((len(points), 4))
     rows[:, :3] = np.array([0.05, 0.16, 0.38]) + 0.12 * (1 - np.abs(z))[
@@ -197,8 +196,8 @@ def globe_colors(points: np.ndarray) -> np.ndarray:
 
 
 class Proton:
-    """The first particle: its state, and the trail it leaves (its path, or in fast time its
-    guiding center)."""
+    """第一个粒子：其状态，及其留下的轨迹（其路径，或快速时间下其
+    引导中心）。"""
 
     def __init__(self) -> None:
         sign = np.ones(1)
@@ -220,8 +219,8 @@ class Proton:
 
 
 def unit_sphere(nu: int, nv: int) -> m.MeshMobject:
-    """A smooth lit unit sphere over an (nu + 1) × (nv + 1) grid of longitude u ∈ [0, 2π] and
-    colatitude v ∈ [0, π] (vertex i·(nv + 1) + j), each cell two triangles."""
+    """在 (nu + 1) × (nv + 1) 经度 u ∈ [0, 2π]、
+    余纬 v ∈ [0, π] 网格上的光滑光照单位球（顶点 i·(nv + 1) + j），每个格胞两个三角形。"""
     u, v = np.meshgrid(
         np.linspace(0, m.TAU, nu + 1), np.linspace(0, m.PI, nv + 1), indexing="ij"
     )
@@ -321,7 +320,7 @@ class VanAllen(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, subtitle, readout, law)
         self.remove(readout, law)
 
-        # 0–10 s: close to one proton: it gyrates, slides toward a pole, turns back, bounces
+        # 0–10 秒：近看一个质子：它回旋、滑向一极、折返、弹跳
         self.set_camera_orientation(
             phi=76 * m.DEGREES,
             theta=-112 * m.DEGREES,
@@ -339,7 +338,7 @@ class VanAllen(m.ThreeDScene):
             run_time=3.5,
         )
 
-        # 10–18 s: time × 12: the bounce and the slow drift wrap a shell around the planet
+        # 10–18 秒：时间 × 12：弹跳与缓慢漂移在行星周围裹出一个外壳
         fast = m.Text(
             "time × 12 (the trail follows the gyration's center)", font_size=24
         ).set_color(m.YELLOW)
@@ -354,9 +353,9 @@ class VanAllen(m.ThreeDScene):
             phi=56 * m.DEGREES, zoom=0.92, frame_center=np.zeros(3), run_time=7
         )
 
-        # 18–30 s: time × 30. An inner-belt proton and an outer-belt electron weave shells of their
-        # own, drifting opposite ways; electrons knocked into the loss cone off the equator (as
-        # waves do) stream down their field lines into the atmosphere, near the poles
+        # 18–30 秒：时间 × 30。一条内带质子和一条外带电子各自织出
+        # 自己的外壳，朝相反方向漂移；在赤道外被撞入损失锥的电子（如
+        # 波所做的那样）沿其磁力线流入大气层，在极区附近
         GREEN = np.array([0.45, 1.0, 0.55])
         proton.speedup, proton.keep = 30, 5000
         belts = [(2.0, 60.0, 1.2, 1.0, 5.0, ORANGE), (4.2, 55.0, 2.6, -1.0, 2.6, CYAN)]
@@ -368,8 +367,8 @@ class VanAllen(m.ThreeDScene):
             np.array([b_[3] for b_ in belts]),
             np.array([b_[4] for b_ in belts]),
         )
-        # the rain: a latitude of ±25° on lines L = 5 … 6, heading down the line, pitch 2° (inside
-        # the local loss cone, ~5°), released one after another
+        # 雨幕：L = 5 … 6 的磁力线上纬度 ±25°，沿磁力线向下，投掷角 2°（在
+        # 局部损失锥 ~5° 之内），依次释放
         rain_count = 64
         rain_L = rng.uniform(5.0, 6.0, rain_count)
         hemisphere = np.where(np.arange(rain_count) % 2 == 0, 1.0, -1.0)
@@ -386,7 +385,7 @@ class VanAllen(m.ThreeDScene):
         )
         b_hat = field(start, np.ones(rain_count))
         b_hat /= np.linalg.norm(b_hat, axis=1, keepdims=True)
-        b_hat *= -np.sign((b_hat * start).sum(1))[:, None]  # along the line, inward
+        b_hat *= -np.sign((b_hat * start).sum(1))[:, None]  # 沿磁力线，向内
         side = np.cross(b_hat, np.array([0.0, 0.0, 1.0]))
         side /= np.linalg.norm(side, axis=1, keepdims=True)
         tilt = np.radians(2.0)
@@ -401,7 +400,7 @@ class VanAllen(m.ThreeDScene):
         alive = np.ones(count, bool)
         landed_at = np.full(
             count, -1
-        )  # the tick each rain electron reached the atmosphere
+        )  # 每个雨电子到达大气层的刻度
         clock = {"tick": 0}
         tracks: list[list[np.ndarray]] = [[swarm_x[k]] for k in range(count)]
         colors = [b_[5] for b_ in belts] + [GREEN] * rain_count
@@ -428,7 +427,7 @@ class VanAllen(m.ThreeDScene):
                 tracks[k].extend(centers[j :: len(idx)])
             swarm_x[idx], swarm_v[idx] = x, v
             for j, k in enumerate(idx):
-                if np.linalg.norm(x[j]) < 1.03:  # it reached the atmosphere
+                if np.linalg.norm(x[j]) < 1.03:  # 它到达了大气层
                     alive[k] = False
                     landed_at[k] = clock["tick"]
                     spot = 1.012 * x[j] / np.linalg.norm(x[j])
@@ -440,7 +439,7 @@ class VanAllen(m.ThreeDScene):
                     if len(track) > 1:
                         path.set_points_as_corners(np.array(track[-3000:]))
                     continue
-                # a rain electron: a bright streak down its line, fading once it has landed
+                # 雨电子：沿其磁力线的明亮条纹，着陆后渐隐
                 since = clock["tick"] - landed_at[k] if landed_at[k] >= 0 else 0
                 if release[k] <= clock["tick"] and len(track) > 1 and since < 24:
                     path.set_points_as_corners(np.array(track[-160:]))

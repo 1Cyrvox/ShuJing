@@ -1,42 +1,39 @@
-"""Two blocks count the digits of π.
+"""两个木块数出 π 的数字。
 
-A small block rests between a wall and a big block sliding toward it. Every collision is
-perfectly elastic and there is no friction: the small block bounces between the wall and the
-big block until the big one turns back and nothing can catch it. Count the clacks. If the big
-block is 100ᵈ times heavier, the count is the first d + 1 digits of π: 3, 31, 314, 3141, …
-(Galperin, 2003). The reason is a circle: in the coordinates √m₁v₁ and √m₂v₂ the energy keeps
-the state on a circle, and each collision steps it along by the same angle, arctan √(m₁/m₂).
-Every clack here is simulated, and the counter counts them.
+一个小木块静止在墙和朝它滑来的大木块之间。每次碰撞都是完全弹性的，且没有摩擦：小木块在墙和
+大木块之间反弹，直到大木块回头且再没有什么能追上它。数一数碰撞声。如果大木块比小木块重 100ᵈ 倍，
+则计数结果为 π 的前 d + 1 位数字：3, 31, 314, 3141, …（Galperin，2003）。原因是一个圆：在
+坐标 √m₁v₁ 和 √m₂v₂ 下，能量使状态保持在一个圆上，每次碰撞使它沿圆前进相同的角度 arctan √(m₁/m₂)。
+此处的每一次碰撞都是模拟的，计数器对它们进行计数。
 """
 
 import numpy as np
 
 import manimgx as m
 
-WALL = 11.8  # the README wall's 5 seconds start here
+WALL = 11.8  # README 墙的 5 秒从此开始
 FLOOR = -1.6
 WALL_X = -5.6
-SPEED = 2.2  # the big block's starting speed, screen units a second
+SPEED = 2.2  # 大木块的起始速度，每秒屏幕单位数
 RUNS = [
     (1, 1.0, 1.4),
     (100, 1.4, 1.6),
     (10_000, 1.9, 1.6),
     (1_000_000, 2.3, 1.6),
-]  # (ratio, its side, gap)
+]  # （质量比，其边长，间距）
 
 
 def simulate(
     ratio: float, small: float, big: float, gap: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """The collisions' times, and the blocks' left edges and velocities just after each
-    (the start counted as one), small block first."""
+    """碰撞时刻，以及每次碰撞后各木块左边缘和速度（起始也算一次），小木块在前。"""
     m1, m2 = 1.0, ratio
     x1, x2 = WALL_X + 1.2, WALL_X + 1.2 + small + gap
     v1, v2 = 0.0, -SPEED
     t = 0.0
     times, positions, velocities = [0.0], [(x1, x2)], [(v1, v2)]
     while True:
-        # the next collision: the blocks meeting, or the small block reaching the wall
+        # 下一次碰撞：两木块相遇，或小木块到达墙
         meet = (x2 - x1 - small) / (v1 - v2) if v1 > v2 else np.inf
         wall = (x1 - WALL_X) / -v1 if v1 < 0 else np.inf
         dt = min(meet, wall)
@@ -80,7 +77,7 @@ class CollidingBlocks(m.Scene):
             run_time=1,
         )
 
-        record = m.VGroup()  # the counts so far, under the counter
+        record = m.VGroup()  # 迄今为止的计数，在计数器下方
         for ratio, side, gap in RUNS:
             small_side = 0.7
             times, positions, velocities, _ = simulate(ratio, small_side, side, gap)
@@ -124,7 +121,7 @@ class CollidingBlocks(m.Scene):
             blocks.add_updater(place)
             place(blocks)
             self.play(m.FadeIn(blocks, shift=0.3 * m.DOWN), run_time=0.6)
-            # until the big block has left the frame, or the last clack and a moment after
+            # 直到大木块离开画面，或最后一次碰撞后片刻
             last = times[-1]
             leave = (7.4 - positions[-1][1]) / max(velocities[-1][1], 1e-9) + last
             duration = min(leave, last + 1.6)

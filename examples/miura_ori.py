@@ -1,12 +1,12 @@
-"""Miura-ori: one pull folds the whole sheet.
+"""三浦折叠：一拉即折拢整张薄片。
 
-A sheet creased into identical parallelograms (sides a, b, angle γ) folds rigidly — no facet bends
-or stretches — with a single degree of freedom, the fold angle θ. With Schenk & Guest's unit cell
-(PNAS 2013): H = a sin θ sin γ, S = b cos θ tan γ / √(1 + cos²θ tan²γ),
-L = a √(1 − sin²θ sin²γ), V = b / √(1 + cos²θ tan²γ), the vertex (i, j) sits at
-(i S, j L + (i mod 2) V, (j mod 2) H): every edge keeps its length and every facet stays flat (checked
-at build time). Width and length shrink together, a negative Poisson ratio ν = −tan²γ cos²θ, which is
-why Koryo Miura's fold opens a satellite's solar array with one pull (Space Flyer Unit, 1995).
+一张折成相同平行四边形（边 a、b，角 γ）的薄片可刚性折叠——无任何面片弯曲或拉伸——仅
+有单一自由度，即折叠角 θ。采用 Schenk 与 Guest 的单元胞（PNAS 2013）：
+H = a sin θ sin γ，S = b cos θ tan γ / √(1 + cos²θ tan²γ)、
+L = a √(1 − sin²θ sin²γ)，V = b / √(1 + cos²θ tan²γ)，顶点 (i, j) 位于
+(i S, j L + (i mod 2) V, (j mod 2) H)：每条边保持其长度，每个面片保持平面（在构建时
+检验）。宽度与长度同时收缩，泊松比为负 ν = −tan²γ cos²θ，这正是三浦公夫的折叠能以一拉
+展开卫星太阳能板的原因（Space Flyer Unit，1995）。
 """
 
 import numpy as np
@@ -15,9 +15,9 @@ import manimgx as m
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """相机轨道角对应的坐标轴，以行向量形式：右、上、朝向观察者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 轴旋转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -25,19 +25,19 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 轴旋转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
-A, B, GAMMA = 1.0, 1.0, np.radians(60)  # facet sides and angle
-COLS, ROWS = 14, 12  # facets across (b edges) and along (a edges)
-SCALE = 0.44  # sheet units → scene units
-PAPER, INK = "#d3c8ae", "#2f4b7c"  # the sheet, and alternate columns once it folds
+A, B, GAMMA = 1.0, 1.0, np.radians(60)  # 面片边长与夹角
+COLS, ROWS = 14, 12  # 横向面片数（b 边）与纵向面片数（a 边）
+SCALE = 0.44  # 薄片单位 → 场景单位
+PAPER, INK = "#d3c8ae", "#2f4b7c"  # 薄片颜色，折叠后交替列的墨色
 MOUNTAIN, VALLEY = "#d62828", "#1d5fd8"
 
 
 def cell(theta: float) -> tuple[float, float, float, float]:
-    """Schenk & Guest's unit cell at fold angle θ: height H, zigzag step S, row pitch L, offset V."""
+    """折叠角 θ 下 Schenk 与 Guest 的单元胞：高度 H、锯齿步距 S、行间距 L、偏移 V。"""
     s, c = np.sin(theta), np.cos(theta)
     k = np.sqrt(1 + (c * np.tan(GAMMA)) ** 2)
     return (
@@ -49,14 +49,14 @@ def cell(theta: float) -> tuple[float, float, float, float]:
 
 
 def sheet(theta: float) -> np.ndarray:
-    """The folded sheet's vertices (COLS + 1, ROWS + 1, 3), in sheet units."""
+    """折叠后薄片的顶点 (COLS + 1, ROWS + 1, 3)，以薄片单位计。"""
     h, s, pitch, v = cell(theta)
     i, j = np.meshgrid(np.arange(COLS + 1), np.arange(ROWS + 1), indexing="ij")
     return np.stack([i * s, j * pitch + (i % 2) * v, (j % 2) * h], -1).astype(float)
 
 
 def rigidity(theta: float) -> float:
-    """The largest error, at fold angle θ, in any edge length or in any facet's flatness."""
+    """折叠角 θ 下，任一边长或任一面片平面度的最大误差。"""
     p = sheet(theta)
     across = np.linalg.norm(p[1:] - p[:-1], axis=-1) - B
     along = np.linalg.norm(p[:, 1:] - p[:, :-1], axis=-1) - A
@@ -68,25 +68,25 @@ def rigidity(theta: float) -> float:
 
 
 def facets(p: np.ndarray) -> np.ndarray:
-    """Each facet's own four corners (COLS · ROWS · 4, 3): unshared, so every facet is flat-lit."""
+    """每个面片各自的四个角点 (COLS · ROWS · 4, 3)：不共享，使每个面片平面着色。"""
     quads = np.stack([p[:-1, :-1], p[1:, :-1], p[1:, 1:], p[:-1, 1:]], 2)
     return quads.reshape(-1, 3)
 
 
 def creases() -> tuple[np.ndarray, np.ndarray]:
-    """Every interior crease as (vertex a, vertex b, facet 1, facet 2) index rows into the
-    vertex grid and the facet list, and whether it is a mountain (seen from above)."""
+    """每条内部折痕以 (顶点 a, 顶点 b, 面片 1, 面片 2) 索引行指向顶点网格和面片列表，
+    并标记是否为山形折痕（从上方看）。"""
     vid = np.arange((COLS + 1) * (ROWS + 1)).reshape(COLS + 1, ROWS + 1)
     fid = np.arange(COLS * ROWS).reshape(COLS, ROWS)
     rows = []
-    for i in range(COLS):  # zigzag creases between facet rows j − 1 and j
+    for i in range(COLS):  # 面片行 j − 1 与 j 之间的锯齿折痕
         for j in range(1, ROWS):
             rows.append([vid[i, j], vid[i + 1, j], fid[i, j - 1], fid[i, j]])
-    for i in range(1, COLS):  # creases between facet columns i − 1 and i
+    for i in range(1, COLS):  # 面片列 i − 1 与 i 之间的折痕
         for j in range(ROWS):
             rows.append([vid[i, j], vid[i, j + 1], fid[i - 1, j], fid[i, j]])
     index = np.array(rows)
-    # a crease is a mountain where it stands above the midpoint of its two facets' centers
+    # 折痕为山形当其高于两侧面片中心连线的中点
     p = sheet(np.radians(10)).reshape(-1, 3)
     centers = facets(sheet(np.radians(10))).reshape(-1, 4, 3).mean(axis=1)
     middle = (p[index[:, 0]] + p[index[:, 1]]) / 2
@@ -94,8 +94,8 @@ def creases() -> tuple[np.ndarray, np.ndarray]:
 
 
 def ribbons(p: np.ndarray, index: np.ndarray, width: np.ndarray) -> np.ndarray:
-    """Strips `width` wide (one per crease) along the creases, half on each of the two facets,
-    lifted a hair off them: (creases · 8, 3) vertices, 4 per half."""
+    """沿各折痕宽 `width` 的条带（每条折痕一条），在两侧面片上各占一半，
+    略微抬离面片：(creases · 8, 3) 个顶点，每半 4 个。"""
     grid = p.reshape(-1, 3)
     corners = facets(p).reshape(-1, 4, 3)
     a, b = grid[index[:, 0]], grid[index[:, 1]]
@@ -117,7 +117,7 @@ def ribbons(p: np.ndarray, index: np.ndarray, width: np.ndarray) -> np.ndarray:
 
 
 def project(camera: m.Camera, point: np.ndarray) -> np.ndarray:
-    """Where a 3D point lands on the screen, in frame coordinates (for HUD labels)."""
+    """三维点在屏幕上的落点，以帧坐标表示（用于平视显示标签）。"""
     turned = camera_axes(camera.get_phi(), camera.get_theta(), camera.get_gamma())
     q = turned @ (point - camera.frame_center)
     depth = 1 - q[2] / camera.get_focal_distance()
@@ -133,18 +133,18 @@ class MiuraOri(m.ThreeDScene):
         self.camera.background_color = "#0b1020"
         self.camera.light_source.move_to([-6, -9, 7])
         error = max(rigidity(np.radians(d)) for d in np.linspace(0, 89, 90))
-        fold = m.ValueTracker(0.0)  # the one degree of freedom, degrees
+        fold = m.ValueTracker(0.0)  # 唯一自由度，以度计
         crease_width = m.ValueTracker(0.03)
-        sweep = m.ValueTracker(0.0)  # the creases are drawn in across the sheet
+        sweep = m.ValueTracker(0.0)  # 折痕沿薄片逐渐绘出
 
         def now(extra: float = 0.0) -> np.ndarray:
-            """The sheet at the current fold (plus `extra` degrees), in scene units, centered."""
+            """当前折叠角下（加 `extra` 度）的薄片，以场景单位计，居中。"""
             p = sheet(np.radians(fold.get_value() + extra))
             middle = (p.reshape(-1, 3).max(axis=0) + p.reshape(-1, 3).min(axis=0)) / 2
             return SCALE * (p - middle)
 
-        # the sheet, every facet lit flat; alternate columns ink over as it folds, so the two
-        # ways the facets lean show
+        # 薄片，每个面片平面着色；折叠时交替列渐变为墨色，使两种
+        # 面片倾斜方向得以显现
         odd = np.repeat(np.arange(COLS * ROWS) // ROWS % 2 == 1, 4)[:, None]
         quad = np.array([[0, 1, 2], [0, 2, 3]])
         paper = m.MeshMobject(
@@ -163,7 +163,7 @@ class MiuraOri(m.ThreeDScene):
         refold(paper)
         paper.add_updater(refold)
 
-        # mountain and valley creases, drawn as strips that thin away as the fold deepens
+        # 山形与谷形折痕，绘为随折叠加深而变细的条带
         index, mountain = creases()
         colors = np.where(np.repeat(mountain, 2)[:, None], rgba(MOUNTAIN), rgba(VALLEY))
         flat = now().reshape(-1, 3)
@@ -184,8 +184,8 @@ class MiuraOri(m.ThreeDScene):
             lambda mob: setattr(mob, "points", ribbons(now(), index, widths()))
         )
 
-        # the camera keeps the sheet's middle at one spot on the screen, and zooms in as it
-        # shrinks (by its measured diagonal)
+        # 相机将薄片中心保持在屏幕上某固定点，并随薄片收缩
+        # 而放大（按其测得的对角线）
         spot = np.array([2.5, -0.3])
 
         def span() -> float:
@@ -201,19 +201,19 @@ class MiuraOri(m.ThreeDScene):
             offset = (spot[0] * turned[0] + spot[1] * turned[1]) / cam.get_zoom()
             cam.frame.move_to(-offset)
 
-        # measured from the drawn sheet: its width across the columns, its length along them,
-        # and Poisson's ratio from the two a hair further folded
+        # 从所绘薄片测量：沿列方向的宽度、沿行方向的长度，
+        # 泊松比由再多折一点的两状态求得
         def measure(extra: float = 0.0) -> tuple[float, float]:
             p = now(extra)
             return float(p[-1, 0, 0] - p[0, 0, 0]), float(p[0, -1, 1] - p[0, 0, 1])
 
-        flat_w, flat_l = measure()  # the sheet starts flat
+        flat_w, flat_l = measure()  # 薄片初始为平面
 
         def poisson() -> float:
             (w0, l0), (w1, l1) = measure(), measure(0.01)
             return -np.log(l1 / l0) / np.log(w1 / w0)
 
-        # the pull: outward along the width (blue); the sheet answers along its length (gold)
+        # 拉力：沿宽度向外（蓝色）；薄片沿长度方向响应（金色）
         pulling = m.ValueTracker(0.0)
 
         def arrows() -> m.VGroup:
@@ -233,7 +233,7 @@ class MiuraOri(m.ThreeDScene):
 
         pull = m.always_redraw(arrows)
 
-        # heads-up display
+        # 平视显示
         title = m.Text("Miura-ori", font_size=40).to_corner(m.UL)
         notes = [
             "a sheet creased into identical parallelograms",
@@ -254,7 +254,7 @@ class MiuraOri(m.ThreeDScene):
         shown = m.ValueTracker(0.0)
 
         def dial() -> m.VGroup:
-            """The fold angle on a slider, and width and length as bars, both measured."""
+            """折叠角以滑块表示，宽度与长度以条形显示，均为实测值。"""
             fade = shown.get_value()
             track = m.Line(
                 [-6.7, 1.2, 0], [-3.7, 1.2, 0], stroke_width=3, color=m.GREY_C
@@ -312,12 +312,12 @@ class MiuraOri(m.ThreeDScene):
         self.begin_ambient_camera_rotation(rate=0.03)
         follow(driver)
         self.add(paper, lines, driver)
-        # 0–4.5 s: the flat sheet and its creases
+        # 0–4.5 秒：平面薄片及其折痕
         self.play(m.FadeIn(subtitles[0]), run_time=1.0)
         self.play(sweep.animate.set_value(1.0), m.FadeIn(legend), run_time=1.8)
         self.play(shown.animate.set_value(1.0), run_time=1.0)
         self.wait(0.8)
-        # 4.5–14 s: it folds, every crease at once
+        # 4.5–14 秒：折叠，所有折痕同时动作
         self.play(m.FadeOut(subtitles[0]), run_time=0.3)
         self.play(m.FadeIn(subtitles[1]), run_time=0.4)
         self.play(
@@ -327,12 +327,12 @@ class MiuraOri(m.ThreeDScene):
             run_time=8.5,
         )
         self.wait(1.0)
-        # 15–23 s: pulled apart along its width, it grows along its length too
+        # 15–23 秒：沿宽度拉开，长度方向也随之增长
         self.play(m.FadeOut(subtitles[1]), run_time=0.3)
         self.play(m.FadeIn(subtitles[2]), pulling.animate.set_value(1.0), run_time=0.6)
         self.play(fold.animate.set_value(28), m.FadeIn(law), run_time=6.5)
         self.play(pulling.animate.set_value(0.0), run_time=0.6)
-        # 23–30.5 s: the poster
+        # 23–30.5 秒：定版画面
         self.play(
             m.FadeIn(note), m.FadeIn(closing), fold.animate.set_value(45), run_time=3
         )

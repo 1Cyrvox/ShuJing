@@ -1,11 +1,9 @@
-"""Complex functions bend the plane.
+"""复函数弯曲平面。
 
-A complex function sends each point z of the plane to a point f(z). Carry a grid along and the
-function's shape appears. z² doubles every angle about the origin and squares every distance:
-the grid's lines become parabolas. e^{x+iy} = e^x · e^{iy}, so a vertical line wraps onto a
-circle and a horizontal line straightens into a ray. sin z bends the lines into ellipses and
-hyperbolas that share two foci. Whatever the function, the bent lines still cross at right
-angles: a complex function keeps angles wherever its derivative isn't 0.
+复函数将平面的每个点 z 送到点 f(z)。带着一个网格一起移动，函数的形状便显现出来。z² 将关于原点的每个
+角度加倍，并将每个距离平方：网格的线变成抛物线。e^{x+iy} = e^x · e^{iy}，所以一条竖直线缠绕到
+一个圆上，而一条水平线则拉直成一条射线。sin z 把线弯成共享两个焦点的椭圆和双曲线。无论什么函数，
+弯折后的线仍以直角相交：复函数在其导数不为 0 的地方保持角度。
 """
 
 from collections.abc import Callable
@@ -14,16 +12,16 @@ import numpy as np
 
 import manimgx as m
 
-WALL = 2.4  # the README wall's 5 seconds start here
-UNIT = 1.75  # screen units per unit of the plane
-HALF = 2.0  # the grid covers [−HALF, HALF] in both directions
-STEP = 0.25  # between its lines
-SAMPLES = 240  # points along each line
+WALL = 2.4  # README 墙的 5 秒从此开始
+UNIT = 1.75  # 每单位平面对应的屏幕单位数
+HALF = 2.0  # 网格在两个方向上覆盖 [−HALF, HALF]
+STEP = 0.25  # 其线条之间的间距
+SAMPLES = 240  # 每条线上的点数
 REAL, IMAGINARY = m.BLUE_D, m.YELLOW
 
 
 def grid() -> tuple[m.VGroup, list[np.ndarray]]:
-    """The grid's lines, and each line's points as complex numbers."""
+    """网格的线，以及每条线的点（以复数表示）。"""
     lines = m.VGroup()
     points: list[np.ndarray] = []
     run = np.linspace(-HALF, HALF, SAMPLES)
@@ -45,7 +43,7 @@ def place(
     f: Callable[[np.ndarray], np.ndarray],
     t: float,
 ) -> None:
-    """Each line at t of the way from z to f(z)."""
+    """每条线处于从 z 到 f(z) 路径上的 t 处。"""
     for line, z in zip(lines, points, strict=True):
         assert isinstance(line, m.VMobject)
         w = (1 - t) * z + t * f(z)
@@ -58,7 +56,7 @@ class ComplexMaps(m.Scene):
     def construct(self) -> None:
         lines, points = grid()
         place(lines, points, lambda z: z, 0)
-        ghost = lines.copy().set_stroke(opacity=0.18)  # where the lines started
+        ghost = lines.copy().set_stroke(opacity=0.18)  # 线条起始的位置
         corner = np.array([-6.6, 3.45, 0.0])
         shown = {"label": m.MathTex("f(z) = z", font_size=60)}
         shown["label"].move_to(corner, aligned_edge=m.LEFT)

@@ -1,13 +1,10 @@
-"""Diffusion-limited aggregation: random walkers build a coral.
+"""扩散限制聚集：随机行走者构建一株珊瑚。
 
-Start with one particle. Release another far away and let it wander at random, one lattice step at
-a time, until it touches the cluster, where it sticks. Repeat 18,000 times (Witten & Sander,
-1981). The walkers almost never reach the fjords: the tips catch them first, so the tips grow and
-branch while the inside stays empty. The cluster is a fractal: its mass grows like its radius to
-a power D, measured here from the cluster itself (radius of gyration against particle count, on
-log–log axes), close to the known D ≈ 2.5 for three dimensions, between a surface (2) and a solid (3).
-Walkers far from the cluster take long jumps to the cluster's bounding sphere, which changes nothing
-about where they land but saves most of the walking.
+从一个粒子开始。在远处释放另一个粒子，让它随机游走，每次一个晶格步，直到它碰到团簇并在那里粘住。
+重复 18,000 次（Witten & Sander，1981）。行走者几乎不会到达峡湾：尖端先捕获它们，因此尖端生长
+并分支，而内部保持空旷。团簇是一个分形：其质量按其半径的 D 次幂增长，此处从团簇本身测量
+（回转半径对粒子数，在对数–对数坐标上），接近三维已知值 D ≈ 2.5，介于一个面（2）和一个体（3）之间。
+远离团簇的行走者直接跳到团簇的包围球上，这不会改变它们落在哪里，但省去了大部分行走。
 """
 
 import numpy as np
@@ -15,9 +12,9 @@ import numpy as np
 import manimgx as m
 
 COUNT = 18000
-SIZE = 200  # the lattice, SIZE³ cells
-CELL = 0.052  # screen units per lattice cell
-STOPS = ["#3c096c", "#7b2cbf", "#c9184a", "#ff5d8f", "#ff9e00", "#ffe066"]  # old → new
+SIZE = 200  # 晶格，SIZE³ 个格
+CELL = 0.052  # 每个晶格格对应的屏幕单位数
+STOPS = ["#3c096c", "#7b2cbf", "#c9184a", "#ff5d8f", "#ff9e00", "#ffe066"]  # 旧 → 新
 MOVES = np.array([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]])
 
 
@@ -32,13 +29,13 @@ def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
 
 
 class Cluster:
-    """The growing cluster on a cubic lattice, and the walkers wandering toward it."""
+    """立方晶格上不断生长的团簇，以及朝它游走的行走者。"""
 
     def __init__(self, rng: np.random.Generator) -> None:
         self.rng = rng
         self.center = SIZE // 2
         self.taken = np.zeros((SIZE,) * 3, bool)
-        # the cells next to the cluster: a walker that steps onto one sticks
+        # 团簇旁的格子：行走者踏入其中一个便粘住
         self.sticky = np.zeros((SIZE,) * 3, bool)
         self.cells: list[tuple[int, int, int]] = []
         self.radius = 1.0
@@ -59,8 +56,8 @@ class Cluster:
         return np.round(self.center + (self.radius + 8) * v).astype(np.int64)
 
     def step(self, walkers: np.ndarray) -> np.ndarray:
-        """One move for every walker: a lattice step, or, when the cluster's bounding sphere is
-        far, a jump straight toward it through the free room (its landing spot is uniform).
+        """每个行走者的一步移动：一个晶格步，或者当团簇的包围球很远时，
+        通过空旷区域直接朝它跳去（其落点是均匀的）。
         """
         room = np.linalg.norm(walkers - self.center, axis=1) - self.radius - 3
         moves = MOVES[self.rng.integers(0, 6, len(walkers))]
@@ -78,7 +75,7 @@ class Cluster:
     def grow(self, count: int) -> None:
         walkers = self.launch(20)
         while len(self.cells) < count:
-            want = min(3000, 20 + len(self.cells) // 5)  # more walkers as it grows
+            want = min(3000, 20 + len(self.cells) // 5)  # 随着团簇生长增加行走者
             if len(walkers) < want:
                 walkers = np.concatenate([walkers, self.launch(want - len(walkers))])
             walkers = self.step(walkers)
@@ -91,8 +88,8 @@ class Cluster:
             walkers[hit] = self.launch(len(hit))
 
     def wander(self) -> np.ndarray:
-        """One more walker's whole path, from launch to where it would stick (lattice steps
-        only; it is not stuck: see `stick`)."""
+        """再来一个行走者的完整路径，从发射到它将要粘住的位置（仅晶格步；
+        它并未粘住：见 `stick`）。"""
         walker = self.launch(1)
         path = [walker[0].copy()]
         while not self.sticky[tuple(walker[0])]:
@@ -105,8 +102,8 @@ class Cluster:
 
 
 def beads(centers: np.ndarray, radius: float) -> tuple[np.ndarray, np.ndarray]:
-    """A small octahedron at every center, in order (smooth-shaded, it reads as a bead):
-    vertices and triangles, wound outward."""
+    """每个中心处的一个小八面体，按顺序排列（平滑着色后读作一颗珠子）：
+    顶点和三角形，向外缠绕。"""
     corners = np.concatenate([np.eye(3), -np.eye(3)])  # +x +y +z −x −y −z
     faces = []
     for sx, sy, sz in np.ndindex(2, 2, 2):
@@ -131,7 +128,7 @@ class DlaCoral(m.ThreeDScene):
             fill=np.repeat(colormap(np.linspace(0, 1, COUNT), STOPS), 6, axis=0)
         )
 
-        # the mass–radius law, measured: radius of gyration of the first n particles
+        # 质量–半径律，测量得到：前 n 个粒子的回转半径
         counts = np.unique(np.geomspace(50, COUNT, 24).astype(int))
         spread = np.array(
             [
@@ -139,7 +136,7 @@ class DlaCoral(m.ThreeDScene):
                 for n in counts
             ]
         )
-        scaling = counts >= 300  # past the first few hundred, where the law has set in
+        scaling = counts >= 300  # 超过前几百个粒子，律已成立
         slope = 1 / np.polyfit(np.log(counts[scaling]), np.log(spread[scaling]), 1)[0]
         grown = m.ValueTracker(1.0)
         plot = (
@@ -163,7 +160,7 @@ class DlaCoral(m.ThreeDScene):
 
         hud = m.ValueTracker(
             1.0
-        )  # the plot's opacity (it steps aside for the close-up)
+        )  # 图的透明度（特写时让到一旁）
 
         def measured() -> m.VGroup:
             shown = counts <= grown.get_value()
@@ -190,7 +187,7 @@ class DlaCoral(m.ThreeDScene):
         def count_up(d: m.Mobject) -> None:
             assert isinstance(d, m.Integer)
             d.set_value(int(grown.get_value()))
-            d.next_to(unit, m.LEFT, buff=0.15)  # (set_value re-centers the number)
+            d.next_to(unit, m.LEFT, buff=0.15)  # （set_value 会将数字重新居中）
 
         tally.add_updater(count_up)
         tally_row = m.VGroup(tally, unit)
@@ -210,7 +207,7 @@ class DlaCoral(m.ThreeDScene):
         self.set_camera_orientation(phi=70 * m.DEGREES, theta=-60 * m.DEGREES, zoom=2.4)
         self.begin_ambient_camera_rotation(rate=0.1)
         self.add(coral)
-        # grow: particles in the order they stuck, the camera pulling back with the cluster
+        # 生长：粒子按粘住的顺序排列，相机随团簇拉远
         self.play(
             m.Create(coral, rate_func=lambda u: u**1.6),
             grown.animate(rate_func=lambda u: u**1.6).set_value(COUNT),
@@ -218,8 +215,8 @@ class DlaCoral(m.ThreeDScene):
             run_time=19,
         )
         self.play(m.FadeIn(fit_row), run_time=1)
-        # one more walker, followed all the way in, up close: of a dozen, the one that lands on
-        # the tip that faces the camera
+        # 再来一个行走者，一路跟随至近处：从一打中选出落在
+        # 朝向相机的尖端上的那个
         phi, theta = self.camera.get_phi(), self.camera.get_theta()
         toward = np.array(
             [np.sin(phi) * np.cos(theta), np.sin(phi) * np.sin(theta), np.cos(phi)]

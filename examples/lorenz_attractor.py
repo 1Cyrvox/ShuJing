@@ -1,25 +1,23 @@
-"""Chaos: the Lorenz attractor.
+"""混沌：洛伦兹吸引子。
 
-In 1963 Edward Lorenz cut a model of convection down to three equations, ẋ = σ(y − x),
-ẏ = x(ρ − z) − y, ż = xy − βz, and found that it never settles and never repeats: a point winds
-around one lobe, then the other, in an order no one can predict. Here eight points start a
-ten-thousandth apart. For a while they travel as one curve; then the difference doubles about
-every three quarters of a unit of time, they split, and each weaves the same butterfly its own
-way. The paths are integrated as they are drawn (fourth-order Runge–Kutta, σ = 10, ρ = 28,
-β = 8/3).
+1963 年，爱德华·洛伦兹将一个对流模型精简为三个方程：ẋ = σ(y − x)、ẏ = x(ρ − z) − y、
+ż = xy − βz，并发现它既不收敛也不重复：一个点环绕一个叶瓣旋转，然后转向另一个叶瓣，
+其顺序无人能预测。此处八个点以万分之一差距起始。一段时间内它们作为一条曲线行进；随后
+差值大约每四分之三时间单位翻倍一次，它们分裂开来，各自以独有方式编织同一只蝴蝶。路径
+在绘制的同时进行积分（四阶 Runge–Kutta，σ = 10，ρ = 28，β = 8/3）。
 """
 
 import numpy as np
 
 import manimgx as m
 
-WALL = 7.5  # the README wall's 5 seconds start here
+WALL = 7.5  # README 墙的 5 秒从此处开始
 SIGMA, RHO, BETA = 10.0, 28.0, 8.0 / 3.0
-DT, STEPS = 0.004, 6500  # 26 units of time
-SETTLE = 3000  # steps run before the paths start, so that they start on the attractor
+DT, STEPS = 0.004, 6500  # 26 个时间单位
+SETTLE = 3000  # 在路径开始之前运行的步数，使它们从吸引子上起始
 PATHS = 8
-SCALE = 0.115  # screen units per unit of the system
-GROW = 22.0  # seconds the paths take to grow
+SCALE = 0.115  # 每系统单位对应的屏幕单位
+GROW = 22.0  # 路径生长所需的秒数
 
 
 def lorenz(p: np.ndarray) -> np.ndarray:
@@ -28,7 +26,7 @@ def lorenz(p: np.ndarray) -> np.ndarray:
 
 
 def step(p: np.ndarray) -> np.ndarray:
-    """One step of fourth-order Runge–Kutta."""
+    """四阶 Runge–Kutta 的一步。"""
     a = lorenz(p)
     b = lorenz(p + DT / 2 * a)
     c = lorenz(p + DT / 2 * b)
@@ -37,7 +35,7 @@ def step(p: np.ndarray) -> np.ndarray:
 
 
 def integrate(starts: np.ndarray) -> np.ndarray:
-    """Each start's path, (paths, STEPS + 1, 3)."""
+    """每条起始点对应的路径，形状为 (paths, STEPS + 1, 3)。"""
     out = np.empty((len(starts), STEPS + 1, 3))
     p = starts.astype(float)
     out[:, 0] = p
@@ -63,7 +61,7 @@ class LorenzAttractor(m.ThreeDScene):
         def to_screen(points: np.ndarray) -> np.ndarray:
             return (points - center) * SCALE
 
-        clock = m.ValueTracker(0.0)  # how much of the paths is drawn, 0 to 1
+        clock = m.ValueTracker(0.0)  # 已绘制的路径比例，0 到 1
         fulls, curves, heads = [], m.VGroup(), m.VGroup()
         for path, color in zip(paths, colors, strict=True):
             full = m.VMobject(stroke_color=color, stroke_width=2.2, stroke_opacity=0.85)
@@ -94,8 +92,8 @@ class LorenzAttractor(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(equations)
         self.remove(equations)
 
-        # the lobes lie along x = y: the camera swings slowly through the view that shows
-        # them side by side (θ = −45°)
+        # 叶瓣沿 x = y 排列：相机缓慢摆过能将
+        # 它们并排显示的视角（θ = −45°）
         self.set_camera_orientation(
             phi=68 * m.DEGREES, theta=-88 * m.DEGREES, zoom=1.05
         )

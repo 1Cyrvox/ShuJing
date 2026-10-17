@@ -1,13 +1,13 @@
-"""Why a spinning handle flips: the tennis-racket theorem (Dzhanibekov effect).
+"""旋转的柄为何翻转：网球拍定理（贾尼别科夫效应）。
 
-Three identical T-handles spin at the same rate about their three principal axes. About the
-axes of least and greatest moment of inertia the spin is steady; about the middle one the
-handle turns over every few seconds, though nothing pushes it and its angular momentum L
-(gold) never moves. Torque-free Euler equations I₁ω̇₁ = (I₂ − I₃)ω₂ω₃ (cyclic), RK4 with a
-quaternion; the moments are computed from the drawn handle. Seen from the handle, L keeps
-its length and the energy E = Σ L_k²/2I_k, so it slides along level curves of E on a sphere
-(the polhodes). The separatrix, two great circles, cuts that sphere into four panels that
-meet only at the middle axis, a saddle: a state near it is carried to the opposite side.
+三个相同的 T 形柄以相同角速度绕其三根主轴旋转。绕最小和最大
+转动惯量轴的旋转是稳定的；绕中间轴时，柄每隔几秒翻转一次，
+尽管没有任何力推它，且其角动量 L（金色）从不移动。无力矩欧拉方程
+I₁ω̇₁ = (I₂ − I₃)ω₂ω₃（循环），以四元数做 RK4；转动惯量由所绘的柄
+计算。从柄自身看去，L 保持长度和能量 E = Σ L_k²/2I_k，因此它在
+球面上沿 E 的等值曲线滑动（polhode）。分界线——两个大圆——将
+该球切成四块面板，仅在中轴处相接，那是一个鞍点：靠近它的状态被
+带到对侧。
 """
 
 import numpy as np
@@ -16,9 +16,9 @@ import manimgx as m
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """相机在其轨道角下的各轴，以行为序：右、上、朝向观看者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -26,22 +26,22 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
-SPIN = 0.7 * m.TAU  # rad/s, the same for all three handles
-WOBBLE = 0.005  # the small off-axis part of every initial spin, relative to SPIN
-RATE, SUBSTEPS, DURATION = 60, 2, 31.0  # samples/s of the motion, RK4 steps per sample
+SPIN = 0.7 * m.TAU  # 弧度/秒，三个柄相同
+WOBBLE = 0.005  # 每个初始旋转的微小离轴分量，相对于 SPIN
+RATE, SUBSTEPS, DURATION = 60, 2, 31.0  # 运动的采样/秒，每采样 RK4 步数
 STEEL, CORAL, GOLD = "#9db4cf", "#ef6f6c", "#f4c95d"
-AXIS1, AXIS3 = "#2bb3a3", "#6a5acd"  # the glass panels around axes 1 and 3
-BAR, BAR_R, STEM, STEM_R, KNOB_R = 2.8, 0.12, 1.3, 0.08, 0.16  # crossbar ∥ x, stem ∥ y
+AXIS1, AXIS3 = "#2bb3a3", "#6a5acd"  # 轴 1 和轴 3 周围的玻璃面板
+BAR, BAR_R, STEM, STEM_R, KNOB_R = 2.8, 0.12, 1.3, 0.08, 0.16  # 横杆 ∥ x，杆 ∥ y
 
 
 def moments() -> tuple[np.ndarray, np.ndarray]:
-    """Center of mass and principal moments (per unit mass) of the solid T of one density:
-    crossbar and stem cylinders and a ball. By symmetry the body axes are principal."""
-    bar, stem, knob = BAR_R**2 * BAR, STEM_R**2 * STEM, 4 / 3 * KNOB_R**3  # masses / π
+    """均匀密度实心 T 形柄的质心与主转动惯量（每单位质量）：
+    横杆和杆的圆柱以及一个球。由对称性，体轴即主轴。"""
+    bar, stem, knob = BAR_R**2 * BAR, STEM_R**2 * STEM, 4 / 3 * KNOB_R**3  # 质量 / π
     across = [(3 * r * r + h * h) / 12 for r, h in ((BAR_R, BAR), (STEM_R, STEM))]
     parts = [
         (bar, 0.0, [BAR_R**2 / 2, across[0], across[0]]),
@@ -51,14 +51,14 @@ def moments() -> tuple[np.ndarray, np.ndarray]:
     total = bar + stem + knob
     com = sum(mass * y for mass, y, _ in parts) / total
     inertia = np.zeros(3)
-    for mass, y, own in parts:  # parallel axes: the offsets are along y
+    for mass, y, own in parts:  # 平行轴定理：偏移沿 y 方向
         inertia += mass * (np.array(own) + (y - com) ** 2 * np.array([1, 0, 1]))
     return np.array([0, com, 0]), inertia / total
 
 
 def simulate(inertia: np.ndarray, omega0: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Body angular velocities (n, k, 3) and turns (n, k, 3, 3) of k free bodies started
-    at the body rates omega0 (k, 3): Euler's equations and Ṙ = R [ω]×, by RK4."""
+    """k 个自由体的体角速度 (n, k, 3) 和旋转 (n, k, 3, 3)，
+    以体角速度 omega0 (k, 3) 起步：欧拉方程和 Ṙ = R [ω]×，以 RK4 求解。"""
     i1, i2, i3 = inertia
     p, q, r = (i2 - i3) / i1, (i3 - i1) / i2, (i1 - i2) / i3
 
@@ -84,18 +84,18 @@ def simulate(inertia: np.ndarray, omega0: np.ndarray) -> tuple[np.ndarray, np.nd
 
 
 def toward_z(u: np.ndarray, hint: np.ndarray) -> np.ndarray:
-    """A rotation taking the unit vector u to +z (and hint, as far as it can, to +x)."""
+    """将单位向量 u 送到 +z（并尽可能将 hint 送到 +x）的旋转。"""
     x = hint - (hint @ u) * u
     x /= np.linalg.norm(x)
     return np.array([x, np.cross(u, x), u])
 
 
-# ── smooth lit parts: surfaces of revolution and tubes ──────────────────────────────────
+# ── 光滑光照部件：旋转曲面与管 ──────────────────────────────────
 
 
 def revolve(profile: np.ndarray, sides: int = 28) -> np.ndarray:
-    """An (rows, sides + 1, 3) grid: profile rows (r, z) swept around the z axis. A row
-    given twice makes a sharp rim (normals average over faces of nonzero area)."""
+    """一个 (rows, side + 1, 3) 网格：轮廓行 (r, z) 绕 z 轴扫掠。一行
+    给两次形成尖锐边缘（法线在非零面积面上取平均）。"""
     a = np.linspace(0, m.TAU, sides + 1)
     r, z = profile[:, :1], profile[:, 1:]
     return np.stack([r * np.cos(a), r * np.sin(a), z + 0 * a], -1)
@@ -107,7 +107,7 @@ def ball(radius: float, rows: int = 14) -> np.ndarray:
 
 
 def rod(length: float, radius: float) -> np.ndarray:
-    """A rod with round ends, centered, along z."""
+    """两端圆润的杆，居中，沿 z 方向。"""
     cap = ball(radius)
     return np.vstack([cap[:8] - [0, length / 2], cap[7:] + [0, length / 2]])
 
@@ -119,7 +119,7 @@ def arrow(length: float, radius: float, head: float, width: float) -> np.ndarray
 
 
 def surface(grid: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Vertices and triangles of an (rows + 1, cols + 1, 3) grid of points."""
+    """(rows + 1, cols + 1, 3) 点网格的顶点与三角形。"""
     rows, cols = grid.shape[0] - 1, grid.shape[1] - 1
     i, j = np.meshgrid(np.arange(rows), np.arange(cols), indexing="ij")
     a = (i * (cols + 1) + j).ravel()
@@ -129,7 +129,7 @@ def surface(grid: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 def tube(points: np.ndarray, radius: float, sides: int = 7) -> np.ndarray:
-    """A grid around a polyline (parallel-transport frames), for `surface`."""
+    """绕折线的网格（平行移动标架），供 `surface` 使用。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True)
     normals = [np.cross(tangent[0], [0.3, 0.5, 0.8])]
@@ -147,7 +147,7 @@ def mesh(grid: np.ndarray, color: str) -> m.MeshMobject:
 
 
 def handle_parts(com: np.ndarray) -> list[m.MeshMobject]:
-    """The T in its body frame, around its center of mass: crossbar, stem and knob."""
+    """体参考系中的 T 形柄，绕其质心：横杆、杆和球头。"""
     along_x, along_y = np.roll(np.eye(3), 1, 1), np.roll(np.eye(3), 2, 1)
     return [
         mesh(revolve(rod(BAR, BAR_R)) @ along_x - com, STEEL),
@@ -157,7 +157,7 @@ def handle_parts(com: np.ndarray) -> list[m.MeshMobject]:
 
 
 class Rigid:
-    """Pose a group absolutely each frame: points = base · Rᵀ + center."""
+    """每帧绝对地摆好一组的位置：points = base · Rᵀ + center。"""
 
     def __init__(self, group: m.Mobject) -> None:
         self.parts = [
@@ -169,23 +169,23 @@ class Rigid:
             mob.points = base @ turn.T + center
 
 
-# ── the handle's own frame: the sphere of directions of L ───────────────────────────────
+# ── 柄自身的参考系：L 方向的球面 ───────────────────────────────
 
 
 def polhodes(inertia: np.ndarray) -> list[np.ndarray]:
-    """Level curves of E = ½ Σ n_k²/I_k on the unit sphere: loops around ±axis 1 and ±axis 3,
-    then the separatrix, two great circles through ±axis 2."""
+    """单位球面上 E = ½ Σ n_k²/I_k 的等值曲线：环绕 ±轴 1 和 ±轴 3 的环，
+    以及分界线——过 ±轴 2 的两个大圆。"""
     inv = 1 / inertia
     s = np.linspace(0, m.TAU, 181)[:, None]
     curves = []
-    for k in (0.35, 0.75):  # 0: the separatrix, 1: the axis
+    for k in (0.35, 0.75):  # 0：分界线，1：轴
         a = np.sqrt(1 - k)
         b = np.sqrt((1 - k) * (inv[1] - inv[2]) / (inv[0] - inv[2]))
         c = np.sqrt((1 - k) * (inv[0] - inv[1]) / (inv[0] - inv[2]))
         for sign in (1, -1):
-            n2, n3 = a * np.cos(s), c * np.sin(s)  # around ±axis 1
+            n2, n3 = a * np.cos(s), c * np.sin(s)  # 环绕 ±轴 1
             curves.append(np.hstack([sign * np.sqrt(1 - n2**2 - n3**2), n2, n3]))
-            n1, n2 = b * np.cos(s), a * np.sin(s)  # around ±axis 3
+            n1, n2 = b * np.cos(s), a * np.sin(s)  # 环绕 ±轴 3
             curves.append(np.hstack([n1, n2, sign * np.sqrt(1 - n1**2 - n2**2)]))
     tilt = np.array([np.sqrt(inv[1] - inv[2]), 0, np.sqrt(inv[0] - inv[1])])
     tilt /= np.linalg.norm(tilt)
@@ -195,10 +195,10 @@ def polhodes(inertia: np.ndarray) -> list[np.ndarray]:
 
 
 def panel_colors(n: np.ndarray, inertia: np.ndarray, alpha: float) -> np.ndarray:
-    """Glass tint: the panels around ±axis 1 (energy above the saddle's) and ±axis 3,
-    each brightening toward its axis."""
+    """玻璃色调：±轴 1 周围的面板（能量高于鞍点）和 ±轴 3 周围的面板，
+    各自向其轴增亮。"""
     inv = 1 / inertia
-    e = (n**2 @ inv - inv[2]) / (inv[0] - inv[2])  # 0 at axis 3, 1 at axis 1
+    e = (n**2 @ inv - inv[2]) / (inv[0] - inv[2])  # 轴 3 处为 0，轴 1 处为 1
     saddle = (inv[1] - inv[2]) / (inv[0] - inv[2])
     upper = (e > saddle)[:, None]
     depth = np.where(upper, e[:, None] - saddle, saddle - e[:, None])
@@ -212,8 +212,8 @@ def rgba(color: str, alpha: float) -> np.ndarray:
 
 
 class Globe(m.Group):
-    """Glass with things inside and on it: a mesh a part, each shown with its points and colors
-    of the moment (what shows through the glass is the engine's to composite)."""
+    """玻璃及其内外之物：每个部件为一个网格，各以当前时刻的点与颜色
+    显示（透过玻璃所见由引擎合成）。"""
 
     def __init__(self, parts: list[tuple[np.ndarray, np.ndarray, np.ndarray]]) -> None:
         self.base = [verts for verts, _, _ in parts]
@@ -229,7 +229,7 @@ class Globe(m.Group):
 
 
 def project(camera: m.Camera, point: np.ndarray) -> np.ndarray:
-    """Where a 3D point lands on the screen, in frame coordinates (for HUD labels)."""
+    """三维点落在屏幕上的位置，以帧坐标表示（用于 HUD 标签）。"""
     turn = camera_axes(camera.get_phi(), camera.get_theta(), camera.get_gamma())
     p = turn @ (point - camera.frame_center)
     depth = 1 - p[2] / camera.get_focal_distance()
@@ -243,14 +243,14 @@ class TennisRacket(m.ThreeDScene):
         )
         com, inertia = moments()
 
-        # the motion, once: three handles spun about axes 1, 2, 3 with the same wobble
+        # 运动一次性计算：三个柄分别绕轴 1、2、3 旋转，具有相同的扰动
         omega, turn = simulate(inertia, SPIN * (WOBBLE + (1 - WOBBLE) * np.eye(3)))
-        spin_l = omega * inertia  # L in each body frame, (n, 3, 3)
-        hints = np.eye(3)[[1, 0, 0]]  # the body axis that starts along +x
+        spin_l = omega * inertia  # 各体参考系中的 L，(n, 3, 3)
+        hints = np.eye(3)[[1, 0, 0]]  # 起始沿 +x 的体轴
         units = spin_l[0] / np.linalg.norm(spin_l[0], axis=1, keepdims=True)
         start = np.array([toward_z(units[k], hints[k]) for k in range(3)])
-        world = np.einsum("kij,nkjl->nkil", start, turn)  # L stays along +z
-        stem_up = world[:, 1, 2, 1]  # the height of handle 2's stem axis
+        world = np.einsum("kij,nkjl->nkil", start, turn)  # L 保持沿 +z
+        stem_up = world[:, 1, 2, 1]  # 柄 2 的杆轴高度
         flips = np.flatnonzero(np.diff(np.sign(stem_up))) / RATE
         seen = spin_l[:, 1] / np.linalg.norm(spin_l[:, 1], axis=1, keepdims=True)
 
@@ -261,7 +261,7 @@ class TennisRacket(m.ThreeDScene):
             mesh(revolve(arrow(3.6, 0.02, 0.32, 0.085)) + p + [0, 0, -1.75], GOLD)
             for p in spots
         ]
-        slide = m.ValueTracker(0.0)  # handle 2 moving to the left
+        slide = m.ValueTracker(0.0)  # 柄 2 向左移动
         goal = np.array([-3.5, 0.0, -0.25])
         clock = [0.0]
 
@@ -278,30 +278,30 @@ class TennisRacket(m.ThreeDScene):
         advance(driver, 0)
         self.add(driver, *handles, *axes)
 
-        # the handle's own frame: a glass globe of the directions of L, seen from between
-        # its axes (closest to axis 2, which points up)
+        # 柄自身的参考系：L 方向的玻璃球，从其
+        # 各轴之间观看（最接近指向上方的轴 2）
         center, radius = np.array([2.75, 0.0, -0.55]), 2.45
         cam = camera_axes(
             70 * m.DEGREES, -90 * m.DEGREES, 0
-        )  # rows: right, up, toward us
+        )  # 行：右、上、朝向我们
         eye = np.array([0.15, 1.3, 1.0]) / np.linalg.norm([0.15, 1.3, 1.0])
         up = np.eye(3)[1] - eye[1] * eye
         up /= np.linalg.norm(up)
         screen = np.array([cam[2], cam[1], np.cross(cam[2], cam[1])]).T
-        display = screen @ np.array([eye, up, np.cross(eye, up)])  # body → world
+        display = screen @ np.array([eye, up, np.cross(eye, up)])  # 体 → 世界
         sphere, sphere_tris = surface(revolve(ball(1.0, 36), 72))
         parts = [(sphere @ display.T, sphere_tris, panel_colors(sphere, inertia, 0.4))]
         curves = polhodes(inertia)
-        for k, curve in enumerate(curves):  # the last two: the separatrix
+        for k, curve in enumerate(curves):  # 最后两条：分界线
             wide, sides, color = (
                 (0.016, 6, "#ffffff") if k > 7 else (0.008, 4, "#cfe0ff")
             )
             ring = tube(curve @ display.T, wide / radius, sides)
             parts.append((*surface(ring), rgba(color, 0.9 if k > 7 else 0.45)))
-        for part in handle_parts(com):  # the handle at rest in its own frame
+        for part in handle_parts(com):  # 静止于自身参考系中的柄
             small = part.points @ display.T * 0.6 / radius
             parts.append((small, part.triangles, part.paint.fill[0]))
-        first = round((flips[1] + 1.2) * RATE)  # L's path from when the globe appears
+        first = round((flips[1] + 1.2) * RATE)  # 从球面出现时起 L 的路径
         trail = surface(tube(seen[first::2] @ display.T * 1.012, 0.018 / radius, 6))
         parts.append((*trail, rgba(GOLD, 0.0)))
         trail_age = np.repeat(np.arange(first, len(seen), 2), 7) / RATE
@@ -321,7 +321,7 @@ class TennisRacket(m.ThreeDScene):
                 head[0] + 1.012 * d,
             ]
             colors = [np.array(c) for c in globe.tint]
-            age = i / RATE - trail_age  # a comet, fading to a lasting trace
+            age = i / RATE - trail_age  # 彗星状，渐变为持久轨迹
             colors[-3][:, 3] = (age >= 0) * np.maximum(1 - age / 1.2, 0.3)
             for c in colors:
                 c[:, 3] *= appear.get_value()
@@ -331,7 +331,7 @@ class TennisRacket(m.ThreeDScene):
         globe.add_updater(refresh)
         refresh(globe)
 
-        # heads-up display
+        # 平视显示器
         title = m.Text("Why a spinning handle flips", font_size=36).to_corner(m.UL)
         subtitle = m.Text(
             "one T-handle, spun about each of its three principal axes", font_size=22
@@ -381,13 +381,13 @@ class TennisRacket(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, *hud)
         self.remove(*hud)
 
-        # 0–9 s: three spins, one of which keeps turning over
+        # 0–9 秒：三次旋转，其中一个不断翻转
         self.play(*[m.FadeIn(mob) for mob in [subtitle, *labels, *ells]], run_time=1.5)
         self.wait(flips[0] + 1.3 - self.time)
         self.play(*[m.FadeIn(v, shift=0.1 * m.UP) for v in verdicts], run_time=1)
         self.wait(flips[1] + 1.2 - self.time)
 
-        # 9–12 s: the flipping one, next to the same motion seen from the handle itself
+        # 9–12 秒：翻转的那个，旁边是同一运动从柄自身看去的样子
         steady: list[m.Mobject] = [handles[0], handles[2], subtitle]
         steady += [group[k] for group in (axes, labels, verdicts, ells) for k in (0, 2)]
         self.play(*[m.FadeOut(mob) for mob in steady], run_time=0.8)
@@ -405,7 +405,7 @@ class TennisRacket(m.ThreeDScene):
             m.FadeIn(laws),
             run_time=1.8,
         )
-        # 12–27 s: every flip is L running along the separatrix, from saddle to saddle
+        # 12–27 秒：每次翻转都是 L 沿分界线运行，从鞍到鞍
         self.wait(flips[3] + 0.8 - self.time)
         self.play(m.FadeIn(saddle), m.Create(pin), run_time=1)
         self.wait(flips[5] + 0.5 - self.time)

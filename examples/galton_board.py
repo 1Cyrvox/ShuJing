@@ -1,38 +1,38 @@
-"""Randomness that adds up to a bell: the Galton board.
+"""随机性叠加成钟形：高尔顿板。
 
-Every ball meets a peg in each of the board's rows and bounces left or right, at random, as
-if by a coin toss. The bin it lands in counts how many times it went right, so a ball's bin is
-a sum of coin tosses, and the number of balls in bin k follows the binomial distribution: of
-the 2ⁿ ways down, C(n, k) end in bin k. A few balls make a ragged pile; many make a bell, the
-normal curve with the binomial's mean n/2 and variance n/4 (de Moivre, 1733; Galton, 1889).
+每个球在板的每一行遇到一个钉子并随机向左或向右弹开，
+如同掷硬币。球落入的槽统计了它向右走的次数，因此一个球落入的槽
+是掷硬币次数之和，而槽 k 中的球数服从二项分布：在 2ⁿ 条向下
+路径中，C(n, k) 条终止于槽 k。少量球形成参差不齐的堆；大量球
+形成钟形，即均值为 n/2、方差为 n/4 的正态曲线（棣莫弗，1733；高尔顿，1889）。
 """
 
 import numpy as np
 
 import manimgx as m
 
-ROWS = 10  # rows of pegs; there are ROWS + 1 bins
+ROWS = 10  # 钉子的行数；有 ROWS + 1 个槽
 BALLS = 480
-DX, DY = 0.7, 0.34  # between pegs in a row, and between rows
-TOP = 3.1  # the first peg's height
-FLOOR = -3.75  # the bins' floor
-PEG, BALL = 0.05, 0.06  # radii
-GAP = 2.04 * BALL  # between the centers of two balls side by side in a pile
-GRAVITY = 25.0  # scene units per second², in the board's own time
-HOP = 0.26  # seconds from one peg to the next, in the board's own time
-RELEASE = TOP + 0.62  # where balls are let go, in the funnel's neck
+DX, DY = 0.7, 0.34  # 同行钉子间距，及行间距
+TOP = 3.1  # 第一个钉子的高度
+FLOOR = -3.75  # 槽的底部
+PEG, BALL = 0.05, 0.06  # 半径
+GAP = 2.04 * BALL  # 堆中并排两球的中心间距
+GRAVITY = 25.0  # 场景单位每秒²，以板自身的计时
+HOP = 0.26  # 从一个钉子到下一个的秒数，以板自身的计时
+RELEASE = TOP + 0.62  # 球释放的位置，在漏斗颈处
 SEED = 7
 WALL = 8.2
 
 
 def peg(row: int, k: int) -> np.ndarray:
-    """The k-th peg (from the left) of a row."""
+    """某行的第 k 个钉子（从左数）。"""
     return np.array([(k - row / 2) * DX, TOP - row * DY, 0.0])
 
 
 def pile(count: int) -> np.ndarray:
-    """Where the balls of a bin come to rest, relative to its floor's middle: rows of five
-    and of four in turn, packed, each row filled in a scattered order."""
+    """某槽中球静止时的位置，相对于槽底中心：五行和四行
+    交替排列，紧密堆积，每行以散乱顺序填满。"""
     fives = np.array([0.0, -2.0, 2.0, -1.0, 1.0]) * GAP
     fours = np.array([-0.5, 1.5, 0.5, -1.5]) * GAP
     places = np.empty((count, 2))
@@ -44,26 +44,26 @@ def pile(count: int) -> np.ndarray:
 
 
 def release_times() -> np.ndarray:
-    """When each ball is let go, in board time: three alone, then faster and faster."""
+    """每个球释放的时刻，以板时计：先单独放三个，然后越来越快。"""
     first = [0.0, 1.4, 2.8]
     times, s = list(first), 0.0
     while len(times) < BALLS:
         times.append(4.2 + s)
-        s += 1 / min(2 + 9 * s**2, 70)  # balls per second, s seconds into the rush
+        s += 1 / min(2 + 9 * s**2, 70)  # 每秒球数，涌入后第 s 秒
     return np.array(times)
 
 
 class Board:
-    """Every ball's way down, worked out in advance: its release, its bounces, its rest."""
+    """每个球下落的路径，预先算好：其释放、弹跳和静止。"""
 
     def __init__(self, releases: np.ndarray, rng: np.random.Generator) -> None:
         count = len(releases)
         self.releases = releases
-        rights = rng.integers(0, 2, size=(count, ROWS))  # 1: it bounced right
+        rights = rng.integers(0, 2, size=(count, ROWS))  # 1：向右弹
         self.bins = rights.sum(1)
         before = np.concatenate([np.zeros((count, 1), int), np.cumsum(rights, 1)], 1)
         rows = np.arange(ROWS)
-        # where it touches the peg of each row: above its center, by the two radii
+        # 它触碰每行钉子的位置：在钉子中心上方，偏移两个半径
         self.contacts = np.stack(
             [
                 (before[:, :ROWS] - rows / 2) * DX,
@@ -74,8 +74,8 @@ class Board:
         self.fall = float(np.sqrt(2 * (RELEASE - self.contacts[0, 0, 1]) / GRAVITY))
         self.kick = (
             GRAVITY * HOP**2 / 2 - DY
-        ) / HOP  # up, off a peg: each hop drops DY
-        # it comes to rest in its bin on top of those that came before it
+        ) / HOP  # 向上，离开钉子：每跳下落 DY
+        # 它在槽中静止于先前到达的球之上
         rank = np.zeros(count, int)
         self.counts = np.zeros(ROWS + 1, int)
         for i in np.argsort(releases, kind="stable"):
@@ -90,16 +90,16 @@ class Board:
         self.landed = releases + self.fall + (ROWS - 1) * HOP + self.last
 
     def positions(self, t: float) -> np.ndarray:
-        """Where the balls let go by board time t are then, as rows (x, y, 0)."""
+        """在板时 t 之前释放的球此刻的位置，以行 (x, y, 0) 表示。"""
         shown = self.releases <= t
         u = t - self.releases[shown]
         contacts, rest, last = self.contacts[shown], self.rest[shown], self.last[shown]
         xy = np.empty((len(u), 2))
-        # falling onto the first peg
+        # 落向第一个钉子
         a = u < self.fall
         xy[a, 0] = contacts[a, 0, 0]
         xy[a, 1] = RELEASE - GRAVITY * u[a] ** 2 / 2
-        # hopping from peg to peg
+        # 从钉子跳到钉子
         bouncing = u - self.fall
         h = (bouncing >= 0) & (bouncing < (ROWS - 1) * HOP)
         hop = np.minimum((bouncing[h] // HOP).astype(int), ROWS - 2)
@@ -107,7 +107,7 @@ class Board:
         here, there = contacts[h, hop], contacts[h, hop + 1]
         xy[h, 0] = here[:, 0] + (there[:, 0] - here[:, 0]) * w / HOP
         xy[h, 1] = here[:, 1] + self.kick * w - GRAVITY * w**2 / 2
-        # the last bounce, into the bin, onto the pile
+        # 最后一次弹跳，落入槽中，堆在球堆上
         f = bouncing >= (ROWS - 1) * HOP
         w = np.minimum(bouncing[f] - (ROWS - 1) * HOP, last[f])
         here = contacts[f, -1]
@@ -140,7 +140,7 @@ class GaltonBoard(m.Scene):
             m.Line([0.5, RELEASE + 0.22, 0], [0.1, RELEASE - 0.05, 0]),
         ).set_stroke(m.GREY_B, width=3)
 
-        clock = m.ValueTracker(0.0)  # the board's own time
+        clock = m.ValueTracker(0.0)  # 板自身的计时
         balls = m.PMobject(stroke_width=200 * BALL)
         blue = m.BLUE.to_rgba()
 
@@ -168,8 +168,8 @@ class GaltonBoard(m.Scene):
             run_time=1.2,
         )
 
-        # the board's clock against the film's: 0.8 of life while three balls fall alone,
-        # then speeding up to twice life as the rest pour in
+        # 板的时钟与影片的对比：三个球单独下落时为 0.8 倍实时，
+        # 然后随其余球涌入加速到两倍实时
         end = float(board.landed.max()) + 0.2
         film = np.linspace(0, 30, 3001)
         speed = np.interp(film, [0, 5.0, 8.0], [0.8, 0.8, 2.0])
@@ -183,12 +183,12 @@ class GaltonBoard(m.Scene):
 
         self.play(clock.animate.set_value(end), run_time=seconds, rate_func=pace)
 
-        # the bell: the normal curve with the binomial's mean and variance, over the bins
+        # 钟形：以二项分布的均值和方差为参数的正态曲线，覆盖各槽
         mean, variance = ROWS / 2, ROWS / 4
-        per_ball = GAP * np.sqrt(3) / 9  # a pile's height, per ball in it
+        per_ball = GAP * np.sqrt(3) / 9  # 每个球对堆高的贡献
 
         def bell(x: float) -> float:
-            k = x / DX + ROWS / 2  # x, in bins
+            k = x / DX + ROWS / 2  # x，以槽为单位
             density = np.exp(-((k - mean) ** 2) / (2 * variance)) / np.sqrt(
                 2 * np.pi * variance
             )

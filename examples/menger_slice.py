@@ -1,12 +1,11 @@
-"""The stars inside the Menger sponge: cut it through its center, perpendicular to a long
-diagonal, and the cut face is a hexagon riddled with six-pointed stars.
+"""Menger 海绵内部的星形：过其中心、垂直于一条长对角线将其切开，切面是一个布满
+六角星的六边形。
 
-The sponge keeps a cube of the 3 × 3 × 3 grid unless two of its three coordinates sit in the
-middle third, and repeats that at every scale (level 3: 20³ = 8,000 cubes). Here it is cut by the
-plane x + y + z = s. The cut is exact: every face of the sponge is clipped against the plane each
-frame, and the cut face is painted from the same rule, so its holes are the sponge's tunnels. At
-s = 3/2 the cut is a regular hexagon full of hexagrams; sweep s toward a corner and the pattern
-morphs through Sierpinski-like triangles (a cut made famous by George Hart's 3D prints).
+海绵保留 3 × 3 × 3 网格中的每个立方体，除非其三个坐标中有两个落在中间三分之一段，
+并在每个尺度上重复此规则（第 3 级：20³ = 8,000 个立方体）。此处以平面 x + y + z = s
+切割。切割是精确的：海绵的每个面在每一帧中都被裁剪到该平面，切面按同一规则绘制，因此
+其孔洞正是海绵的隧道。当 s = 3/2 时，切面是一个布满六角星的规则六边形；将 s 扫向某个
+角时，图案经过类 Sierpinski 三角形渐变（此切面因 George Hart 的 3D 打印而闻名）。
 """
 
 import functools
@@ -16,19 +15,19 @@ import numpy as np
 import manimgx as m
 
 LEVEL = 3
-SIZE = 4.3  # edge of the sponge on screen
+SIZE = 4.3  # 海绵在屏幕上的边长
 NORMAL = np.ones(3) / np.sqrt(3)
 E1 = np.array([1.0, -1.0, 0.0]) / np.sqrt(2)
 E2 = np.array([1.0, 1.0, -2.0]) / np.sqrt(6)
 CAP_PIXELS = 720
-CAP_HALF = 0.74  # half the side of the cap's square, in unit-cube coordinates
+CAP_HALF = 0.74  # 帽片方形边长的一半，以单位立方体坐标计
 BONE = "#e3dccb"
 GOLD = np.array([1.0, 0.72, 0.18])
-# the cap's pixel centers on the plane, a across the picture and b down it
+# 帽片的像素中心在平面上，a 沿图片横向，b 沿图片纵向
 CAP_A = ((np.arange(CAP_PIXELS) + 0.5) / CAP_PIXELS * 2 - 1) * CAP_HALF
-CAP_B = -CAP_A  # rows go down the picture
+CAP_B = -CAP_A  # 行沿图片向下
 
-# the six outward faces of a unit voxel: (axis, side) → its corners, counter-clockwise outside
+# 单位体素的六个外表面：(轴, 侧) → 其角点，从外侧逆时针
 FACES = {
     (0, -1): [(0, 0, 0), (0, 0, 1), (0, 1, 1), (0, 1, 0)],
     (0, 1): [(1, 0, 0), (1, 1, 0), (1, 1, 1), (1, 0, 1)],
@@ -40,7 +39,7 @@ FACES = {
 
 
 def sponge(level: int) -> np.ndarray:
-    """Occupancy of the level-`level` sponge on its 3^level grid."""
+    """第 `level` 级海绵在其 3^level 网格上的占据情况。"""
     n = 3**level
     x, y, z = np.meshgrid(*[np.arange(n)] * 3, indexing="ij")
     keep = np.ones((n, n, n), bool)
@@ -51,10 +50,10 @@ def sponge(level: int) -> np.ndarray:
 
 
 def in_sponge(x: np.ndarray, y: np.ndarray, z: np.ndarray, level: int) -> np.ndarray:
-    """Is each point inside the sponge (in [0, 1)³)? The same rule, digit by digit, on
-    coordinate arrays that broadcast (one constant along an axis is worked once)."""
+    """每个点是否在海绵内（位于 [0, 1)³）？同一规则逐位判断，
+    对可广播的坐标数组操作（沿某轴为常数的只计算一次）。"""
     inside = (x >= 0) & (x < 1) & (y >= 0) & (y < 1) & (z >= 0) & (z < 1)
-    q = [x * 3, y * 3, z * 3]  # at the next scale, worked in place (big arrays)
+    q = [x * 3, y * 3, z * 3]  # 下一尺度，就地操作（大数组）
     digits = [np.empty_like(c) for c in q]
     for _ in range(level):
         for c, d in zip(q, digits, strict=True):
@@ -62,13 +61,13 @@ def in_sponge(x: np.ndarray, y: np.ndarray, z: np.ndarray, level: int) -> np.nda
             c -= d
             c *= 3
         mx, my, mz = (d == 1 for d in digits)
-        inside &= ~((mx & my) | (mz & (mx | my)))  # fewer than two middle digits
+        inside &= ~((mx & my) | (mz & (mx | my)))  # 中间位数字少于两个
     return inside
 
 
 def boundary_quads(occupied: np.ndarray, all_faces: bool = False) -> np.ndarray:
-    """(F, 4, 3) quads in unit coordinates: the faces between filled and empty voxels (or every
-    face of every filled voxel)."""
+    """单位坐标下的 (F, 4, 3) 四边形：已占据与空体素之间的面（或每个
+    已占据体素的每个面）。"""
     n = occupied.shape[0]
     padded = np.pad(occupied, 1)
     quads = []
@@ -82,8 +81,8 @@ def boundary_quads(occupied: np.ndarray, all_faces: bool = False) -> np.ndarray:
 
 
 def clip_below(quads: np.ndarray, s: float) -> tuple[np.ndarray, np.ndarray]:
-    """The part of every quad with x + y + z ≤ s, fan-triangulated: vertices, triangles.
-    Each polygon keeps its own vertices, so faces stay flat-shaded."""
+    """每个四边形中 x + y + z ≤ s 的部分，扇形三角化：顶点、三角形。
+    每个多边形保留各自的顶点，使面保持平面着色。"""
     d = quads.sum(axis=2) - s
     whole = quads[(d <= 0).all(axis=1)]
     cut = ~(d <= 0).all(axis=1) & (d <= 0).any(axis=1)
@@ -97,7 +96,7 @@ def clip_below(quads: np.ndarray, s: float) -> tuple[np.ndarray, np.ndarray]:
     order = np.argsort(~valid, axis=1, kind="stable")
     polygon = np.take_along_axis(slots, order[..., None], axis=1)[:, :5]
     count = valid.sum(axis=1)
-    # whole quads: two triangles each; cut polygons (3–5 corners): a fan of count − 2
+    # 完整四边形：各两个三角形；切割多边形（3–5 个角）：count − 2 个扇形
     verts = [whole.reshape(-1, 3), polygon.reshape(-1, 3)]
     tris = [
         (
@@ -117,8 +116,7 @@ def to_world(unit: np.ndarray) -> np.ndarray:
 
 @functools.cache
 def cap_colors() -> np.ndarray:
-    """The cap's picture before the cut, the same for every plane: gold, a little brighter in
-    rings about its center, and transparent."""
+    """切割前帽片的图像，对所有平面相同：金色，在围绕中心的环带中略亮，且透明。"""
     glow = 0.8 + 0.2 * np.cos(4 * np.hypot(CAP_A, CAP_B[:, None]))
     rgba = np.zeros((CAP_PIXELS, CAP_PIXELS, 4), np.uint8)
     rgba[..., :3] = GOLD * glow[..., None] * 255
@@ -126,9 +124,9 @@ def cap_colors() -> np.ndarray:
 
 
 def cap_pixels(s: float) -> np.ndarray:
-    """The cut face as a picture on a square of the plane: the sponge's material where the
-    plane meets it, transparent elsewhere (outside the cube and in the tunnels)."""
-    # p = s/3 + a E1 + b E2, a coordinate at a time (E1 has no z: z varies only down)
+    """切面作为平面上一正方形中的图像：平面与海绵相交处为海绵材质，其余透明
+    （立方体之外及隧道中）。"""
+    # p = s/3 + a E1 + b E2，逐坐标计算（E1 无 z 分量：z 仅沿纵向变化）
     x = s / 3 + CAP_A * E1[0] + (CAP_B * E2[0])[:, None]
     y = s / 3 + CAP_A * E1[1] + (CAP_B * E2[1])[:, None]
     z = (s / 3 + CAP_B * E2[2])[:, None]
@@ -138,7 +136,7 @@ def cap_pixels(s: float) -> np.ndarray:
 
 
 def cap_corners(s: float) -> np.ndarray:
-    """Corners of the cap's square in the order of an ImageMobject: UL, UR, DL, DR."""
+    """帽片方形的角点，按 ImageMobject 的顺序：左上、右上、左下、右下。"""
     center = np.full(3, s / 3)
     h = CAP_HALF
     unit = [
@@ -155,9 +153,9 @@ class MengerSlice(m.ThreeDScene):
         self.set_camera_orientation(
             phi=64 * m.DEGREES, theta=-38 * m.DEGREES, zoom=0.95
         )
-        cut = m.ValueTracker(3.0)  # s: x + y + z ≤ s is kept (3: the whole sponge)
+        cut = m.ValueTracker(3.0)  # s：保留 x + y + z ≤ s 的部分（3：整个海绵）
 
-        # the sponge, clipped by the plane as it moves
+        # 海绵，随平面移动而裁剪
         occupied = sponge(LEVEL)
         faces = boundary_quads(occupied)
 
@@ -166,7 +164,7 @@ class MengerSlice(m.ThreeDScene):
             return to_world(verts), tris
 
         body = m.MeshMobject(*solid_mesh(), shade_in_3d=True, fill_color=BONE)
-        # where each was last cut: while the plane stands still, body and cap stay
+        # 各自上次切割处：平面静止时，主体与帽片保持不变
         cut_at: dict[str, float] = {}
 
         def reclip(mob: m.Mobject) -> None:
@@ -176,7 +174,7 @@ class MengerSlice(m.ThreeDScene):
                 cut_at["body"] = s
                 mob.points, mob.triangles = solid_mesh()
 
-        # the build: at each level the cubes it removes shrink away into their centers
+        # 构建：每一级中被移除的立方体向其中心收缩消失
         levels = [sponge(k) for k in range(LEVEL + 1)]
         quad_order = np.array([[0, 1, 2], [0, 2, 3]])
 
@@ -211,7 +209,7 @@ class MengerSlice(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, subtitle, counter, plane_group, closing)
         self.remove(plane_group, closing)
 
-        # 0–5 s: cube → level 1 → 2 → 3, the removed cubes shrinking away
+        # 0–5 秒：立方体 → 第 1 级 → 2 → 3，被移除的立方体收缩消失
         cube = boundary_quads(levels[0])
         body.points, body.triangles = (
             to_world(cube.reshape(-1, 3)),
@@ -222,7 +220,7 @@ class MengerSlice(m.ThreeDScene):
         for k in range(LEVEL):
             n = 3 ** (k + 1)
             coarse = np.kron(levels[k], np.ones((3, 3, 3), bool))
-            gone = np.argwhere(coarse & ~levels[k + 1])  # the cubes this level removes
+            gone = np.argwhere(coarse & ~levels[k + 1])  # 该级移除的立方体
             corners = np.array(list(FACES.values()))  # (6, 4, 3)
             quads = ((gone[:, None, None, :] + corners[None]) / n).reshape(-1, 4, 3)
             centers = np.repeat((gone + 0.5) / n, 6, axis=0)[:, None, :]
@@ -253,17 +251,17 @@ class MengerSlice(m.ThreeDScene):
             counter.become(count_text(k + 1))
             shrink.set_value(
                 0.97
-            )  # the cuts show as hairlines before the pieces fall in
+            )  # 切口在碎片塌入前显示为细线
             self.play(
                 shrink.animate.set_value(0.0), run_time=1.5, rate_func=m.rush_into
             )
             self.remove(ghost)
         body.add_updater(reclip)
 
-        # 5–9 s: the cutting plane arrives at the center; the top half slides away
+        # 5–9 秒：切割平面到达中心；上半部分滑开
         top_verts, top_tris = clip_below(
             faces * -1 + 1, 1.5
-        )  # x+y+z ≥ 3/2, by symmetry
+        )  # x+y+z ≥ 3/2，由对称性
         top = m.MeshMobject(
             to_world(1 - top_verts), top_tris, shade_in_3d=True, fill_color=BONE
         )
@@ -284,7 +282,7 @@ class MengerSlice(m.ThreeDScene):
                 mob.paint = mob.paint.but(texture=cap_pixels(s))
 
         cap.add_updater(refresh_cap)
-        # 9–14 s: look straight down the diagonal at the cut
+        # 9–14 秒：沿对角线正对切面观察
         self.move_camera(
             phi=54.74 * m.DEGREES,
             theta=45 * m.DEGREES,
@@ -294,10 +292,10 @@ class MengerSlice(m.ThreeDScene):
             run_time=3.5,
         )
         self.wait(1.5)
-        # 14–26 s: sweep the plane toward a corner and back
+        # 14–26 秒：将平面向一角扫去再扫回
         self.play(cut.animate.set_value(0.62), run_time=6)
         self.play(cut.animate.set_value(1.5), run_time=6)
-        # 26–30 s: the stars, turning slowly about the diagonal
+        # 26–30 秒：星形，绕对角线缓慢旋转
         self.play(
             m.FadeIn(closing),
             self.camera.gamma_tracker.animate.set_value(30 * m.DEGREES),

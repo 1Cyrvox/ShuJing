@@ -1,25 +1,24 @@
-"""Steering a beam with phase alone: a phased array.
+"""仅凭相位控制波束方向：相控阵。
 
-Eight identical antennas that never move send out the same wave, each one a constant phase step
-Δφ behind its neighbour. Their waves add up to a beam whose direction obeys sin θ = Δφ λ/(2π d),
-the principle of every phased-array radar and 5G base station. The field is summed live from the
-eight sources; the beam angle is measured from the array factor |Σ e^{ij(Δφ − kd sin θ)}| and set
-beside the law. At twice the frequency (d = λ) a second, grating lobe appears. An 8×8 array steers
-a 3D pencil beam the same way, with a phase step along each side.
+八根全同且固定不动的天线发出相同的波，每根比其邻根落后恒定相位步进 Δφ。各波叠加
+形成一束波束，其方向满足 sin θ = Δφ λ/(2π d)，此即一切相控阵雷达与 5G 基站的原理。
+场强由八个源实时求和；波束角由阵列因子 |Σ e^{ij(Δφ − kd sin θ)}| 测得，并置于公式旁。
+当频率加倍（d = λ）时出现第二个栅瓣。8×8 阵列以同样方式、沿每边各设一相位步进，
+控制三维笔形波束。
 """
 
 import numpy as np
 
 import manimgx as m
 
-N = 8  # antennas per row
+N = 8  # 每行天线数
 WAVELENGTH = 0.6
-PITCH = WAVELENGTH / 2  # d, fixed: the antennas never move
-FREQUENCY = 1.1  # wave cycles per second
-RADIUS = 5.0  # of the half-disc of field above the array
+PITCH = WAVELENGTH / 2  # d，固定：天线不动
+FREQUENCY = 1.1  # 每秒波周期数
+RADIUS = 5.0  # 阵列上方半圆盘场的半径
 PIXELS = (800, 400)
-ROW_Y = -PITCH / 2  # the field is drawn in the plane of one row of the planar array
-LOBE = 3.6  # length of the 3D beam at full gain
+ROW_Y = -PITCH / 2  # 场绘制于平面阵列某一行所在的平面中
+LOBE = 3.6  # 满增益时三维波束的长度
 FIELD = [
     (-1.0, "#c8f4ff"),
     (-0.55, "#2c93d8"),
@@ -34,7 +33,7 @@ GAIN = ["#0d2b52", "#1768ac", "#2fb5c9", "#f2d479", "#fff7e0"]
 
 
 def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
-    """(n, 4) RGBA rows for values in [0, 1], interpolated through color stops."""
+    """将 [0, 1] 内的值经色标插值，返回 (n, 4) RGBA 行。"""
     rgb = np.array([m.ManimColor(s).to_rgb() for s in stops])
     x = np.clip(values, 0, 1) * (len(stops) - 1)
     i = np.minimum(x.astype(int), len(stops) - 2)
@@ -45,7 +44,7 @@ def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
 
 
 def field_palette() -> np.ndarray:
-    """A 256-entry RGBA lookup table for field values in [−1, 1]."""
+    """一张 256 项 RGBA 查找表，用于 [−1, 1] 内的场值。"""
     at = np.array([v for v, _ in FIELD])
     rgb = np.array([m.ManimColor(c).to_rgb() for _, c in FIELD])
     x = np.linspace(-1, 1, 256)
@@ -54,8 +53,8 @@ def field_palette() -> np.ndarray:
 
 
 def grid_mesh(points: np.ndarray, fill_color: str) -> m.MeshMobject:
-    """A smooth lit mesh over an (nu+1, nv+1, 3) grid of points computed with numpy (vertex
-    i·(nv + 1) + j), each cell two triangles."""
+    """在 (nu+1, nv+1, 3) 点网格上构建的光滑着色网格（用 numpy 计算，顶点
+    索引 i·(nv + 1) + j），每个单元两个三角形。"""
     nu, nv = points.shape[0] - 1, points.shape[1] - 1
     idx = np.arange((nu + 1) * (nv + 1)).reshape(nu + 1, nv + 1)
     a, b, c, d = idx[:-1, :-1], idx[1:, :-1], idx[1:, 1:], idx[:-1, 1:]
@@ -69,8 +68,8 @@ def grid_mesh(points: np.ndarray, fill_color: str) -> m.MeshMobject:
 
 
 def array_factor(u: np.ndarray, step: float, kd: float) -> np.ndarray:
-    """|Σ_j e^{ij(step − kd u)}| / N for direction cosines u along a row of N antennas, summed
-    in closed form: |sin(Nψ/2) / (N sin(ψ/2))| with ψ = step − kd u."""
+    """|Σ_j e^{ij(step − kd u)}| / N，针对 N 根天线一行上方向余弦 u，以
+    闭式求和：|sin(Nψ/2) / (N sin(ψ/2))|，其中 ψ = step − kd u。"""
     half = (step - kd * u) / 2
     below = np.sin(half)
     tiny = np.abs(below) < 1e-9
@@ -84,7 +83,7 @@ _found: dict[tuple[float, float], list[float]] = {}
 
 
 def lobes(step: float, kd: float) -> list[float]:
-    """Measured beam directions (degrees from broadside): the peaks of the array factor."""
+    """实测波束方向（偏离侧射方向的度数）：阵列因子的峰值。"""
     if (step, kd) not in _found:
         a = array_factor(np.sin(SCAN), step, kd)
         peak = (a > 0.8) & (a >= np.roll(a, 1)) & (a >= np.roll(a, -1))
@@ -95,13 +94,13 @@ def lobes(step: float, kd: float) -> list[float]:
 
 
 class Array:
-    """The live state: phase step(s), frequency, time; the field over the half-disc."""
+    """实时状态：相位步进、频率、时间；半圆盘上的场。"""
 
     def __init__(self) -> None:
         self.time = 0.0
-        self.step = m.ValueTracker(0.0)  # Δφ along x (radians)
-        self.step_y = m.ValueTracker(0.0)  # Δφ along y (the planar array)
-        self.octave = m.ValueTracker(1.0)  # frequency multiplier
+        self.step = m.ValueTracker(0.0)  # 沿 x 的 Δφ（弧度）
+        self.step_y = m.ValueTracker(0.0)  # 沿 y 的 Δφ（平面阵列）
+        self.octave = m.ValueTracker(1.0)  # 频率倍数
         w, h = PIXELS
         xs = np.linspace(-RADIUS, RADIUS, w)
         zs = np.linspace(RADIUS, 0, h)
@@ -111,13 +110,13 @@ class Array:
         self.edge = (edge**1.5).ravel()
         self.compensate = (np.sqrt(rim + 0.6) / N).astype(np.float32).ravel()
         self.sources = (np.arange(N) - (N - 1) / 2) * PITCH
-        # each source's distance to every pixel, and its 1/√r fall-off
+        # 每个源到每个像素的距离，及其 1/√r 衰减
         r = np.hypot(self.x[None] - self.sources[:, None, None], self.z[None])
         self.r = r.reshape(N, -1).astype(np.float32)
         self.falloff = (1 / np.sqrt(self.r + 0.03)).astype(np.float32)
         self.palette = (
             field_palette().view(np.uint32).ravel()
-        )  # one RGBA word per entry
+        )  # 每项一个 RGBA 字
         self.basis_octave = -1.0
         self.basis = np.zeros((N, w * h), np.complex64)
 
@@ -126,12 +125,12 @@ class Array:
         return 2 * np.pi * self.octave.get_value() / WAVELENGTH
 
     def phases(self) -> np.ndarray:
-        """Each antenna's drive phase now: j Δφ − ωt."""
+        """此刻每根天线的驱动相位：j Δφ − ωt。"""
         omega = 2 * np.pi * FREQUENCY * self.octave.get_value()
         return np.arange(N) * self.step.get_value() - omega * self.time
 
     def picture(self, shown: float = 1.0) -> np.ndarray:
-        """Re Σ_j e^{i(k r_j + jΔφ − ωt)} / √r_j over the half-disc, as RGBA pixels."""
+        """半圆盘上 Re Σ_j e^{i(k r_j + jΔφ − ωt)} / √r_j 的值，以 RGBA 像素表示。"""
         if self.basis_octave != self.octave.get_value():
             kr = np.float32(self.k) * self.r
             self.basis = (self.falloff * np.cos(kr)) + 1j * (self.falloff * np.sin(kr))
@@ -160,9 +159,9 @@ class PhasedArray(m.ThreeDScene):
             state.time += dt
 
         clock.add_updater(tick)
-        shown = m.ValueTracker(1.0)  # the field's visibility
+        shown = m.ValueTracker(1.0)  # 场的可见度
 
-        # ── the field, a textured half-disc standing in the plane of the array ──────────────
+        # ── 场，一个立于阵列平面中的带纹理半圆盘 ──────────────
         field = m.ImageMobject(state.picture())
         field.scale_to_fit_width(2 * RADIUS)
         field.rotate(90 * m.DEGREES, axis=m.RIGHT)
@@ -173,7 +172,7 @@ class PhasedArray(m.ThreeDScene):
 
         field.add_updater(paint_field)
 
-        # ── the antennas, pulsing with their own phase, and a phasor dial under each ────────
+        # ── 天线，按各自相位脉动，每根下方有相量表盘 ────────
         xs = state.sources
         antennas = m.VGroup(
             *[m.Dot3D(np.array([x, ROW_Y, 0]), radius=0.07) for x in xs]
@@ -206,7 +205,7 @@ class PhasedArray(m.ThreeDScene):
 
         dial_group = m.always_redraw(dials)
 
-        # ── heads-up display ─────────────────────────────────────────────────────────────────
+        # ── 平视显示 ─────────────────────────────────────────────────────────────────
         title = m.Text("Steering a beam with phase alone", font_size=36).to_corner(m.UL)
         subtitle = m.Text(
             "eight fixed antennas, each a phase step Δφ behind the last", font_size=22
@@ -217,7 +216,7 @@ class PhasedArray(m.ThreeDScene):
         )
         law.to_corner(m.UR).shift(0.15 * m.LEFT)
 
-        # polar plot of the array factor: angle from broadside, radius = |AF|
+        # 阵列因子的极坐标图：角度偏离侧射方向，半径 = |AF|
         hub = np.array([5.05, 0.35, 0])
         size = 1.55
         polar = m.VGroup(
@@ -289,7 +288,7 @@ class PhasedArray(m.ThreeDScene):
         step_value.add_updater(lambda d: d.set_value(state.step.get_value() / np.pi))
         spacing_value = number(2)
         spacing_value.add_updater(lambda d: d.set_value(PITCH * state.k / (2 * np.pi)))
-        # the measured beams: the main one (nearest the law's) and a grating lobe, if any
+        # 实测波束：主瓣（最接近公式值的）及栅瓣（若有）
         main_value = number(1, r"^\circ", color=GOLD)
         second_value = number(1, r"^\circ", color=GOLD)
         comma = m.MathTex(",", font_size=30, color=GOLD)
@@ -323,7 +322,7 @@ class PhasedArray(m.ThreeDScene):
         )
         hud_1d = m.VGroup(polar, ticks, rows)
 
-        # ── the planar array: 8×8 patches, each lit by its phase ─────────────────────────────
+        # ── 平面阵列：8×8 贴片，各按其相位点亮 ─────────────────────────────
         grid = (np.arange(N) - (N - 1) / 2) * PITCH
         gx, gy = np.meshgrid(grid, grid, indexing="ij")
         centers = np.column_stack([gx.ravel(), gy.ravel(), np.full(N * N, 0.01)])
@@ -354,7 +353,7 @@ class PhasedArray(m.ThreeDScene):
 
         patches.add_updater(light_patches)
 
-        # ── the 3D beam: |AF_x · AF_y| over the upper hemisphere, as a lit surface ──────────
+        # ── 三维波束：上半球面上 |AF_x · AF_y|，以着色曲面表示 ──────────
         th = np.linspace(0, np.pi / 2, 121)
         ph = np.linspace(0, 2 * np.pi, 181)
         tt, pp = np.meshgrid(th, ph, indexing="ij")
@@ -382,10 +381,10 @@ class PhasedArray(m.ThreeDScene):
 
         beam = np.zeros(
             2
-        )  # the measured beam direction (θ, φ in degrees), once a frame
+        )  # 实测波束方向（θ、φ 以度计），每帧一次
 
         def peak(_: m.Mobject) -> None:
-            """The maximum of |AF| over the hemisphere, refined on a fine patch around it."""
+            """|AF| 在半球面上的最大值，在其附近精细网格上求精。"""
             g = gain(dirs)
             i, j = np.unravel_index(int(np.argmax(g)), g.shape)
             fine_t = np.linspace(th[max(i - 1, 0)], th[min(i + 1, len(th) - 1)], 41)
@@ -459,7 +458,7 @@ class PhasedArray(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, subtitle, law, hud_1d, polar_curve)
         self.remove(title, subtitle, law, hud_1d)
 
-        # 0–3 s: in step, the waves add up straight ahead
+        # 0–3 秒：同相时，各波正向叠加
         self.play(m.Write(title), m.FadeIn(subtitle), run_time=1.5)
         self.play(
             m.FadeIn(law),
@@ -468,13 +467,13 @@ class PhasedArray(m.ThreeDScene):
             run_time=1.2,
         )
         self.wait(0.4)
-        # 3–11 s: a phase step between neighbours tilts the wavefronts and the beam
+        # 3–11 秒：邻根间的相位步进使波前与波束偏转
         self.play(state.step.animate.set_value(0.5 * np.pi), run_time=2.2)
         self.wait(0.5)
         self.play(state.step.animate.set_value(-0.7 * np.pi), run_time=3.0)
         self.wait(0.4)
         self.play(state.step.animate.set_value(0.25 * np.pi), run_time=1.5)
-        # 11–15 s: the same antennas at twice the frequency: d = λ, and a second beam appears
+        # 11–15 秒：同一天线频率加倍：d = λ，出现第二个波束
         note = m.Text(
             "same antennas, twice the frequency: d = λ, and a second beam", font_size=22
         ).set_color(m.GREY_B)
@@ -489,19 +488,19 @@ class PhasedArray(m.ThreeDScene):
         self.wait(1.5)
         self.play(state.octave.animate.set_value(1.0), m.FadeOut(note), run_time=1.5)
 
-        # 16–20 s: the full 8×8 panel steers a pencil beam in 3D
+        # 16–20 秒：完整 8×8 面板在三维中控制笔形波束
         def first(
             t: float,
-        ) -> float:  # the old readouts leave in the first 40% of the move
+        ) -> float:  # 旧读数在移动的前 40% 退出
             return m.smooth(min(1.0, t / 0.4))
 
-        def last(t: float) -> float:  # the new ones arrive in the last half
+        def last(t: float) -> float:  # 新读数在后半段出现
             return m.smooth(max(0.0, 2 * t - 1))
 
         self.add(board, patches, lobe, axis_line)
         peak(
             axis_line
-        )  # the readouts hold still while they fade in: give them their values
+        )  # 读数在淡入时保持静止：先赋予其值
         planar_law(law_p)
         self.add_fixed_in_frame_mobjects(law_2d, hud_2d)
         self.remove(law_2d, hud_2d)
@@ -524,7 +523,7 @@ class PhasedArray(m.ThreeDScene):
                 m.FadeIn(hud_2d, rate_func=last),
             ],
         )
-        # 20–28 s: a conical scan: the step turns around the panel, the beam sweeps a cone
+        # 20–28 秒：锥形扫描：步进绕面板旋转，波束扫出圆锥
         self.begin_ambient_camera_rotation(rate=0.1)
         sweep = m.ValueTracker(0.0)
         tilt = 0.55 * np.pi

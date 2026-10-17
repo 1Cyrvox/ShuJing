@@ -1,12 +1,11 @@
-"""Strain-wave gearing: 30:1 in one flat ring.
+"""谐波波齿轮：一扁平环内 30:1 减速。
 
-An elliptical plug (the wave generator) spins inside a thin ring of 60 teeth (the flexspline) and
-flexes it into mesh with a rigid ring of 62 teeth (the circular spline) at the two ends of its long
-axis. The thin ring cannot stretch, so where it bulges out by one module its teeth sit exactly one
-gap apart and slide straight in and out of the gaps. Each turn of the plug carries the mesh past
-all 62 gaps but only 60 teeth, so the flexspline walks back two teeth a turn:
-β = −(N_c − N_f)/N_f · ψ = −ψ/30 (C. W. Musser, 1957). The circular spline's teeth are cut here as
-the envelope of the flexspline's own moving teeth, so the two never collide.
+一个椭圆塞（波发生器）在一个 60 齿薄环（柔轮）内旋转并
+将其弯成与 62 齿刚环（刚轮）在长轴两端啮合。薄环不可拉伸，
+因此凸出一个模数处其齿恰好隔一个齿隙并直进直出齿隙。塞每转一圈
+带动啮合经过全部 62 个齿隙但仅 60 个齿，因此柔轮每转退两齿：
+β = −(N_c − N_f)/N_f · ψ = −ψ/30（C. W. Musser，1957）。刚轮的齿在此
+被切为柔轮自身运动齿的包络，因此两者永不碰撞。
 """
 
 from collections.abc import Callable
@@ -18,9 +17,9 @@ import manimgx as m
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """摄像机在其轨道角处的坐标轴，以行向量表示：右、上、朝向观察者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 轴的旋转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -28,36 +27,36 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 轴旋转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
-NF, NC = 60, 62  # flexspline and circular spline teeth
-MOD = 0.1  # module: the flexspline's pitch radius is NF · MOD / 2
-RP, W0 = NF * MOD / 2, (NC - NF) * MOD / 2  # pitch radius; the bulge at the long axis
-PITCH = np.pi * MOD  # tooth pitch along the pitch line
-DELTA = m.TAU / NC  # the circular spline's pitch angle
-HA, HF, RIM = 0.8 * MOD, 0.9 * MOD, 1.3 * MOD  # tooth tip and root; rim under the root
-THICK = 0.5 * PITCH  # tooth thickness on the pitch line
-FLANK = np.radians(25)  # flank angle
-BALL, BALLS = 0.1, 36  # bearing balls between the plug and the flexspline
-CAM = -HF - RIM - 2 * BALL  # the plug's rim, below the pitch line
-CLEAR, R_OUT, HUB = 0.006, RP + 5.5 * MOD, 0.55  # tooth clearance; outer rim; shaft
+NF, NC = 60, 62  # 柔轮和刚轮齿数
+MOD = 0.1  # 模数：柔轮的节圆半径为 NF · MOD / 2
+RP, W0 = NF * MOD / 2, (NC - NF) * MOD / 2  # 节圆半径；长轴处的凸起
+PITCH = np.pi * MOD  # 沿节线的齿距
+DELTA = m.TAU / NC  # 刚轮的节角
+HA, HF, RIM = 0.8 * MOD, 0.9 * MOD, 1.3 * MOD  # 齿顶和齿根；齿根下方的轮缘
+THICK = 0.5 * PITCH  # 节线上的齿厚
+FLANK = np.radians(25)  # 齿侧角
+BALL, BALLS = 0.1, 36  # 塞与柔轮之间的轴承滚珠
+CAM = -HF - RIM - 2 * BALL  # 塞的轮缘，在节线下方
+CLEAR, R_OUT, HUB = 0.006, RP + 5.5 * MOD, 0.55  # 齿隙；外缘；轴
 STEEL, BRASS, RED = "#5d6879", "#d8b15e", "#e63946"
 PLUG, PLUG_LIGHT = "#1d5a56", "#4fc1b5"
-# plug speed (turns per second) at key times, eased between them
+# 塞速（转/秒）在关键时刻的值，其间缓动
 SPEED = [(0, 0), (8.6, 0), (10.2, 0.5), (19.2, 0.5), (21.2, 0.04), (25.2, 0.04)]
 SPEED += [(27.0, 0.3), (31.0, 0.3)]
-CLOSE_UP = 23.2  # the red tooth meets the long axis in the close-up
-Face = tuple[np.ndarray, np.ndarray, list[np.ndarray]]  # points, triangles, loops
+CLOSE_UP = 23.2  # 特写中红齿在长轴处相遇
+Face = tuple[np.ndarray, np.ndarray, list[np.ndarray]]  # 顶点、三角形、环
 
 
 def pitch_line(
     theta: np.ndarray, w: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """The flexspline's pitch line, bulged by w along the plug's long axis (angle 0), at material
-    angles θ: an inextensible ring, radial shift w cos 2θ and tangential shift −(w/2) sin 2θ.
-    Returns points, unit tangents and outward normals (each (n, 2))."""
+    """柔轮的节线，沿塞的长轴（角 0）凸出 w，在材料
+    角 θ 处：不可伸长的环，径向位移 w cos 2θ 和切向位移 −(w/2) sin 2θ。
+    返回点、单位切向量和外法向量（各为 (n, 2)）。"""
     rho = RP + w * np.cos(2 * theta)
     phi = theta - w / (2 * RP) * np.sin(2 * theta)
     d_rho, d_phi = -2 * w * np.sin(2 * theta), 1 - w / RP * np.cos(2 * theta)
@@ -70,7 +69,7 @@ def pitch_line(
 
 
 def turn(points: np.ndarray, angle: float) -> np.ndarray:
-    """Points (n, 2) turned counterclockwise by angle."""
+    """点 (n, 2) 逆时针旋转 angle。"""
     c, s = np.cos(angle), np.sin(angle)
     return points @ np.array([[c, s], [-s, c]])
 
@@ -80,11 +79,11 @@ def polar(r: np.ndarray, angle: np.ndarray) -> np.ndarray:
 
 
 def tooth_cell() -> np.ndarray:
-    """One flexspline pitch cell (x along the pitch line, y out of it), 14 points from x = −p/2 to
-    x = p/2: root, a tooth with straight flanks and rounded tip corners, root."""
+    """一个柔轮节距格（x 沿节线，y 垂直于节线），从 x = −p/2 到
+    x = p/2 的 14 个点：齿根、带直齿侧和圆角齿顶的齿、齿根。"""
     half, slope = THICK / 2, np.tan(FLANK)
     fillet = 0.3 * (half - HA * slope)
-    cy = HA - fillet  # the fillet touches the tip line and the flank
+    cy = HA - fillet  # 圆角与齿顶线和齿侧相切
     cx = (half * np.cos(FLANK) - cy * np.sin(FLANK) - fillet) / np.cos(FLANK)
     arc = np.linspace(np.pi - FLANK, np.pi / 2, 5)
     corner = np.stack([-cx + fillet * np.cos(arc), cy + fillet * np.sin(arc)], -1)
@@ -93,21 +92,21 @@ def tooth_cell() -> np.ndarray:
 
 
 def place_teeth(cell: np.ndarray, psi: float, w: float) -> np.ndarray:
-    """Every tooth's copy of `cell` (NF, k, 2), each tooth rigid on its pitch-line spot, for the
-    plug turned by ψ: the flexspline itself has turned by β = −ψ (NC − NF) / NF."""
-    theta = m.TAU * np.arange(NF) / NF - psi * NC / NF  # material angles from the axis
+    """`cell` 在每个齿处的副本 (NF, k, 2)，每齿刚性固定于其节线位置，
+    对应塞转过 ψ：柔轮自身转过 β = −ψ (NC − NF) / NF。"""
+    theta = m.TAU * np.arange(NF) / NF - psi * NC / NF  # 从轴线起的材料角
     spot, tangent, normal = pitch_line(theta, w)
     pts = spot[:, None] + cell[:, :1] * tangent[:, None] + cell[:, 1:] * normal[:, None]
     return turn(pts.reshape(-1, 2), psi).reshape(NF, len(cell), 2)
 
 
 def spline_tooth(cell: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """The circular spline's tooth, cut as the envelope of the flexspline's teeth: the half-angle
-    of the region they sweep through one gap, at each radius, subtracted from the pitch. The
-    motion repeats, turned by one gap, every 1/62 turn of the plug, so that stretch covers all
-    gaps. Returns the tooth's radii (tip → root) and half-angles."""
+    """刚轮的齿，切为柔轮齿的包络：在每个半径处，
+    它们扫过一个齿隙的区域半角，从节距中减去。运动每
+    隔塞转 1/62 圈重复一次（转过一个齿隙），使该段覆盖所有
+    齿隙。返回齿的半径（齿顶 → 齿根）和半角。"""
     deep = np.array([[PITCH / 2, -HF - RIM], [-PITCH / 2, -HF - RIM]])
-    outline = np.vstack([cell, deep, cell[:1]])  # everything under the outline counts
+    outline = np.vstack([cell, deep, cell[:1]])  # 轮廓下的一切都计入
     radii = np.linspace(RP - W0 - HF, RP + W0 + HA, 600)
     swept = np.zeros(len(radii))
     for psi in np.linspace(0, DELTA, 128, endpoint=False):
@@ -118,7 +117,7 @@ def spline_tooth(cell: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         ang = np.arctan2(pts[..., 1], pts[..., 0]) - gap[:, None]
         ang = np.abs((ang + np.pi) % m.TAU - np.pi)[..., None]
         r = r[..., None]
-        # where each edge of each outline crosses each radius, and at what angle
+        # 每条轮廓边与每个半径的交点，及其角度
         f = (radii - r[:, :-1]) / np.where(
             r[:, 1:] == r[:, :-1], 1e-12, r[:, 1:] - r[:, :-1]
         )
@@ -134,9 +133,9 @@ def spline_tooth(cell: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 def prism(
     face: np.ndarray, tris: np.ndarray, loops: list[np.ndarray], z0: float, z1: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """A flat part: its top face (points, triangles) at height z1 and a wall down to z0 along
-    each closed boundary loop. Faces and walls share no vertices, so their edges stay crisp.
-    Returns, per vertex, the face point it copies and its height, and the triangles."""
+    """扁平零件：其顶面（顶点、三角形）在高度 z1，壁沿
+    每个闭合边界环下至 z0。面与壁不共享顶点，使其棱保持锐利。
+    返回每个顶点所复制的面顶点及其高度，以及三角形。"""
     source, height, faces = [np.arange(len(face))], [np.full(len(face), z1)], [tris]
     count = len(face)
     for loop in loops:
@@ -156,29 +155,29 @@ def fan(center: int, rim: np.ndarray) -> np.ndarray:
 
 
 def strip(inner: np.ndarray, outer: np.ndarray) -> np.ndarray:
-    """Triangles between two closed rows of vertex indices of equal length."""
+    """等长两行闭合顶点索引之间的三角形。"""
     a, b, c, d = inner, np.roll(inner, -1), np.roll(outer, -1), outer
     return np.vstack([np.stack([a, b, c], 1), np.stack([a, c, d], 1)])
 
 
 def facing_up(points: np.ndarray, tris: np.ndarray) -> np.ndarray:
-    """The triangles, each wound counterclockwise seen from above (so the shading's averaged
-    normals agree)."""
+    """三角形，每个从上方看为逆时针绕向（使着色的平均
+    法向量一致）。"""
     a, b, c = points[tris[:, 0]], points[tris[:, 1]], points[tris[:, 2]]
     area = (b - a)[:, 0] * (c - a)[:, 1] - (b - a)[:, 1] * (c - a)[:, 0]
     return np.where((area < 0)[:, None], tris[:, ::-1], tris)
 
 
 def flexspline_face(cell: np.ndarray) -> Face:
-    """The flexspline's top face in material terms, per vertex (tooth, x, y) in the tooth's own
-    frame: per tooth its contour (13 points), the middle of its base and 4 points on the rim's
-    inner edge. Returns them, the triangles and the boundary loops (toothed and inner).
+    """柔轮顶面的材料表示，每顶点（齿、x、y）在齿自身
+    标架中：每齿其轮廓（13 个点）、基底中点和轮缘内边上 4 个点。
+    返回它们、三角形和边界环（带齿的和内部的）。
     """
-    contour = cell[:-1]  # the next tooth's first point closes this one's root
+    contour = cell[:-1]  # 下一齿的第一个点闭合此齿的齿根
     inner = np.column_stack(
         [[contour[0, 0], contour[1, 0], 0.0, contour[12, 0]], [-HF - RIM] * 4]
     )
-    local = np.vstack([contour, [[0.0, -HF]], inner])  # 13 + 1 + 4 = 18 per tooth
+    local = np.vstack([contour, [[0.0, -HF]], inner])  # 13 + 1 + 4 = 18 每齿
     first = len(local) * np.arange(NF)[:, None]
     teeth = np.vstack([fan(j + 13, j + np.arange(1, 13)) for j in first[:, 0]])
     rows = [
@@ -192,10 +191,10 @@ def flexspline_face(cell: np.ndarray) -> Face:
 
 
 def spline_face(radii: np.ndarray, half: np.ndarray) -> Face:
-    """The circular spline's top face: 62 teeth pointing in (tooth k centred at (k + ½)·Δ) on a
-    rim out to R_OUT. Returns points, triangles and boundary loops (toothed, outer)."""
-    root = radii[-1] + CLEAR  # the root circle, just beyond the flexspline's reach
-    # the tooth's edge: root → tip → root
+    """刚轮顶面：62 个齿向内指（齿 k 中心在 (k + ½)·Δ），在
+    延伸至 R_OUT 的轮缘上。返回顶点、三角形和边界环（带齿的、外缘的）。"""
+    root = radii[-1] + CLEAR  # 齿根圆，恰在柔轮触及范围之外
+    # 齿的边：齿根 → 齿顶 → 齿根
     edge_r = np.concatenate([[root], radii[::-1], radii[1:], [root]])
     edge_a = np.concatenate([[-half[-1]], -half[::-1], half[1:], [half[-1]]])
     n = len(edge_r)
@@ -203,7 +202,7 @@ def spline_face(radii: np.ndarray, half: np.ndarray) -> Face:
     for k in range(NC):
         c = (k + 0.5) * DELTA
         pts.append(polar(edge_r, c + edge_a))
-        pts.append(polar(np.full(2, root), c + np.array([0, DELTA / 2])))  # base, gap
+        pts.append(polar(np.full(2, root), c + np.array([0, DELTA / 2])))  # 基底，齿隙
         outside = c + np.array([-half[-1], 0, half[-1], DELTA / 2])
         pts.append(polar(np.full(4, R_OUT), outside))
     first = (n + 6) * np.arange(NC)[:, None]
@@ -220,7 +219,7 @@ def spline_face(radii: np.ndarray, half: np.ndarray) -> Face:
 
 
 def plug_face(samples: int = 240) -> Face:
-    """The wave generator's elliptical cam (in its own frame, long axis along x) around a hub."""
+    """波发生器的椭圆凸轮（在其自身标架中，长轴沿 x）绕一个轮毂。"""
     spot, _, normal = pitch_line(np.linspace(0, m.TAU, samples, endpoint=False), W0)
     rim = spot + CAM * normal
     hub = HUB * rim / np.linalg.norm(rim, axis=1, keepdims=True)
@@ -230,7 +229,7 @@ def plug_face(samples: int = 240) -> Face:
 
 
 def flat(outline: np.ndarray, center: tuple[float, float]) -> Face:
-    """A flat polygon, fanned from a point that sees its whole outline."""
+    """扁平多边形，从能看到其整个轮廓的一点扇出。"""
     points = np.vstack([outline, [center]])
     tris = fan(len(outline), np.append(np.arange(len(outline)), 0))
     return points, facing_up(points, tris), [np.arange(len(outline))]
@@ -243,14 +242,14 @@ def disk(radius: float) -> Face:
 
 
 def arrow(start: float, stop: float, w: float) -> Face:
-    """A flat arrow along +x."""
+    """沿 +x 方向的扁平箭头。"""
     neck = stop - 3 * w
     half = [[start, -w / 2], [neck, -w / 2], [neck, -1.5 * w], [stop, 0]]
     return flat(np.array(half + [[x, -y] for x, y in half[-2::-1]]), (neck, 0))
 
 
 def ball() -> tuple[np.ndarray, np.ndarray]:
-    """A bearing ball: a small sphere's vertices and triangles (a 6 × 10 grid)."""
+    """轴承滚珠：一个小球的顶点和三角形（6 × 10 网格）。"""
     u, v = np.meshgrid(
         np.linspace(0, np.pi, 7), np.linspace(0, m.TAU, 11), indexing="ij"
     )
@@ -263,7 +262,7 @@ def ball() -> tuple[np.ndarray, np.ndarray]:
 
 
 def speed_profile() -> tuple[np.ndarray, np.ndarray]:
-    """Times, and the plug's angle (turns) by then: the integral of the eased SPEED profile."""
+    """时刻，及塞到那时转过的角度（圈数）：缓动 SPEED 剖面的积分。"""
     fine = np.linspace(0, SPEED[-1][0], 60001)
     speed = np.zeros_like(fine)
     for (t0, s0), (t1, s1) in pairwise(SPEED):
@@ -282,7 +281,7 @@ def plug_turns(times: np.ndarray) -> np.ndarray:
 
 
 def project(camera: m.Camera, point: np.ndarray) -> np.ndarray:
-    """Where a 3D point lands on the screen, in frame coordinates (for HUD labels)."""
+    """3D 点在屏幕上的落点，以帧坐标表示（用于 HUD 标签）。"""
     turned = camera_axes(camera.get_phi(), camera.get_theta(), camera.get_gamma())
     p = turned @ (point - camera.frame_center)
     depth = 1 - p[2] / camera.get_focal_distance()
@@ -296,8 +295,8 @@ def rgba(color: str) -> np.ndarray:
 def live(
     value: Callable[[], float], places: int, shown: m.ValueTracker, right: np.ndarray
 ) -> m.DecimalNumber:
-    """A number that follows `value` every frame, its right edge at `right`, faded by a tracker
-    (it is rebuilt each frame, so it must not be faded by an animation)."""
+    """每帧跟随 `value` 的数字，右边缘在 `right` 处，由跟踪器淡入淡出
+    （每帧重建，故不可由动画淡入淡出）。"""
     number = m.DecimalNumber(value(), num_decimal_places=places, font_size=30)
 
     def refresh(mob: m.DecimalNumber) -> None:
@@ -314,16 +313,16 @@ class HarmonicDrive(m.ThreeDScene):
         self.camera.background_color = "#0f1318"
         cell = tooth_cell()
         radii, half = spline_tooth(cell)
-        # the red tooth is the one at the long axis in the middle of the close-up; the whole
-        # drive is turned so that it starts at 12 o'clock
+        # 红齿是特写中长轴处中间的那个齿；整个
+        # 传动被转动以使其从 12 点钟方向开始
         close_up = plug_turns(np.array([CLOSE_UP]))[0] * m.TAU
         red = round(close_up * NC / m.TAU) % NF
         start = place_teeth(np.zeros((1, 2)), 0.0, W0)[red, 0]
         zero = np.pi / 2 - np.arctan2(start[1], start[0])
         clock = [0.0]
-        bulge = m.ValueTracker(0.0)  # the flexspline's bulge, in units of W0
+        bulge = m.ValueTracker(0.0)  # 柔轮的凸起，以 W0 为单位
         lift = {"plug": m.ValueTracker(3.8), "flex": m.ValueTracker(1.9)}
-        seen = {"psi": 0.0, "beta": 0.0}  # plug and ring angles, as drawn this frame
+        seen = {"psi": 0.0, "beta": 0.0}  # 塞和环的角度，本帧绘制值
 
         def psi() -> float:
             return float(plug_turns(np.array([clock[0]]))[0] * m.TAU)
@@ -331,15 +330,14 @@ class HarmonicDrive(m.ThreeDScene):
         def place(xy: np.ndarray, z: np.ndarray, angle: float = 0.0) -> np.ndarray:
             return np.column_stack([turn(xy, angle + zero), z])
 
-        # circular spline: fixed
+        # 刚轮：固定
         face, tris, loops = spline_face(radii, half)
         source, height, faces = prism(face, tris, loops, 0.0, 0.5)
         spline = m.MeshMobject(
             place(face[source], height), faces, shade_in_3d=True, fill_color=STEEL
         )
 
-        # flexspline: 60 rigid teeth riding the flexed pitch line, colored by how far the plug
-        # pushes each out (bright) or pulls it in (dim): the strain wave
+        # 柔轮：60 个刚性齿沿弯曲节线骑行，按塞将每个推出（亮）或拉入（暗）着色：应变波
         material, tris, loops = flexspline_face(cell)
         f_source, f_height, f_faces = prism(material[:, 1:], tris, loops, 0.02, 0.56)
         tooth_of = material[f_source, 0].astype(int)
@@ -354,7 +352,7 @@ class HarmonicDrive(m.ThreeDScene):
             xy = spot[tooth_of] + local[:, :1] * tangent[tooth_of]
             xy += local[:, 1:] * normal[tooth_of]
             mob.points = place(xy, f_height + lift["flex"].get_value(), a)
-            # the ring's turn, measured from the drawn teeth: their mean angle from rest
+            # 环的转动，从所绘齿测得：它们相对静止的平均角
             moved = turn(spot, a)
             angles = np.arctan2(moved[:, 1], moved[:, 0]) - rest
             seen["psi"], seen["beta"] = a, float(np.angle(np.exp(1j * angles).mean()))
@@ -371,7 +369,7 @@ class HarmonicDrive(m.ThreeDScene):
         flex_update(flex)
         flex.add_updater(flex_update)
 
-        # wave generator: the cam, its hub and an arrow along its long axis, and the balls
+        # 波发生器：凸轮、其轮毂和沿长轴的箭头，以及滚珠
         parts = [plug_face(), disk(HUB), arrow(HUB + 0.12, RP + W0 + CAM - 0.12, 0.07)]
         levels = [(0.08, 0.46), (0.0, 0.74), (0.46, 0.47)]
         tints = [PLUG, "#c9ced6", "#f1faee"]
@@ -402,7 +400,7 @@ class HarmonicDrive(m.ThreeDScene):
             a = psi()
             cage = (
                 m.TAU * np.arange(BALLS) / BALLS - 0.52 * a
-            )  # the cage: about half speed
+            )  # 保持架：约半速
             spot, _, normal = pitch_line(cage, W0)
             z = np.full(BALLS, 0.27 + lift["plug"].get_value())
             centers = place(spot + (CAM + BALL) * normal, z, a)
@@ -411,12 +409,11 @@ class HarmonicDrive(m.ThreeDScene):
         balls.add_updater(roll)
         roll(balls)
 
-        # on the fixed ring, a tick grows where the ring has got to after each whole turn of
-        # the plug: two teeth (12°) apart
+        # 在固定环上，塞每整转后环到达处长出一个刻度：相隔两齿（12°）
         grid = np.linspace(0, SPEED[-1][0], 3101)
         turns = np.arange(int(plug_turns(grid)[-1]) + 1)
         when = np.interp(turns, plug_turns(grid), grid)
-        when[0] = SPEED[1][0]  # where the red tooth starts
+        when[0] = SPEED[1][0]  # 红齿起始处
         root = radii[-1] + CLEAR
         across = np.array([-0.028, 0.028, 0.028, -0.028])
         quad = np.array([[0, 1, 2], [0, 2, 3]])
@@ -443,7 +440,7 @@ class HarmonicDrive(m.ThreeDScene):
 
         driver = m.Mobject().add_updater(advance)
 
-        # heads-up display
+        # 平视显示器
         title = m.Text("Strain-wave gearing", font_size=38).to_corner(m.UL)
         notes = [
             "an elliptical plug flexes a 60-tooth ring inside a 62-tooth ring",
@@ -472,7 +469,7 @@ class HarmonicDrive(m.ThreeDScene):
         around = polar(np.ones(72), np.linspace(0, m.TAU, 72, endpoint=False))
 
         def follow(group: m.Mobject) -> None:
-            """Each label just left of its part, never closer than 0.95 to the one below."""
+            """每个标签在其部件左侧，与下方标签距离不小于 0.95。"""
             floor = -np.inf
             parts = zip(group[::-1], ["spline", "flex", "plug"], reaches[::-1])
             for label, part, reach in parts:
@@ -493,8 +490,8 @@ class HarmonicDrive(m.ThreeDScene):
         shown = m.ValueTracker(0.0)
         rows_y = [0.3 - 0.62 * k for k in range(3)]
         readings: list[tuple[Callable[[], float], int]] = [
-            (lambda: seen["psi"] / m.TAU, 2),  # plug turns
-            (lambda: seen["beta"] / m.TAU * NF, 1),  # ring teeth
+            (lambda: seen["psi"] / m.TAU, 2),  # 塞转数
+            (lambda: seen["beta"] / m.TAU * NF, 1),  # 环齿数
             (lambda: seen["psi"] / seen["beta"] if seen["psi"] > 0.5 else -30.0, 1),
         ]
         numbers = [
@@ -525,7 +522,7 @@ class HarmonicDrive(m.ThreeDScene):
         self.remove(*subtitles, labels, statics, closing)
 
         def main_view(run_time: float) -> None:
-            """Looking down at 32° on the drive, at the right of the frame (the HUD's left)."""
+            """从 32° 俯视传动，在帧右侧（HUD 的左侧）。"""
             self.move_camera(
                 phi=32 * m.DEGREES,
                 theta=-90 * m.DEGREES,
@@ -534,7 +531,7 @@ class HarmonicDrive(m.ThreeDScene):
                 run_time=run_time,
             )
 
-        # 0–6.5 s: the parts, apart; then assembled: the plug flexes the ring as it goes in
+        # 0–6.5 秒：零件分开；然后组装：塞进入时弯出环
         self.add(driver, spline, flex, *plug_parts, balls, ticks)
         self.set_camera_orientation(
             phi=63 * m.DEGREES,
@@ -557,7 +554,7 @@ class HarmonicDrive(m.ThreeDScene):
             run_time=1.7,
         )
         self.stop_ambient_camera_rotation()
-        # 6.5–19 s: the plug spins; the ring creeps back the other way, two teeth a turn
+        # 6.5–19 秒：塞旋转；环反向缓慢爬行，每转两齿
         self.play(m.FadeOut(subtitles[0]), run_time=0.4)
         main_view(2.0)
         self.play(
@@ -567,12 +564,12 @@ class HarmonicDrive(m.ThreeDScene):
             run_time=1.0,
         )
         self.wait(SPEED[3][0] - self.time)
-        # 19–27 s: close up on the mesh where the long axis passes the red tooth
+        # 19–27 秒：特写长轴经过红齿处的啮合
         axis = close_up + zero
         spot = np.array([3.2 * np.cos(axis), 3.2 * np.sin(axis), 0.5])
         view = (
             axis + np.pi / 2
-        ) % m.TAU - 1.5 * np.pi  # axis − π, the turn nearest −π/2
+        ) % m.TAU - 1.5 * np.pi  # 轴 − π，最接近 −π/2 的转角
         self.play(
             m.FadeOut(statics),
             shown.animate.set_value(0.0),
@@ -586,7 +583,7 @@ class HarmonicDrive(m.ThreeDScene):
         self.wait(SPEED[5][0] - self.time - 0.5)
         self.play(m.FadeOut(subtitles[2]), run_time=0.5)
         main_view(1.8)
-        # 27–30.5 s: the poster
+        # 27–30.5 秒：结语画面
         self.play(
             m.FadeIn(statics),
             shown.animate.set_value(1.0),

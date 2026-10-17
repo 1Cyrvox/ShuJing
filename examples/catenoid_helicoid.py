@@ -1,9 +1,8 @@
-"""Bending without stretching: the helicoid rolls up into the catenoid.
+"""弯曲而不拉伸：螺旋面卷成悬链面。
 
-The associate family X_θ = cos θ · H + sin θ · C bends a helicoid H into a catenoid C through
-minimal surfaces that all share one metric, ds² = cosh² v (du² + dv²). Gauss's Theorema
-Egregium says curvature is intrinsic: the color, K = −sech⁴ v, stays painted on the same
-material while the shape changes completely, and the two marked curves keep their lengths.
+伴随族 X_θ = cos θ · H + sin θ · C 通过共享同一度量 ds² = cosh² v (du² + dv²) 的极小曲面，
+将螺旋面 H 弯曲成悬链面 C。高斯绝妙定理说曲率是内蕴的：颜色 K = −sech⁴ v 始终涂在同一块
+材料上，而形状则完全改变，两条标记曲线保持其长度不变。
 """
 
 import numpy as np
@@ -18,7 +17,7 @@ STOPS = ["#1b2a6b", "#2f6fdb", "#39c5bb", "#f4d35e", "#f25c54"]
 
 
 def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
-    """RGBA rows for values in [0, 1], interpolated through color stops."""
+    """[0, 1] 范围内值的 RGBA 行，通过颜色站点插值。"""
     rgb = np.array([m.ManimColor(s).to_rgb() for s in stops])
     x = np.clip(values, 0, 1) * (len(stops) - 1)
     i = np.minimum(x.astype(int), len(stops) - 2)
@@ -29,7 +28,7 @@ def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
 
 
 def surface(theta: float, u: np.ndarray, v: np.ndarray) -> np.ndarray:
-    """The associate family: θ = 0 is the helicoid, θ = π/2 the catenoid."""
+    """伴随族：θ = 0 为螺旋面，θ = π/2 为悬链面。"""
     c, s = np.cos(theta), np.sin(theta)
     x = c * np.sinh(v) * np.sin(u) + s * np.cosh(v) * np.cos(u)
     y = -c * np.sinh(v) * np.cos(u) + s * np.cosh(v) * np.sin(u)
@@ -40,7 +39,7 @@ def surface(theta: float, u: np.ndarray, v: np.ndarray) -> np.ndarray:
 def tube(
     points: np.ndarray, radius: float, sides: int = 12
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Vertices and triangles of a tube along a polyline (parallel-transport frames)."""
+    """沿折线的管状体的顶点和三角形（平行移动标架）。"""
     tangent = np.gradient(points, axis=0)
     tangent /= np.linalg.norm(tangent, axis=1, keepdims=True)
     seed = np.cross(tangent[0], [0.3, 0.5, 0.8])
@@ -69,8 +68,8 @@ def tube(
 
 
 def grid_mesh(points: np.ndarray) -> m.MeshMobject:
-    """A smooth lit mesh over an (nu + 1, nv + 1, 3) grid of points (vertex i·(nv + 1) + j), its
-    cells in order along u and both triangles of a cell together, so `Create` sweeps it along u.
+    """在 (nu + 1, nv + 1, 3) 点网格上的平滑光照网格（顶点 i·(nv + 1) + j），其
+    单元沿 u 方向排列，一个单元的两个三角形放在一起，因此 `Create` 沿 u 方向扫过。
     """
     nu, nv = points.shape[0] - 1, points.shape[1] - 1
     idx = np.arange((nu + 1) * (nv + 1)).reshape(nu + 1, nv + 1)
@@ -89,7 +88,7 @@ class CatenoidHelicoid(m.ThreeDScene):
         us = np.linspace(*U, RES[0] + 1)
         vs = np.linspace(*V, RES[1] + 1)
         uu, vv = np.meshgrid(us, vs, indexing="ij")
-        curvature = 1 / np.cosh(vv.ravel()) ** 4  # |K| = sech⁴ v, the same at every θ
+        curvature = 1 / np.cosh(vv.ravel()) ** 4  # |K| = sech⁴ v，在每个 θ 处都相同
 
         sheet = grid_mesh(surface(0.0, uu, vv))
         sheet.paint = sheet.paint.but(fill=colormap(curvature, STOPS))
@@ -99,7 +98,7 @@ class CatenoidHelicoid(m.ThreeDScene):
             )
         )
 
-        # two material curves: a v-line (u = 0.9) and a u-line (v = 0.55)
+        # 两条材料曲线：一条 v 线（u = 0.9）和一条 u 线（v = 0.55）
         line_v = np.linspace(*V, 160)
         line_u = np.linspace(*U, 240)
 
@@ -126,7 +125,7 @@ class CatenoidHelicoid(m.ThreeDScene):
             p = curve_points(which)
             return float(np.linalg.norm(np.diff(p, axis=0), axis=1).sum() / SCALE)
 
-        # heads-up display
+        # 平视显示器
         title = m.Text("Bending without stretching", font_size=34).to_corner(m.UL)
         subtitle = m.Text(
             "helicoid → catenoid, one family of minimal surfaces", font_size=22
@@ -180,9 +179,9 @@ class CatenoidHelicoid(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, subtitle, *hud, lengths)
         self.remove(*hud, lengths)
 
-        # 0–3 s: the helicoid sweeps in
+        # 0–3 秒：螺旋面扫入
         self.play(m.Create(sheet), run_time=3, rate_func=m.smooth)
-        # 4–8 s: what stays: curvature and the metric
+        # 4–8 秒：保持不变的东西：曲率和度量
         self.play(
             m.FadeIn(bar),
             m.FadeIn(bar_top),
@@ -200,12 +199,12 @@ class CatenoidHelicoid(m.ThreeDScene):
             run_time=1.5,
         )
         self.begin_ambient_camera_rotation(rate=0.12)
-        # 8–22 s: bend helicoid → catenoid
+        # 8–22 秒：弯曲螺旋面 → 悬链面
         self.play(theta.animate.set_value(np.pi / 2), run_time=9, rate_func=m.smooth)
         self.wait(1.0)
         self.move_camera(phi=60 * m.DEGREES, zoom=0.86, run_time=2.5)
         self.wait(0.5)
-        # and on, to the mirror image of the helicoid
+        # 继续，到螺旋面的镜像
         self.play(theta.animate.set_value(np.pi), run_time=6, rate_func=m.smooth)
         closing = (
             m.Text("Same metric, same curvature, different shape.", font_size=28)

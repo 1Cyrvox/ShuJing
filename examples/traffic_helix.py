@@ -1,13 +1,13 @@
-"""A traffic jam from nowhere, seen in spacetime.
+"""无中生有的交通堵塞，于时空中所见。
 
-Twenty-two cars drive around a ring road with no bottleneck, no merge, no accident — and within
-a minute a jam appears out of nothing, just as it did in Sugiyama and colleagues' experiment on
-a real track (New J. Phys., 2008). Each driver speeds toward the speed their gap allows and reacts
-with a lag: the optimal-velocity model ẍₙ = a [V(xₙ₊₁ − xₙ) − ẋₙ], V(h) = tanh(h − 2) + tanh 2
-(Bando et al., 1995). With the gap at 2 and a = 1, smooth flow is unstable: a tiny wobble grows
-into a stop-and-go wave. Lift time into the third dimension (the last 70 time units, the present
-on top) and each car's worldline winds up a cylinder; the jam is where worldlines flatten and
-crowd — and that knot leans back, moving against the traffic while every car keeps going forward.
+二十二辆汽车在环形道路上行驶，没有瓶颈、没有合流、没有事故——然而
+一分钟内便凭空出现一处堵塞，正如 Sugiyama 及其同事在真实赛道上的
+实验所见（New J. Phys., 2008）。每位驾驶者朝着其车距所允许的速度加速，
+并有反应滞后：最优速度模型 ẍₙ = a [V(xₙ₊₁ − xₙ) − ẋₙ]，V(h) = tanh(h − 2) + tanh 2
+（Bando 等，1995）。当车距为 2 且 a = 1 时，平滑车流不稳定：微小扰动增长为
+走走停停的波。将时间提升为第三维（最近 70 个时间单位，现在在最上方），
+每辆车的世界线便沿圆柱盘旋而上；堵塞处即世界线变平并
+拥挤之处——而该结向后倾斜，逆车流方向移动，同时每辆车仍继续前行。
 """
 
 import numpy as np
@@ -15,13 +15,13 @@ import numpy as np
 import manimgx as m
 
 N = 22
-LENGTH = 44.0  # the ring's length (gap 2 per car)
+LENGTH = 44.0  # 环道长度（每车间距 2）
 SENSITIVITY = 1.0
-RADIUS = 2.6  # the ring on screen
-TIME_SCALE = 12.5  # model time per second of video
-RISE = 0.05  # height per unit of model time
-WINDOW = 70.0  # how much of the past the cylinder shows (model time)
-SPEED_STOPS = ["#e63946", "#f4a261", "#e9c46a", "#8ac926", "#2ec4b6"]  # stopped … fast
+RADIUS = 2.6  # 屏幕上的环
+TIME_SCALE = 12.5  # 每秒视频对应的模型时间
+RISE = 0.05  # 每单位模型时间的高度
+WINDOW = 70.0  # 圆柱显示多少过去（模型时间）
+SPEED_STOPS = ["#e63946", "#f4a261", "#e9c46a", "#8ac926", "#2ec4b6"]  # 停止……快速
 V_MAX = 1.0 + np.tanh(2.0)
 
 
@@ -40,11 +40,11 @@ def colormap(values: np.ndarray, stops: list[str]) -> np.ndarray:
 
 
 class Road:
-    """The cars' positions and speeds, integrated with RK4; their histories for the worldlines."""
+    """各车的位置与速度，以 RK4 积分；其历史用于世界线。"""
 
     def __init__(self) -> None:
         self.x = np.arange(N) * LENGTH / N
-        self.x[0] += 0.1  # one driver a little out of place
+        self.x[0] += 0.1  # 一位驾驶者稍有偏离
         self.v = np.full(N, optimal_velocity(np.array(2.0)))
         self.t = 0.0
         self.times: list[float] = [0.0]
@@ -77,10 +77,10 @@ def on_ring(x: np.ndarray, height: np.ndarray, radius: float = RADIUS) -> np.nda
 def worldlines(
     road: Road, lift: float, sides: int = 6
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Every car's worldline over the last WINDOW of model time, as a thin tube on the cylinder
-    (the present on top), colored by the car's speed: vertices, triangles, colors. A curve on a
-    cylinder has a natural frame — the outward radial direction and its cross with the tangent —
-    so no transport along the curve is needed."""
+    """每辆车在最近 WINDOW 模型时间内的世界线，作为圆柱上的细管
+    （现在在最上方），按车速着色：顶点、三角形、颜色。圆柱上的曲线
+    有自然标架——向外的径向方向及其与切向的叉积——
+    因此无需沿曲线的传输。"""
     times = np.array(road.times)
     keep = times >= road.t - WINDOW
     xs, vs = np.array(road.xs)[keep], np.array(road.vs)[keep]  # (samples, cars)
@@ -120,7 +120,7 @@ def worldlines(
 class TrafficHelix(m.ThreeDScene):
     def construct(self) -> None:
         road = Road()
-        lift = m.ValueTracker(0.0)  # 0: the present only (a flat ring); 1: time rises
+        lift = m.ValueTracker(0.0)  # 0：仅当前（一个扁平环）；1：时间升起
 
         def step(_: m.Mobject, dt: float) -> None:
             road.advance(TIME_SCALE * dt)
@@ -130,7 +130,7 @@ class TrafficHelix(m.ThreeDScene):
 
         lines = m.MeshMobject(
             np.zeros((3, 3)), np.array([[0, 1, 2]]), shade_in_3d=True
-        )  # drawn once time rises
+        )  # 时间升起后绘制
 
         def redraw(mob: m.Mobject) -> None:
             assert isinstance(mob, m.MeshMobject)
@@ -172,14 +172,14 @@ class TrafficHelix(m.ThreeDScene):
         )
         self.add_fixed_in_frame_mobjects(title, subtitle, model, legend)
 
-        # 0–8 s: from above: smooth flow, then a wobble grows into a jam
+        # 0–8 秒：从上方看：平滑车流，而后扰动增长为堵塞
         self.set_camera_orientation(
             phi=0, theta=-90 * m.DEGREES, focal_distance=40, zoom=1.0
         )
         self.add(track, clock, lines, cars)
         self.wait(8)
 
-        # 8–14 s: lift time into the third dimension: worldlines wind up a cylinder
+        # 8–14 秒：将时间提升为第三维：世界线沿圆柱盘旋而上
         up = (
             m.Text("height = time", font_size=26)
             .set_color(m.YELLOW)
@@ -196,7 +196,7 @@ class TrafficHelix(m.ThreeDScene):
             added_anims=[lift.animate.set_value(1.0), m.FadeIn(up)],
             run_time=6,
         )
-        # 14–30 s: the jam is the band of flat, crowded, red worldlines — and it leans backward
+        # 14–30 秒：堵塞是平坦、拥挤、红色的世界线带——它向后倾斜
         self.begin_ambient_camera_rotation(rate=0.08)
         self.wait(10)
         closing = m.Text(

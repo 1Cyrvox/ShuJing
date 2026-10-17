@@ -1,36 +1,34 @@
-"""Why a circle's area is πr²: unroll it.
+"""为何圆的面积是 πr²：把它展开。
 
-Cut a disc of radius r into thin rings. Each ring, cut at the top and unrolled, is a thin strip
-as long as its circumference, 2πρ for the ring of radius ρ, and as thick as the ring. Stack the
-strips, the longest at the bottom: their lengths shrink evenly from 2πr to 0, so they make a
-right triangle with base 2πr and height r. Its area is ½ · 2πr · r = πr², and so is the disc's:
-the thinner the rings, the closer the stack to the triangle.
+将半径为 r 的圆盘切成薄环。每个环从顶部剪开并展开后，是一条细长条，长度等于其周长（半径为 ρ 的
+环为 2πρ），厚度等于环的厚度。将这些长条堆叠起来，最长的在底部：它们的长度从 2πr 均匀缩减到 0，
+因此构成一个底为 2πr、高为 r 的直角三角形。其面积为 ½ · 2πr · r = πr²，圆盘的面积亦然：
+环越薄，堆叠就越接近该三角形。
 """
 
 import numpy as np
 
 import manimgx as m
 
-WALL = 3.4  # the rings unroll and stack
+WALL = 3.4  # 环展开并堆叠
 
-N = 24  # rings
-R = 1.9  # the disc's radius, in scene units
-DR = R / N  # each ring's thickness
-CENTER = np.array([-3.4, 1.75, 0])  # the disc's
-CORNER = np.array([-5.55, -2.95, 0])  # the triangle's right angle, bottom left
-RINGS = m.color_gradient([m.BLUE, m.TEAL, m.GREEN], N)  # inside out
-RADIUS = m.YELLOW  # r, the radius and the triangle's height
-ROUND = m.GREEN  # 2πr, the outermost ring and the triangle's base
+N = 24  # 环数
+R = 1.9  # 圆盘的半径，以场景单位计
+DR = R / N  # 每个环的厚度
+CENTER = np.array([-3.4, 1.75, 0])  # 圆盘的
+CORNER = np.array([-5.55, -2.95, 0])  # 三角形的直角，左下角
+RINGS = m.color_gradient([m.BLUE, m.TEAL, m.GREEN], N)  # 由内向外
+RADIUS = m.YELLOW  # r，半径及三角形的高
+ROUND = m.GREEN  # 2πr，最外层的环及三角形的底
 SAMPLES = 121
 
 
 def ring_points(rho: float, unrolled: float, bottom: np.ndarray) -> np.ndarray:
-    """The ring of radius `rho`, `unrolled` from 0 (a circle) to 1 (a straight strip): an arc
-    of radius rho/(1 − unrolled) and angle 2π(1 − unrolled), so as long as the circle, whose
-    lowest point stays at `bottom`, with its tangent level there."""
-    s = np.linspace(-np.pi * rho, np.pi * rho, SAMPLES)  # arc length from the bottom
-    k = (1 - unrolled) / rho  # the curvature
-    # sin(ks)/k and (1 − cos(ks))/k, written to stay exact as k → 0
+    """半径为 `rho` 的环，从 0（一个圆）展开到 1（一条直长条）：一段半径为 rho/(1 − unrolled)、
+    角度为 2π(1 − unrolled) 的弧，因而长度与圆相同，其最低点保持在 `bottom` 处，且该处切线水平。"""
+    s = np.linspace(-np.pi * rho, np.pi * rho, SAMPLES)  # 从底部起的弧长
+    k = (1 - unrolled) / rho  # 曲率
+    # sin(ks)/k 和 (1 − cos(ks))/k，写成在 k → 0 时仍精确的形式
     x = s * np.sinc(k * s / np.pi)
     y = 0.5 * k * s**2 * np.sinc(k * s / (2 * np.pi)) ** 2
     return bottom + np.stack([x, y, np.zeros_like(s)], axis=1)
@@ -52,18 +50,18 @@ class CircleArea(m.Scene):
         disc = m.VGroup(*[ring(k) for k in range(N)])
         radius = m.Line(CENTER, CENTER + R * m.RIGHT, color=RADIUS, stroke_width=6)
         r_label = m.MathTex("r", color=RADIUS, font_size=56)
-        r_label.next_to(radius, m.RIGHT, buff=0.18)  # at its end, clear of the rings
+        r_label.next_to(radius, m.RIGHT, buff=0.18)  # 在其端点处，避开环
 
-        radius.set_z_index(1)  # over the rings, and over their copies as they leave
+        radius.set_z_index(1)  # 在环之上，也在环的副本离开时在其之上
         r_label.set_z_index(1)
-        # 0–3 s: the disc, swept out
+        # 0–3 秒：圆盘，扫过
         self.play(*[m.Create(r) for r in disc], run_time=1.6)
         self.play(
             m.Create(radius), m.FadeIn(r_label, shift=0.2 * m.RIGHT), run_time=0.9
         )
 
-        # 3–9 s: each ring, cut at the top, unrolls as it falls into its place in the
-        # stack: the longest at the bottom, every strip starting at the triangle's left edge
+        # 3–9 秒：每个环从顶部剪开，在落入其在
+        # 堆叠中的位置时展开：最长的在底部，每条长条从三角形的左边缘开始
         progress = [m.ValueTracker(0.0) for _ in range(N)]
 
         def strip(k: int) -> m.VMobject:
@@ -83,7 +81,7 @@ class CircleArea(m.Scene):
             run_time=6.5,
         )
 
-        # 9–11 s: the stack is a right triangle, 2πr wide and r tall
+        # 9–11 秒：堆叠是一个直角三角形，宽 2πr、高 r
         top = CORNER + R * m.UP
         right = CORNER + 2 * np.pi * R * m.RIGHT
         outline = m.Polygon(CORNER, right, top, color=m.WHITE, stroke_width=3)
@@ -104,12 +102,12 @@ class CircleArea(m.Scene):
             run_time=1.2,
         )
 
-        # 11–18 s: the area, half the base times the height
+        # 11–18 秒：面积，底乘以高的一半
         area = m.MathTex(
             r"{{\text{Area} =}} {{\frac{1}{2} \cdot 2}} {{\pi}} {{r}} \cdot {{r}}",
             font_size=60,
         )
-        area[1][-1].set_color(ROUND)  # the 2 of 2πr (its glyphs: 1, 2, bar, dot, 2)
+        area[1][-1].set_color(ROUND)  # 2πr 中的 2（其字形：1, 2, 横线, 点, 2）
         m.VGroup(area[2], area[3]).set_color(ROUND)
         area[5].set_color(RADIUS)
         area.move_to(np.array([2.9, CENTER[1], 0]))
@@ -126,7 +124,7 @@ class CircleArea(m.Scene):
 
         self.play(m.Write(area), run_time=1.5)
         self.wait(0.5)
-        # ½ and 2 cancel
+        # ½ 和 2 相消
         self.play(
             m.FadeOut(area[1], shift=0.3 * m.DOWN),
             *[

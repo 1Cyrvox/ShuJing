@@ -1,13 +1,12 @@
-"""Voronoi cells are crystals grown from seeds — and mountains of cones seen from above.
+"""Voronoi 胞是从种子长出的晶体——也是从上方看到的锥之山。
 
-Plant sixteen seeds at once and let each grow a crystal at the same speed. A point belongs to
-the grain that reaches it first, so the grains meet along the Voronoi diagram: every point goes
-to its nearest seed. Draw arrival time as depth and each grain becomes a cone; the diagram is the
-lower envelope of the cones, which the GPU's depth buffer computes exactly, pixel by pixel. A
-dark plane marks the present moment and hides whatever has not been reached yet, so from above
-you watch the grains grow. Then time runs back, and one seed gets a head start: its cone rises,
-and its borders bend into hyperbolas (a Johnson–Mehl tessellation, as when metal crystallizes
-from nuclei that appear at different times).
+同时播下十六粒种子，让每粒以相同速度生长晶体。一个点属于最先到达它的
+晶粒，因此晶粒沿 Voronoi 图相遇：每个点归于其最近的种子。将到达时间画为
+深度，每个晶粒便成为一个锥；该图是诸锥的下包络，由 GPU 的深度缓冲
+逐像素精确计算。一块暗色平面标记当前时刻，遮住尚未到达的一切，因此
+从上方你看到晶粒生长。而后时间倒流，一颗种子获得先起步的优势：其锥升起，
+边界弯成双曲线（Johnson–Mehl 镶嵌，正如金属从不同时刻出现的核
+结晶时所见）。
 """
 
 import numpy as np
@@ -15,11 +14,11 @@ import numpy as np
 import manimgx as m
 
 N_SEEDS = 16
-TOP = 3.0  # the height of time zero
+TOP = 3.0  # 时间零的高度
 SLOPE = (
-    1.6  # height lost per unit of growth: arrival time t is drawn at TOP − SLOPE · t
+    1.6  # 每单位生长损失的高度：到达时间 t 画在 TOP − SLOPE · t 处
 )
-WIDTH, HEIGHT = 12.4, 6.6  # the dish the crystals grow in
+WIDTH, HEIGHT = 12.4, 6.6  # 晶体生长的盘
 GRID = (248, 132)
 PALETTE = [
     "#ef476f",
@@ -43,7 +42,7 @@ DARK = "#0b0f14"
 
 
 def seeds(rng: np.random.Generator) -> np.ndarray:
-    """Well-spread seeds: each the best of 30 random candidates (Mitchell's best candidate)."""
+    """分布均匀的种子：每粒为 30 个随机候选中的最优者（Mitchell 最佳候选法）。"""
     low, high = (
         [-WIDTH / 2 + 0.7, -HEIGHT / 2 + 0.7],
         [WIDTH / 2 - 0.7, HEIGHT / 2 - 0.7],
@@ -59,8 +58,8 @@ def seeds(rng: np.random.Generator) -> np.ndarray:
 
 
 def grid_mesh(nu: int, nv: int, fill_color: str = "#ffffff") -> m.MeshMobject:
-    """A smooth lit mesh over an (nu + 1) × (nv + 1) grid of vertices (vertex i·(nv + 1) + j),
-    each cell two triangles; its points are set by whoever shapes it."""
+    """在 (nu + 1) × (nv + 1) 顶点网格上的光滑光照网格（顶点 i·(nv + 1) + j），
+    每个格胞两个三角形；其点由塑造者设定。"""
     idx = np.arange((nu + 1) * (nv + 1)).reshape(nu + 1, nv + 1)
     a, b, c, d = idx[:-1, :-1], idx[1:, :-1], idx[1:, 1:], idx[:-1, 1:]
     cells = np.stack([np.stack([a, b, c], -1), np.stack([a, c, d], -1)], 2)
@@ -73,9 +72,9 @@ def grid_mesh(nu: int, nv: int, fill_color: str = "#ffffff") -> m.MeshMobject:
 
 
 class Grains(m.Group):
-    """The cones of all the grains, z = TOP − SLOPE · (tᵢ + |p − sᵢ|) over the dish, each cut down
-    to the cell it wins (plus one triangle of margin, hidden under its neighbours) — so only the
-    envelope exists, from any side. The cells are recomputed when a start changes.
+    """所有晶粒的锥，盘上 z = TOP − SLOPE · (tᵢ + |p − sᵢ|)，每个裁减到
+    它赢得的胞（外加一圈三角形的余量，隐藏在邻居之下）——因此
+    从任何方向只存在包络。当起始时间改变时重新计算胞。
     """
 
     def __init__(self, sites: np.ndarray, starts: list[m.ValueTracker]) -> None:
@@ -87,7 +86,7 @@ class Grains(m.Group):
             self.gy[None] - sites[:, 1, None, None],
         )
         self.starts = starts
-        self.drawn: list[float] = []  # the starts the cells were last made for
+        self.drawn: list[float] = []  # 上次生成胞所用的起始时间
         self.cones = [
             grid_mesh(*GRID, fill_color=color) for color in PALETTE[: len(sites)]
         ]
@@ -125,11 +124,11 @@ class VoronoiCones(m.ThreeDScene):
                 )
             )
 
-        # the present moment: a dark plane at the height of time T hides every point not yet reached
+        # 当前时刻：高度为时间 T 的暗色平面遮住每个尚未到达的点
         now = m.ValueTracker(0.0)
         shown = m.ValueTracker(
             1.0
-        )  # the plane's opacity (it is hidden while the camera is tilted)
+        )  # 平面的不透明度（相机倾斜时隐藏）
         present = m.Rectangle(
             width=WIDTH + 0.02,
             height=HEIGHT + 0.02,
@@ -165,7 +164,7 @@ class VoronoiCones(m.ThreeDScene):
             self.remove(group)
             return group
 
-        # 0–7 s: from above: the grains grow at equal speed and meet along the Voronoi diagram
+        # 0–7 秒：从上方看：晶粒以等速生长并沿 Voronoi 图相遇
         self.set_camera_orientation(
             phi=0,
             theta=-90 * m.DEGREES,
@@ -177,7 +176,7 @@ class VoronoiCones(m.ThreeDScene):
         self.play(now.animate.set_value(3.2), run_time=6.5, rate_func=m.linear)
         self.wait(0.5)
 
-        # 7–14 s: tilt: time is depth, and every grain is a cone
+        # 7–14 秒：倾斜：时间为深度，每个晶粒是一个锥
         equal = note(r"\text{arrival time} = |p - s_i|")
         self.move_camera(
             phi=55 * m.DEGREES,
@@ -192,7 +191,7 @@ class VoronoiCones(m.ThreeDScene):
             self.camera.theta_tracker.animate.set_value(-30 * m.DEGREES), run_time=3
         )
 
-        # 14–18 s: back to the top; time runs back to zero; one seed gets a head start
+        # 14–18 秒：回到顶部；时间倒回零；一颗种子获得先起步
         chosen = int(np.argmin(np.linalg.norm(sites - np.array([0.5, 0.3]), axis=1)))
         head = note(r"\text{arrival} = t_i + |p - s_i|")
         self.move_camera(
@@ -215,10 +214,10 @@ class VoronoiCones(m.ThreeDScene):
             run_time=1,
         )
 
-        # 18–25 s: grow again: the early grain wins more ground, with curved borders
+        # 18–25 秒：再次生长：早起的晶粒赢得更多地盘，边界弯曲
         self.play(now.animate.set_value(3.3), run_time=6.5, rate_func=m.linear)
 
-        # 25–30 s: the poster
+        # 25–30 秒：海报
         closing = m.Text(
             "equal starts: straight borders · a head start: hyperbolas", font_size=26
         ).to_edge(m.DOWN, buff=0.3)

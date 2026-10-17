@@ -1,151 +1,81 @@
-# Examples
+# 示例影片
 
-Forty-eight short films made with ManimGX, each one Python file that needs only numpy. Every
-number on screen is computed as the film plays.
+四十八部用 ManimGX 制作的短片，每部一个仅需 numpy 的 Python 文件。屏幕上的每个数字都在影片播放时实时计算。
 
-With ManimGX installed (`pip install manimgx`), render one at 1920×1080, 60 fps:
+安装 ManimGX（`pip install manimgx`）后，以 1920×1080、60 fps 渲染一部：
 
 ```sh
-manimgx render examples/quadratic_formula.py   # writes examples/QuadraticFormula.mp4
+manimgx render examples/quadratic_formula.py   # 写出 examples/QuadraticFormula.mp4
 ```
 
-## Equations and proofs
+## 方程与证明
 
-- [The quadratic formula](quadratic_formula.py): Completing the square turns an equation
-  into a picture. Each term keeps its color as rectangles move and the quadratic formula
-  emerges.
-- [Pythagoras by rearrangement](pythagoras.py): Moving four right triangles reveals why
-  a² + b² = c². The triangles and their enclosing square keep the same area throughout.
-- [Unrolling a circle](circle_area.py): Thin rings unroll into strips that stack into a
-  triangle. Its base is 2πr and its height is r, so its area is πr².
-- [Euler's identity as a walk](euler_identity.py): The terms of the exponential series
-  spiral toward −1 in the complex plane. Letting the angle vary carries their sum around
-  the unit circle.
+- [二次公式](quadratic_formula.py): 配方法将方程变为图像。每一项在矩形移动时保持自身颜色，二次公式由此浮现。
+- [重排证明勾股定理](pythagoras.py): 移动四个直角三角形揭示为何 a² + b² = c²。三角形及其外接正方形始终保持面积不变。
+- [展开圆周](circle_area.py): 细环展开为长条，长条堆叠成三角形。其底为 2πr，高为 r，故面积为 πr²。
+- [欧拉恒等式即一段行走](euler_identity.py): 指数级数的各项在复平面中螺旋趋近 −1。让角度变化，其和便沿单位圆绕行。
 
-## Calculus
+## 微积分
 
-- [What a derivative measures](derivative.py): A secant becomes a tangent as two points on
-  a curve come together. The tangent's changing slope traces the derivative's graph.
-- [Rectangles become an integral](riemann_sums.py): Thinner rectangles bring a sum closer
-  to the area under a curve. Each refinement splits the rectangles and updates the
-  measured area.
-- [Polynomials become the sine](taylor_series.py): Each new Taylor term makes a polynomial
-  follow more of the sine wave. The growing formula and its graph change together.
-- [A circle draws sine and cosine](unit_circle.py): A rotating radius traces sine and
-  cosine from its height and reach. The right triangle inside the circle also shows why
-  sin²θ + cos²θ = 1.
+- [导数度量什么](derivative.py): 曲线上两点靠拢时，割线变为切线。切线斜率的变化描出导数的图像。
+- [矩形变为积分](riemann_sums.py): 更窄的矩形使和更接近曲线下方的面积。每次细化都分割矩形并更新所测面积。
+- [多项式逼近正弦](taylor_series.py): 每一个新的泰勒项使多项式跟随更多正弦波的形状。增长的公式与其图像一同变化。
+- [圆周画出正弦与余弦](unit_circle.py): 旋转的半径从其高度和跨度描出正弦和余弦。圆内的直角三角形也说明了为何 sin²θ + cos²θ = 1。
 
-## Planes and surfaces
+## 平面与曲面
 
-- [A matrix moves the plane](linear_maps.py): A matrix carries a grid, its basis arrows
-  and a unit square together. The determinant measures the changing area as the plane
-  shears, rotates, flattens and turns over.
-- [Complex functions bend the plane](complex_maps.py): A grid bends under z², the
-  exponential and the sine. Straight lines become parabolas, circles and rays as each
-  point travels to its image.
-- [Landscapes from formulas](surface_plots.py): A flat grid rises into an egg crate, a
-  saddle and a bell. Each surface is computed from its formula and bends into the next
-  as the camera turns.
+- [矩阵移动平面](linear_maps.py): 矩阵同时带动网格、其基向量箭头和一个单位正方形。行列式度量平面在剪切、旋转、压扁和翻转时面积的变化。
+- [复函数弯曲平面](complex_maps.py): 网格在 z²、指数函数和正弦函数下弯曲。直线变为抛物线、圆和射线，因为每个点都行至其像。
+- [公式生成地貌](surface_plots.py): 平坦网格升起为蛋盒、马鞍和钟形。每个曲面由其公式计算，随相机转动弯曲为下一个。
 
-## Patterns and surprises
+## 图样与惊奇
 
-- [Circles draw π](fourier_pi.py): A chain of rotating arrows traces the outline of π.
-  The arrows' lengths and phases come from the letter's Fourier coefficients, and the
-  camera follows the pen for a closer look.
-- [Times tables on a circle](times_tables.py): Joining numbers to their multiples around
-  a circle draws cardioids and other curves. Changing the multiplier continuously makes
-  the pattern turn, split and fold.
-- [Two blocks count π](colliding_blocks.py): Elastic collisions between two blocks and
-  a wall count out digits of π. Every collision is simulated, with the mass ratio setting
-  how many digits appear.
-- [Prime spirals](prime_spirals.py): Plotting primes at distance p and angle p reveals
-  spirals that become rays as the camera pulls back. Close approximations to 2π explain
-  the changing patterns.
-- [Hilbert's space-filling curve](hilbert_curve.py): A path visits every cell of a finer
-  and finer square grid. Four smaller copies, turned and joined, form the next order of
-  the Hilbert curve.
-- [A Galton board](galton_board.py): Repeated left-or-right bounces build a bell-shaped
-  pile of balls. The measured counts approach the binomial distribution beneath the pegs.
-- [The Lorenz attractor](lorenz_attractor.py): Eight nearly identical starting points
-  trace a butterfly and then drift apart. Both paths follow the Lorenz equations, showing
-  how a deterministic system can be chaotic.
+- [圆周画出 π](fourier_pi.py): 一串旋转箭头描出 π 的轮廓。箭头的长度和相位来自该字母的傅里叶系数，相机跟随笔尖以便近看。
+- [圆上的乘法表](times_tables.py): 将圆周上的数字连接到其倍数画出心脏线和其他曲线。连续改变乘数使图样转动、分裂和折叠。
+- [两木块数出 π](colliding_blocks.py): 两个木块与一面墙之间的弹性碰撞数出 π 的数位。每次碰撞都被模拟，质量比决定显示多少位数。
+- [素数螺旋](prime_spirals.py): 将素数以距离 p、角度 p 标绘，显现出随相机拉远而变为射线的螺旋。对 2π 的接近近似解释了图样的变化。
+- [希尔伯特空间填充曲线](hilbert_curve.py): 一条路径访问越来越细的正方形网格的每个格胞。四份较小的副本，旋转并连接，构成下一阶希尔伯特曲线。
+- [高尔顿钉板](galton_board.py): 反复的左右弹跳堆出钟形球堆。所测计数趋近钉子下方的二项分布。
+- [洛伦兹吸引子](lorenz_attractor.py): 八个几乎相同的起点描出蝴蝶而后散开。两条路径都遵循洛伦兹方程，展示确定性系统如何可以混沌。
 
-## Geometry and topology
+## 几何与拓扑
 
-- [The Hopf fibration](hopf_fibration.py): The 3-sphere is made of circles, and every two of
-  them link once. Each circle lies over one point of the ordinary sphere, and the film
-  measures how every pair links.
-- [A torus turned inside out](clifford_torus.py): A quarter turn in four dimensions turns a
-  torus inside out. Halfway, it passes through infinity as a plane with a handle.
-- [Bending without stretching](catenoid_helicoid.py): A helicoid rolls up into a catenoid
-  without stretching. Distances and curvature stay the same at every step (Gauss's Theorema
-  Egregium).
-- [A kaleidoscope on the sphere](kaleidoscope_sphere.py): Three mirrors tile the sphere with
-  120 triangles. One point and its reflections make the icosahedron, the dodecahedron and the
-  solids between them.
-- [Stars in the Menger sponge](menger_slice.py): Cut through its center, the Menger sponge
-  is full of six-pointed stars. The cut, across a long diagonal, is a hexagon.
-- [Cubes and the arctic circle](lozenge_cubes.py): A random tiling by rhombi is a pile of
-  cubes seen along a diagonal. Outside a circle, the tiling freezes.
-- [Where √z lives](riemann_surfaces.py): The square root changes sign after one loop around
-  0, so it lives on two sheets. The logarithm climbs with every loop: an endless staircase.
-- [Prince Rupert's cube](rupert_cube.py): A cube can pass through a hole in an identical cube
-  (Prince Rupert, 1693). In 2025, the Noperthedron became the first convex solid that cannot.
-- [Why a Taylor series stops](taylor_poles.py): The Taylor series of 1/(1 + x²) stops
-  converging at |x| = 1. Two poles at ±i are the reason, and only the complex plane shows
-  them.
-- [Crystals and cones](voronoi_cones.py): Voronoi cells are crystals grown from seeds. Seen
-  from above, they are also a field of cones.
-- [Period doubling in the Mandelbrot set](bifurcation_mandelbrot.py): The logistic map's
-  period doubling rises out of the Mandelbrot set. Each doubling sits on a pinch between two
-  bulbs.
-- [Circle or square?](sugihara_cylinder.py): A tube's rim is a circle from the front and a
-  square in the mirror (Sugihara, 2016). It is one 3D curve, solved from the two views.
-- [Stacking oranges](sphere_packing.py): Oranges stack in two ways, and one is a cube standing
-  on its corner. A knife through both piles measures that each fills 74.05% of space, the most
-  any stack of spheres can (Kepler, 1611; Hales, 1998).
+- [霍普夫纤维化](hopf_fibration.py): 三维球面由圆构成，其中每两个互链一次。每个圆位于普通球面上一点之上，影片度量每一对如何互链。
+- [翻面的环面](clifford_torus.py): 四维中的四分之一转将环面翻面。中途它以带柄平面的形式穿过无穷远。
+- [弯而不伸](catenoid_helicoid.py): 螺旋面卷成悬链面而不拉伸。每一步中距离和曲率保持不变（高斯绝妙定理）。
+- [球上的万花筒](kaleidoscope_sphere.py): 三面镜以 120 个三角形铺满球面。一个点及其反射生成二十面体、十二面体及其间的各多面体。
+- [门格海绵中的星](menger_slice.py): 过中心切开后，门格海绵满是六角星。该切面沿一条长对角线，是一个六边形。
+- [立方体与北极圈](lozenge_cubes.py): 菱形的随机铺砌是沿对角线看去的一堆立方体。圆外，铺砌冻结。
+- [√z 住在哪里](riemann_surfaces.py): 平方根绕 0 一圈后变号，因此它住在两页面上。对数每绕一圈便攀升：无尽的阶梯。
+- [鲁珀特王子立方体](rupert_cube.py): 一个立方体能穿过相同立方体上的一个孔（鲁珀特王子，1693）。2025 年，Noperthedron 成为第一个不能如此做的凸体。
+- [泰勒级数为何停止](taylor_poles.py): 1/(1 + x²) 的泰勒级数在 |x| = 1 处停止收敛。±i 处的两个极点是原因，唯有复平面能显示它们。
+- [晶体与锥](voronoi_cones.py): Voronoi 胞是从种子长出的晶体。从上方看，它们也是一片锥的田野。
+- [曼德博集合中的倍周期](bifurcation_mandelbrot.py): 逻辑斯谛映射的倍周期从曼德博集合中升起。每次倍周期位于两个球之间的夹点上。
+- [圆还是方？](sugihara_cylinder.py): 管口从前方看是圆，在镜中是方（杉原，2016）。它是同一条三维曲线，由两个视图求解。
+- [堆橘子](sphere_packing.py): 橘子有两种堆法，其中之一是立于角上的立方体。一刀切过两堆度量出各占空间的 74.05%，这是任何球堆所能达到的最大比例（开普勒，1611；Hales，1998）。
 
-## Physics
+## 物理
 
-- [A spinning top](heavy_top.py): A spinning top doesn't fall: it precesses and nods. Its tip
-  traces cusps, loops or waves, depending on how it is launched.
-- [The tennis racket flip](tennis_racket.py): A handle spun about its middle axis flips over
-  and over (the Dzhanibekov effect). The curves of constant energy show why.
-- [Lagrange points](lagrange_points.py): Seen turning with the Earth and the Moon, the
-  Lagrange points L4 and L5 are hilltops. Yet the Coriolis force keeps a probe parked on them.
-- [The Van Allen belts](van_allen.py): Charged particles spin, bounce and drift in Earth's
-  magnetic field. The field is a magnetic bottle, and it holds the radiation belts.
-- [Leapfrogging smoke rings](vortex_rings.py): Two smoke rings take turns passing through
-  each other (Helmholtz, 1858). Kelvin's impulse, r₁² + r₂², stays the same.
-- [Quantum tunneling](wave_packet.py): A quantum particle tunnels through a wall it can't
-  cross classically. The measured transmission matches the formula.
-- [Cherenkov light](cherenkov_cone.py): A charge moving faster than light does in water
-  leaves a cone of blue light. The film measures the cone's angle against the formula.
-- [Turing patterns on a torus](turing_torus.py): Two chemicals react and spread on a doughnut,
-  and paint it with spots and stripes (Gray–Scott; Turing, 1952).
-- [Fireflies in sync](kuramoto_fireflies.py): Past a critical coupling, 2,000 fireflies fall
-  into step. How in step they are matches the exact curve.
-- [A coral of random walkers](dla_coral.py): 18,000 random walkers wander until they touch
-  the cluster and stick. The coral they build has fractal dimension 2.5, measured from how its
-  mass grows.
+- [旋转陀螺](heavy_top.py): 旋转陀螺不倒：它进动并点头。其尖端描出尖点、环或波，取决于如何发射。
+- [网球拍翻转](tennis_racket.py): 绕中间轴旋转的柄反复翻转（贾尼别科夫效应）。等能曲线说明了原因。
+- [拉格朗日点](lagrange_points.py): 随地球与月球一同旋转看去，拉格朗日点 L4 和 L5 是山顶。然而科里奥利力使探测器停驻其上。
+- [范艾伦辐射带](van_allen.py): 带电粒子在地球磁场中旋转、弹跳和漂移。磁场是一个磁瓶，它束缚住辐射带。
+- [蛙跳烟环](vortex_rings.py): 两个烟环轮流穿过对方（亥姆霍兹，1858）。开尔文冲量 r₁² + r₂² 保持不变。
+- [量子隧穿](wave_packet.py): 量子粒子穿过经典上无法越过的墙。所测透射与公式吻合。
+- [切伦科夫光](cherenkov_cone.py): 在水中超光速运动的电荷留下一锥蓝光。影片度量锥角并与公式对照。
+- [环面上的图灵斑图](turing_torus.py): 两种化学物质在甜甜圈上反应并扩散，用斑点与条纹为其上色（Gray–Scott；Turing，1952）。
+- [同步的萤火虫](kuramoto_fireflies.py): 超过临界耦合后，2000 只萤火虫步调一致。其同步程度与精确曲线吻合。
+- [随机游走长成的珊瑚](dla_coral.py): 18000 个随机游走者游荡直到触碰簇并粘住。它们长成的珊瑚具有分形维数 2.5，由其质量增长测得。
 
-## Engineering
+## 工程
 
-- [Steering a beam with phase](phased_array.py): Fixed antennas steer a beam by phase alone.
-  The film shows the live wave field, then the beam in 3D.
-- [Miura-ori](miura_ori.py): One pull folds the whole sheet, and no facet bends. It opens in
-  both directions at once (a negative Poisson ratio).
-- [A harmonic drive](harmonic_drive.py): Strain-wave gearing makes a 30:1 reduction in one
-  flat ring. A flexible ring of 60 teeth, inside one of 62, creeps back two teeth per turn.
-- [A traffic jam from nowhere](traffic_helix.py): With time as a third dimension, a traffic
-  jam is a knot of paths. It moves backward while every car moves forward.
+- [用相位操控波束](phased_array.py): 固定的天线仅凭相位操控波束。影片先展示实时波场，再展示三维波束。
+- [Miura 折叠](miura_ori.py): 一拉折整片，无面弯曲。它同时向两个方向展开（负泊松比）。
+- [谐波驱动](harmonic_drive.py): 应变波齿轮在一个扁平环内实现 30:1 减速。一个 60 齿的柔性环在 62 齿环内，每转退两齿。
+- [无中生有的交通堵塞](traffic_helix.py): 以时间为第三维，交通堵塞是路径的一个结。每辆车都前进时，它却后退。
 
-## Computing and learning
+## 计算与学习
 
-- [Noise into a word](score_diffusion.py): Noise flows into a word along the exact score of
-  the data. It is a diffusion model with no neural network.
-- [A network untangles spirals](neural_untangle.py): A small network, trained as the scene
-  starts, lifts one spiral over the other. Then a flat plane separates them.
-- [The Game of Life in spacetime](life_spacetime.py): Stack the Game of Life's generations,
-  and the glider gun's gliders are staircases. They climb at c/4, a quarter of Life's top
-  speed.
+- [噪声变字](score_diffusion.py): 噪声沿数据的精确得分流入一个字。这是一个无神经网络的扩散模型。
+- [网络解开螺旋](neural_untangle.py): 一个小网络在场景开始时训练，将一条螺旋抬过另一条。而后一个平面将它们分开。
+- [时空中的生命游戏](life_spacetime.py): 将生命游戏的各代叠起，滑翔机枪的滑翔机便是阶梯。它们以 c/4 攀升，即生命游戏最高速度的四分之一。

@@ -1,27 +1,27 @@
-"""A curve that fills a square: Hilbert's.
+"""一条填满正方形的曲线：希尔伯特曲线。
 
-Split a square into a 2ⁿ × 2ⁿ grid and run a path through the centers of all its cells,
-Hilbert's way: the path of order n + 1 is the path of order n with every point replaced by a
-small copy of the first one, a U through the four quarters of its cell, turned so that the U's
-join up. Each order doubles the length and halves the gaps, while every point of the path moves
-less and less: the paths converge, to a curve that passes through every point of the square
-(Hilbert, 1891). Its colors run along its length, so each part of the square keeps its color.
+将正方形划分为 2ⁿ × 2ⁿ 网格，穿过所有单元格的中心连出一条路径，
+按希尔伯特的方式：n + 1 阶路径是 n 阶路径中每个点被替换为
+第一个的小副本，即穿过其单元格四个象限的 U 形，旋转使各 U 形
+衔接起来。每升一阶长度翻倍、间隙减半，而路径上每个点的移动
+越来越小：路径收敛于一条穿过正方形每个点的曲线
+（希尔伯特，1891）。其颜色沿长度方向渐变，因此正方形的每一部分保持自己的颜色。
 """
 
 import numpy as np
 
 import manimgx as m
 
-SIDE = 7.2  # the square's side, in scene units
+SIDE = 7.2  # 正方形的边长，以场景单位计
 CENTER = np.array([-1.5, 0.0, 0.0])
 LAST_ORDER = 7
-PIECES = 256  # the most pieces a path is drawn in, each in its own color
+PIECES = 256  # 路径最多分成的段数，每段有自己的颜色
 COLORS = [m.BLUE, m.TEAL, m.GREEN, m.YELLOW, m.GOLD, m.RED, m.MAROON, m.PURPLE]
 WALL = 4.4
 
 
 def hilbert(order: int) -> np.ndarray:
-    """The cells (x, y) of the 2^order × 2^order grid, in the order the path visits them."""
+    """2^order × 2^order 网格的单元格 (x, y)，按路径访问它们的顺序排列。"""
     size = 2**order
     t = np.arange(size * size)
     x, y = np.zeros_like(t), np.zeros_like(t)
@@ -39,7 +39,7 @@ def hilbert(order: int) -> np.ndarray:
 
 
 def vertices(order: int) -> np.ndarray:
-    """The path of the given order: the centers of its cells, on screen."""
+    """给定阶数的路径：其单元格的中心，在屏幕上。"""
     cell = SIDE / 2**order
     corner = CENTER - SIDE / 2 * (m.RIGHT + m.UP)
     xy = (hilbert(order) + 0.5) * cell
@@ -47,8 +47,8 @@ def vertices(order: int) -> np.ndarray:
 
 
 def pieces(count: int) -> list[np.ndarray]:
-    """The vertices of each piece of a path through `count` vertices: its segments, or, for
-    a long path, PIECES runs of them, each ending where the next begins."""
+    """穿过 `count` 个顶点的路径各段的顶点：其线段，或者对于
+    长路径，PIECES 组线段，每组在下一组开始处结束。"""
     if count <= PIECES:
         return [np.array([k, k + 1]) for k in range(count - 1)]
     run = count // PIECES
@@ -56,22 +56,22 @@ def pieces(count: int) -> list[np.ndarray]:
 
 
 def rainbow(s: float) -> m.ManimColor:
-    """The color a fraction s of the way along the path."""
+    """沿路径走完比例 s 处的颜色。"""
     x = s * (len(COLORS) - 1)
     k = min(int(x), len(COLORS) - 2)
     return m.interpolate_color(COLORS[k], COLORS[k + 1], x - k)
 
 
 def width(order: int) -> float:
-    """The stroke for a path of this order: four tenths of its cell, at most 12."""
+    """该阶数路径的线宽：其单元格的十分之四，最多 12。"""
     return min(12.0, 40 * SIDE / 2**order)
 
 
 def drawn(
     points: np.ndarray, runs: list[np.ndarray], places: np.ndarray, order: int
 ) -> m.VGroup:
-    """A path drawn piece by piece: piece k through points[runs[k]], colored by where along
-    the path its vertices are (places: a fraction of the way, per point)."""
+    """逐段绘制的路径：第 k 段穿过 points[runs[k]]，按其顶点在路径上的
+    位置着色（places：每个点沿路径的比例位置）。"""
     group = m.VGroup()
     for run in runs:
         piece = m.VMobject(
@@ -85,7 +85,7 @@ def drawn(
 
 
 def path_length(points: np.ndarray) -> float:
-    """The length of the path through the points, in sides of the square."""
+    """穿过这些点的路径长度，以正方形边长为单位。"""
     return float(np.linalg.norm(np.diff(points, axis=0), axis=1).sum() / SIDE)
 
 

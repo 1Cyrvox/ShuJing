@@ -1,17 +1,17 @@
-"""Times tables on a circle.
+"""圆上的乘法表。
 
-Put 200 points around a circle, numbered 0 to 199, and join each point n to the point k·n,
-counting around the circle (mod 200). For k = 2 the lines wrap a cardioid, the heart traced by
-a point on a circle rolling around another of the same size; for k = 3, a nephroid, with two
-lobes; for k, a curve with k − 1 lobes. Let k grow continuously and the figure turns, splits
-and folds from one curve into the next.
+在圆周上放置 200 个点，编号从 0 到 199，将每个点 n 连接到点 k·n，
+沿圆周计数（模 200）。当 k = 2 时，直线围成一个心脏线，即一个圆在另一个
+同样大小的圆上滚动时圆上一点所描出的轨迹；当 k = 3 时，得到一个有两个
+瓣的肾脏线；当 k 时，得到有 k − 1 个瓣的曲线。让 k 连续增长，图形便
+从一条曲线转动、分裂和折叠为下一条曲线。
 """
 
 import numpy as np
 
 import manimgx as m
 
-WALL = 3.2  # the README wall's 5 seconds start here
+WALL = 3.2  # README 影片墙的 5 秒从此开始
 POINTS = 200
 RADIUS = 3.45
 
@@ -26,7 +26,7 @@ class TimesTables(m.Scene):
     def construct(self) -> None:
         k = m.ValueTracker(2.0)
         n = np.arange(POINTS)
-        start = np.pi + m.TAU * n / POINTS  # point 0 on the left, as in a clock turned
+        start = np.pi + m.TAU * n / POINTS  # 点 0 在左侧，如同翻转的时钟
         colors = m.color_gradient(
             [m.BLUE, m.TEAL, m.GREEN, m.YELLOW, m.RED, m.PURPLE, m.BLUE], POINTS
         )
@@ -79,7 +79,7 @@ class TimesTables(m.Scene):
             self.play(m.FadeIn(name), run_time=0.4)
             self.wait(0.6)
         self.play(m.FadeOut(name), run_time=0.3)
-        # then on, without stopping: the figures between and beyond
+        # 此后不停顿：中间和更远的图形
         self.play(k.animate.set_value(34), run_time=12, rate_func=m.linear)
         self.wait(1)
 

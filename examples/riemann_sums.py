@@ -1,25 +1,24 @@
-"""The area under a curve is the limit of sums of thin rectangles.
+"""曲线下方的面积是细矩形之和的极限。
 
-Cut the stretch from a to b into strips of width Δx and stand a rectangle in each, as tall as
-the curve at the strip's left edge: the rectangles' areas add up to Σ f(xᵢ)Δx, close to the area
-under the curve but not equal to it. Halve Δx and every rectangle splits in two, the new right
-half rising or sinking to meet the curve; the sum creeps toward the true area. In the limit
-Δx → 0 the sum becomes the integral ∫ₐᵇ f(x) dx, and the integral is the area.
+将从 a 到 b 的区间切成宽度为 Δx 的条带，在每个条带中立一个矩形，其高度等于该条带左边缘处
+曲线的高度：各矩形面积之和为 Σ f(xᵢ)Δx，接近曲线下方的面积但不等于它。将 Δx 减半，每个
+矩形分裂为二，新的右半部分上升或下降以贴合曲线；和式向真实面积缓缓趋近。在 Δx → 0 的
+极限下，和式成为积分 ∫ₐᵇ f(x) dx，而积分即面积。
 """
 
 import numpy as np
 
 import manimgx as m
 
-WALL = 3.4  # the rectangles split, again and again
+WALL = 3.4  # 矩形一次又一次地分裂
 
-A, B = 0.5, 4.5  # the region
-LEVELS = 6  # halvings: Δx from 1 down to 1/64
-COLORS = (m.BLUE, m.GREEN)  # the rectangles' gradient, left to right
+A, B = 0.5, 4.5  # 积分区域
+LEVELS = 6  # 减半次数：Δx 从 1 降至 1/64
+COLORS = (m.BLUE, m.GREEN)  # 矩形的渐变色，从左到右
 
 
 def F(x: np.ndarray) -> np.ndarray:
-    """A wave on a slope, at every x of an array."""
+    """斜坡上的波动，在数组的每个 x 处取值。"""
     return 1 + 0.6 * x + 0.9 * np.sin(1.6 * x)
 
 
@@ -28,7 +27,7 @@ def f(x: float) -> float:
 
 
 def exact_area(a: float, b: float, n: int = 20000) -> float:
-    """∫ₐᵇ f(x) dx by Simpson's rule on n (even) strips."""
+    """用辛普森法则在 n（偶数）个条带上计算 ∫ₐᵇ f(x) dx。"""
     xs = np.linspace(a, b, n + 1)
     ys = np.array([f(x) for x in xs])
     h = (b - a) / n
@@ -36,9 +35,8 @@ def exact_area(a: float, b: float, n: int = 20000) -> float:
 
 
 def gap(width: float) -> float:
-    """The gap between neighbouring rectangles `width` wide, in scene units: a sliver of
-    page between wide ones, none between thin ones, which overlap a hair instead (two edges
-    that merely touch would show a seam)."""
+    """宽度为 `width` 的相邻矩形之间的间距，以场景单位表示：宽矩形之间留一缕缝隙，
+    窄矩形之间无间距而是微微重叠（仅相接的两条边会显出接缝）。"""
     return 0.06 * min(1.0, width / 0.5) ** 2 - 0.01 * (1 - min(1.0, width / 0.1))
 
 
@@ -53,7 +51,7 @@ class RiemannSums(m.Scene):
             axis_config={"stroke_width": 3, "color": m.GREY_B},
         ).move_to(np.array([0.2, -0.75, 0]))
         curve = axes.plot(f, x_range=[0.05, 4.95], color=m.YELLOW, stroke_width=7)
-        curve.set_z_index(1)  # over the rectangles
+        curve.set_z_index(1)  # 位于矩形之上
         f_label = m.MathTex("f(x)", color=m.YELLOW, font_size=52)
         f_label.next_to(axes.c2p(4.95, f(4.95)), m.RIGHT, buff=0.2)
         ends = m.VGroup(
@@ -68,24 +66,22 @@ class RiemannSums(m.Scene):
         gradient = np.array([c.to_rgb() for c in m.color_gradient(list(COLORS), 101)])
 
         def color_at(x: np.ndarray) -> np.ndarray:
-            """The gradient's color (RGB rows) at each x, from a's to b's."""
+            """在每个 x 处渐变的颜色（RGB 行），从 a 处到 b 处。"""
             k = np.clip(np.round(100 * (x - A) / (B - A)), 0, 100).astype(int)
             return gradient[k]
 
-        # the rectangles of level L (Δx = 1/2^L) splitting into those of level L + 1, at
-        # progress s: each into a left half that keeps its height and a right half that
-        # moves to the curve at its own left edge
+        # 第 L 级（Δx = 1/2^L）的矩形分裂为第 L + 1 级的矩形，进度为 s：
+        # 每个分裂为保持原高度的左半部分和移动至自身左边缘处曲线高度的右半部分
         level = m.ValueTracker(0.0)  # L + s
-        grown = m.ValueTracker(0.0)  # how far the first rectangles have risen
+        grown = m.ValueTracker(0.0)  # 首批矩形已升起的高度比例
         memo: dict[tuple[float, float], tuple[np.ndarray, ...]] = {}
 
         def pair(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-            """Interleave two arrays row by row: a[0], b[0], a[1], b[1], …"""
+            """将两个数组逐行交错排列：a[0], b[0], a[1], b[1], …"""
             return np.stack([a, b], axis=1).reshape(-1, *a.shape[1:])
 
         def strips() -> tuple[np.ndarray, ...]:
-            """The rectangles shown, as arrays: left and right x, height, the gaps at
-            their left and right, and their colors (RGB rows)."""
+            """所显示的矩形，以数组形式：左 x 和右 x、高度、左右两侧的间距，以及颜色（RGB 行）。"""
             key = (level.get_value(), grown.get_value())
             if key in memo:
                 return memo[key]
@@ -93,7 +89,7 @@ class RiemannSums(m.Scene):
             s = key[0] - whole
             dx = 1 / 2**whole
             outer = (1 - s) * gap(dx * x_unit) + s * gap(dx / 2 * x_unit)
-            inner = (1 - s) * -0.01 + s * gap(dx / 2 * x_unit)  # the split opens
+            inner = (1 - s) * -0.01 + s * gap(dx / 2 * x_unit)  # 分裂处张开
             x = A + dx * np.arange(round((B - A) / dx))
             h = key[1] * F(x)
             n = len(x)
@@ -128,11 +124,10 @@ class RiemannSums(m.Scene):
             left, right, h, *_ = strips()
             return float(((right - left) * h).sum())
 
-        pieces: list[m.VMobject] = []  # the rectangles' shapes, reshaped every frame
+        pieces: list[m.VMobject] = []  # 矩形的形状，每帧重塑
 
         def rectangles(group: m.Mobject) -> None:
-            """Reshape the rectangles in place (one VMobject each, made anew only when
-            their number changes)."""
+            """就地重塑各矩形（每个一个 VMobject，仅在其数量变化时重新创建）。"""
             left, right, h, gap_left, gap_right, colors = strips()
             if len(pieces) != len(left):
                 pieces[:] = [m.VMobject(stroke_width=0, fill_opacity=1) for _ in left]
@@ -156,12 +151,12 @@ class RiemannSums(m.Scene):
         rectangles(bars)
         bars.add_updater(rectangles)
 
-        # the readouts: Δx, the sum of the areas (live), and the true area it tends to
+        # 读数：Δx、面积之和（实时）及其趋近的真实面积
         dx_tex = m.MathTex(r"\Delta x =", font_size=52)
         dx_tex.move_to(np.array([-6.6, 3.3, 0]), aligned_edge=m.LEFT)
 
         def delta(dx: float) -> m.MathTex:
-            """Δx's value, written out exactly: 1, 0.5, 0.25, …"""
+            """Δx 的值，精确写出：1, 0.5, 0.25, …"""
             return m.MathTex(f"{dx:g}", font_size=52).next_to(dx_tex, m.RIGHT, buff=0.2)
 
         dx_value = delta(1)
@@ -173,13 +168,13 @@ class RiemannSums(m.Scene):
         sum_tex.get_parts_by_tex(")").set_color(m.YELLOW)
         sum_tex.move_to(np.array([-0.9, 3.2, 0]), aligned_edge=m.LEFT)
         truth = exact_area(A, B)
-        # the number after the "=": the rectangles' total area, until it becomes the
-        # integral's value, `settled` once Δx → 0 (−1 until then)
+        # "=" 之后的数：矩形的总面积，直到其变为积分的值，
+        # 当 Δx → 0 时 `settled` 置位（此前为 −1）
         settled = m.ValueTracker(-1.0)
         equals = [sum_tex[-1]]
         total = m.DecimalNumber(0, num_decimal_places=2, font_size=56)
 
-        # its opacity: it fades in by this, not by an animation, which would hold its value
+        # 其不透明度：由此淡入，而非由动画驱动（动画会固定其值）
         written = m.ValueTracker(0.0)
 
         def show_total(mob: m.Mobject) -> None:
@@ -196,7 +191,7 @@ class RiemannSums(m.Scene):
             truth, num_decimal_places=2, font_size=56, color=m.GREY_B
         )
         goal = m.VGroup(target, target_value).arrange(m.RIGHT, buff=0.25)
-        widest = target_value.copy().move_to(total, aligned_edge=m.LEFT)  # 5 characters
+        widest = target_value.copy().move_to(total, aligned_edge=m.LEFT)  # 5 个字符
         goal.next_to(widest, m.RIGHT, buff=0.35)
 
         self.add(axes)
@@ -211,8 +206,8 @@ class RiemannSums(m.Scene):
             run_time=1.5,
         )
         self.play(m.FadeIn(goal, shift=0.2 * m.LEFT), run_time=0.5)
-        # Δx halves, again and again: the sum creeps toward the area
-        # Δx's new value comes in as the split begins
+        # Δx 一次又一次减半：和式向面积缓缓趋近
+        # Δx 的新值在分裂开始时进入
         early = m.squish_rate_func(m.smooth, 0.0, 0.35)
         for k in range(LEVELS):
             new_value = delta(1 / 2 ** (k + 1))
@@ -226,14 +221,14 @@ class RiemannSums(m.Scene):
             self.wait(0.15)
         self.wait(0.4)
 
-        # Δx → 0: the sum becomes the integral, and the integral is the area
+        # Δx → 0：和式成为积分，而积分即面积
         integral_tex = m.MathTex(
             r"{{ \int_a^b }} {{f(}} {{x}} {{)}} \, {{dx}} {{=}}", font_size=56
         )
         integral_tex.get_parts_by_tex("f(").set_color(m.YELLOW)
         integral_tex.get_parts_by_tex("x", substring=False).set_color(m.YELLOW)
         integral_tex.get_parts_by_tex(")").set_color(m.YELLOW)
-        width = integral_tex.width + 0.25 + total.width  # with its value, centered
+        width = integral_tex.width + 0.25 + total.width  # 连同其值，居中
         left = axes.get_center()[0] - width / 2
         integral_tex.move_to(np.array([left, 3.2, 0]), aligned_edge=m.LEFT)
         region = axes.get_area(axes.plot(f, x_range=[A, B, 0.01]), x_range=(A, B))
@@ -250,7 +245,7 @@ class RiemannSums(m.Scene):
             m.FadeOut(dx_value),
             m.FadeOut(goal),
             settled.animate.set_value(truth),
-            m.FadeIn(region),  # over the thin rectangles, which it then replaces
+            m.FadeIn(region),  # 覆于细矩形之上，随后将其替换
             run_time=2,
         )
         equals[0] = integral_tex[-1]

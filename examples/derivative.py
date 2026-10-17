@@ -1,10 +1,9 @@
-"""What a derivative is: the slope of a curve at one point.
+"""导数是什么：曲线在一点处的斜率。
 
-Nudge x by dx and f changes by df; the ratio df/dx is the slope of the secant through the two
-points, rise over run. Let dx shrink toward 0 and the secant turns into the tangent, whose slope
-is the derivative: f′(x) = lim (f(x + dx) − f(x))/dx as dx → 0. Slide x along the curve and the
-tangent's slope is positive where the curve rises, 0 where it is flat and negative where it
-falls. Plotted against x, the slopes draw a curve of their own: the graph of f′.
+将 x 推动 dx，f 变化 df；比值 df/dx 是过这两点的割线的斜率，即纵向变化除以横向变化。让 dx 趋向 0，
+割线变成切线，其斜率就是导数：f′(x) = lim (f(x + dx) − f(x))/dx，当 dx → 0。沿曲线滑动 x，
+切线的斜率在曲线上升处为正，在平坦处为 0，在下降处为负。以 x 为自变量绘制，斜率画出自己的曲线：
+f′ 的图像。
 """
 
 from collections.abc import Callable
@@ -14,42 +13,42 @@ import numpy as np
 
 import manimgx as m
 
-WALL = 17.6  # the tangent slides and f′ is traced
+WALL = 17.6  # 切线滑动并描出 f′
 
-X_MIN, X_MAX = 0.3, 9.3  # the curve's stretch of x; the axes run from 0 to 9.6
-Y_MAX = 2.1  # f's axes run from −Y_MAX to Y_MAX
-X0 = 3.6  # where the secant becomes the tangent
-DX0, DX1 = 1.6, 0.01  # the nudge, from wide to tiny
-FLAT = 0.15  # slopes this close to 0 fade to white: flat
-DF_COLOR = m.PURPLE_B  # df, the rise; dx, the run, is yellow
-SHIFT = 2.0  # how far f's axes move left to make room for f′'s readout
+X_MIN, X_MAX = 0.3, 9.3  # 曲线的 x 范围；坐标轴从 0 到 9.6
+Y_MAX = 2.1  # f 的坐标轴从 −Y_MAX 到 Y_MAX
+X0 = 3.6  # 割线变为切线的位置
+DX0, DX1 = 1.6, 0.01  # 推动，从宽到微小
+FLAT = 0.15  # 斜率距 0 如此近时褪为白色：平坦
+DF_COLOR = m.PURPLE_B  # df，纵向变化；dx，横向变化，为黄色
+SHIFT = 2.0  # f 的坐标轴向左移动多远，为 f′ 的读数腾出空间
 
 
 def f(x: float) -> float:
-    """A wave on a slope: rising, flat and falling stretches."""
+    """斜坡上的一个波：上升、平坦和下降的区段。"""
     return float(np.sin(x - 4.8) + (x - 4.8) / 3)
 
 
 def quotient(x: float, dx: float) -> float:
-    """The secant's slope: (f(x + dx) − f(x)) / dx."""
+    """割线的斜率：(f(x + dx) − f(x)) / dx。"""
     return (f(x + dx) - f(x)) / dx
 
 
 def slope(x: float) -> float:
-    """The tangent's slope, the derivative, by a central difference."""
+    """切线的斜率，即导数，由中心差分求得。"""
     eps = 1e-6
     return (f(x + eps) - f(x - eps)) / (2 * eps)
 
 
 def sign_color(s: float) -> m.ManimColor:
-    """Green for a rising slope, red for a falling one, white where it is flat."""
+    """上升斜率为绿色，下降斜率为红色，平坦处为白色。"""
     return m.interpolate_color(
         m.WHITE, m.GREEN if s > 0 else m.RED, min(abs(s) / FLAT, 1.0)
     )
 
 
 def zeros(func: Callable[[float], float], lo: float, hi: float) -> list[float]:
-    """Where `func` changes sign between lo and hi, by bisection on a fine grid."""
+    """`func` 在 lo 和 hi 之间变号的位置，通过细网格上的二分法求得。"""
     xs = np.linspace(lo, hi, 400)
     ys = [func(float(x)) for x in xs]
     found = []
@@ -69,7 +68,7 @@ def zeros(func: Callable[[float], float], lo: float, hi: float) -> list[float]:
 def clip(
     p: np.ndarray, q: np.ndarray, low: np.ndarray, high: np.ndarray
 ) -> tuple[np.ndarray, np.ndarray]:
-    """The part of the segment pq inside the box from `low` to `high` (Liang–Barsky)."""
+    """线段 pq 在从 `low` 到 `high` 的方框内的部分（Liang–Barsky 算法）。"""
     t0, t1 = 0.0, 1.0
     d = q - p
     for k in range(2):
@@ -92,7 +91,7 @@ def axes(y_range: list[float], y_length: float) -> m.Axes:
 
 
 def colored_quotient(tex: str) -> m.MathTex:
-    """A formula with the rise f(x + dx) − f(x) in df's color and the run dx in yellow."""
+    """一个公式，其中纵向变化 f(x + dx) − f(x) 用 df 的颜色，横向变化 dx 用黄色。"""
     formula = m.MathTex(tex, font_size=60)
     for part in formula.get_parts_by_tex("dx", substring=False):
         part.set_color(m.YELLOW)
@@ -128,7 +127,7 @@ class DerivativeSlope(m.Scene):
                 mid - half * direction,
                 mid + half * direction,
                 top.c2p(0, -Y_MAX),
-                top.c2p(X_MAX, Y_MAX),  # not past the curve's end, where its label is
+                top.c2p(X_MAX, Y_MAX),  # 不超过曲线的末端，那里有它的标签
             )
             return m.Line(start, end, color=sign_color(s), stroke_width=7)
 
@@ -156,11 +155,11 @@ class DerivativeSlope(m.Scene):
         q_dot = m.always_redraw(far_dot)
         p_dot = m.always_redraw(near_dot)
 
-        # the quotient, and its value: the secant's slope, then the tangent's
+        # 商及其值：割线的斜率，然后是切线的
         quotient_tex = colored_quotient(
             r"{{ \frac{df}{dx} }} {{=}} \frac{ {{f(x+dx) - f(x)}} }{ {{dx}} } {{=}}"
         )
-        ratio = quotient_tex[0]  # its glyphs: d, f, d, x, the bar
+        ratio = quotient_tex[0]  # 其字形：d, f, d, x, 横线
         m.VGroup(*ratio[0:2]).set_color(DF_COLOR)
         m.VGroup(*ratio[2:4]).set_color(m.YELLOW)
         quotient_tex.move_to(1.9 * m.DOWN + 0.8 * m.LEFT)
@@ -186,8 +185,8 @@ class DerivativeSlope(m.Scene):
         dx_number.add_updater(lambda d: d.set_value(dx()))
         dx_readout = m.VGroup(dx_label, dx_number)
 
-        # 0–3 s: the curve; two points on it, the secant through them, the run dx and
-        # the rise df
+        # 0–3 秒：曲线；其上两点，过它们的割线，横向变化 dx 和
+        # 纵向变化 df
         self.add(top)
         self.play(m.Create(curve), m.FadeIn(f_label), run_time=1.6)
         self.play(
@@ -201,7 +200,7 @@ class DerivativeSlope(m.Scene):
             m.Write(quotient_tex), m.FadeIn(number), m.FadeIn(dx_readout), run_time=1.5
         )
         self.wait(0.4)
-        # 5–9 s: dx shrinks toward 0; the secant turns into the tangent
+        # 5–9 秒：dx 趋向 0；割线变成切线
         self.play(log_dx.animate.set_value(float(np.log(DX1))), run_time=4)
         self.remove(triangle, q_dot)
         limit_tex = colored_quotient(
@@ -217,12 +216,12 @@ class DerivativeSlope(m.Scene):
         tangent_phase[0] = True
         self.wait(0.4)
 
-        # 11–16 s: the limit is f′(x); room for its own graph, below
+        # 11–16 秒：极限是 f′(x)；在下方为其图像腾出空间
         prime, equals = limit_tex[0], limit_tex[1]
         rest = m.VGroup(*limit_tex[2:])
         self.remove(limit_tex)
         self.add(prime, equals, rest)
-        number.remove_updater(show_value)  # held still while it moves
+        number.remove_updater(show_value)  # 移动期间保持静止
         self.play(
             m.FadeOut(rest),
             number.animate.next_to(equals, m.RIGHT, buff=0.25),
@@ -239,7 +238,7 @@ class DerivativeSlope(m.Scene):
         )
         number.add_updater(show_value)
 
-        lo_hi = [0.0, 0.0]  # the stretch of x traced so far
+        lo_hi = [0.0, 0.0]  # 迄今已描出的 x 范围
 
         def traced() -> m.VGroup:
             x0 = x.get_value()
@@ -282,7 +281,7 @@ class DerivativeSlope(m.Scene):
         self.play(m.FadeIn(dot), m.Create(connector), run_time=0.5)
         lo_hi[0] = lo_hi[1] = x.get_value()
         self.add(m.always_redraw(traced))
-        # 16–24 s: slide x along the curve; the tangent's slope, as a height, draws f′
+        # 16–24 秒：沿曲线滑动 x；切线的斜率作为高度，描出 f′
         self.play(x.animate.set_value(X_MAX), run_time=7.5)
         hilltop = zeros(slope, X0, X_MAX)[0]
         self.play(x.animate.set_value(hilltop), run_time=2)

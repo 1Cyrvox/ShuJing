@@ -1,31 +1,30 @@
-"""The Mandelbrot set knows about period doubling.
+"""Mandelbrot 集知道倍周期分岔。
 
-The logistic map x → r x (1 − x) and z → z² + c are the same dynamics in different clothes:
-c = r/2 − r²/4. So the logistic bifurcation diagram (the long-run values of x for each r) can be
-stood up on the real axis of the Mandelbrot set, above the c that matches each r. Every
-period-doubling lands on a pinch between two bulbs — period 2 at c = −3/4, period 4 at −5/4, the
-cascade piling up at the Feigenbaum point −1.4012 — and the period-3 window sits exactly over the
-little copy of the Mandelbrot set at c = −1.75.
+逻辑斯蒂映射 x → r x (1 − x) 和 z → z² + c 是同一动力学换上不同外衣：c = r/2 − r²/4。因此，
+逻辑斯蒂分岔图（每个 r 对应的 x 的长期值）可以竖立在 Mandelbrot 集的实轴上，位于与每个 r 匹配的
+c 的上方。每一次倍周期分岔都落在两个球之间的一个夹点上——周期 2 在 c = −3/4，周期 4 在 −5/4，
+级联堆积在 Feigenbaum 点 −1.4012——而周期 3 窗口恰好位于 c = −1.75 处 Mandelbrot 集的小副本
+的正上方。
 """
 
 import numpy as np
 
 import manimgx as m
 
-UNIT = 2.6  # screen units per unit of c
-HEIGHT = 3.0  # screen height of x ∈ [0, 1]
+UNIT = 2.6  # 每单位 c 对应的屏幕单位数
+HEIGHT = 3.0  # x ∈ [0, 1] 的屏幕高度
 RE = (-2.15, 0.65)
 IM = (-1.2, 1.2)
-PIXELS = (1120, 960)  # (columns, rows) of the Mandelbrot picture
+PIXELS = (1120, 960)  # Mandelbrot 图像的（列数，行数）
 N_PARAMS = 2400
-KEEP = 120  # iterates kept per parameter (after a transient)
+KEEP = 120  # 每个参数保留的迭代次数（瞬态之后）
 
 
 def mandelbrot_pixels() -> np.ndarray:
-    """The set in deep ink, its outside glowing by smooth escape time: (rows, cols, 4) uint8."""
+    """集合以深墨色绘制，其外部按平滑逃逸时间发光：(rows, cols, 4) uint8。"""
     cols, rows = PIXELS
     re = np.linspace(*RE, cols)
-    im = np.linspace(IM[1], IM[0], rows)  # the picture's rows go down
+    im = np.linspace(IM[1], IM[0], rows)  # 图像的行从上往下
     c = re[None, :] + 1j * im[:, None]
     z = np.zeros_like(c)
     escape = np.full(c.shape, np.nan)
@@ -43,7 +42,7 @@ def mandelbrot_pixels() -> np.ndarray:
 
 
 def attractor() -> tuple[np.ndarray, np.ndarray]:
-    """(c, x) of the logistic map's long-run values, r from 1 to 4, sorted by c from right to left."""
+    """逻辑斯蒂映射长期值的 (c, x)，r 从 1 到 4，按 c 从右到左排序。"""
     r = np.linspace(1.0, 4.0, N_PARAMS)
     x = np.full(N_PARAMS, 0.5)
     for _ in range(600):
@@ -63,9 +62,9 @@ def to_scene(c: np.ndarray, x: np.ndarray) -> np.ndarray:
 
 
 def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
-    """The camera's axes for its orbit angles, as rows: right, up, and toward the viewer."""
+    """相机在其轨道角度下的各轴，以行向量表示：右、上、朝向观察者。"""
 
-    def spin(a: float) -> np.ndarray:  # a turn about z
+    def spin(a: float) -> np.ndarray:  # 绕 z 轴的旋转
         return np.array(
             [[np.cos(a), -np.sin(a), 0.0], [np.sin(a), np.cos(a), 0.0], [0.0, 0.0, 1.0]]
         )
@@ -73,13 +72,13 @@ def camera_axes(phi: float, theta: float, gamma: float) -> np.ndarray:
     c, s = np.cos(phi), np.sin(phi)
     tilt = np.array(
         [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
-    )  # a turn by −φ about x
+    )  # 绕 x 轴旋转 −φ
     return spin(gamma) @ tilt @ spin(-theta - np.pi / 2)
 
 
 def billboard(label: m.Mobject, camera: m.Camera, shown: m.ValueTracker) -> m.Mobject:
-    """Keep `label` where it is, turned every frame to face the camera, at opacity `shown` (fade it
-    by animating `shown`: a FadeIn would fight the turning)."""
+    """将 `label` 保持在原位，每帧转向相机，透明度为 `shown`（通过动画化 `shown` 来淡入淡出：
+    FadeIn 会与转动冲突）。"""
     anchor = label.get_center()
     parts = [
         (part, part.points - anchor) for part in label.family_members_with_points()
@@ -100,7 +99,7 @@ class BifurcationMandelbrot(m.ThreeDScene):
     def construct(self) -> None:
         self.set_camera_orientation(phi=0, theta=-90 * m.DEGREES, zoom=0.95)
 
-        # the Mandelbrot set lying on the floor, the real axis along x
+        # Mandelbrot 集平放在地面上，实轴沿 x 方向
         floor = m.ImageMobject(mandelbrot_pixels())
         x0, x1 = UNIT * (RE[0] + 0.75), UNIT * (RE[1] + 0.75)
         y0, y1 = UNIT * IM[0], UNIT * IM[1]
@@ -108,7 +107,7 @@ class BifurcationMandelbrot(m.ThreeDScene):
             [[x0, y1, 0], [x1, y1, 0], [x0, y0, 0], [x1, y0, 0]], dtype=float
         )
 
-        # the logistic map's long-run values, revealed by a scan line moving in c at constant speed
+        # 逻辑斯蒂映射的长期值，由一条在 c 中匀速移动的扫描线揭示
         c, x = attractor()
         colors = np.ones((len(c), 4))
         colors[:, :3] = [1.0, 0.82, 0.35]
@@ -145,10 +144,10 @@ class BifurcationMandelbrot(m.ThreeDScene):
         self.add_fixed_in_frame_mobjects(title, relation)
         self.remove(relation)
 
-        # 0–3 s: the set from above
+        # 0–3 秒：从上方看集合
         self.add(floor)
         self.play(self.camera.zoom_tracker.animate.set_value(1.0), run_time=2.5)
-        # 3–7 s: tilt; the real axis becomes a stage
+        # 3–7 秒：倾斜；实轴成为一个舞台
         self.move_camera(
             phi=72 * m.DEGREES,
             theta=-90 * m.DEGREES,
@@ -157,13 +156,13 @@ class BifurcationMandelbrot(m.ThreeDScene):
             added_anims=[m.FadeIn(relation)],
             run_time=4,
         )
-        # 7–17 s: sweep c from 1/4 to −2; above each c its logistic attractor appears
+        # 7–17 秒：将 c 从 1/4 扫到 −2；在每个 c 上方其逻辑斯蒂吸引子出现
         self.add(diagram, scanline)
         self.play(scan.animate.set_value(-2.02), run_time=10, rate_func=m.linear)
-        diagram.clear_updaters()  # all revealed: nothing changes any more
+        diagram.clear_updaters()  # 全部已揭示：不再有任何变化
         self.remove(scanline)
 
-        # 17–25 s: the landmarks line up with the bulbs
+        # 17–25 秒：地标与球对齐
         marks = [
             (-0.75, "period 2", 1.08),
             (-1.25, "period 4", 1.08),
@@ -187,7 +186,7 @@ class BifurcationMandelbrot(m.ThreeDScene):
                     m.Create(drop), shown.animate.set_value(1.0), run_time=1.4
                 )
             )
-        # one at a time, while the camera swings round to look along the drops
+        # 逐个进行，同时相机旋转以沿垂线方向观察
         self.play(
             m.Succession(*reveals, m.Wait(3.8)),
             self.camera.phi_tracker.animate.set_value(66 * m.DEGREES),

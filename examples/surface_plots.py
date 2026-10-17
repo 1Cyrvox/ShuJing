@@ -1,10 +1,9 @@
-"""Graphs of functions of two variables, one becoming the next.
+"""二元函数的图像，一个变为下一个。
 
-The graph of z = f(x, y) is a landscape over the plane: above each point (x, y), the height
-f(x, y). sin x cos y is an egg crate of peaks and pits. (x² − y²)/4 is a saddle: it curves up
-along one axis and down along the other, so its center is flat yet neither a peak nor a pit.
-2e^{−(x² + y²)/2} is a single bell, the shape of the normal distribution in two dimensions.
-Each surface is drawn from its formula, and each one bends into the next.
+z = f(x, y) 的图像是平面上方的地貌：在每个点 (x, y) 上方，高度为 f(x, y)。sin x cos y 是
+峰与谷组成的蛋盒状曲面。(x² − y²)/4 是一个鞍面：沿一条轴向上弯曲，沿另一条轴向下弯曲，
+因此其中心是平坦的，既非峰也非谷。2e^{−(x² + y²)/2} 是一个单独的钟形曲面，即二维正态分布
+的形状。每个曲面由其公式绘制，且每一个都弯向下一个。
 """
 
 from collections.abc import Callable
@@ -13,7 +12,7 @@ import numpy as np
 
 import manimgx as m
 
-WALL = 4.2  # the README wall's 5 seconds start here
+WALL = 4.2  # README 中影片墙的 5 秒从此开始
 RESOLUTION = 48
 COLORS = [
     (m.BLUE_E, -2.0),
@@ -72,8 +71,7 @@ class SurfacePlots(m.ThreeDScene):
         labels = [label(tex) for tex, _ in FUNCTIONS]
 
         def bend(k: int) -> m.Animation:
-            """From the k-th surface to the next (the 0th is flat), recolored by height as
-            it goes."""
+            """从第 k 个曲面到下一个（第 0 个是平面），在过渡过程中按高度重新着色。"""
 
             def step(mob: m.Mobject, alpha: float) -> None:
                 assert isinstance(mob, m.Surface)

@@ -1,29 +1,28 @@
-"""Stacks of cubes and the arctic circle.
+"""立方体堆叠与北极圈。
 
-A tiling of a hexagon by three kinds of lozenges is secretly a stack of cubes in the corner of a
-box, seen along the box's diagonal: each lozenge is a top, a left or a right face. Pick a stack
-uniformly at random among all of them (here: by Glauber dynamics — add or remove a cube wherever
-the stack stays a stack, at random, many times). For a big box something strange happens: near
-the corners the tiling freezes into a single orientation, and all the disorder lives inside the
-circle inscribed in the hexagon — the arctic circle (Cohn, Larsen & Propp, 1998). And whatever
-the pile, each kind of lozenge appears exactly n² times: they are the tops, lefts and rights of
-the cubes' faces seen along each axis (David & Tomei, 1989) — counted live from the faces drawn.
+用三种菱形对六边形进行的铺砌，实质上是沿盒子的对角线方向看到的盒子角落里一堆立方体：
+每个菱形是一个顶面、一个左面或一个右面。在所有堆叠中均匀随机地选取一个（此处通过
+Glauber 动力学实现——在堆叠仍为堆叠之处随机添加或移除一个立方体，反复多次）。对于大
+盒子，一种奇异现象出现：在角落附近，铺砌冻结为单一朝向，而所有无序都集中在六边形的
+内切圆之内——即北极圈（Cohn、Larsen 与 Propp，1998）。且无论堆为何，每种菱形恰好出现
+n² 次：它们是立方体各面沿各轴向看到的顶面、左面和右面（David 与 Tomei，1989）——从已绘
+制的面中实时计数。
 """
 
 import numpy as np
 
 import manimgx as m
 
-N = 30  # the big box is N × N × N
-SMALL = 6  # the warm-up box
-COLORS = ["#f4d35e", "#ee6352", "#3c91e6"]  # top, facing +x, facing +y
-INSET = 0.07  # each face is drawn a little smaller, so the tiles' edges show
-SIZE = 3.5  # the big box's side on screen
+N = 30  # 大盒子为 N × N × N
+SMALL = 6  # 预热盒子
+COLORS = ["#f4d35e", "#ee6352", "#3c91e6"]  # 顶面、朝向 +x、朝向 +y
+INSET = 0.07  # 每个面绘制时略微缩小，以显露瓦片的边缘
+SIZE = 3.5  # 大盒子在屏幕上的边长
 
 
 def glauber(heights: np.ndarray, rng: np.random.Generator, sweeps: int) -> None:
-    """Heat-bath moves on a plane partition (heights non-increasing away from the corner, within
-    0 … n): at every cell of one checkerboard color at once, try to add or remove a cube.
+    """平面分割上的热浴移动（高度自角落向外非增，取值在
+    0 … n 之间）：在棋盘一种颜色的所有格子上同时尝试添加或移除一个立方体。
     """
     n = heights.shape[0]
     i, j = np.indices(heights.shape)
@@ -44,7 +43,7 @@ def glauber(heights: np.ndarray, rng: np.random.Generator, sweeps: int) -> None:
 
 
 def unit_faces(corner: np.ndarray, du: np.ndarray, dv: np.ndarray) -> np.ndarray:
-    """Quads (F, 4, 3) from their corners and edge vectors, shrunk by INSET toward their centers."""
+    """由角点和边向量生成的四边形 (F, 4, 3)，向中心方向收缩 INSET 比例。"""
     a, b = INSET, 1 - INSET
     return np.stack(
         [
@@ -58,10 +57,9 @@ def unit_faces(corner: np.ndarray, du: np.ndarray, dv: np.ndarray) -> np.ndarray
 
 
 def visible_faces(h: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Every unit face seen from the (1, 1, 1) direction — the lozenges: the tops of the columns
-    (and of the bare floor), and the walls facing +x and +y at every plane x = i, y = j between a
-    column and the one in front of it (behind the first column: the box's back wall, height n;
-    in front of the last: nothing). (quads, which of the 3 kinds)."""
+    """从 (1, 1, 1) 方向可见的每个单位面——即菱形：各列的顶面
+    （以及裸露地面），以及在每条列与前一列之间的平面 x = i、y = j 上朝向 +x 和 +y 的墙面
+    （第一列之后：盒子的后墙，高度 n；最后一列之前：无）。（四边形，属于 3 种中的哪一种）。"""
     n = h.shape[0]
     i, j = np.indices(h.shape)
     quads = [
@@ -82,12 +80,12 @@ def visible_faces(h: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         lower, higher = (
             front.ravel(),
             behind.ravel(),
-        )  # the wall at each plane spans lower … higher
+        )  # 每个平面上的墙面跨越 lower … higher
         cells = np.repeat(np.arange(len(lower)), higher - lower)
         level = np.concatenate(
             [np.arange(lo, hi) for lo, hi in zip(lower, higher, strict=True)]
         )
-        # the grid index (i, j) of each face's cell: the plane is i for +x walls, j for +y
+        # 每个面所属格子的网格索引 (i, j)：平面为 i 对应 +x 墙面，j 对应 +y 墙面
         ci, cj = np.unravel_index(cells, front.shape)
         corner = np.stack([ci, cj, level], -1)
         du = np.array([0, 1.0, 0]) if axis == 0 else np.array([1.0, 0, 0])
@@ -99,7 +97,7 @@ def visible_faces(h: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 def mesh_arrays(
     h: np.ndarray, colors: np.ndarray, size: float
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """The visible faces of the pile in a box of side `size` on screen, centered at the origin."""
+    """堆在屏幕上边长为 `size` 的盒子中的可见面，以原点为中心。"""
     quads, kinds = visible_faces(h)
     n = h.shape[0]
     verts = (quads.reshape(-1, 3) - n / 2) * size / n
@@ -110,9 +108,9 @@ def mesh_arrays(
 
 
 class Pile(m.MeshMobject):
-    """A pile of cubes in the corner of an n × n × n box, drawn `size` wide, shaken by Glauber
-    dynamics at `rate` sweeps per tick of the simulation clock. It is rebuilt every tick, so it
-    fades by its `shown` tracker (read at each rebuild), not by FadeIn/FadeOut."""
+    """n × n × n 盒子角落里的一堆立方体，绘制宽度为 `size`，由 Glauber 动力学以每个模拟时钟
+    刻 `rate` 次扫描的速率搅动。它在每个时刻重建，因此通过其 `shown` 跟踪器（在每次重建时
+    读取）淡入淡出，而非通过 FadeIn/FadeOut。"""
 
     def __init__(
         self, heights: np.ndarray, size: float, rng: np.random.Generator
@@ -134,7 +132,7 @@ class Pile(m.MeshMobject):
         self.paint = self.paint.but(fill=rows)
 
     def counts(self) -> list[int]:
-        """How many lozenges of each kind the pile shows (its faces, 4 vertices each)."""
+        """堆所显示的每种菱形的数量（其面，每个 4 个顶点）。"""
         rows = self.paint.fill[::4, :3]
         return [
             int(np.all(np.isclose(rows, c[:3]), axis=1).sum()) for c in self.palette
@@ -155,8 +153,8 @@ class LozengeCubes(m.ThreeDScene):
         )
         self.add_fixed_in_frame_mobjects(title, subtitle)
 
-        # along the box's diagonal (1, 1, 1), nearly orthographic: the pile looks flat, a tiling
-        # of a hexagon by three kinds of rhombi
+        # 沿盒子对角线 (1, 1, 1) 方向，近乎正交投影：堆看起来是平的，即
+        # 用三种菱形对六边形的铺砌
         center = np.array([0.0, 0.0, 0.55])
         tilt = float(np.arccos(1 / np.sqrt(3)))
         self.set_camera_orientation(
@@ -178,11 +176,11 @@ class LozengeCubes(m.ThreeDScene):
                 run_time=seconds,
             )
 
-        # 0–8 s: a small tiling … is a small pile of cubes
+        # 0–8 秒：小铺砌……是一小堆立方体
         small_heights = np.zeros((SMALL, SMALL), int)
         glauber(small_heights, rng, 400)
         small = Pile(small_heights, 3.3, rng)
-        small.rate = 1  # the tiling flips here and there as cubes come and go
+        small.rate = 1  # 随着立方体的增减，铺砌不时翻转
         self.add(small)
         self.wait(2.5)
         small.rate = 0
@@ -198,7 +196,7 @@ class LozengeCubes(m.ThreeDScene):
         small.rate = 0
         on_diagonal(2)
 
-        # 8–19 s: a big box: cubes rain in at random until the pile is a typical one
+        # 8–19 秒：大盒子：立方体随机涌入，直到堆成为典型的一堆
         big = Pile(np.zeros((N, N), int), SIZE, rng)
         big.shown.set_value(0.0)
         self.add(big)
@@ -231,10 +229,10 @@ class LozengeCubes(m.ThreeDScene):
         )
         self.move_camera(theta=75 * m.DEGREES, added_anims=[m.FadeIn(note)], run_time=3)
 
-        # 19–30 s: back on the diagonal: frozen corners, disorder inside the inscribed circle
+        # 19–30 秒：回到对角线：冻结的角落，内切圆内的无序
         on_diagonal(3)
         big.rate = 2
-        radius = SIZE / np.sqrt(2)  # the inradius of the hexagon the box projects to
+        radius = SIZE / np.sqrt(2)  # 盒子投影所得六边形的内切圆半径
         toward = np.array([1.0, 1.0, 1.0]) / np.sqrt(3)
         e1 = np.array([1.0, -1.0, 0.0]) / np.sqrt(2)
         e2 = np.cross(toward, e1)
