@@ -45,9 +45,6 @@ media/
 tests/**/_testoutput/
 tests/**/_diffs/
 
-# 数境站点动画文件例外（覆盖上面的 *.mp4 忽略规则）
-!shujing/zensite2/content/films/*.mp4
-
 # Editors / OS
 .DS_Store
 .vscode/
