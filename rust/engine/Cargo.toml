@@ -45,7 +45,7 @@ rusty_aac = { version = "0.5.0", optional = true }  # sound out: AAC-LC in pure 
 ffmpeg = { path = "../ffmpeg", optional = true }
 # LaTeX → Typst, natively; its command spec is made from mitex's package, which Typst reads
 # from the engine (../mitex-spec-gen, patched in at the workspace's root)
-mitex = { path = "../mitex-local/crates/mitex", optional = true }
+mitex = { git = "https://github.com/mitex-rs/mitex", tag = "0.2.7", optional = true }
 mitex-spec-gen = { path = "../mitex-spec-gen", optional = true }
 # the H.264 encoder: x264 built from its source (fetched), with NASM from its source
 x264 = { path = "../x264", optional = true }
