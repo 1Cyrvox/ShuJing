@@ -99,7 +99,7 @@ manimgx render --transparent my_scene.py MyScene
 ```python
 from manimgx import Scene, MathTex
 
-class Formula(Scene):
+class FaqFormula(Scene):
     def construct(self):
         self.add(MathTex(r"e^{i\pi} + 1 = 0"))
 ```

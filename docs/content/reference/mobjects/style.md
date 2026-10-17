@@ -46,6 +46,10 @@ class StyleHero(m.Scene):
       inherited_members: true
       members: [color, fill_color, fill_opacity, stroke_color, stroke_opacity, stroke_width, background_stroke_color, background_stroke_opacity, background_stroke_width, sheen_factor, sheen_direction, joint_type, cap_style, shade_in_3d, material, z_index, name, target]
 
+::: manimgx.drawing.paint.Look
+    options:
+      heading_level: 2
+
 ## 颜色与不透明度
 
 ::: manimgx.Mobject.set_color
