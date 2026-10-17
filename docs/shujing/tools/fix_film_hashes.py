@@ -3,8 +3,8 @@ import sys, os, shutil, textwrap
 from pathlib import Path
 from collections import defaultdict
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-os.chdir(Path(__file__).parent.parent)
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+os.chdir(Path(__file__).resolve().parents[2])
 
 from examples import Example, FILMS, blocks, PAGES, README, SOURCE, ROOT, FENCE
 import re

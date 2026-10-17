@@ -1,107 +1,56 @@
 # 数境 (ShuJing) — 中文数学动画引擎
 
-> 基于 ManimGX 二次开发的中文数学教育动画产品  
-> **版本**: 0.1.0-shujing  
-> **日期**: 2026-10-13  
-> **基座**: ManimGX 0.1.1  
-> **版权**: © 2026 爱派未来科技 (MIT)  
-> **文档**: © 2026 爱派未来科技 (CC-BY-SA-4.0)
+> 基于 ManimGX 二次开发的中文数学教育发行版
+> **基座**：ManimGX 0.1.1（引擎与功能代码对齐上游最新版）
+> **代码** © 2026 爱派未来科技 (MIT) ｜ **文档** © 2026 爱派未来科技 (CC-BY-SA-4.0)
 
 ---
 
 ## 项目简介
 
-**数境** 取"数学意境"之意，基于 ManimGX 引擎进行中文本地化与数学教育定制开发。
+**数境**取"数学意境"之意，在 ManimGX 引擎基础上做中文化适配与数学教育定制：
 
-### 核心目标
-- 中文数学公式排版与动画
-- 几何图形可视化教学
-- 微积分、代数等数学分支动画模板
-- 批量出片与教学视频生成
+- 全站中文文档与界面（`docs/content/`）
+- 中文 docstring 覆盖 `src/manimgx/` 全部 Python 模块
+- 数学公式排版（LaTeX → Typst，via mitex 本地 vendoring）
+- 本地环境加固（离线构建、Windows 链接修复，见 FIXES.md）
 
-### 与 ManimGX 的关系
 ```
-ManimGX 0.1.1 (基座)
-    ↓
-数境 0.1.0 (二次开发)
-    ├── Bug 修复
-    ├── 中文优化
-    ├── 教学模板
-    └── 批量出片
+ManimGX 0.1.1（上游基座，MIT）
+    ↓  中文化 + 本地补丁 + 环境适配
+数境（中文发行版）
 ```
 
 ---
 
-## 本地修复记录
+## 目录说明
 
-### Issue #16: 渲染失败 — sweep 清理队列帧资源
+| 文件 | 说明 |
+| --- | --- |
+| `FIXES.md` | 本地修复日志（含根因分析与修复代码） |
+| `上游同步合并方案.md` | 上游同步的完整证据档案：提交详解、191 文件分类、踩坑记录 |
+| `tools/fix_film_hashes.py` | 文档影片哈希修复（翻译导致内容哈希变化后重挂影片） |
+| `tools/pack_zip.py` | 文档站点打包（`docs/site/` → zip，供部署） |
 
-**状态**: ✅ 已修复  
-**日期**: 2026-10-13  
-**修复人**: 张博 @ 爱派未来科技
-
-#### Bug 描述
-```
-Render fails with "unknown shape" after a sweep evicts a shape 
-that a recently pushed frame still draws
-```
-
-#### 根因
-- `Film._send()` 在发送帧前调用 `sweep()` 清理缓存
-- `sweep()` 只 pin 了当前帧的 records
-- 但之前 `push()` 到 GPU 队列的帧可能还在渲染中（transparency retries）
-- `sweep()` 清理了这些队列帧需要的形状 → "unknown shape" 错误
-
-#### 修复方案
-**文件**: `src/manimgx/rendering/film.py`
-
-1. 新增 `self._queued: list[bytes]` 跟踪已 push 但未渲染完的帧
-2. 每次 `player.push()` 后，把 records 加入 `_queued`
-3. `sweep()` 时，把 `_queued` 中的 records 全部 pin 住
-4. 限制队列长度为 30，避免内存无限增长
-
-#### 修复代码
-```python
-# Film.__init__ 中新增
-self._queued: list[bytes] = []  # records of frames pushed but not yet drawn
-# Fix #16: keep queued frames' resources until their transparency retries finish
-
-# sweep 调用修改（3处）
-self.feeder.sweep([records, *self._queued, *[c[4] for c in cameras]], pressed=True)
-
-# push 后记录（3处）
-player.push(view, records, repeat, cameras, key)
-self._queued.append(records)
-if len(self._queued) > 30:
-    self._queued.pop(0)
-```
-
-#### 验证结果
-```
-✅ DerivativeSlope.mp4 — 15.5s 渲染成功
-✅ CircleArea.mp4 — 11.3s 渲染成功
-✅ LorenzAttractor.mp4 — 56.5s 渲染成功（3D）
-✅ 无 "unknown shape" 错误
-```
+> 内部使用文档（建站指南、品牌设计、同步操作手册等）在本目录 `local/` 下，已 git 隔离。
 
 ---
 
-## 开发路线
+## 与上游的关系
 
-### 已完成
-- [x] 环境搭建（just sync）
-- [x] Issue #16 修复（sweep 清理队列帧资源）
-- [x] GPU 渲染全黑修复（环境配置调整）
-- [x] GPU 渲染验证（2D + 3D）
+- **基线**：引擎与功能代码与上游 `cfd33af5` 完全一致（同步并重建验证于 2026-10-17）
+- **定制层**：中文翻译、品牌、本地补丁——同步时永不覆盖，详见《上游同步合并方案》第五、六节
+- **同步方式**：不 merge、不 pull，只逐文件精确摘取
 
-### 进行中
-- [ ] 官方待办任务（Quickstart、基准测试等）
+---
 
-### 待开发
-- [ ] 中文数学公式模板
-- [ ] 几何图形动画库
-- [ ] 教学视频批量出片
-- [ ] 中文 TTS 语音支持
+## 环境与验证
+
+```bash
+just sync          # 首次：uv sync + maturin 编译 Rust 引擎
+pytest tests/unit  # 单元测试
+just dev           # 本地文档站预览
+```
 
 ---
 

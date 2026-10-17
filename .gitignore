@@ -62,17 +62,9 @@ node_modules/
 # 数境部署目录（仅本地使用，不提交仓库）
 /shujing/
 # 数境敏感文件（含 token/密钥，不能提交）
-docs/shujing/建站完整指南.md
-docs/shujing/中国本地化与品牌设计建议.md
-docs/shujing/Netlify片段注入使用指南.md
-docs/shujing/开发计划.md
-docs/shujing/上游同步操作手册.md
+docs/shujing/local/
 docs/content/baidu_verify_*.html
 wrangler.toml
 .wrangler/
-docs/shujing/vercel_*.py
-docs/shujing/vercel_*.log
-docs/shujing/vercel_*_stdout.log
-docs/shujing/shujing-site.zip
+docs/shujing/vercel_*
 docs/vercel-deploy/
-docs/shujing/vercel_fix_remaining.out

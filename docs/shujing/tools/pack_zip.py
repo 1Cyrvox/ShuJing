@@ -1,8 +1,8 @@
 import zipfile, os
 from pathlib import Path
 
-site = Path(__file__).resolve().parents[1] / "site"
-out = Path(__file__).resolve().parent / "shujing-site.zip"
+site = Path(__file__).resolve().parents[2] / "site"
+out = Path(__file__).resolve().parents[1] / "local" / "shujing-site.zip"
 count = 0
 with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
     for p in site.rglob("*"):
