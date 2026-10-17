@@ -1,10 +1,11 @@
 cff-version: 1.2.0
 message: >-
-  If you use ManimGX in your work, please cite it as below. ManimGX builds on Manim Community
+  If you use ManimGX, or ShuJing (数境), its Chinese distribution, in your work, please cite it
+  as below. ManimGX builds on Manim Community
   Edition, which grew out of 3Blue1Brown's manim, and on Typst: they are listed under
   references.
 type: software
-title: ManimGX
+title: 数境 ShuJing (the Chinese distribution of ManimGX)
 abstract: >-
   ManimGX is a self-contained animation engine for AI agents: it makes mathematical and 3D
   videos from Python scenes. Scenes use the API of Manim Community Edition, and ManimGX
@@ -14,7 +15,9 @@ abstract: >-
   The inspect command runs a scene without video, prints its
   timeline and layout problems, for example text over other text, and writes a storyboard. In
   a web browser, Pyodide runs the same scenes in a Web Worker, and a WebAssembly build of the
-  core draws them with WebGPU.
+  core draws them with WebGPU. ShuJing (数境) is this repository: ManimGX's Chinese
+  distribution by 爱派未来科技 (Aipai Future Technology), with fully Chinese documentation and
+  docstrings, published at https://www.wlazn.cn/.
 authors:
   - given-names: Sina
     family-names: Atalay
@@ -26,6 +29,9 @@ authors:
     email: geduk@academa.ai
     affiliation: Academa, Inc.
     orcid: https://orcid.org/0009-0002-1154-1542
+  - name: 爱派未来科技 (Aipai Future Technology)
+    email: dev@wlazn.cn
+    website: https://www.wlazn.cn/
 repository-code: https://github.com/1Cyrvox/ShuJing
 url: https://www.wlazn.cn/
 license: MIT
@@ -36,6 +42,7 @@ keywords:
   - gpu
   - typst
   - visualization
+  - shujing
 # the works ManimGX builds on, under the titles and authors their own CITATION.cff files give;
 # 3Blue1Brown's manim has none, so it is cited by its repository's name and its package's
 # author. ManimGX has Manim CE's API, and source ported from CE 0.21: the version cited, with

@@ -1,0 +1,23 @@
+ShuJing (数境) — the Chinese distribution of ManimGX
+=====================================================
+
+The animation engine, ManimGX, is Copyright (c) 2026 Academa, Inc. and its
+authors (Sina Atalay, Abdullah Geduk), licensed under the MIT license
+(see LICENSE). The complete list of third-party copyrights and licenses the
+engine carries is in LICENSE-THIRD-PARTY, LICENSE-DXC and LICENSE-LAVAPIPE;
+the vendored sources in rust/mitex-local/ stay under their own Apache-2.0.
+
+The Chinese distribution layer is Copyright (c) 2026 爱派未来科技
+(Aipai Future Technology):
+
+- the Chinese translations throughout docs/content/ and src/manimgx/'s
+  Chinese docstrings (the documents under CC-BY-SA-4.0, the code as part
+  of the MIT-licensed package);
+- the documents in docs/shujing/ (CC-BY-SA-4.0) and the helper scripts in
+  docs/shujing/tools/ (MIT);
+- the brand "数境 ShuJing", the site's design, and the domains
+  wlazn.cn and aipaikj.top.
+
+Upstream project: https://github.com/academa-labs/manimgx
+This distribution: https://github.com/1Cyrvox/ShuJing · https://www.wlazn.cn/
+Contact: dev@wlazn.cn

@@ -75,3 +75,9 @@ SPDX-License-Identifier = "CC-BY-SA-4.0"
 path = ["docs/shujing/tools/fix_film_hashes.py", "docs/shujing/tools/pack_zip.py"]
 SPDX-FileCopyrightText = "2026 爱派未来科技"
 SPDX-License-Identifier = "MIT"
+
+# the distribution's copyright summary, stating both layers' holders
+[[annotations]]
+path = "COPYRIGHT"
+SPDX-FileCopyrightText = ["2026 爱派未来科技", "2026 Academa, Inc."]
+SPDX-License-Identifier = "MIT"
