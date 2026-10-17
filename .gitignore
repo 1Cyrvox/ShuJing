@@ -66,6 +66,8 @@ docs/shujing/建站完整指南.md
 docs/shujing/中国本地化与品牌设计建议.md
 docs/shujing/开发计划.md
 docs/content/baidu_verify_*.html
+wrangler.toml
+.wrangler/
 docs/shujing/vercel_*.py
 docs/shujing/vercel_*.log
 docs/shujing/vercel_*_stdout.log
