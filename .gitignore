@@ -58,8 +58,8 @@ node_modules/
 *.tsbuildinfo
 # 数境部署目录（仅本地使用，不提交仓库）
 /shujing/
-# 数境敏感文件（含 token/密钥，不能提交）
-docs/shujing/local/
+# 数境本地目录（部署、同步方案、内部文档，仅本地使用，不提交仓库）
+docs/shujing/
 docs/content/baidu_verify_*.html
 wrangler.toml
 .wrangler/
