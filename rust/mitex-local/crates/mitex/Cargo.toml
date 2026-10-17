@@ -1,0 +1,29 @@
+[package]
+name = "mitex"
+description = "MiTeX is a TeX2Typst converter."
+authors = ["Myriad-Dreamin <camiyoru@gmail.com>", "OrangeX4 <orangex4@qq.com>", "mgt <mgt@oi-wiki.org>"]
+version = "0.2.7"
+license = "Apache-2.0"
+edition = "2021"
+homepage = "https://github.com/mitex-rs/mitex"
+repository = "https://github.com/mitex-rs/mitex"
+
+[[bench]]
+name = "convert_large_projects"
+harness = false
+
+[dependencies]
+
+mitex-parser = { version = "0.2.7", path = "../../crates/mitex-parser" }
+mitex-spec-gen = { version = "0.2.7", path = "../../../mitex-spec-gen" }
+rowan = "0.15.15"
+
+[dev-dependencies]
+insta = "1.39"
+divan = "0.1.14"
+serde = "1.0.188"
+serde_json = "1.0.106"
+
+# todo: add lints in when we resolves all the warnings
+# [lints]
+# workspace = true

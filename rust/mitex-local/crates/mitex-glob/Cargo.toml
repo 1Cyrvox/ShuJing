@@ -1,0 +1,12 @@
+[package]
+name = "mitex-glob"
+description = "Glob impl for MiTeX"
+authors = ["Myriad-Dreamin <camiyoru@gmail.com>", "OrangeX4 <orangex4@qq.com>", "mgt <mgt@oi-wiki.org>"]
+version = "0.2.7"
+license = "Apache-2.0"
+edition = "2021"
+homepage = "https://github.com/mitex-rs/mitex"
+repository = "https://github.com/mitex-rs/mitex"
+
+[features]
+glob-tests = []

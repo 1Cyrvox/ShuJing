@@ -1,0 +1,43 @@
+[package]
+name = "mitex-cli"
+description = "CLI for MiTeX."
+categories = ["compilers", "command-line-utilities"]
+keywords = ["cli", "language", "compiler", "latex", "typst"]
+authors = ["Myriad-Dreamin <camiyoru@gmail.com>", "OrangeX4 <orangex4@qq.com>", "mgt <mgt@oi-wiki.org>"]
+version = "0.2.7"
+license = "Apache-2.0"
+edition = "2021"
+homepage = "https://github.com/mitex-rs/mitex"
+repository = "https://github.com/mitex-rs/mitex"
+
+[[bin]]
+name = "mitex"
+path = "src/main.rs"
+test = false
+doctest = false
+bench = false
+doc = false
+
+[dependencies]
+
+mitex-spec-gen = { version = "0.2.7", path = "../../../mitex-spec-gen" }
+mitex-spec = { version = "0.2.7", path = "../mitex-spec" }
+mitex-parser = { version = "0.2.7", path = "../mitex-parser" }
+mitex = { version = "0.2.7", path = "../mitex" }
+clap = { version = "4.4", features = ["derive", "env", "unicode", "wrap_help"] }
+clap_builder = { version = "4", features = ["string"] }
+clap_complete = "4.4"
+clap_complete_fig = "4.4"
+clap_mangen = { version = "0.2.15" }
+serde = "1.0.188"
+serde_json = "1.0.106"
+anyhow = "1"
+[build-dependencies]
+anyhow = "1"
+vergen = { version = "8.2.5", features = ["build", "cargo", "git", "gitcl", "rustc"] }
+[lints.rust]
+unused = "allow"
+
+[features]
+prebuilt-spec = ["mitex-spec-gen/prebuilt"]
+generate-spec = ["mitex-spec-gen/generate"]

@@ -1,0 +1,35 @@
+[package]
+name = "mitex-wasm"
+description = "Wasm module which uses mitex, running in browsers and Typst"
+authors = ["Myriad-Dreamin <camiyoru@gmail.com>", "OrangeX4 <orangex4@qq.com>", "mgt <mgt@oi-wiki.org>"]
+version = "0.2.7"
+license = "Apache-2.0"
+edition = "2021"
+homepage = "https://github.com/mitex-rs/mitex"
+repository = "https://github.com/mitex-rs/mitex"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+
+mitex = { version = "0.2.7", path = "../mitex" }
+mitex-spec = { version = "0.2.7", path = "../mitex-spec" }
+serde = "1.0.188"
+serde_json = "1.0.106"
+wasm-bindgen = { version = "0.2.92", optional = true }
+wasm-minimal-protocol = { git = "https://github.com/astrale-sharp/wasm-minimal-protocol", optional = true }
+
+[features]
+rkyv = ["mitex-spec/rkyv", "mitex-spec/rkyv-validation"]
+web = ["wasm-bindgen"]
+typst-plugin = ["wasm-minimal-protocol"]
+spec-api = []
+
+default = ["rkyv"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-O', '--enable-bulk-memory']
+
+[lints.rust]
+unused = "allow"

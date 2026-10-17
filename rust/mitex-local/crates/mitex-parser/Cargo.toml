@@ -1,0 +1,30 @@
+[package]
+name = "mitex-parser"
+description = "Parser for MiTeX"
+authors = ["Myriad-Dreamin <camiyoru@gmail.com>", "OrangeX4 <orangex4@qq.com>", "mgt <mgt@oi-wiki.org>"]
+version = "0.2.7"
+license = "Apache-2.0"
+edition = "2021"
+homepage = "https://github.com/mitex-rs/mitex"
+repository = "https://github.com/mitex-rs/mitex"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bench]]
+name = "simple"
+harness = false
+
+[dependencies]
+
+mitex-glob = { version = "0.2.7", path = "../mitex-glob" }
+mitex-lexer = { version = "0.2.7", path = "../mitex-lexer" }
+mitex-spec = { version = "0.2.7", path = "../mitex-spec" }
+rowan = "0.15.15"
+[dev-dependencies]
+
+mitex-spec-gen = { version = "0.2.7", path = "../../../mitex-spec-gen" }
+once_cell = "1"
+insta = "1.39"
+divan = "0.1.14"
+[lints.rust]
+unused = "allow"

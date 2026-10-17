@@ -57,3 +57,21 @@ SPDX-License-Identifier = "Apache-2.0"
 path = ".github/CODE_OF_CONDUCT.md"
 SPDX-FileCopyrightText = ["Organization for Ethical Source", "2026 Academa, Inc."]
 SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+# the vendored mitex 0.2.7 (rust/mitex-local), unmodified from
+# https://github.com/mitex-rs/mitex tag 0.2.7; its own LICENSE files stay put
+[[annotations]]
+path = "rust/mitex-local/**"
+SPDX-FileCopyrightText = "the mitex authors (Myriad-Dreamin, OrangeX4, mgt)"
+SPDX-License-Identifier = "Apache-2.0"
+
+# ShuJing's own documents and helpers (the Chinese distribution layer)
+[[annotations]]
+path = ["docs/shujing/FIXES.md", "docs/shujing/README.md", "docs/shujing/上游同步合并方案.md"]
+SPDX-FileCopyrightText = "2026 爱派未来科技"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = ["docs/shujing/fix_film_hashes.py", "docs/shujing/pack_zip.py"]
+SPDX-FileCopyrightText = "2026 爱派未来科技"
+SPDX-License-Identifier = "MIT"

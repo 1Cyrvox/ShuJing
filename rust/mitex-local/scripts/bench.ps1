@@ -1,0 +1,1 @@
+hyperfine.exe 'typst compile --root . packages\mitex\examples\bench.typ' --warmup 10
